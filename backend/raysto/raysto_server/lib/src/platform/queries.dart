@@ -70,6 +70,16 @@ class PlatformQueries {
         'nextCursor': rows.length == limit ? rows.last['id'] : null,
       };
       switch (name) {
+        case 'room':
+          return ConversationModule.snapshot(w, d);
+        case 'room.events':
+          return ConversationModule.eventPage(w, d);
+        case 'assistant.run':
+          return AssistantModule.query(w, d);
+        case 'operations.snapshot':
+          return WorkspaceModule.snapshot(w, d);
+        case 'operations.threads':
+          return WorkspaceModule.threads(w, d);
         case 'reviews.manage':
         case 'admin.reviews':
           if (name == 'admin.reviews') {

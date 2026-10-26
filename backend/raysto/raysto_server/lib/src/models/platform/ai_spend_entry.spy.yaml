@@ -1,0 +1,14 @@
+class: AiSpendEntry
+table: raysto_ai_spend_entry
+serverOnly: true
+fields:
+  sourceKey: String
+  stage: String
+  reservedMicros: int
+  chargedMicros: int
+  settled: bool
+  createdAt: DateTime
+indexes:
+  spend_source:
+    fields: sourceKey
+    unique: true

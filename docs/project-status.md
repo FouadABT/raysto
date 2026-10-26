@@ -1,36 +1,29 @@
 # Project status
 
-Snapshot: **26 October 2026**. Mobile `0.10.0+2012`; latest recorded deployed backend `0.9.4`; separate web prototype `0.1.0`.
+Snapshot: **26 October 2026**. Android candidate `0.11.0+2013`; deployed backend `0.11.3`; console `0.11.2` at [ops.rays.to](https://ops.rays.to/ops). [Road to 10/10](road-to-10-10.md) records the detailed evidence, deployment boundaries and recovery procedure.
 
-Repository preparation did not rerun application tests, build an APK, deploy services or approve a payment. Source, observed execution and planned work are distinct below.
+| Area | Implemented and observed | Remaining acceptance |
+| --- | --- | --- |
+| Conversations | Native visit/order rooms, audience labels, host authority, preferences, replies, unread cursors, encrypted local drafts, pinned Menu/Order/Bill, private help and authorized event delivery. Two diners and one waiter exchanged the same persisted message; outsider access was denied and retries deduplicated. | Physical-device multi-person journey; richer grouped operational cards. |
+| Revocation and live delivery | Active-stream access ended and new reads were denied within 2.074 seconds in one QA check. Public first-frame checks took 1.469 and 1.642 seconds after correcting buffering. | Load measurements and broader interruption/device coverage. These timings are individual observations. |
+| Gemini | Real tools produced a $27 vegetarian basket under $30, unknown-allergen caveats, and two frozen $13.50 shares. The host explicitly approved/submitted the order. After correcting provider reuse and avoiding a redundant model round, a payment-status run completed with the actual provider status. | Fixed evaluation set, multilingual/conflicting/stale requests and pilot observations. Earlier deadline failures remain part of the evidence. |
+| PayPal | One reserved $13.50 checkout opens a real Sandbox approval handoff. REST reports `PAYER_ACTION_REQUIRED`. Generalized allocations, capture, refunds and reconciliation exist. | Two buyer approvals, captures, matching ledger/webhooks, partial refund and interrupted-return recovery. No capture is claimed. |
+| PayPal MCP | Strict read-only adapter, tool schema checks, bounded transport and source-labelled REST fallback. | Runtime initialization returned HTTP 404 from the documented endpoint. A successful MCP read is still required. |
+| Restaurant console | Firebase session sign-in, authorized shared records, floor plan, AG Grid, three AG Studio widgets and a server assistant. Manager request selected the bill-requested/unpaid table and displayed its tool result and USD 27 explanation. Saved attention filter, panels and conversation recovered after reload. | Physical-device coordination and AG evaluation license extension beyond December 10. |
+| Existing business modules | Catalogue, prices/orders, dining/reservations, fulfillment, support/privacy, media import, notifications, marketplace/subscription source and permission controls remain available. | Live marketplace approval, commercial billing, transactional email, phone Google sign-in/guest admission/FCM and complete business acceptance. |
+| Deployment | Isolated Raysto backend/console releases on AWS with health checks, retained rollback releases and database backups. Awhar service/configuration and PostgreSQL major version preserved. Live money disabled. | Off-host restore rehearsal, alert routing, clean-checkout reproduction and final reviewer release. |
 
-| Area | Evidence / boundary |
-| --- | --- |
-| Connected mobile/backend | Screens and commands cover discovery, menu/cart/quote/order, visits, service, bills, reservations, kitchen/couriers, management, support and privacy. Not every combination has device acceptance. |
-| Identity | Selected live temporary-account and revocation checks recorded. SQL memberships govern business access. Google account-picker/inbox flows and guest device attestation still need acceptance. |
-| Operations | Recorded live QA includes menu/quote/order, cash/idempotency, kitchen/pickup, visit privacy/invitations/service/closure/reset. Selected evidence, not exhaustive concurrency coverage. |
-| AI/files | Recorded quarantine/sanitization checks and real Gemini draft generation. Publication requires review. Multi-person conversational AI is not implemented. |
-| PayPal | Sandbox order creation and approval handoff observed. Capture/reconciliation and v2 allocations/refund source exist. Complete real buyer approval → capture → partial refund → verified webhook acceptance is pending. |
-| Marketplace/billing | Source exists; live approval, merchant capabilities, separate subscription credentials/plans and commercial configuration are pending. Live payments remain disabled. |
-| Notifications | Inbox/outbox and FCM source exists. Physical-device push receipt and transactional email acceptance are pending. |
-| Mobile design | Recorded 17 focused checks, clean analysis, nine inspected widget renders and an Android build for the art release. Full assistive-technology/device review remains separate. |
-| Web / AG Grid | Browser-local Next.js prototype with AG Grid Community and recorded prototype checks. No connected restaurant console or AG Studio yet. |
-| Conversations | Existing customer/staff support thread. Multi-diner visit rooms, explicit audiences, action cards and chat-grade delivery/reconnect are proposed work. |
-| Release hardening | iOS build, store signing, complete device review, off-host restore rehearsal, load measurements and alert routing remain pending. |
+## Validation evidence
 
-## Recorded validation
+Focused checks comprised **36 selected backend tests**, followed by **one event-transport and two factual-summary tests**, plus **six selected Flutter tests**. These are distinct runs, not one full-suite total. The narrow-screen room check includes 2× text and an open keyboard. TypeScript SDK/console and Linux backend/console compilation passed. Android candidate is for direct testing with development signing; iOS is separate.
 
-The integration release records **22 backend checks** and **50 mobile checks**. The later art release records **17 focused checks**. These describe different runs and should not be added into one claimed suite. [Integration report](mobile-backend-integration.md) · [Art report](mobile-art-direction.md).
+Historical evidence is retained in [mobile integration](mobile-backend-integration.md), [art direction](mobile-art-direction.md), [web prototype](web-phase-1.md) and [web design](web-creative-direction.md). Their earlier scope statements are not current release status.
 
-The web records six domain tests and browser coverage in [web phase 1](web-phase-1.md) and [web creative direction](web-creative-direction.md). Raw local logs and private provider records are not published. Reproduction commands are in [setup](getting-started.md) and [CONTRIBUTING.md](../CONTRIBUTING.md).
+## Before submission
 
-## Submission gates
+- Complete the two-buyer Sandbox journey and successful MCP read.
+- Run the fixed AI evaluation and physical-device acceptance on the actual candidate.
+- Record three small restaurant/diner pilot sessions with permission; no findings or adoption metrics exist yet.
+- Extend the AG trial through December 15, reproduce from clean source, and publish the exact versioned APK/checksum with the final release tag.
 
-- Complete the connected table-room journey across two diners and one staff session.
-- Demonstrate real Sandbox approval, capture, recovery, partial refund and verified webhook delivery, separately from UI fixtures.
-- Connect the restaurant workspace to the same records before presenting it as live AG Grid/AG Studio operations.
-- Verify a clean checkout and the exact reviewer build; publish a versioned artifact/checksum when ready.
-- Record usability observations without inventing adoption, performance or business metrics.
-- Keep access available through judging; recheck external service/trial eligibility before submission.
-
-No claim of production readiness, guaranteed contest score or live-money acceptance is made.
+The implementation is a connected integration candidate. It is not described as production-secure, approved for live money, or guaranteed to win.

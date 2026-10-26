@@ -12,6 +12,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:raysto_client/src/protocol/protocol.dart' as _iksyuhhm;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import '../platform/charge_share.dart' as _iz7ehvxk;
 
 abstract class AllocatePayment
     implements _isc.SerializableModel, _isc.ProtocolSerialization {
@@ -22,6 +23,8 @@ abstract class AllocatePayment
     this.orderId,
     this.amountMinor,
     this.lineKeys,
+    this.shares,
+    this.assistantProposalId,
     required this.method,
   });
 
@@ -32,6 +35,8 @@ abstract class AllocatePayment
     int? orderId,
     int? amountMinor,
     List<String>? lineKeys,
+    List<_iz7ehvxk.ChargeShare>? shares,
+    int? assistantProposalId,
     required String method,
   }) = _AllocatePaymentImpl;
 
@@ -47,6 +52,12 @@ abstract class AllocatePayment
           : _iksyuhhm.Protocol().deserialize<List<String>>(
               jsonSerialization['lineKeys'],
             ),
+      shares: jsonSerialization['shares'] == null
+          ? null
+          : _iksyuhhm.Protocol().deserialize<List<_iz7ehvxk.ChargeShare>>(
+              jsonSerialization['shares'],
+            ),
+      assistantProposalId: jsonSerialization['assistantProposalId'] as int?,
       method: jsonSerialization['method'] as String,
     );
   }
@@ -63,6 +74,10 @@ abstract class AllocatePayment
 
   List<String>? lineKeys;
 
+  List<_iz7ehvxk.ChargeShare>? shares;
+
+  int? assistantProposalId;
+
   String method;
 
   /// Returns a shallow copy of this [AllocatePayment]
@@ -75,6 +90,8 @@ abstract class AllocatePayment
     int? orderId,
     int? amountMinor,
     List<String>? lineKeys,
+    List<_iz7ehvxk.ChargeShare>? shares,
+    int? assistantProposalId,
     String? method,
   });
   @override
@@ -87,6 +104,10 @@ abstract class AllocatePayment
       if (orderId != null) 'orderId': orderId,
       if (amountMinor != null) 'amountMinor': amountMinor,
       if (lineKeys != null) 'lineKeys': lineKeys?.toJson(),
+      if (shares != null)
+        'shares': shares?.toJson(valueToJson: (v) => v.toJson()),
+      if (assistantProposalId != null)
+        'assistantProposalId': assistantProposalId,
       'method': method,
     };
   }
@@ -101,6 +122,10 @@ abstract class AllocatePayment
       if (orderId != null) 'orderId': orderId,
       if (amountMinor != null) 'amountMinor': amountMinor,
       if (lineKeys != null) 'lineKeys': lineKeys?.toJson(),
+      if (shares != null)
+        'shares': shares?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
+      if (assistantProposalId != null)
+        'assistantProposalId': assistantProposalId,
       'method': method,
     };
   }
@@ -121,6 +146,8 @@ class _AllocatePaymentImpl extends AllocatePayment {
     int? orderId,
     int? amountMinor,
     List<String>? lineKeys,
+    List<_iz7ehvxk.ChargeShare>? shares,
+    int? assistantProposalId,
     required String method,
   }) : super._(
          requestKey: requestKey,
@@ -129,6 +156,8 @@ class _AllocatePaymentImpl extends AllocatePayment {
          orderId: orderId,
          amountMinor: amountMinor,
          lineKeys: lineKeys,
+         shares: shares,
+         assistantProposalId: assistantProposalId,
          method: method,
        );
 
@@ -143,6 +172,8 @@ class _AllocatePaymentImpl extends AllocatePayment {
     Object? orderId = _Undefined,
     Object? amountMinor = _Undefined,
     Object? lineKeys = _Undefined,
+    Object? shares = _Undefined,
+    Object? assistantProposalId = _Undefined,
     String? method,
   }) {
     return AllocatePayment(
@@ -154,6 +185,12 @@ class _AllocatePaymentImpl extends AllocatePayment {
       lineKeys: lineKeys is List<String>?
           ? lineKeys
           : this.lineKeys?.map((e0) => e0).toList(),
+      shares: shares is List<_iz7ehvxk.ChargeShare>?
+          ? shares
+          : this.shares?.map((e0) => e0.copyWith()).toList(),
+      assistantProposalId: assistantProposalId is int?
+          ? assistantProposalId
+          : this.assistantProposalId,
       method: method ?? this.method,
     );
   }

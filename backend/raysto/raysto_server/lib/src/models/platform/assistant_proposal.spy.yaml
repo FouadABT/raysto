@@ -1,0 +1,19 @@
+class: AssistantProposal
+table: raysto_assistant_proposal
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  roomId: int?, relation(parent=raysto_conversation_room)
+  runId: int, relation(parent=raysto_assistant_run)
+  userId: String
+  kind: String
+  payloadJson: String
+  contextHash: String
+  status: String
+  version: int
+  expiresAt: DateTime
+  createdAt: DateTime
+indexes:
+  proposal_run:
+    fields: runId
+    unique: true

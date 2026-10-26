@@ -26,6 +26,8 @@ abstract class CheckoutIntent
     required this.providerRequestId,
     this.providerOrderId,
     required this.merchantId,
+    String? providerMode,
+    this.splitPlanId,
     this.approvalUrl,
     required this.state,
     required this.method,
@@ -35,7 +37,7 @@ abstract class CheckoutIntent
     required this.commissionBps,
     required this.createdAt,
     required this.updatedAt,
-  });
+  }) : providerMode = providerMode ?? 'marketplace';
 
   factory CheckoutIntent({
     int? id,
@@ -49,6 +51,8 @@ abstract class CheckoutIntent
     required String providerRequestId,
     String? providerOrderId,
     required String merchantId,
+    String? providerMode,
+    int? splitPlanId,
     String? approvalUrl,
     required String state,
     required String method,
@@ -73,6 +77,8 @@ abstract class CheckoutIntent
       providerRequestId: jsonSerialization['providerRequestId'] as String,
       providerOrderId: jsonSerialization['providerOrderId'] as String?,
       merchantId: jsonSerialization['merchantId'] as String,
+      providerMode: jsonSerialization['providerMode'] as String?,
+      splitPlanId: jsonSerialization['splitPlanId'] as int?,
       approvalUrl: jsonSerialization['approvalUrl'] as String?,
       state: jsonSerialization['state'] as String,
       method: jsonSerialization['method'] as String,
@@ -116,6 +122,10 @@ abstract class CheckoutIntent
 
   String merchantId;
 
+  String providerMode;
+
+  int? splitPlanId;
+
   String? approvalUrl;
 
   String state;
@@ -152,6 +162,8 @@ abstract class CheckoutIntent
     String? providerRequestId,
     String? providerOrderId,
     String? merchantId,
+    String? providerMode,
+    int? splitPlanId,
     String? approvalUrl,
     String? state,
     String? method,
@@ -177,6 +189,8 @@ abstract class CheckoutIntent
       'providerRequestId': providerRequestId,
       if (providerOrderId != null) 'providerOrderId': providerOrderId,
       'merchantId': merchantId,
+      'providerMode': providerMode,
+      if (splitPlanId != null) 'splitPlanId': splitPlanId,
       if (approvalUrl != null) 'approvalUrl': approvalUrl,
       'state': state,
       'method': method,
@@ -237,6 +251,8 @@ class _CheckoutIntentImpl extends CheckoutIntent {
     required String providerRequestId,
     String? providerOrderId,
     required String merchantId,
+    String? providerMode,
+    int? splitPlanId,
     String? approvalUrl,
     required String state,
     required String method,
@@ -258,6 +274,8 @@ class _CheckoutIntentImpl extends CheckoutIntent {
          providerRequestId: providerRequestId,
          providerOrderId: providerOrderId,
          merchantId: merchantId,
+         providerMode: providerMode,
+         splitPlanId: splitPlanId,
          approvalUrl: approvalUrl,
          state: state,
          method: method,
@@ -285,6 +303,8 @@ class _CheckoutIntentImpl extends CheckoutIntent {
     String? providerRequestId,
     Object? providerOrderId = _Undefined,
     String? merchantId,
+    String? providerMode,
+    Object? splitPlanId = _Undefined,
     Object? approvalUrl = _Undefined,
     String? state,
     String? method,
@@ -309,6 +329,8 @@ class _CheckoutIntentImpl extends CheckoutIntent {
           ? providerOrderId
           : this.providerOrderId,
       merchantId: merchantId ?? this.merchantId,
+      providerMode: providerMode ?? this.providerMode,
+      splitPlanId: splitPlanId is int? ? splitPlanId : this.splitPlanId,
       approvalUrl: approvalUrl is String? ? approvalUrl : this.approvalUrl,
       state: state ?? this.state,
       method: method ?? this.method,
@@ -374,6 +396,16 @@ class CheckoutIntentUpdateTable extends _is.UpdateTable<CheckoutIntentTable> {
 
   _is.ColumnValue<String, String> merchantId(String value) => _is.ColumnValue(
     table.merchantId,
+    value,
+  );
+
+  _is.ColumnValue<String, String> providerMode(String value) => _is.ColumnValue(
+    table.providerMode,
+    value,
+  );
+
+  _is.ColumnValue<int, int> splitPlanId(int? value) => _is.ColumnValue(
+    table.splitPlanId,
     value,
   );
 
@@ -469,6 +501,15 @@ class CheckoutIntentTable extends _is.Table<int?> {
       'merchantId',
       this,
     );
+    providerMode = _is.ColumnString(
+      'providerMode',
+      this,
+      hasDefault: true,
+    );
+    splitPlanId = _is.ColumnInt(
+      'splitPlanId',
+      this,
+    );
     approvalUrl = _is.ColumnString(
       'approvalUrl',
       this,
@@ -529,6 +570,10 @@ class CheckoutIntentTable extends _is.Table<int?> {
 
   late final _is.ColumnString merchantId;
 
+  late final _is.ColumnString providerMode;
+
+  late final _is.ColumnInt splitPlanId;
+
   late final _is.ColumnString approvalUrl;
 
   late final _is.ColumnString state;
@@ -560,6 +605,8 @@ class CheckoutIntentTable extends _is.Table<int?> {
     providerRequestId,
     providerOrderId,
     merchantId,
+    providerMode,
+    splitPlanId,
     approvalUrl,
     state,
     method,

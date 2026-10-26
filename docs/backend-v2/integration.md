@@ -75,6 +75,40 @@ Use `restaurantId=0` for the caller's private inbox events, and a positive resta
 
 Reports accept only predefined report names, tenant, UTC range (maximum 93 days), cursor and limit. AG Grid should map user actions to these fields; SQL strings, arbitrary sort/filter expressions and raw grid query objects are not accepted. Exports use authenticated private download paths, with expiry checks, rather than public storage URLs.
 
-## Source regeneration
+## Rooms and conversational assistance
+
+The same authorization and command handlers serve generated Dart requests, generic REST commands, and additive resource aliases:
+
+| Method and path | Purpose |
+| --- | --- |
+| `POST /api/v2/rooms/open` | Resolve the caller's authorized visit/order room |
+| `GET /api/v2/rooms/{id}?restaurantId=…&before=…` | Bounded snapshot/history; table QR alone grants no access |
+| `POST /api/v2/rooms/{id}/messages` | Send with a stable client message ID and optional same-room reply |
+| `POST /api/v2/rooms/{id}/read` | Advance the caller's read cursor |
+| `POST /api/v2/rooms/{id}/preferences` | Explicitly share preferences or mute suggestions |
+| `POST /api/v2/assistant/runs` | Start a bounded run for an authorized room |
+| `GET /api/v2/assistant/runs/{id}?restaurantId=…` | Status, sanitized tools, answer and reviewable proposal |
+| `POST /api/v2/assistant/runs/{id}/cancel` | Cancel without publishing a late result |
+| `POST /api/v2/assistant/proposals/{id}/approve` | Approve the exact expected proposal version |
+| `GET /api/v2/operations/snapshot?restaurantId=…` | Current role-restricted operational records |
+| `POST /api/v2/operations/layout` | Persist validated presentation state |
+
+Writes retain the command envelope above. IDs in the route override body IDs. For example, a message body is:
+
+```json
+{
+  "requestKey": "room-message-request-0001",
+  "restaurantId": 12,
+  "dataJson": "{\"clientMessageId\":\"phone-message-unique-0001\",\"text\":\"Could we have water, please?\"}"
+}
+```
+
+Send it to `/api/v2/rooms/24/messages`. Its receipt means persisted delivery to the room, not staff acknowledgement. Reconnect using ordered sequences and refresh the authorized snapshot; never merge another identity's pending messages after logout. Authentication/current Firebase proof is required during streams as well as initial connection.
+
+Exact split payments add `shares: [{chargeId, amountMinor, expectedVersion}]` and, where applicable, `assistantProposalId` to `AllocatePayment`. A frozen equal split records every participant's original share. The second payer does not pay half of the reduced remaining bill. One unresolved visit checkout prevents competing reservations; new rounds require another reviewed split. A proposal approval does not authorize another person's payment.
+
+The console's custom AG Studio harness invokes `operations.assistant`. Its allowed presentation tools select filters/layouts only. Payment status includes the actual `paypal_mcp` or `paypal_rest` source; fallback must never be presented as successful MCP evidence.
+
+## Source regeneration commands
 
 After source-model or endpoint edits, use the Serverpod MCP if connected; the pinned bootstrap CLI fallback is `backend/backend.ps1 -Action generate`. `python backend/tools/export_platform_contracts.py` exports OpenAPI, the TypeScript client, dictionary and capability index. `backend/tools/export_system_maps.py` renders documentation diagrams. Neither exporter starts application services.

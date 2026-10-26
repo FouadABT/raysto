@@ -11,6 +11,7 @@ fields:
   currency: String
   expiresAt: DateTime
   consumedOrderId: int?
+  assistantProposalId: int?, relation(parent=raysto_assistant_proposal)
   createdAt: DateTime
 indexes:
   quote_actor:

@@ -26,6 +26,7 @@ import 'domain_error.dart' as _immikmlr;
 import 'menu_product.dart' as _i0rg43cj;
 import 'order_line.dart' as _i7utqy3k;
 import 'platform/allocate_payment.dart' as _iho8f24j;
+import 'platform/charge_share.dart' as _iaiv5uup;
 import 'platform/create_quote.dart' as _ihuzea45;
 import 'platform/platform_command.dart' as _in5mt2du;
 import 'platform/platform_event.dart' as _i46ou76b;
@@ -43,6 +44,7 @@ export 'domain_error.dart';
 export 'menu_product.dart';
 export 'order_line.dart';
 export 'platform/allocate_payment.dart';
+export 'platform/charge_share.dart';
 export 'platform/create_quote.dart';
 export 'platform/platform_command.dart';
 export 'platform/platform_event.dart';
@@ -108,6 +110,9 @@ class Protocol extends _isc.SerializationManager {
     if (t == _iho8f24j.AllocatePayment) {
       return _iho8f24j.AllocatePayment.fromJson(data) as T;
     }
+    if (t == _iaiv5uup.ChargeShare) {
+      return _iaiv5uup.ChargeShare.fromJson(data) as T;
+    }
     if (t == _ihuzea45.CreateQuote) {
       return _ihuzea45.CreateQuote.fromJson(data) as T;
     }
@@ -161,6 +166,9 @@ class Protocol extends _isc.SerializationManager {
       return (data != null ? _iho8f24j.AllocatePayment.fromJson(data) : null)
           as T;
     }
+    if (t == _isc.getType<_iaiv5uup.ChargeShare?>()) {
+      return (data != null ? _iaiv5uup.ChargeShare.fromJson(data) : null) as T;
+    }
     if (t == _isc.getType<_ihuzea45.CreateQuote?>()) {
       return (data != null ? _ihuzea45.CreateQuote.fromJson(data) : null) as T;
     }
@@ -207,6 +215,20 @@ class Protocol extends _isc.SerializationManager {
     if (t == _isc.getType<List<String>?>()) {
       return (data != null
               ? (data as List).map((e) => deserialize<String>(e)).toList()
+              : null)
+          as T;
+    }
+    if (t == List<_iaiv5uup.ChargeShare>) {
+      return (data as List)
+              .map((e) => deserialize<_iaiv5uup.ChargeShare>(e))
+              .toList()
+          as T;
+    }
+    if (t == _isc.getType<List<_iaiv5uup.ChargeShare>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_iaiv5uup.ChargeShare>(e))
+                    .toList()
               : null)
           as T;
     }
@@ -257,6 +279,7 @@ class Protocol extends _isc.SerializationManager {
       _i0rg43cj.MenuProduct => 'MenuProduct',
       _i7utqy3k.OrderLine => 'OrderLine',
       _iho8f24j.AllocatePayment => 'AllocatePayment',
+      _iaiv5uup.ChargeShare => 'ChargeShare',
       _ihuzea45.CreateQuote => 'CreateQuote',
       _in5mt2du.PlatformCommand => 'PlatformCommand',
       _i46ou76b.PlatformEvent => 'PlatformEvent',
@@ -294,6 +317,8 @@ class Protocol extends _isc.SerializationManager {
         return 'OrderLine';
       case _iho8f24j.AllocatePayment():
         return 'AllocatePayment';
+      case _iaiv5uup.ChargeShare():
+        return 'ChargeShare';
       case _ihuzea45.CreateQuote():
         return 'CreateQuote';
       case _in5mt2du.PlatformCommand():
@@ -355,6 +380,9 @@ class Protocol extends _isc.SerializationManager {
     }
     if (dataClassName == 'AllocatePayment') {
       return deserialize<_iho8f24j.AllocatePayment>(data['data']);
+    }
+    if (dataClassName == 'ChargeShare') {
+      return deserialize<_iaiv5uup.ChargeShare>(data['data']);
     }
     if (dataClassName == 'CreateQuote') {
       return deserialize<_ihuzea45.CreateQuote>(data['data']);

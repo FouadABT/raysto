@@ -112,6 +112,12 @@ Future<void> scanTable(BuildContext c, LiveContext live) async {
         const Text(
           'A table code identifies the table. Staff can confirm your seating or share a separate invitation to join the party.',
         ),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            'Joining opens a room shared with admitted diners and the assigned waiter. Restaurant managers can access it for service. Private help is available separately.',
+          ),
+        ),
         AppButton(
           label: 'Start a visit',
           onPressed: () async {
@@ -127,7 +133,7 @@ Future<void> scanTable(BuildContext c, LiveContext live) async {
               ],
             );
             if (visit != null && c.mounted) {
-              await push(c, visitPage(tenant, visit['id']));
+              await push(c, TableRoomPage(live: tenant, visitId: visit['id']));
             }
           },
         ),
@@ -142,7 +148,10 @@ Future<void> scanTable(BuildContext c, LiveContext live) async {
               fields: const [InputSpec('token', 'Invitation code')],
             );
             if (visit != null && c.mounted) {
-              await push(c, visitPage(tenant, visit['visitId']));
+              await push(
+                c,
+                TableRoomPage(live: tenant, visitId: visit['visitId']),
+              );
             }
           },
         ),

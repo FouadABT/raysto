@@ -1,0 +1,15 @@
+class: BillSplitPlan
+table: raysto_bill_split_plan
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  roomId: int, relation(parent=raysto_conversation_room)
+  activeRoomId: int?
+  createdBy: String
+  payersJson: String
+  sharesJson: String
+  createdAt: DateTime
+indexes:
+  split_active_room:
+    fields: activeRoomId
+    unique: true

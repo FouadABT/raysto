@@ -1,6 +1,6 @@
-# Deferred acceptance matrix
+# Acceptance matrix
 
-Status for every runtime scenario below: **NOT EXECUTED**. The owner's instruction defers tests, builds, load checks, provider probes and rollout. Static analysis and source generation are not substitutes.
+This is the complete target matrix, not a blanket pass report. The owner subsequently authorized targeted validation and isolated deployment. Selected execution evidence is in [current status](../project-status.md) and [Road to 10/10](../road-to-10-10.md); unrecorded scenarios remain pending. Static analysis and source generation are not substitutes for runtime evidence.
 
 Automated definitions added: `test/unit/platform_invariants_test.dart`, `test/integration/platform_domain_test.dart`. Existing isolated commerce, concurrency and Sandbox definitions remain. Additional provider/device and operational scenarios below are explicit release evidence requirements rather than fabricated automated coverage.
 
@@ -26,6 +26,6 @@ Automated definitions added: `test/unit/platform_invariants_test.dart`, `test/in
 
 For each scenario record: source artifact hash, isolated environment/database, actor roles, setup, input/request IDs, expected result, actual result, sanitized SQL/provider evidence, reviewer and date. Do not record credentials, account passwords or raw identity tokens. Any failure blocks the relevant release gate.
 
-## Authorized future execution order
+## Execution order
 
-After the owner explicitly resumes verification: validate SQL on the isolated cluster; run unit then integration/concurrency definitions; add missing automated cases where failures or complexity justify them; perform Sandbox/provider/device checks; test recovery; build the deployment artifact; then review activation. Keep source completion, verified functionality and production activation as separate statuses.
+Validate SQL on the isolated cluster; run focused unit then integration/concurrency definitions; add missing automated cases where failures or complexity justify them; perform Sandbox/provider/device checks; test recovery; build the deployment artifact; then review activation. Keep source completion, verified functionality and production activation as separate statuses. Never run acceptance tests against Awhar or a shared production database.

@@ -7,6 +7,11 @@ export interface PlatformCommand {
   expectedVersion?: number | null;
   dataJson: string;
 }
+export interface ChargeShare {
+  chargeId: number;
+  amountMinor: number;
+  expectedVersion: number;
+}
 export interface CreateQuote {
   requestKey: string;
   restaurantId: number;
@@ -37,6 +42,8 @@ export interface AllocatePayment {
   orderId?: number | null;
   amountMinor?: number | null;
   lineKeys?: string[] | null;
+  shares?: ChargeShare[] | null;
+  assistantProposalId?: number | null;
   method: string;
 }
 export interface RequestRefund {
@@ -46,8 +53,8 @@ export interface RequestRefund {
   amountMinor: number;
   reason: string;
 }
-export type CommandName = "admin.paymentException" | "admin.plan" | "admin.reconcileRefund" | "admin.replayJob" | "admin.suspend" | "ai.approve" | "ai.cancel" | "ai.start" | "billing.cancel" | "billing.refresh" | "billing.subscribe" | "cart.save" | "delivery.assign" | "delivery.location" | "delivery.transition" | "favorite.set" | "floor.save" | "identity.claim" | "identity.claimTicket" | "identity.privacy" | "identity.profile" | "identity.revokeSessions" | "identity.stepUp" | "kitchen.progress" | "media.publish" | "media.upload" | "menu.availability" | "menu.draft" | "menu.publishDraft" | "menu.save" | "merchant.connect" | "merchant.refresh" | "notification.update" | "order.cancel" | "order.transition" | "payment.cancel" | "payment.capture" | "payment.checkout" | "reservation.create" | "reservation.transition" | "restaurant.configure" | "restaurant.create" | "restaurant.publish" | "review.moderate" | "review.save" | "service.create" | "service.transition" | "support.message" | "support.open" | "support.transition" | "table.reset" | "table.save" | "team.accept" | "team.invite" | "team.membership" | "team.transfer" | "visit.close" | "visit.invite" | "visit.join" | "visit.leave" | "visit.move" | "waitlist.join" | "waitlist.transition";
-export type QueryName = "admin.financialCases" | "admin.jobs" | "admin.paymentExceptions" | "admin.revenue" | "admin.reviews" | "ai" | "ai.jobs" | "availability" | "billing" | "billing.history" | "cart" | "checkout" | "checkouts" | "deliveries" | "delivery.tracking" | "discovery" | "exports" | "favorites" | "floor" | "kitchen" | "me" | "media" | "menu.drafts" | "menu.manage" | "notifications" | "order" | "orders" | "payment.exceptions" | "report" | "reservations" | "restaurant.manage" | "reviews.manage" | "services" | "storefront" | "support" | "support.inbox" | "table.resolve" | "team" | "visit" | "visits" | "waitlist";
+export type CommandName = "admin.paymentException" | "admin.plan" | "admin.reconcileRefund" | "admin.replayJob" | "admin.suspend" | "ai.approve" | "ai.cancel" | "ai.start" | "assistant.approve" | "assistant.cancel" | "assistant.start" | "billing.cancel" | "billing.refresh" | "billing.subscribe" | "cart.save" | "delivery.assign" | "delivery.location" | "delivery.transition" | "favorite.set" | "floor.save" | "identity.claim" | "identity.claimTicket" | "identity.privacy" | "identity.profile" | "identity.revokeSessions" | "identity.stepUp" | "kitchen.progress" | "media.publish" | "media.upload" | "menu.availability" | "menu.draft" | "menu.publishDraft" | "menu.save" | "merchant.connect" | "merchant.refresh" | "notification.update" | "operations.archiveThread" | "operations.layout" | "order.cancel" | "order.transition" | "payment.cancel" | "payment.capture" | "payment.checkout" | "reservation.create" | "reservation.transition" | "restaurant.configure" | "restaurant.create" | "restaurant.publish" | "review.moderate" | "review.save" | "room.host" | "room.message" | "room.open" | "room.preferences" | "room.read" | "room.report" | "room.split.reset" | "service.create" | "service.transition" | "support.message" | "support.open" | "support.transition" | "table.reset" | "table.save" | "team.accept" | "team.invite" | "team.membership" | "team.transfer" | "visit.close" | "visit.invite" | "visit.join" | "visit.leave" | "visit.move" | "waitlist.join" | "waitlist.transition";
+export type QueryName = "admin.financialCases" | "admin.jobs" | "admin.paymentExceptions" | "admin.revenue" | "admin.reviews" | "ai" | "ai.jobs" | "assistant.run" | "availability" | "billing" | "billing.history" | "cart" | "checkout" | "checkouts" | "deliveries" | "delivery.tracking" | "discovery" | "exports" | "favorites" | "floor" | "kitchen" | "me" | "media" | "menu.drafts" | "menu.manage" | "notifications" | "operations.snapshot" | "operations.threads" | "order" | "orders" | "payment.exceptions" | "report" | "reservations" | "restaurant.manage" | "reviews.manage" | "room" | "room.events" | "services" | "storefront" | "support" | "support.inbox" | "table.resolve" | "team" | "visit" | "visits" | "waitlist";
 export interface Credentials { bearer: string; firebaseIdToken?: string; appCheck?: string }
 export interface ApiError { code: string; requestId: string; message?: string; retryable?: boolean; fieldErrors?: Json[] }
 export class RaystoApiError extends Error { constructor(public readonly detail: ApiError, public readonly status: number) { super(detail.message ?? detail.code); } }

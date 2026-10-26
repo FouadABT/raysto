@@ -51,6 +51,162 @@ class PlatformApi {
   Future<RecordData> query(String name, [RecordData parameters = const {}]) =>
       _request('GET', 'queries/$name', parameters: parameters);
 
+  String _draftKey(String owner, int restaurant, int room) =>
+      'raysto.room.draft.${sha256.convert(utf8.encode('$origin:$owner:$restaurant:$room'))}';
+
+  Future<RecordData?> readRoomDraft(int restaurant, int room) async {
+    final owner = identity();
+    if (owner == null || journal == null) return null;
+    final raw = await journal!.read(key: _draftKey(owner, restaurant, room));
+    _sameIdentity(owner);
+    if (raw == null) return null;
+    try {
+      final value = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+      final at = DateTime.tryParse('${value['savedAt']}');
+      if (at == null || DateTime.now().difference(at).inDays >= 7) {
+        await journal!.delete(key: _draftKey(owner, restaurant, room));
+        return null;
+      }
+      return value;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  Future<void> saveRoomDraft(
+    int restaurant,
+    int room,
+    RecordData? draft,
+  ) async {
+    final owner = identity();
+    if (owner == null || journal == null) return;
+    final key = _draftKey(owner, restaurant, room);
+    final write = _journalWrites.then((_) async {
+      _sameIdentity(owner);
+      if (draft == null) {
+        await journal!.delete(key: key);
+      } else {
+        await journal!.write(
+          key: key,
+          value: jsonEncode({
+            ...draft,
+            'savedAt': DateTime.now().toUtc().toIso8601String(),
+          }),
+        );
+      }
+    });
+    _journalWrites = write.catchError((Object _) {});
+    await write;
+  }
+
+  /// A separate transport is owned by each subscription and closed on cancel.
+  /// Credentials are refreshed on reconnect, never placed in the URL.
+  Stream<RecordData> watchRoom(int restaurantId, int roomId, int after) async* {
+    final owner = identity();
+    final client = http.Client();
+    var cursor = after;
+    var failures = 0;
+    try {
+      while (true) {
+        _sameIdentity(owner);
+        try {
+          final request =
+              http.Request(
+                  'GET',
+                  origin
+                      .resolve('/api/v2/rooms/$roomId/events')
+                      .replace(
+                        queryParameters: {
+                          'restaurantId': '$restaurantId',
+                          'after': '$cursor',
+                        },
+                      ),
+                )
+                ..headers.addAll({
+                  ...await headers(),
+                  'Accept': 'text/event-stream',
+                });
+          _sameIdentity(owner);
+          final response = await client
+              .send(request)
+              .timeout(const Duration(seconds: 30));
+          if (response.statusCode == 401 &&
+              refreshCredentials != null &&
+              failures == 0) {
+            await response.stream.listen(null).cancel();
+            await refreshCredentials!();
+            failures++;
+            continue;
+          }
+          if (response.statusCode != 200) {
+            await response.stream.listen(null).cancel();
+            throw PlatformFailure(
+              response.statusCode == 401 ||
+                      response.statusCode == 403 ||
+                      response.statusCode == 404
+                  ? 'room_access_ended'
+                  : 'stream_unavailable',
+              'Live conversation is unavailable.',
+            );
+          }
+          final data = <String>[];
+          var bytes = 0;
+          await for (final line
+              in response.stream
+                  .timeout(const Duration(seconds: 35))
+                  .transform(utf8.decoder)
+                  .transform(const LineSplitter())) {
+            _sameIdentity(owner);
+            bytes += line.length;
+            if (bytes > 1048576) {
+              throw const PlatformFailure(
+                'stream_limit',
+                'Live update exceeded its limit.',
+              );
+            }
+            if (line.startsWith('data:')) {
+              data.add(line.substring(5).trimLeft());
+            }
+            if (line.isEmpty && data.isNotEmpty) {
+              final event = Map<String, dynamic>.from(
+                jsonDecode(data.join('\n')) as Map,
+              );
+              data.clear();
+              bytes = 0;
+              if (event['kind'] == 'access.error') {
+                throw const PlatformFailure(
+                  'room_access_ended',
+                  'Your conversation access ended.',
+                );
+              }
+              if (event['cursor'] is int) cursor = event['cursor'] as int;
+              failures = 0;
+              yield event;
+            }
+          }
+        } on PlatformFailure catch (e) {
+          if ({'room_access_ended', 'session_changed'}.contains(e.code)) {
+            rethrow;
+          }
+          if (++failures >= 3) rethrow;
+          yield {'kind': 'reconnecting'};
+          await Future<void>.delayed(Duration(seconds: failures * 2));
+        } on Exception {
+          if (++failures >= 3) {
+            throw const PlatformFailure(
+              'stream_unavailable',
+              'Live updates disconnected. Refresh to reconnect.',
+            );
+          }
+          yield {'kind': 'reconnecting'};
+          await Future<void>.delayed(Duration(seconds: failures * 2));
+        }
+      }
+    } finally {
+      client.close();
+    }
+  }
+
   Future<RecordData> submit(PendingCommand command) async {
     final owner = identity();
     final store = journal;

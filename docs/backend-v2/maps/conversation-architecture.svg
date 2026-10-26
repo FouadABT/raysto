@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1260" viewBox="0 0 1680 1260"><rect width="100%" height="100%" fill="#f6f3e9"/>
+<text x="60" y="78" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="43" font-weight="700">raysto  /  AI at the table. People in control.</text>
+<text x="60" y="122" fill="#63776b" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="22" font-weight="400">Road to 10/10 · Connected architecture · Integration candidate, 26 October 2026</text>
+<rect x="60" y="165" width="480" height="155" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="84" y="210" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Diners · Flutter</text>
+<text x="84" y="250" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Join an admitted visit room</text>
+<text x="84" y="281" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Review order and personal share</text>
+<text x="84" y="312" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Approve in real PayPal Sandbox</text>
+<rect x="600" y="165" width="480" height="155" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="624" y="210" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Waiter · Flutter</text>
+<text x="624" y="250" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Same visit and conversation</text>
+<text x="624" y="281" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Service acknowledgement</text>
+<text x="624" y="312" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Orders, kitchen and bill state</text>
+<rect x="1140" y="165" width="480" height="155" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="1164" y="210" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Manager · ops.rays.to</text>
+<text x="1164" y="250" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Table map + AG Grid</text>
+<text x="1164" y="281" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">AG Studio widgets and assistant</text>
+<text x="1164" y="312" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Shared filters + room timeline</text>
+<polyline points="300,320 300,370" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="300,370 294.93756154998755,358.0262070779625 305.06243845001245,358.0262070779625" fill="#63776b"/>
+<polyline points="840,320 840,370" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="840,370 834.9375615499875,358.0262070779625 845.0624384500125,358.0262070779625" fill="#63776b"/>
+<polyline points="1380,320 1380,370" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="1380,370 1374.9375615499875,358.0262070779625 1385.0624384500125,358.0262070779625" fill="#63776b"/>
+<rect x="60" y="370" width="1560" height="145" rx="18" fill="#d9ee96" stroke="#23493c" stroke-width="2"/>
+<text x="84" y="415" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">One authorized backend · Serverpod + PostgreSQL</text>
+<text x="84" y="455" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Firebase proof + current SQL membership → bounded RPC / REST → domain commands</text>
+<text x="84" y="486" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Idempotency · exact minor-unit money · version checks · transaction + durable events</text>
+<polyline points="300,515 300,575" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="300,575 294.93756154998755,563.0262070779625 305.06243845001245,563.0262070779625" fill="#63776b"/>
+<polyline points="840,515 840,575" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="840,575 834.9375615499875,563.0262070779625 845.0624384500125,563.0262070779625" fill="#63776b"/>
+<polyline points="1380,515 1380,575" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="1380,575 1374.9375615499875,563.0262070779625 1385.0624384500125,563.0262070779625" fill="#63776b"/>
+<rect x="60" y="575" width="480" height="195" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="84" y="620" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Conversation + operations</text>
+<text x="84" y="660" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Visit/order rooms and audiences</text>
+<text x="84" y="691" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Messages, replies and read cursors</text>
+<text x="84" y="722" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Authorized SSE + snapshot recovery</text>
+<text x="84" y="753" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Private help remains separate</text>
+<rect x="600" y="575" width="480" height="195" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="624" y="620" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Gemini orchestration</text>
+<text x="624" y="660" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Authorized tools and reviewed drafts</text>
+<text x="624" y="691" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">4 rounds · 8 calls · 30 seconds</text>
+<text x="624" y="722" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">$35 development + $15 review</text>
+<text x="624" y="753" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">No autonomous payment or publishing</text>
+<rect x="1140" y="575" width="480" height="195" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="1164" y="620" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Financial ledger</text>
+<text x="1164" y="660" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Frozen quotes and exact shares</text>
+<text x="1164" y="691" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">One pending checkout per visit</text>
+<text x="1164" y="722" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Guarded capture/refund REST calls</text>
+<text x="1164" y="753" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Reconcile uncertain outcomes</text>
+<polyline points="300,770 300,830" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="300,830 294.93756154998755,818.0262070779625 305.06243845001245,818.0262070779625" fill="#63776b"/>
+<polyline points="840,770 840,830" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="840,830 834.9375615499875,818.0262070779625 845.0624384500125,818.0262070779625" fill="#63776b"/>
+<polyline points="1380,770 1380,830" stroke="#63776b" stroke-width="3" fill="none"/>
+<polygon points="1380,830 1374.9375615499875,818.0262070779625 1385.0624384500125,818.0262070779625" fill="#63776b"/>
+<rect x="60" y="830" width="480" height="175" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="84" y="875" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Delivery + files</text>
+<text x="84" y="915" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Durable jobs → inbox / FCM</text>
+<text x="84" y="946" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Private Firebase Storage imports</text>
+<text x="84" y="977" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Explicit approval before publication</text>
+<rect x="600" y="830" width="480" height="175" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="624" y="875" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">PayPal MCP · read only</text>
+<text x="624" y="915" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">get_order / get_refund allowlist</text>
+<text x="624" y="946" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Provider IDs from authorized records</text>
+<text x="624" y="977" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">REST fallback names its actual source</text>
+<rect x="1140" y="830" width="480" height="175" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
+<text x="1164" y="875" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">PayPal Sandbox</text>
+<text x="1164" y="915" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Real approval handoff is observed</text>
+<text x="1164" y="946" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Verified capture + webhook → ledger</text>
+<text x="1164" y="977" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Then room / staff / dashboard refresh</text>
+<rect x="60" y="1060" width="1560" height="140" rx="18" fill="#d9ee96" stroke="#23493c" stroke-width="2"/>
+<text x="84" y="1105" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Evidence is the release gate</text>
+<text x="84" y="1145" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Observed: shared room, access revocation, real Gemini basket/share, unapproved Sandbox checkout, console.</text>
+<text x="84" y="1176" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Pending: successful MCP access, two buyer captures/refund, device notifications, pilot and final reviewer release.</text>
+<text x="60" y="1238" fill="#63776b" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="18" font-weight="400">PostgreSQL owns business truth. A chat reply or browser redirect cannot mark a bill paid.</text>
+</svg>

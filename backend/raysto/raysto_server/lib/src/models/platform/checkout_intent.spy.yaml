@@ -12,6 +12,8 @@ fields:
   providerRequestId: String
   providerOrderId: String?
   merchantId: String
+  providerMode: String, default='marketplace'
+  splitPlanId: int?, relation(parent=raysto_bill_split_plan)
   approvalUrl: String?
   state: String
   method: String

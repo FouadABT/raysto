@@ -1,0 +1,15 @@
+class: RoomMember
+table: raysto_room_member
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  roomId: int, relation(parent=raysto_conversation_room)
+  userId: String
+  lastReadSequence: int
+  preferencesJson: String
+  muted: bool
+  createdAt: DateTime
+indexes:
+  room_member_user:
+    fields: roomId, userId
+    unique: true

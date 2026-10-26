@@ -25,6 +25,7 @@ abstract class PriceQuote
     required this.currency,
     required this.expiresAt,
     this.consumedOrderId,
+    this.assistantProposalId,
     required this.createdAt,
   });
 
@@ -39,6 +40,7 @@ abstract class PriceQuote
     required String currency,
     required DateTime expiresAt,
     int? consumedOrderId,
+    int? assistantProposalId,
     required DateTime createdAt,
   }) = _PriceQuoteImpl;
 
@@ -56,6 +58,7 @@ abstract class PriceQuote
         jsonSerialization['expiresAt'],
       ),
       consumedOrderId: jsonSerialization['consumedOrderId'] as int?,
+      assistantProposalId: jsonSerialization['assistantProposalId'] as int?,
       createdAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -87,6 +90,8 @@ abstract class PriceQuote
 
   int? consumedOrderId;
 
+  int? assistantProposalId;
+
   DateTime createdAt;
 
   @override
@@ -106,6 +111,7 @@ abstract class PriceQuote
     String? currency,
     DateTime? expiresAt,
     int? consumedOrderId,
+    int? assistantProposalId,
     DateTime? createdAt,
   });
   @override
@@ -122,6 +128,8 @@ abstract class PriceQuote
       'currency': currency,
       'expiresAt': expiresAt.toJson(),
       if (consumedOrderId != null) 'consumedOrderId': consumedOrderId,
+      if (assistantProposalId != null)
+        'assistantProposalId': assistantProposalId,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -173,6 +181,7 @@ class _PriceQuoteImpl extends PriceQuote {
     required String currency,
     required DateTime expiresAt,
     int? consumedOrderId,
+    int? assistantProposalId,
     required DateTime createdAt,
   }) : super._(
          id: id,
@@ -185,6 +194,7 @@ class _PriceQuoteImpl extends PriceQuote {
          currency: currency,
          expiresAt: expiresAt,
          consumedOrderId: consumedOrderId,
+         assistantProposalId: assistantProposalId,
          createdAt: createdAt,
        );
 
@@ -203,6 +213,7 @@ class _PriceQuoteImpl extends PriceQuote {
     String? currency,
     DateTime? expiresAt,
     Object? consumedOrderId = _Undefined,
+    Object? assistantProposalId = _Undefined,
     DateTime? createdAt,
   }) {
     return PriceQuote(
@@ -218,6 +229,9 @@ class _PriceQuoteImpl extends PriceQuote {
       consumedOrderId: consumedOrderId is int?
           ? consumedOrderId
           : this.consumedOrderId,
+      assistantProposalId: assistantProposalId is int?
+          ? assistantProposalId
+          : this.assistantProposalId,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -272,6 +286,11 @@ class PriceQuoteUpdateTable extends _is.UpdateTable<PriceQuoteTable> {
     value,
   );
 
+  _is.ColumnValue<int, int> assistantProposalId(int? value) => _is.ColumnValue(
+    table.assistantProposalId,
+    value,
+  );
+
   _is.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _is.ColumnValue(
         table.createdAt,
@@ -319,6 +338,10 @@ class PriceQuoteTable extends _is.Table<int?> {
       'consumedOrderId',
       this,
     );
+    assistantProposalId = _is.ColumnInt(
+      'assistantProposalId',
+      this,
+    );
     createdAt = _is.ColumnDateTime(
       'createdAt',
       this,
@@ -345,6 +368,8 @@ class PriceQuoteTable extends _is.Table<int?> {
 
   late final _is.ColumnInt consumedOrderId;
 
+  late final _is.ColumnInt assistantProposalId;
+
   late final _is.ColumnDateTime createdAt;
 
   @override
@@ -359,6 +384,7 @@ class PriceQuoteTable extends _is.Table<int?> {
     currency,
     expiresAt,
     consumedOrderId,
+    assistantProposalId,
     createdAt,
   ];
 }

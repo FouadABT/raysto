@@ -1,0 +1,20 @@
+class: ConversationRoom
+table: raysto_conversation_room
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  contextKey: String
+  visitId: int?, relation(parent=raysto_dining_visit)
+  orderId: int?, relation(parent=raysto_order)
+  hostUserId: String?
+  hostEverAssigned: bool, default=false
+  waiterUserId: String?
+  sequence: int
+  version: int
+  createdAt: DateTime
+indexes:
+  conversation_context:
+    fields: contextKey
+    unique: true
+  conversation_tenant:
+    fields: restaurantId, id

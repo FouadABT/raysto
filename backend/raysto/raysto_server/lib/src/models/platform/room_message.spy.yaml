@@ -1,0 +1,20 @@
+class: RoomMessage
+table: raysto_room_message
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  roomId: int, relation(parent=raysto_conversation_room)
+  sequence: int
+  userId: String?
+  clientMessageId: String?
+  replyToId: int?, relation(parent=raysto_room_message)
+  kind: String
+  bodyJson: String
+  createdAt: DateTime
+indexes:
+  room_sequence:
+    fields: roomId, sequence
+    unique: true
+  room_message_dedupe:
+    fields: roomId, userId, clientMessageId
+    unique: true

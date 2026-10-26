@@ -6,7 +6,7 @@
 
 Raysto brings restaurant discovery, ordering, table service and shared bills into one mobile experience. Diners review their choices; restaurant teams manage the same server-owned orders; AI suggests changes that people approve.
 
-Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/). This repository includes a connected mobile application and backend, an explicitly isolated offline demo, and a separate web prototype. The next product milestone is a shared table conversation with actionable order and payment cards.
+Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/). Native mobile and the [restaurant console](https://ops.rays.to/ops) share PostgreSQL records through one backend. Visit conversations connect diners and their assigned waiter. Gemini uses authorized tools to propose an order or a payer's exact share; people approve consequential actions. The offline demo remains explicitly isolated.
 
 ## A place at the table
 
@@ -18,17 +18,19 @@ Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/). Thi
 
 Actual Flutter widget renders with illustrative fixtures. Screenshots demonstrate the interface, not a completed payment or live restaurant partnership. [Design and motion](docs/mobile-art-direction.md) · [Asset credits](docs/assets.md)
 
+[Connected manager assistant and AG Studio](docs/screenshots/story/operations-assistant.png) · [Shared order and room](docs/screenshots/story/operations-connected.png). These hosted browser captures show explicitly labelled QA records; the bill is still unpaid.
+
 ## Explore the project
 
 | Experience | Current scope |
 | --- | --- |
 | **Diners** | Discovery, menus, baskets and quotes, dine-in visits, service requests, reservations, pickup/delivery, shared bills and history. |
 | **Restaurant teams** | Restaurant/menu management, tables, kitchen tickets, couriers, invitations, reports and support. Permissions come from PostgreSQL memberships. |
-| **Reviewed AI** | Gemini-backed menu extraction/generation, translation and recommendation proposals. Approval and publication are separate actions. |
+| **Reviewed AI** | Gemini menu imports and conversation tools, shared preferences, authoritative basket quotes and exact payment proposals. Approval and execution are separate. |
 | **Payments** | Server-side PayPal Sandbox checkout, allocations, reconciliation and refund source. Complete buyer approval/capture/refund acceptance remains a separate gate. |
-| **Web prototype** | Next.js, React and AG Grid Community with browser-local fixtures. Backend connection and AG Studio are planned. |
+| **Connected operations** | Firebase sign-in, table map, AG Grid, AG Studio custom widgets/harness, room history, shared attention filters and saved layouts. `/ops` uses the real backend. |
 
-**Status: development preview.** Mobile source is at `0.10.0+2012`; the latest recorded backend deployment is `0.9.4`. Selected integration checks are recorded; full real-device and PayPal buyer-to-refund acceptance are not yet complete. [Evidence and limitations](docs/project-status.md).
+**Status: integration candidate.** Android `0.11.0+2013` is built. Rooms, real Gemini basket/share proposals and an actual $13.50 Sandbox approval handoff have been observed. Buyer capture/refund, successful remote MCP access, the pilot and physical-device acceptance remain release gates. This is not the final judged release. [Road to 10/10 report](docs/road-to-10-10.md) · [Evidence and limitations](docs/project-status.md).
 
 ## Run the mobile preview
 
@@ -56,7 +58,11 @@ flowchart LR
     Jobs --> PayPal[PayPal Sandbox]
     Jobs --> AI[Gemini: reviewed proposals]
     Jobs --> Notices[Inbox + configured notifications]
-    Web[Next.js + AG Grid prototype] -. planned connection .-> API
+    Web[Next.js + AG Grid + AG Studio] --> API
+    AI --> MCP[PayPal MCP reads: acceptance pending]
+    SQL --> Events[Authorized room events]
+    Events --> Mobile
+    Events --> Web
 ```
 
 PostgreSQL owns permissions, prices, orders, occupancy and payment records. Firebase preferences and presence cannot grant business permissions. Provider redirects and chat messages cannot mark bills paid. [API contracts](docs/backend-v2/integration.md) · [OpenAPI](docs/backend-v2/openapi.json) · [Detailed system maps](docs/backend-v2/README.md)
@@ -68,8 +74,8 @@ PostgreSQL owns permissions, prices, orders, occupancy and payment records. Fire
 | [`lib/`](lib/) | Native Flutter application, design system, connected client and separate offline demo. |
 | [`backend/raysto/`](backend/raysto/) | Serverpod server, generated Dart client and SQL migrations. |
 | [`backend/operations/`](backend/operations/) | Required SQL supplements and configuration examples. |
-| [`backend/sdk/typescript/`](backend/sdk/typescript/) | Generated client for the future connected web app. |
-| [`web/`](web/) | Separate Next.js prototype; AG Grid Community is already included. |
+| [`backend/sdk/typescript/`](backend/sdk/typescript/) | Generated contracts for connected web/API consumers. |
+| [`web/`](web/) | Connected operations console and a separate browser-local prototype. |
 | [`docs/`](docs/README.md) | Reviewer guide, setup, status, roadmap, contracts and design provenance. |
 | [`test/`](test/) | Mobile tests; backend and web tests live beside their applications. |
 | [`assets/`](assets/) · [`third_party/`](third_party/) | Artwork, fonts, fixtures and preserved third-party notices. |

@@ -2,9 +2,11 @@
 
 This implementation extends the existing Serverpod backend. On 26 October 2026 the owner authorized mobile integration, focused validation and AWS deployment. The v2 surface and bounded workers are enabled on Raysto's isolated AWS service. Payments remain Sandbox. See [mobile integration and release evidence](../mobile-backend-integration.md) for observed results and remaining provider requirements.
 
-The source inventory contains 41 new persistent models, eight transport models, 68 command routes and 41 read queries. Both additive migrations (`20261025161248873`, `20261025162915326`), the constraint supplement and the legacy backfill are applied to Raysto's database. No legacy receipts required backfilling in this deployment.
+The current generated inventory contains 59 platform models/transport types, 80 commands and 46 queries. The original additive migrations and conversation migration `20261026164954486`, both constraint supplements and legacy backfill are applied to Raysto's database. No legacy receipts required backfilling in this deployment. [Current conversation release evidence](../road-to-10-10.md) supersedes historical verification deferrals.
 
 ## Read the system
+
+- [Current conversation/AI/payment architecture](maps/conversation-architecture.png) · [SVG](maps/conversation-architecture.svg) · [Mermaid](maps/conversation-architecture.mmd)
 
 - [Complete capability map](maps/capability-map.png) Â· [SVG](maps/capability-map.svg) Â· [Mermaid](maps/capability-map.mmd)
 - [System architecture](maps/system-architecture.png) Â· [SVG](maps/system-architecture.svg) Â· [Mermaid](maps/system-architecture.mmd)

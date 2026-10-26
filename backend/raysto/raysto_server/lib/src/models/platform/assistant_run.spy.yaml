@@ -1,0 +1,24 @@
+class: AssistantRun
+table: raysto_assistant_run
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  roomId: int?, relation(parent=raysto_conversation_room)
+  userId: String
+  requestKey: String
+  status: String
+  inputJson: String
+  outputJson: String
+  traceJson: String
+  reservedMicros: int
+  chargedMicros: int
+  budgetStage: String
+  version: int
+  createdAt: DateTime
+  completedAt: DateTime?
+indexes:
+  assistant_request:
+    fields: userId, requestKey
+    unique: true
+  assistant_tenant:
+    fields: restaurantId, id

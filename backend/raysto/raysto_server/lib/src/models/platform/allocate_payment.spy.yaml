@@ -6,4 +6,6 @@ fields:
   orderId: int?
   amountMinor: int?
   lineKeys: List<String>?
+  shares: List<ChargeShare>?
+  assistantProposalId: int?
   method: String

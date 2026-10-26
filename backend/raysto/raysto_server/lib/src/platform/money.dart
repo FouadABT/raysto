@@ -12,10 +12,66 @@ class MoneyModule {
         'orderId': r.orderId,
         'amountMinor': r.amountMinor,
         'lineKeys': r.lineKeys,
+        'shares': r.shares?.map((s) => s.toJson()).toList(),
+        'assistantProposalId': r.assistantProposalId,
         'method': r.method,
       }),
     );
     return _mutate(s, c, 'payment.allocate', (w, d) async {
+      AssistantProposal? proposal;
+      int? splitPlanId;
+      if (r.assistantProposalId != null) {
+        proposal = await AssistantModule.validProposal(
+          w,
+          r.assistantProposalId!,
+          'payment',
+          state: 'approved',
+        );
+        final p = _json(proposal.payloadJson);
+        final expected = (p['shares'] as List)
+            .map(
+              (v) => {
+                'chargeId': v['chargeId'],
+                'amountMinor': v['amountMinor'],
+                'expectedVersion': v['expectedVersion'],
+              },
+            )
+            .toList();
+        final actual = r.shares
+            ?.map(
+              (v) => {
+                'chargeId': v.chargeId,
+                'amountMinor': v.amountMinor,
+                'expectedVersion': v.expectedVersion,
+              },
+            )
+            .toList();
+        if (r.method != 'paypal' ||
+            p['visitId'] != r.visitId ||
+            p['orderId'] != r.orderId ||
+            jsonEncode(expected) != jsonEncode(actual)) {
+          _fail(
+            'stale_proposal',
+            'Payment must match the exact approved share.',
+          );
+        }
+        splitPlanId = p['splitPlanId'] as int?;
+        if (splitPlanId != null) {
+          final split = await BillSplitPlan.db.findById(
+            s,
+            splitPlanId,
+            transaction: w.tx,
+          );
+          if (split == null ||
+              split.restaurantId != w.tenant ||
+              split.activeRoomId != proposal.roomId) {
+            _fail(
+              'stale_proposal',
+              'This equal split was reset. Review a new share.',
+            );
+          }
+        }
+      }
       if ((r.visitId == null) == (r.orderId == null)) {
         _fail('invalid_input', 'Choose one visit or order.');
       }
@@ -81,6 +137,33 @@ class MoneyModule {
         transaction: w.tx,
       );
       final selected = r.lineKeys?.toSet();
+      final exact = r.shares;
+      if (exact != null &&
+          (exact.isEmpty ||
+              exact.length > 200 ||
+              exact.map((e) => e.chargeId).toSet().length != exact.length ||
+              selected != null ||
+              r.amountMinor != null)) {
+        _fail(
+          'invalid_input',
+          'Choose exact shares, selected items, or an amount.',
+        );
+      }
+      if (exact != null) {
+        for (final share in exact) {
+          final b = charges.where((b) => b.id == share.chargeId).firstOrNull;
+          if (b == null) _fail('not_found', 'Bill charge not found.');
+          _version(b.version, share.expectedVersion);
+          if (share.amountMinor < 1 ||
+              share.amountMinor >
+                  b.amountMinor -
+                      b.creditedMinor -
+                      b.settledMinor -
+                      b.reservedMinor) {
+            _fail('invalid_amount', 'This share exceeds the available charge.');
+          }
+        }
+      }
       if (selected != null &&
           (selected.isEmpty ||
               selected.length > 200 ||
@@ -96,6 +179,11 @@ class MoneyModule {
       }
       final available = <BillCharge, int>{};
       for (final b in charges) {
+        if (exact != null) {
+          final share = exact.where((e) => e.chargeId == b.id).firstOrNull;
+          if (share != null) available[b] = share.amountMinor;
+          continue;
+        }
         final balance = max(
           0,
           b.amountMinor - b.creditedMinor - b.settledMinor - b.reservedMinor,
@@ -112,7 +200,9 @@ class MoneyModule {
         _fail('invalid_amount', 'Amount exceeds the available balance.');
       }
       MerchantConnection? merchant;
-      if (r.method == 'paypal') {
+      final single =
+          r.method == 'paypal' && ProviderClients.singleRestaurant(w.tenant);
+      if (r.method == 'paypal' && !single) {
         merchant = await MerchantConnection.db.findFirstRow(
           s,
           where: (t) =>
@@ -138,7 +228,7 @@ class MoneyModule {
       final plan = sub == null
           ? null
           : await RestaurantPlan.db.findById(s, sub.planId, transaction: w.tx);
-      if (r.method == 'paypal' && plan == null) {
+      if (r.method == 'paypal' && !single && plan == null) {
         _fail(
           'billing_configuration_required',
           'Configure the restaurant commission plan first.',
@@ -155,7 +245,7 @@ class MoneyModule {
         // Cumulative rounding prevents repeated tiny payments from avoiding
         // the configured commission. Cash portions remain commission-free.
         final b = entry.key;
-        final bps = r.method == 'cash' ? 0 : plan!.commissionBps;
+        final bps = r.method == 'cash' || single ? 0 : plan!.commissionBps;
         if (b.amountMinor > 0) {
           fee +=
               (b.foodNetMinor *
@@ -176,16 +266,20 @@ class MoneyModule {
           visitId: r.visitId,
           activeVisitId: r.visitId,
           orderId: r.orderId,
+          splitPlanId: splitPlanId,
           requestKey: r.requestKey,
           requestHash: _hash(c.dataJson),
           providerRequestId: _uuid(),
-          merchantId: merchant?.merchantId ?? 'cash',
+          merchantId: single
+              ? ProviderClients.required('PAYPAL_SANDBOX_MERCHANT_ID')
+              : merchant?.merchantId ?? 'cash',
+          providerMode: single ? 'singleMerchantSandbox' : 'marketplace',
           state: 'reserved',
           method: r.method,
           currency: w.restaurant!.currency,
           amountMinor: amount,
           commissionMinor: fee,
-          commissionBps: plan?.commissionBps ?? 0,
+          commissionBps: single ? 0 : plan?.commissionBps ?? 0,
           createdAt: _now(),
           updatedAt: _now(),
         ),
@@ -216,6 +310,15 @@ class MoneyModule {
         );
       }
       await w.audit('payment.reserved', 'checkout', intent.id);
+      if (proposal != null) {
+        proposal.status = 'executed';
+        proposal.version++;
+        proposal.payloadJson = jsonEncode({
+          ..._json(proposal.payloadJson),
+          'checkoutId': intent.id,
+        });
+        await AssistantProposal.db.updateRow(s, proposal, transaction: w.tx);
+      }
       if (r.method == 'cash') {
         await _settle(w, intent, 'cash:${intent.providerRequestId}');
       } else {
@@ -509,6 +612,7 @@ class MoneyModule {
         provider = await ProviderClients.paypal(
           'GET',
           '/v2/checkout/orders/${i.providerOrderId}',
+          singleMerchant: i.providerMode == 'singleMerchantSandbox',
         );
       } else {
         return view(i);
@@ -521,6 +625,7 @@ class MoneyModule {
           body: {},
           requestId: 'cap-${i.providerRequestId}',
           merchant: i.merchantId,
+          singleMerchant: i.providerMode == 'singleMerchantSandbox',
         );
         validateOrder(i, provider);
       }
@@ -569,6 +674,9 @@ class MoneyModule {
         }
         current.updatedAt = _now();
         await CheckoutIntent.db.updateRow(s, current, transaction: w.tx);
+        if (current.state == 'uncertain') {
+          await w.audit('payment.uncertain', 'checkout', current.id);
+        }
         return view(current);
       });
     } catch (_) {
@@ -582,6 +690,9 @@ class MoneyModule {
           row.state = row.providerOrderId == null ? 'creating' : 'uncertain';
           row.updatedAt = _now();
           await CheckoutIntent.db.updateRow(s, row, transaction: w.tx);
+          if (row.state == 'uncertain') {
+            await w.audit('payment.uncertain', 'checkout', row.id);
+          }
         }
       });
       rethrow;
@@ -607,6 +718,8 @@ class MoneyModule {
 
   static Json view(CheckoutIntent i) => {
     'checkoutId': i.id,
+    'visitId': i.visitId,
+    'orderId': i.orderId,
     'state': i.state,
     'approvalUrl': i.approvalUrl,
     'amountMinor': i.amountMinor,
@@ -738,11 +851,13 @@ class MoneyModule {
             'GET',
             '/v2/payments/refunds/${r.providerRefundId}',
             merchant: i.merchantId,
+            singleMerchant: i.providerMode == 'singleMerchantSandbox',
           )
         : await ProviderClients.paypal(
             'POST',
             '/v2/payments/captures/${p.providerCaptureId}/refund',
             merchant: i.merchantId,
+            singleMerchant: i.providerMode == 'singleMerchantSandbox',
             requestId: 'refund-$id',
             body: {
               'amount': {

@@ -1,0 +1,5 @@
+class: ChargeShare
+fields:
+  chargeId: int
+  amountMinor: int
+  expectedVersion: int

@@ -2,6 +2,54 @@ part of 'platform.dart';
 
 /// Fixed-host transports. Response bodies and credentials never enter client errors.
 class ProviderClients {
+  // Only used after PlatformApi.guard has cryptographically verified this proof.
+  static int identityAuthTime(Session s) {
+    final token = PlatformApi.requestHeader(s, 'x-raysto-firebase-token');
+    if (token == null) {
+      _fail('firebase_proof_required', 'A current Firebase proof is required.');
+    }
+    final claims = _json(
+      utf8.decode(base64Url.decode(base64Url.normalize(token.split('.')[1]))),
+    );
+    return _int(claims, 'auth_time', min: 1, max: 9007199254740991);
+  }
+
+  static bool singleRestaurant(int tenant) =>
+      paypalEnvironment == 'sandbox' &&
+      Platform.environment['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] ==
+          'true' &&
+      int.tryParse(
+            Platform.environment['RAYSTO_SANDBOX_RESTAURANT_ID'] ?? '',
+          ) ==
+          tenant;
+
+  static Future<String> paypalReadToken() async {
+    if (paypalEnvironment != 'sandbox' ||
+        Platform.environment['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
+            'true') {
+      _fail('not_configured', 'Sandbox merchant reads are not enabled.');
+    }
+    final client = http.Client();
+    try {
+      final id = required('PAYPAL_SANDBOX_CLIENT_ID');
+      final secret = required('PAYPAL_SANDBOX_CLIENT_SECRET');
+      final token = await sendJson(
+        client,
+        http.Request('POST', Uri.https(paypalHost, '/v1/oauth2/token'))
+          ..followRedirects = false
+          ..headers.addAll({
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$id:$secret'))}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          })
+          ..body = 'grant_type=client_credentials',
+      );
+      return _str(token, 'access_token', max: 16000);
+    } finally {
+      client.close();
+    }
+  }
+
   static String required(String key) =>
       Platform.environment[key]?.trim().isNotEmpty == true
       ? Platform.environment[key]!.trim()
@@ -62,13 +110,27 @@ class ProviderClients {
     String? requestId,
     String? merchant,
     bool billing = false,
+    bool singleMerchant = false,
   }) async {
     if (!path.startsWith('/') ||
         path.startsWith('//') ||
         path.contains('://')) {
       _fail('invalid_input', 'Invalid provider path.');
     }
-    final prefix = billing ? 'PAYPAL_BILLING' : 'PAYPAL_PLATFORM';
+    if (singleMerchant &&
+        (billing ||
+            paypalEnvironment != 'sandbox' ||
+            Platform.environment['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
+                'true' ||
+            (merchant != null &&
+                merchant != required('PAYPAL_SANDBOX_MERCHANT_ID')))) {
+      _fail('not_configured', 'Invalid direct Sandbox merchant configuration.');
+    }
+    final prefix = billing
+        ? 'PAYPAL_BILLING'
+        : singleMerchant
+        ? 'PAYPAL_SANDBOX'
+        : 'PAYPAL_PLATFORM';
     final clientId = required('${prefix}_CLIENT_ID');
     final secret = required('${prefix}_CLIENT_SECRET');
     if (billing &&
@@ -98,10 +160,10 @@ class ProviderClients {
         'Content-Type': 'application/json',
         'Prefer': 'return=representation',
         'PayPal-Request-Id': ?requestId,
-        if (!billing)
+        if (!billing && !singleMerchant)
           'PayPal-Partner-Attribution-Id': required('PAYPAL_PLATFORM_BN_CODE'),
       });
-      if (merchant != null) {
+      if (merchant != null && !singleMerchant) {
         String enc(Json x) =>
             base64UrlEncode(utf8.encode(jsonEncode(x))).replaceAll('=', '');
         req.headers['PayPal-Auth-Assertion'] =
@@ -129,6 +191,7 @@ class ProviderClients {
     'POST',
     '/v2/checkout/orders',
     merchant: i.merchantId,
+    singleMerchant: i.providerMode == 'singleMerchantSandbox',
     requestId: 'new-${i.providerRequestId}',
     body: {
       'intent': 'CAPTURE',
@@ -221,6 +284,7 @@ class ProviderClients {
     Json event,
     Map<String, String> headers, {
     bool billing = false,
+    bool singleMerchant = false,
   }) async {
     final cert = Uri.tryParse(headers['paypal-cert-url'] ?? '');
     if (cert == null ||
@@ -237,6 +301,7 @@ class ProviderClients {
       'POST',
       '/v1/notifications/verify-webhook-signature',
       billing: billing,
+      singleMerchant: singleMerchant,
       body: {
         'auth_algo': headers['paypal-auth-algo'],
         'cert_url': cert.toString(),
@@ -244,7 +309,11 @@ class ProviderClients {
         'transmission_sig': headers['paypal-transmission-sig'],
         'transmission_time': headers['paypal-transmission-time'],
         'webhook_id': required(
-          billing ? 'PAYPAL_BILLING_WEBHOOK_ID' : 'PAYPAL_PLATFORM_WEBHOOK_ID',
+          billing
+              ? 'PAYPAL_BILLING_WEBHOOK_ID'
+              : singleMerchant
+              ? 'PAYPAL_SANDBOX_WEBHOOK_ID'
+              : 'PAYPAL_PLATFORM_WEBHOOK_ID',
         ),
         'webhook_event': event,
       },
@@ -254,24 +323,36 @@ class ProviderClients {
     }
   }
 
+  // Reuse Google's auto-refreshing token and HTTP connection pool per isolate.
+  // Revocation lookups still reach Firebase; this caches no user authorization.
+  static Future<AutoRefreshingAuthClient>? _googleClient;
+
+  static Future<AutoRefreshingAuthClient> _sharedGoogleClient() =>
+      _googleClient ??= (() async {
+        try {
+          return await clientViaServiceAccount(
+            ServiceAccountCredentials.fromJson(
+              await File(
+                required('GOOGLE_APPLICATION_CREDENTIALS'),
+              ).readAsString(),
+            ),
+            ['https://www.googleapis.com/auth/cloud-platform'],
+          ).timeout(const Duration(seconds: 15));
+        } catch (_) {
+          _googleClient = null;
+          rethrow;
+        }
+      })();
+
   static Future<T> google<T>(
     Future<AutoRefreshingAuthClient> Function()? factory,
     Future<T> Function(AutoRefreshingAuthClient) action,
   ) async {
-    final client =
-        await (factory?.call() ??
-            clientViaServiceAccount(
-              ServiceAccountCredentials.fromJson(
-                await File(
-                  required('GOOGLE_APPLICATION_CREDENTIALS'),
-                ).readAsString(),
-              ),
-              ['https://www.googleapis.com/auth/cloud-platform'],
-            ));
+    final client = await (factory?.call() ?? _sharedGoogleClient());
     try {
       return await action(client);
     } finally {
-      client.close();
+      if (factory != null) client.close();
     }
   }
 
@@ -506,6 +587,45 @@ class ProviderClients {
         'generationConfig': {
           'maxOutputTokens': 8192,
           'responseMimeType': 'application/json',
+          'thinkingConfig': {'thinkingLevel': 'LOW'},
+        },
+      },
+    );
+  }
+
+  static Future<Json> geminiTurn(
+    String instruction,
+    List<Json> contents,
+    List<Json> declarations,
+  ) async {
+    final path =
+        '/v1/projects/${required('GOOGLE_CLOUD_PROJECT')}/locations/eu/publishers/google/models/gemini-3.8-flash';
+    final body = <String, dynamic>{
+      'systemInstruction': {
+        'parts': [
+          {'text': instruction},
+        ],
+      },
+      'contents': contents,
+      'tools': [
+        {'functionDeclarations': declarations},
+      ],
+    };
+    final estimate = await googleJson(
+      'POST',
+      Uri.https('aiplatform.eu.rep.googleapis.com', '$path:countTokens'),
+      body: body,
+    );
+    if (estimate['totalTokens'] is! int || estimate['totalTokens'] > 16384) {
+      _fail('ai_input_too_large', 'Narrow the conversation or menu search.');
+    }
+    return googleJson(
+      'POST',
+      Uri.https('aiplatform.eu.rep.googleapis.com', '$path:generateContent'),
+      body: {
+        ...body,
+        'generationConfig': {
+          'maxOutputTokens': 4096,
           'thinkingConfig': {'thinkingLevel': 'LOW'},
         },
       },

@@ -28,7 +28,13 @@ Widget activityHome(LiveContext live) => DataPage(
           (c, v, _) => tile(
             'Table ${v['tableId']}',
             Icons.table_restaurant,
-            () => push(c, visitPage(live.tenant(v['restaurantId']), v['id'])),
+            () => push(
+              c,
+              TableRoomPage(
+                live: live.tenant(v['restaurantId']),
+                visitId: v['id'],
+              ),
+            ),
             subtitle: '${v['status']}',
           ),
         ),
@@ -95,6 +101,11 @@ Widget orderPage(LiveContext live, int id) => DataPage(
   poll: true,
   load: () => live.api.query('order', live.params({'id': id})),
   content: (c, d, refresh) => [
+    AppButton(
+      label: 'Open conversation',
+      icon: Icons.forum_outlined,
+      onPressed: () => push(c, TableRoomPage(live: live, orderId: id)),
+    ),
     RecordSummary(d),
     if (d['paymentStatus'] != 'paid' &&
         !{'cancelled', 'rejected'}.contains(d['status']))
@@ -214,6 +225,11 @@ Widget visitPage(LiveContext live, int id) => DataPage(
   poll: true,
   load: () => live.api.query('visit', live.params({'id': id, 'limit': 100})),
   content: (c, d, refresh) => [
+    AppButton(
+      label: 'Open table room',
+      icon: Icons.forum_outlined,
+      onPressed: () => push(c, TableRoomPage(live: live, visitId: id)),
+    ),
     RaystoStoryHeader(
       eyebrow: 'Around the table',
       title: 'Table ${d['tableId']}',
@@ -696,7 +712,15 @@ Widget notificationsPage(LiveContext live) => rowsPage(
           'dismiss': false,
         }, resourceId: n['id']);
         final ref = obj(n['reference']);
-        if (ref['orderId'] != null &&
+        if (ref['roomId'] != null && ref['restaurantId'] != null && c.mounted) {
+          await push(
+            c,
+            TableRoomPage(
+              live: live.tenant(ref['restaurantId']),
+              roomId: ref['roomId'],
+            ),
+          );
+        } else if (ref['orderId'] != null &&
             ref['restaurantId'] != null &&
             c.mounted) {
           await push(

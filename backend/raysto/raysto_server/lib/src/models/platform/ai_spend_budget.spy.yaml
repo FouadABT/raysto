@@ -1,0 +1,12 @@
+class: AiSpendBudget
+table: raysto_ai_spend_budget
+serverOnly: true
+fields:
+  stage: String
+  limitMicros: int
+  reservedMicros: int
+  spentMicros: int
+indexes:
+  spend_stage:
+    fields: stage
+    unique: true

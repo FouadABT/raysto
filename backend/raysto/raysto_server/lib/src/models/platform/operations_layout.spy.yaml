@@ -1,0 +1,12 @@
+class: OperationsLayout
+table: raysto_operations_layout
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  stateJson: String
+  version: int
+indexes:
+  operations_layout_user:
+    fields: restaurantId, userId
+    unique: true

@@ -20,6 +20,7 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart' as jwt;
 import '../generated/protocol.dart';
 import '../services/firebase_services.dart';
 import '../services/paypal_gateway.dart';
+import '../services/paypal_mcp_client.dart';
 
 part 'core.dart';
 part 'identity.dart';
@@ -33,6 +34,11 @@ part 'automation.dart';
 part 'queries.dart';
 part 'settlement.dart';
 part 'files.dart';
+part 'conversations.dart';
+part 'ai_budget.dart';
+part 'assistant.dart';
+part 'workspace.dart';
+part 'shares.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -242,6 +248,18 @@ class PlatformApi {
 
   static final Map<String, Future<Json> Function(Session, PlatformCommand)>
   commands = {
+    'room.split.reset': EqualShares.reset,
+    'operations.archiveThread': WorkspaceModule.archiveThread,
+    'assistant.start': AssistantModule.start,
+    'assistant.cancel': AssistantModule.cancel,
+    'assistant.approve': AssistantModule.approve,
+    'operations.layout': WorkspaceModule.saveLayout,
+    'room.open': ConversationModule.open,
+    'room.message': ConversationModule.send,
+    'room.read': ConversationModule.read,
+    'room.preferences': ConversationModule.preferences,
+    'room.host': ConversationModule.host,
+    'room.report': ConversationModule.report,
     'identity.profile': IdentityModule.profile,
     'identity.claim': IdentityModule.claim,
     'identity.claimTicket': IdentityModule.claimTicket,

@@ -1,6 +1,6 @@
 # Raysto Table Host — proposed next milestone
 
-**Proposal, 26 October 2026.** This document describes work to implement next. It does not turn the existing support thread into a completed group-chat feature.
+**Historical proposal, 26 October 2026.** Implementation has started shipping as the Road to 10/10 candidate. See [the release report](road-to-10-10.md) and [current status](project-status.md) for implemented behavior, checks and remaining gaps. This original design document is not a completion claim.
 
 ## Product promise
 

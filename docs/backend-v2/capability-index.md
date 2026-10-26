@@ -12,6 +12,9 @@ Generated command/query inventory. Each command uses shared authorization, SQL t
 | `ai.approve` | `AiModule.approve` | `/api/v2/commands/ai.approve` |
 | `ai.cancel` | `AiModule.cancel` | `/api/v2/commands/ai.cancel` |
 | `ai.start` | `AiModule.start` | `/api/v2/commands/ai.start` |
+| `assistant.approve` | `AssistantModule.approve` | `/api/v2/commands/assistant.approve` |
+| `assistant.cancel` | `AssistantModule.cancel` | `/api/v2/commands/assistant.cancel` |
+| `assistant.start` | `AssistantModule.start` | `/api/v2/commands/assistant.start` |
 | `billing.cancel` | `OperationsModule.cancelSubscription` | `/api/v2/commands/billing.cancel` |
 | `billing.refresh` | `OperationsModule.refreshSubscription` | `/api/v2/commands/billing.refresh` |
 | `billing.subscribe` | `OperationsModule.subscribe` | `/api/v2/commands/billing.subscribe` |
@@ -37,6 +40,8 @@ Generated command/query inventory. Each command uses shared authorization, SQL t
 | `merchant.connect` | `MoneyModule.connectMerchant` | `/api/v2/commands/merchant.connect` |
 | `merchant.refresh` | `MoneyModule.refreshMerchant` | `/api/v2/commands/merchant.refresh` |
 | `notification.update` | `OperationsModule.notification` | `/api/v2/commands/notification.update` |
+| `operations.archiveThread` | `WorkspaceModule.archiveThread` | `/api/v2/commands/operations.archiveThread` |
+| `operations.layout` | `WorkspaceModule.saveLayout` | `/api/v2/commands/operations.layout` |
 | `order.cancel` | `OrderingModule.cancel` | `/api/v2/commands/order.cancel` |
 | `order.transition` | `OrderingModule.transition` | `/api/v2/commands/order.transition` |
 | `payment.cancel` | `MoneyModule.cancel` | `/api/v2/commands/payment.cancel` |
@@ -49,6 +54,13 @@ Generated command/query inventory. Each command uses shared authorization, SQL t
 | `restaurant.publish` | `CatalogueModule.publish` | `/api/v2/commands/restaurant.publish` |
 | `review.moderate` | `OperationsModule.moderateReview` | `/api/v2/commands/review.moderate` |
 | `review.save` | `OperationsModule.review` | `/api/v2/commands/review.save` |
+| `room.host` | `ConversationModule.host` | `/api/v2/commands/room.host` |
+| `room.message` | `ConversationModule.send` | `/api/v2/commands/room.message` |
+| `room.open` | `ConversationModule.open` | `/api/v2/commands/room.open` |
+| `room.preferences` | `ConversationModule.preferences` | `/api/v2/commands/room.preferences` |
+| `room.read` | `ConversationModule.read` | `/api/v2/commands/room.read` |
+| `room.report` | `ConversationModule.report` | `/api/v2/commands/room.report` |
+| `room.split.reset` | `EqualShares.reset` | `/api/v2/commands/room.split.reset` |
 | `service.create` | `DiningModule.request` | `/api/v2/commands/service.create` |
 | `service.transition` | `DiningModule.transitionRequest` | `/api/v2/commands/service.transition` |
 | `support.message` | `OperationsModule.message` | `/api/v2/commands/support.message` |
@@ -73,6 +85,6 @@ Generated command/query inventory. Each command uses shared authorization, SQL t
 | `payment.allocate` | Typed `AllocatePayment` | `/api/v2/commands/payment.allocate` |
 | `payment.refund` | Typed `RequestRefund` | `/api/v2/commands/payment.refund` |
 
-Read queries: `admin.financialCases`, `admin.jobs`, `admin.paymentExceptions`, `admin.revenue`, `admin.reviews`, `ai`, `ai.jobs`, `availability`, `billing`, `billing.history`, `cart`, `checkout`, `checkouts`, `deliveries`, `delivery.tracking`, `discovery`, `exports`, `favorites`, `floor`, `kitchen`, `me`, `media`, `menu.drafts`, `menu.manage`, `notifications`, `order`, `orders`, `payment.exceptions`, `report`, `reservations`, `restaurant.manage`, `reviews.manage`, `services`, `storefront`, `support`, `support.inbox`, `table.resolve`, `team`, `visit`, `visits`, `waitlist`.
+Read queries: `admin.financialCases`, `admin.jobs`, `admin.paymentExceptions`, `admin.revenue`, `admin.reviews`, `ai`, `ai.jobs`, `assistant.run`, `availability`, `billing`, `billing.history`, `cart`, `checkout`, `checkouts`, `deliveries`, `delivery.tracking`, `discovery`, `exports`, `favorites`, `floor`, `kitchen`, `me`, `media`, `menu.drafts`, `menu.manage`, `notifications`, `operations.snapshot`, `operations.threads`, `order`, `orders`, `payment.exceptions`, `report`, `reservations`, `restaurant.manage`, `reviews.manage`, `room`, `room.events`, `services`, `storefront`, `support`, `support.inbox`, `table.resolve`, `team`, `visit`, `visits`, `waitlist`.
 
 Schemas are in [data-dictionary.md](data-dictionary.md); release limitations and deferred gates are in [README.md](README.md).

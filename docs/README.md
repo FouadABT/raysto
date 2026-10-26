@@ -7,6 +7,8 @@ Start here rather than reading historical implementation notes in filename order
 | Choose a reviewer walkthrough | [Reviewer guide](reviewer-guide.md) |
 | Install and run the source | [Getting started](getting-started.md) |
 | Separate verified behavior, source and pending work | [Project status](project-status.md) |
+| Inspect the conversation release and remaining gates | [Road to 10/10](road-to-10-10.md) |
+| Prepare real Sandbox approval | [Two buyer accounts](paypal-sandbox-buyers.md) |
 | Understand the proposed conversation experience | [Conversation roadmap](conversation-roadmap.md) |
 | Inspect contracts and system maps | [Backend v2 index](backend-v2/README.md) |
 | Review permissions and transitions | [Security/state contracts](backend-v2/security-and-states.md) |

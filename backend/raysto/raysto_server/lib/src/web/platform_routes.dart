@@ -5,6 +5,7 @@ import 'package:serverpod_auth_idp_server/core.dart';
 import '../generated/protocol.dart';
 import '../platform/platform.dart';
 import 'api_routes.dart';
+import 'event_response.dart';
 
 /// Bounded request bodies, bearer authentication, and fixed command registry.
 class PlatformRoute extends Route {
@@ -29,7 +30,64 @@ class PlatformRoute extends Route {
         for (final name in ['x-raysto-firebase-token', 'x-firebase-appcheck'])
           if (r.headers[name]?.first != null) name: r.headers[name]!.first,
       });
-      final path = r.url.path.substring('/api/v2/'.length);
+      var path = r.url.path.substring('/api/v2/'.length);
+      int? boundId;
+      // Additive, explicit product routes reuse exactly the RPC authorization
+      // and command handlers; path IDs cannot be overridden by request bodies.
+      const reads = {
+        'operations/snapshot': 'operations.snapshot',
+        'operations/threads': 'operations.threads',
+      };
+      const writes = {
+        'rooms/open': 'room.open',
+        'assistant/runs': 'assistant.start',
+        'operations/layout': 'operations.layout',
+        'operations/threads/archive': 'operations.archiveThread',
+      };
+      if (r.method == Method.get && reads.containsKey(path)) {
+        path = 'queries/${reads[path]}';
+      } else if (r.method == Method.post && writes.containsKey(path)) {
+        path = 'commands/${writes[path]}';
+      } else {
+        final roomRoute = RegExp(
+          r'^rooms/(\d+)(?:/(messages|read|preferences|host|report|split-reset))?$',
+        ).firstMatch(path);
+        final aiRoute = RegExp(
+          r'^assistant/(runs|proposals)/(\d+)(?:/(cancel|approve))?$',
+        ).firstMatch(path);
+        if (roomRoute != null) {
+          boundId = int.parse(roomRoute.group(1)!);
+          final action = roomRoute.group(2);
+          if (action == null && r.method == Method.get) {
+            path = 'queries/room';
+          } else if (action != null && r.method == Method.post) {
+            final command = {
+              'messages': 'message',
+              'read': 'read',
+              'preferences': 'preferences',
+              'host': 'host',
+              'report': 'report',
+              'split-reset': 'split.reset',
+            }[action]!;
+            path = 'commands/room.$command';
+          }
+        } else if (aiRoute != null) {
+          boundId = int.parse(aiRoute.group(2)!);
+          if (aiRoute.group(1) == 'runs' &&
+              aiRoute.group(3) == null &&
+              r.method == Method.get) {
+            path = 'queries/assistant.run';
+          } else if (r.method == Method.post &&
+              aiRoute.group(1) == 'runs' &&
+              aiRoute.group(3) == 'cancel') {
+            path = 'commands/assistant.cancel';
+          } else if (r.method == Method.post &&
+              aiRoute.group(1) == 'proposals' &&
+              aiRoute.group(3) == 'approve') {
+            path = 'commands/assistant.approve';
+          }
+        }
+      }
       final auth = r.headers['authorization']?.first;
       if (auth != null && auth.startsWith('Bearer ')) {
         s.updateAuthenticated(
@@ -57,6 +115,7 @@ class PlatformRoute extends Route {
         if (!{
           'webhooks/paypal-platform',
           'webhooks/paypal-billing',
+          'webhooks/paypal-single-sandbox',
         }.contains(path)) {
           return jsonResponse(404, {'error': 'not_found'});
         }
@@ -65,6 +124,7 @@ class PlatformRoute extends Route {
           event,
           headers,
           billing: path.endsWith('billing'),
+          singleMerchant: path.endsWith('single-sandbox'),
         );
         return jsonResponse(200, {'received': true});
       }
@@ -95,6 +155,8 @@ class PlatformRoute extends Route {
                   'visitId',
                   'orderId',
                   'partySize',
+                  'after',
+                  'before',
                 }.contains(entry.key)
               ? int.tryParse(entry.value) ?? entry.value
               : {'staff', 'openNow'}.contains(entry.key)
@@ -105,6 +167,7 @@ class PlatformRoute extends Route {
                     : entry.value
               : entry.value;
         }
+        if (boundId != null) d['id'] = boundId;
         return jsonResponse(200, {
           'requestId': requestId,
           'data': await PlatformQueries.query(s, path.substring(8), d),
@@ -122,6 +185,29 @@ class PlatformRoute extends Route {
         );
       }
       await PlatformApi.guard(s);
+      final roomStream = RegExp(r'^rooms/(\d+)/events$').firstMatch(path);
+      if (roomStream != null && r.method == Method.get) {
+        final tenant = int.tryParse(
+          r.url.queryParameters['restaurantId'] ?? '',
+        );
+        final after = int.tryParse(r.url.queryParameters['after'] ?? '0');
+        if (tenant == null || tenant < 1 || after == null || after < 0) {
+          return jsonResponse(400, {'error': 'invalid_input'});
+        }
+        final id = int.parse(roomStream.group(1)!);
+        await PlatformQueries.query(s, 'room.events', {
+          'restaurantId': tenant,
+          'id': id,
+          'after': after,
+        });
+        return eventResponse(
+          ConversationModule.events(s, tenant, id, after).map(
+            (e) => Uint8List.fromList(
+              utf8.encode('event: ${e['kind']}\ndata: ${jsonEncode(e)}\n\n'),
+            ),
+          ),
+        );
+      }
       if (path == 'events' && r.method == Method.get) {
         final tenant = int.tryParse(
           r.url.queryParameters['restaurantId'] ?? '',
@@ -137,12 +223,7 @@ class PlatformRoute extends Route {
             ),
           ),
         );
-        return Response.ok(
-          body: Body.fromDataStream(
-            events,
-            mimeType: MimeType('text', 'event-stream'),
-          ),
-        );
+        return eventResponse(events);
       }
       final media = RegExp(r'^media/(\d+)/content$').firstMatch(path);
       if (media != null && r.method == Method.put) {
@@ -162,6 +243,7 @@ class PlatformRoute extends Route {
           jsonDecode(utf8.decode(await bytes(r, 131072)))
               as Map<String, dynamic>;
       final op = path.substring(9);
+      if (boundId != null) d['resourceId'] = boundId;
       Object result;
       switch (op) {
         case 'quote.create':

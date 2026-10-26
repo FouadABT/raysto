@@ -56,6 +56,30 @@ Table: `raysto_ai_operation`
 | `expiresAt` | `DateTime` |
 | `createdAt` | `DateTime` |
 
+## AiSpendBudget
+
+Table: `raysto_ai_spend_budget`
+
+| Field | Type |
+|---|---|
+| `stage` | `String` |
+| `limitMicros` | `int` |
+| `reservedMicros` | `int` |
+| `spentMicros` | `int` |
+
+## AiSpendEntry
+
+Table: `raysto_ai_spend_entry`
+
+| Field | Type |
+|---|---|
+| `sourceKey` | `String` |
+| `stage` | `String` |
+| `reservedMicros` | `int` |
+| `chargedMicros` | `int` |
+| `settled` | `bool` |
+| `createdAt` | `DateTime` |
+
 ## AllocatePayment
 
 Transport model.
@@ -68,7 +92,48 @@ Transport model.
 | `orderId` | `int?` |
 | `amountMinor` | `int?` |
 | `lineKeys` | `List<String>?` |
+| `shares` | `List<ChargeShare>?` |
+| `assistantProposalId` | `int?` |
 | `method` | `String` |
+
+## AssistantProposal
+
+Table: `raysto_assistant_proposal`
+
+| Field | Type |
+|---|---|
+| `restaurantId` | `int, relation(parent=raysto_restaurant)` |
+| `roomId` | `int?, relation(parent=raysto_conversation_room)` |
+| `runId` | `int, relation(parent=raysto_assistant_run)` |
+| `userId` | `String` |
+| `kind` | `String` |
+| `payloadJson` | `String` |
+| `contextHash` | `String` |
+| `status` | `String` |
+| `version` | `int` |
+| `expiresAt` | `DateTime` |
+| `createdAt` | `DateTime` |
+
+## AssistantRun
+
+Table: `raysto_assistant_run`
+
+| Field | Type |
+|---|---|
+| `restaurantId` | `int, relation(parent=raysto_restaurant)` |
+| `roomId` | `int?, relation(parent=raysto_conversation_room)` |
+| `userId` | `String` |
+| `requestKey` | `String` |
+| `status` | `String` |
+| `inputJson` | `String` |
+| `outputJson` | `String` |
+| `traceJson` | `String` |
+| `reservedMicros` | `int` |
+| `chargedMicros` | `int` |
+| `budgetStage` | `String` |
+| `version` | `int` |
+| `createdAt` | `DateTime` |
+| `completedAt` | `DateTime?` |
 
 ## AuditRecord
 
@@ -103,6 +168,20 @@ Table: `raysto_bill_charge`
 | `foodNetMinor` | `int` |
 | `version` | `int` |
 
+## BillSplitPlan
+
+Table: `raysto_bill_split_plan`
+
+| Field | Type |
+|---|---|
+| `restaurantId` | `int, relation(parent=raysto_restaurant)` |
+| `roomId` | `int, relation(parent=raysto_conversation_room)` |
+| `activeRoomId` | `int?` |
+| `createdBy` | `String` |
+| `payersJson` | `String` |
+| `sharesJson` | `String` |
+| `createdAt` | `DateTime` |
+
 ## BillingHistory
 
 Table: `raysto_billing_history`
@@ -115,6 +194,16 @@ Table: `raysto_billing_history`
 | `status` | `String` |
 | `detailsJson` | `String` |
 | `createdAt` | `DateTime` |
+
+## ChargeShare
+
+Transport model.
+
+| Field | Type |
+|---|---|
+| `chargeId` | `int` |
+| `amountMinor` | `int` |
+| `expectedVersion` | `int` |
 
 ## CheckoutIntent
 
@@ -132,6 +221,8 @@ Table: `raysto_checkout_intent`
 | `providerRequestId` | `String` |
 | `providerOrderId` | `String?` |
 | `merchantId` | `String` |
+| `providerMode` | `String, default='marketplace'` |
+| `splitPlanId` | `int?, relation(parent=raysto_bill_split_plan)` |
 | `approvalUrl` | `String?` |
 | `state` | `String` |
 | `method` | `String` |
@@ -155,6 +246,23 @@ Table: `raysto_commission_entry`
 | `amountMinor` | `int` |
 | `currency` | `String` |
 | `state` | `String` |
+| `createdAt` | `DateTime` |
+
+## ConversationRoom
+
+Table: `raysto_conversation_room`
+
+| Field | Type |
+|---|---|
+| `restaurantId` | `int, relation(parent=raysto_restaurant)` |
+| `contextKey` | `String` |
+| `visitId` | `int?, relation(parent=raysto_dining_visit)` |
+| `orderId` | `int?, relation(parent=raysto_order)` |
+| `hostUserId` | `String?` |
+| `hostEverAssigned` | `bool, default=false` |
+| `waiterUserId` | `String?` |
+| `sequence` | `int` |
+| `version` | `int` |
 | `createdAt` | `DateTime` |
 
 ## CreateQuote
@@ -396,6 +504,17 @@ Table: `raysto_mutation_receipt`
 | `resultJson` | `String` |
 | `createdAt` | `DateTime` |
 
+## OperationsLayout
+
+Table: `raysto_operations_layout`
+
+| Field | Type |
+|---|---|
+| `restaurantId` | `int, relation(parent=raysto_restaurant)` |
+| `userId` | `String` |
+| `stateJson` | `String` |
+| `version` | `int` |
+
 ## OrderContext
 
 Table: `raysto_order_context`
@@ -545,6 +664,7 @@ Table: `raysto_price_quote`
 | `currency` | `String` |
 | `expiresAt` | `DateTime` |
 | `consumedOrderId` | `int?` |
+| `assistantProposalId` | `int?, relation(parent=raysto_assistant_proposal)` |
 | `createdAt` | `DateTime` |
 
 ## ProviderInbox
@@ -628,6 +748,36 @@ Table: `raysto_restaurant_subscription`
 | `approvalUrl` | `String?` |
 | `requestKey` | `String` |
 | `updatedAt` | `DateTime` |
+
+## RoomMember
+
+Table: `raysto_room_member`
+
+| Field | Type |
+|---|---|
+| `restaurantId` | `int, relation(parent=raysto_restaurant)` |
+| `roomId` | `int, relation(parent=raysto_conversation_room)` |
+| `userId` | `String` |
+| `lastReadSequence` | `int` |
+| `preferencesJson` | `String` |
+| `muted` | `bool` |
+| `createdAt` | `DateTime` |
+
+## RoomMessage
+
+Table: `raysto_room_message`
+
+| Field | Type |
+|---|---|
+| `restaurantId` | `int, relation(parent=raysto_restaurant)` |
+| `roomId` | `int, relation(parent=raysto_conversation_room)` |
+| `sequence` | `int` |
+| `userId` | `String?` |
+| `clientMessageId` | `String?` |
+| `replyToId` | `int?, relation(parent=raysto_room_message)` |
+| `kind` | `String` |
+| `bodyJson` | `String` |
+| `createdAt` | `DateTime` |
 
 ## SecurityGrant
 

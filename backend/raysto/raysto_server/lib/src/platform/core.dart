@@ -33,6 +33,7 @@ class Work {
       ),
       transaction: tx,
     );
+    await ConversationModule.businessEvent(this, kind, type, id);
   }
 
   Future<void> job(

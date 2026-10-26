@@ -6,7 +6,6 @@ import "lenis/dist/lenis.css";
 import "@fontsource-variable/fraunces/full.css";
 import "@fontsource-variable/fraunces/full-italic.css";
 import "./supper-club.css";
-import { DemoProvider } from "@/lib/store";
 
 const jakarta = localFont({
   src: [
@@ -35,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={jakarta.variable} data-scroll-behavior="smooth">
       <body>
-        <DemoProvider>{children}</DemoProvider>
+        {children}
       </body>
     </html>
   );

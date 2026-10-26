@@ -1,5 +1,7 @@
 # Raysto product direction
 
+**Conversation integration — 26 October 2026:** the approved Road to 10/10 milestone now connects native visit rooms, real Gemini tools, exact Sandbox shares and the Next.js AG Grid/AG Studio console at ops.rays.to. Earlier web exclusions describe older phases. See [current status](project-status.md) and [release evidence](road-to-10-10.md); buyer approval, remote MCP access and device/pilot gates remain open.
+
 **Mobile art direction — 26 October 2026:** version 0.10.0 adds original dining artwork, six native vector scenes, an adaptive spring dock, illustrated connected journeys and the matching explicit offline-demo surfaces. Functional integration remains intact. See [mobile-art-direction.md](mobile-art-direction.md) and its screen review. The current phase permits the focused validation and Android build described there; historical test deferrals below do not apply to this release.
 
 **Mobile integration — 26 October 2026:** the current authorized phase connects the native Flutter product to the deployed v2 restaurant backend. Connected discovery, orders, dining, kitchen/courier operations, media/AI, management and administration use server-owned records. The offline demo stays explicit and isolated. See [mobile-backend-integration.md](mobile-backend-integration.md). Earlier “deferred” and “not yet migrated” notes below describe previous phases; web work is outside this release.

@@ -84,6 +84,7 @@ __pycache__/
 
 # One-off provisioning/QA tools for the original host are not distribution tools.
 /tool/*qa.cjs
+/tool/*_qa.py
 /tool/google-backend-*.cjs
 /tool/firebase-mobile-config.cjs
 /tool/grant_raysto_auth_role.cjs

@@ -355,6 +355,108 @@ class IdentityModule {
         await CustomerCart.db.updateRow(s, existing, transaction: w.tx);
       }
     }
+    final roomMembers = await RoomMember.db.find(
+      s,
+      where: (t) => t.userId.equals(guest.userId),
+      transaction: w.tx,
+    );
+    for (final member in roomMembers) {
+      final existing = await RoomMember.db.findFirstRow(
+        s,
+        where: (t) => t.roomId.equals(member.roomId) & t.userId.equals(w.user),
+        transaction: w.tx,
+      );
+      if (existing == null) {
+        member.userId = w.user;
+        await RoomMember.db.updateRow(s, member, transaction: w.tx);
+      } else {
+        existing.lastReadSequence = max(
+          existing.lastReadSequence,
+          member.lastReadSequence,
+        );
+        await RoomMember.db.updateRow(s, existing, transaction: w.tx);
+        await RoomMember.db.deleteRow(s, member, transaction: w.tx);
+      }
+    }
+    await ConversationRoom.db.updateWhere(
+      s,
+      columnValues: (t) => [t.hostUserId(w.user)],
+      where: (t) => t.hostUserId.equals(guest.userId),
+      transaction: w.tx,
+    );
+    // Keep frozen amounts and already collected allocations together when two
+    // identities become one. Never divide the remaining balance again.
+    final claimedRooms = roomMembers.map((m) => m.roomId).toSet();
+    if (claimedRooms.isNotEmpty) {
+      final plans = await BillSplitPlan.db.find(
+        s,
+        where: (t) => t.roomId.inSet(claimedRooms),
+        limit: 1001,
+        transaction: w.tx,
+        lockMode: LockMode.forUpdate,
+      );
+      if (plans.length > 1000) {
+        _fail(
+          'claim_requires_batch',
+          'Ask support to complete this account claim.',
+        );
+      }
+      for (final plan in plans) {
+        final shares = _json(plan.sharesJson);
+        final old = shares.remove(guest.userId) as List?;
+        if (old == null) continue;
+        final merged = <int, Json>{};
+        for (final raw in [...(shares[w.user] as List? ?? []), ...old]) {
+          final share = _object(raw);
+          final charge = share['chargeId'] as int;
+          merged[charge] = {
+            ...share,
+            'amountMinor':
+                (merged[charge]?['amountMinor'] as int? ?? 0) +
+                (share['amountMinor'] as int),
+          };
+        }
+        shares[w.user] = merged.values.toList();
+        final payers = shares.keys.toList()..sort();
+        plan.payersJson = jsonEncode(payers);
+        plan.sharesJson = jsonEncode(shares);
+        if (plan.createdBy == guest.userId) plan.createdBy = w.user;
+        await BillSplitPlan.db.updateRow(s, plan, transaction: w.tx);
+      }
+    }
+    final authored = await RoomMessage.db.find(
+      s,
+      where: (t) => t.userId.equals(guest.userId),
+      limit: 1001,
+      transaction: w.tx,
+    );
+    if (authored.length > 1000) {
+      _fail(
+        'claim_requires_batch',
+        'This account requires a bounded support-assisted claim.',
+      );
+    }
+    for (final message in authored) {
+      message.userId = w.user;
+      message.clientMessageId = null;
+      await RoomMessage.db.updateRow(s, message, transaction: w.tx);
+    }
+    await AssistantRun.db.updateWhere(
+      s,
+      columnValues: (t) => [t.status('cancelled')],
+      where: (t) =>
+          t.userId.equals(guest.userId) &
+          t.status.inSet({'queued', 'running', 'review'}),
+      transaction: w.tx,
+    );
+    await AssistantProposal.db.updateWhere(
+      s,
+      columnValues: (t) => [t.status('cancelled')],
+      where: (t) =>
+          t.userId.equals(guest.userId) &
+          t.status.inSet({'review', 'approved'}),
+      transaction: w.tx,
+    );
     guest.disabled = true;
     guest.claimedBy = w.user;
     await ActorProfile.db.updateRow(s, guest, transaction: w.tx);

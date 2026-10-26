@@ -1,0 +1,19 @@
+flowchart TB
+  Diners[Flutter diners] --> API[Serverpod authorization and commands]
+  Staff[Flutter waiter] --> API
+  Ops[Next.js AG Grid + AG Studio] --> API
+  API <--> SQL[(PostgreSQL: rooms, orders, bills, events)]
+  API --> AI[Gemini: bounded authorized tool loop]
+  AI --> Tools[Menu, quotes, proposals, bill and manager reads]
+  Tools --> SQL
+  Tools --> MCP[PayPal MCP: read only; live acceptance pending]
+  API --> Pay[Guarded REST payment service]
+  Pay <--> PP[PayPal Sandbox]
+  MCP --> PP
+  PP --> Reconcile[Verified webhooks + reconciliation]
+  Reconcile --> SQL
+  SQL --> Events[Authorized SSE + inbox + FCM]
+  Events --> Diners
+  Events --> Staff
+  Events --> Ops
+  API --> Files[Private Firebase Storage + reviewed imports]

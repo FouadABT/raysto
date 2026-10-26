@@ -441,6 +441,14 @@ class OrderingModule {
         );
         return {'orderId': o!.id, 'status': o.status};
       }
+      if (q.assistantProposalId != null) {
+        await AssistantModule.validProposal(
+          w,
+          q.assistantProposalId!,
+          'basket',
+          state: 'approved',
+        );
+      }
       if (!q.expiresAt.isAfter(_now()) ||
           q.menuVersion != w.policy!.menuVersion) {
         _fail('quote_expired', 'Refresh the quote before ordering.');
@@ -591,6 +599,20 @@ class OrderingModule {
         );
       }
       q.consumedOrderId = order.id;
+      if (q.assistantProposalId != null) {
+        final proposal = (await AssistantProposal.db.findById(
+          s,
+          q.assistantProposalId!,
+          transaction: w.tx,
+        ))!;
+        proposal.status = 'executed';
+        proposal.version++;
+        proposal.payloadJson = jsonEncode({
+          ..._json(proposal.payloadJson),
+          'orderId': order.id,
+        });
+        await AssistantProposal.db.updateRow(s, proposal, transaction: w.tx);
+      }
       await PriceQuote.db.updateRow(s, q, transaction: w.tx);
       await w.audit('order.submitted', 'order', order.id);
       await w.notify(w.user, 'order.created', {

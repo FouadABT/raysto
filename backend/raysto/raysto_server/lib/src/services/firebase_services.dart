@@ -55,8 +55,11 @@ class FirebaseServices {
     String token,
     int eventId,
     int orderId,
-    String kind,
-  ) => _authorized(['https://www.googleapis.com/auth/firebase.messaging'], (
+    String kind, {
+    int? roomId,
+    int? restaurantId,
+    bool visible = false,
+  }) => _authorized(['https://www.googleapis.com/auth/firebase.messaging'], (
     client,
   ) async {
     final response = await client
@@ -69,10 +72,19 @@ class FirebaseServices {
           body: jsonEncode({
             'message': {
               'token': token,
+              if (visible)
+                'notification': {
+                  'title': 'Raysto',
+                  'body': roomId == null
+                      ? 'There is an update waiting for you.'
+                      : 'There is an update in your table room.',
+                },
               'data': {
                 'eventId': '$eventId',
                 'orderId': '$orderId',
                 'kind': kind,
+                if (roomId != null) 'roomId': '$roomId',
+                if (restaurantId != null) 'restaurantId': '$restaurantId',
               },
             },
           }),

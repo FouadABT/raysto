@@ -2,7 +2,7 @@
 Does not run a server, tests, provider requests or database migrations.
 """
 from pathlib import Path
-import json, re
+import json, re, copy
 
 ROOT=Path(__file__).resolve().parents[2]
 SERVER=ROOT/'backend/raysto/raysto_server'
@@ -27,7 +27,9 @@ for path in sorted((SERVER/'lib/src/models/platform').glob('*.spy.yaml')):
         if nullable:schema['type']=[schema['type'],'null']
         else:required.append(field)
         if kind=='DateTime':schema['format']='date-time'
-        if kind.startswith('List<'):schema['items']={'type':'string' if 'String' in kind else 'object'}
+        if kind.startswith('List<'):
+          item=kind[5:-1]
+          schema['items']={'type':'string'} if item=='String' else {'$ref':'#/components/schemas/'+item}
         if field=='requestKey':schema.update(minLength=16,maxLength=100,pattern='^[A-Za-z0-9_-]+$')
         if field.endswith('Json'):schema.update(contentMediaType='application/json',description='JSON-encoded object or array validated by the domain command.')
         properties[field]=schema;dictionary.append(f'| `{field}` | `{raw}` |')
@@ -48,7 +50,7 @@ for query in queries:
 paths['/events']={'get':{'operationId':'events','summary':'Authorized restaurant invalidations; refresh snapshots after each event.','security':[{'backendBearer':[],'firebaseProof':[]}],'parameters':[{'name':'restaurantId','in':'query','required':True,'schema':{'type':'integer'}},{'name':'after','in':'query','schema':{'type':'integer','minimum':0}}],'responses':{'200':{'description':'24-second bounded SSE stream. Reconnect using last cursor.','content':{'text/event-stream':{'schema':{'type':'string'}}}}}}}
 paths['/media/{id}/content']={'put':{'operationId':'uploadContent','parameters':[{'name':'id','in':'path','required':True,'schema':{'type':'integer'}}],'security':[{'backendBearer':[],'firebaseProof':[]}],'requestBody':{'required':True,'content':{'application/octet-stream':{'schema':{'type':'string','format':'binary','maxLength':8388608}}}},'responses':{'200':{'description':'Private upload quarantined for validation.'}}}}
 paths['/media/{id}']={'get':{'operationId':'readMedia','parameters':[{'name':'id','in':'path','required':True,'schema':{'type':'integer'}}],'responses':{'200':{'description':'Approved image or authorized private file. Exports expire after 24 hours.'}}}}
-for suffix in ['paypal-platform','paypal-billing']:
+for suffix in ['paypal-platform','paypal-billing','paypal-single-sandbox']:
     paths['/webhooks/'+suffix]={'post':{'operationId':'webhook_'+suffix.replace('-','_'),'description':'PayPal signature headers required; signature verified before durable inbox insertion.','requestBody':{'required':True,'content':{'application/json':{'schema':{'type':'object'}}}},'responses':{'200':{'description':'Durably received, processing asynchronous.'}}}}
 for provider,field in [('firebase','firebaseIdToken'),('guest','appCheckToken')]:
     paths['/auth/'+provider]={'post':{'operationId':'authenticate_'+provider,'security':[],'requestBody':{'required':True,'content':{'application/json':{'schema':{'type':'object','required':[field],'properties':{field:{'type':'string','maxLength':16000}},'additionalProperties':False}}}},'responses':{'200':{'description':'Verified Serverpod AuthSuccess envelope.'}}}}
@@ -58,7 +60,32 @@ for operations in paths.values():
         if operation.get('operationId')=='query_availability':operation['security']=[]
         if operation.get('operationId','').startswith('query_'):
             operation['parameters'] += [{'name':n,'in':'query','schema':{'type':t}} for n,t in [('startsAt','string'),('partySize','integer'),('orderId','integer'),('latitude','number'),('longitude','number'),('openNow','boolean')]]
-spec={'openapi':'3.1.0','info':{'title':'Raysto platform API','version':'2.0.0','description':'Registered clients send both a Serverpod bearer token and current Firebase ID token. Guests send bearer + App Check. See release evidence for enabled providers and verified workflows.'},'servers':[{'url':'https://api.rays.to/api/v2','description':'Raysto AWS mobile integration environment; payments remain Sandbox.'}],'paths':paths,'components':{'schemas':{k:v for k,v in schemas.items() if k in set(typed.values())|{'PlatformCommand','Result','Error'}},'securitySchemes':{'backendBearer':{'type':'http','scheme':'bearer'},'firebaseProof':{'type':'apiKey','in':'header','name':'X-Raysto-Firebase-Token'},'appCheck':{'type':'apiKey','in':'header','name':'X-Firebase-AppCheck'}}}}
+for query in ['room','room.events','assistant.run','operations.snapshot','operations.threads']:
+    if '/queries/'+query in paths:
+      paths['/queries/'+query]['get']['parameters'] += [{'name':n,'in':'query','schema':{'type':t}} for n,t in [('after','integer'),('before','integer'),('filter','string')]]
+aliases={
+ '/rooms/open':'room.open','/rooms/{id}/messages':'room.message',
+ '/rooms/{id}/read':'room.read','/rooms/{id}/preferences':'room.preferences',
+ '/rooms/{id}/host':'room.host','/rooms/{id}/report':'room.report',
+ '/rooms/{id}/split-reset':'room.split.reset','/assistant/runs':'assistant.start',
+ '/assistant/runs/{id}/cancel':'assistant.cancel','/assistant/proposals/{id}/approve':'assistant.approve',
+ '/operations/layout':'operations.layout','/operations/threads/archive':'operations.archiveThread',
+}
+for alias,command in aliases.items():
+    op=copy.deepcopy(paths['/commands/'+command]['post']);op['operationId']+='Alias'
+    if '{id}' in alias:op['parameters']=[{'name':'id','in':'path','required':True,'schema':{'type':'integer','minimum':1}}]
+    paths[alias]={'post':op}
+for alias,query in {'/rooms/{id}':'room','/assistant/runs/{id}':'assistant.run','/operations/snapshot':'operations.snapshot','/operations/threads':'operations.threads'}.items():
+    op=copy.deepcopy(paths['/queries/'+query]['get']);op['operationId']+='Alias'
+    if '{id}' in alias:
+      op['parameters']=[p for p in op['parameters'] if p['name']!='id']+[{'name':'id','in':'path','required':True,'schema':{'type':'integer','minimum':1}}]
+    paths[alias]={'get':op}
+stream=copy.deepcopy(paths['/events']['get']);stream['operationId']='roomEvents'
+stream['summary']='Authorized room events, ordered by sequence; access is rechecked during delivery.'
+stream['parameters'].append({'name':'id','in':'path','required':True,'schema':{'type':'integer','minimum':1}})
+stream['responses']['200']['description']='Bounded 25-second SSE stream. Reconnect with the last room sequence; use snapshot recovery when reset is true.'
+paths['/rooms/{id}/events']={'get':stream}
+spec={'openapi':'3.1.0','info':{'title':'Raysto platform API','version':'2.1.0','description':'Registered clients send both a Serverpod bearer token and current Firebase ID token. Guests send bearer + App Check. See release evidence for enabled providers and verified workflows.'},'servers':[{'url':'https://api.rays.to/api/v2','description':'Raysto AWS mobile integration environment; payments remain Sandbox.'}],'paths':paths,'components':{'schemas':{k:v for k,v in schemas.items() if k in set(typed.values())|{'ChargeShare','PlatformCommand','Result','Error'}},'securitySchemes':{'backendBearer':{'type':'http','scheme':'bearer'},'firebaseProof':{'type':'apiKey','in':'header','name':'X-Raysto-Firebase-Token'},'appCheck':{'type':'apiKey','in':'header','name':'X-Firebase-AppCheck'}}}}
 (OUT/'openapi.json').write_text(json.dumps(spec,indent=2)+'\n',encoding='utf-8')
 (OUT/'data-dictionary.md').write_text('\n'.join(dictionary),encoding='utf-8')
 trace=['# Capability and implementation index','','Generated command/query inventory. Each command uses shared authorization, SQL transactions and idempotency. External side effects are reconciled separately.','', '| Operation | Service | REST path |','|---|---|---|']
@@ -67,10 +94,12 @@ for c,model in typed.items():trace.append(f'| `{c}` | Typed `{model}` | `/api/v2
 trace+=['','Read queries: '+', '.join(f'`{q}`' for q in queries)+'.','','Schemas are in [data-dictionary.md](data-dictionary.md); release limitations and deferred gates are in [README.md](README.md).']
 (OUT/'capability-index.md').write_text('\n'.join(trace)+'\n',encoding='utf-8')
 ts=['// Generated by backend/tools/export_platform_contracts.py. Do not hand-edit.','export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };']
-for name in ['PlatformCommand',*typed.values()]:
+for name in ['PlatformCommand','ChargeShare',*typed.values()]:
     schema=schemas[name];ts.append(f'export interface {name} '+'{')
     for field,prop in schema['properties'].items():
-        types=prop['type'] if isinstance(prop['type'],list) else [prop['type']];kind=' | '.join({'integer':'number','number':'number','string':'string','boolean':'boolean','null':'null','array':'string[]','object':'Record<string, Json>'}[t] for t in types)
+        types=prop['type'] if isinstance(prop['type'],list) else [prop['type']]
+        array_type=(prop.get('items',{}).get('$ref','').split('/')[-1] or 'string')+'[]'
+        kind=' | '.join({'integer':'number','number':'number','string':'string','boolean':'boolean','null':'null','array':array_type,'object':'Record<string, Json>'}[t] for t in types)
         ts.append(f'  {field}{"?" if field not in schema["required"] else ""}: {kind};')
     ts.append('}')
 ts.append('export type CommandName = '+' | '.join(json.dumps(c) for c in sorted(commands))+';')

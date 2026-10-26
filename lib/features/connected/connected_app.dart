@@ -9,6 +9,7 @@ import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,6 +26,7 @@ part 'shopping.dart';
 part 'operations.dart';
 part 'activity.dart';
 part 'administration.dart';
+part 'room.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};
@@ -113,6 +115,45 @@ class ConnectedApp extends StatefulWidget {
 class _ConnectedAppState extends State<ConnectedApp> {
   int selected = 0;
   late final live = LiveContext(widget.runtime);
+  StreamSubscription<RemoteMessage>? openedNotification;
+  final openedIds = <String>{};
+  @override
+  void initState() {
+    super.initState();
+    openedNotification = FirebaseMessaging.onMessageOpenedApp.listen(
+      openNotification,
+    );
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null && mounted) openNotification(message);
+    }).catchError((Object _) { /* The in-app inbox remains available. */ });
+  }
+
+  void openNotification(RemoteMessage message) {
+    if (!mounted || live.api.identity() == null) return;
+    final event = message.messageId ?? message.data['eventId'];
+    if (event != null && !openedIds.add(event)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Notification payloads never grant access; destination reauthorizes.
+      final restaurant = int.tryParse('${message.data['restaurantId']}');
+      final room = int.tryParse('${message.data['roomId']}');
+      if (restaurant != null && room != null) {
+        push(
+          context,
+          TableRoomPage(live: live.tenant(restaurant), roomId: room),
+        );
+      } else {
+        push(context, notificationsPage(live));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    openedNotification?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     body: KeyedSubtree(

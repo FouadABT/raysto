@@ -12,6 +12,7 @@ class CatalogueModule {
     'holidays': [],
     'paused': false,
     'guestOrdering': true,
+    'customerChatEnabled': true,
     'selfSeating': false,
     'paymentTiming': 'before',
     'deliveryFeeMinor': 0,
@@ -87,6 +88,7 @@ class CatalogueModule {
     for (final b in [
       'paused',
       'guestOrdering',
+      'customerChatEnabled',
       'selfSeating',
       'taxConfigured',
       'pricesIncludeTax',
