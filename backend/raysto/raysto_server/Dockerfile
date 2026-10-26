@@ -2,6 +2,14 @@
 # docker build -f raysto_server/Dockerfile .
 
 # Build stage
+FROM node:24.19.0-bookworm-slim AS paypal-mcp
+WORKDIR /paypal-mcp
+COPY raysto_server/paypal_mcp_runtime/package*.json ./
+RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund \
+    && find node_modules -type d -name .bin -prune -exec rm -rf '{}' +
+COPY raysto_server/paypal_mcp_runtime/verify-contract.cjs ./
+RUN node verify-contract.cjs
+
 FROM dart:3.13.7 AS build
 
 # Create a minimal workspace that preserves locked server dependency versions.
@@ -40,6 +48,13 @@ COPY --from=build /runtime/ /
 
 # Copy compiled server executable and native libraries
 COPY --from=build /app/raysto_server/build/bundle/ ./
+
+# Project-local official MCP runtime; no npm downloads at server startup.
+COPY --from=paypal-mcp /usr/local/bin/node /app/lib/paypal-mcp/node
+COPY --from=paypal-mcp /paypal-mcp/ /app/lib/paypal-mcp/
+# Node needs these in addition to the Dart runtime's C libraries.
+COPY --from=paypal-mcp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /lib/x86_64-linux-gnu/
+COPY --from=paypal-mcp /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/
 
 # Copy configuration files and resources
 COPY --from=build /app/raysto_server/config/ config/

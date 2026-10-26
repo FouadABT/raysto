@@ -602,7 +602,7 @@ class AssistantModule {
             : _str(args, 'view', choices: {'overview', 'payments', 'service'});
         return {
           ...await WorkspaceModule.snapshot(w, args),
-          if (view != null) 'view': view,
+          'view': ?view,
         };
       default:
         _fail('forbidden', 'This tool is not permitted.');
@@ -655,13 +655,15 @@ class AssistantModule {
     Json response;
     String source = 'paypal_mcp';
     String? fallback;
-    final client = PayPalMcpClient(
-      accessToken: ProviderClients.paypalReadToken,
-    );
+    PayPalMcpClient? client;
     try {
       if (Platform.environment['RAYSTO_PAYPAL_MCP_ENABLED'] != 'true') {
         throw const McpFailure('mcp_disabled');
       }
+      client = PayPalMcpClient.configured(
+        Platform.environment,
+        accessToken: ProviderClients.paypalReadToken,
+      );
       response = await client.read(
         refund == null ? 'get_order' : 'get_refund',
         refund?.providerRefundId ?? intent.providerOrderId!,
@@ -678,7 +680,7 @@ class AssistantModule {
         singleMerchant: true,
       );
     } finally {
-      client.close();
+      client?.close();
     }
     if (refund == null) {
       MoneyModule.validateOrder(intent, response);
@@ -693,6 +695,7 @@ class AssistantModule {
     }
     return {
       'source': source,
+      'mcpTransport': source == 'paypal_mcp' ? client?.transport : null,
       'fallbackReason': fallback,
       'checkoutId': intent.id,
       'status': _str(response, 'status', max: 80),

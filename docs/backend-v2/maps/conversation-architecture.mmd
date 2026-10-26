@@ -6,7 +6,7 @@ flowchart TB
   API --> AI[Gemini: bounded authorized tool loop]
   AI --> Tools[Menu, quotes, proposals, bill and manager reads]
   Tools --> SQL
-  Tools --> MCP[PayPal MCP: read only; live acceptance pending]
+  Tools --> MCP[Official PayPal MCP: read-only stdio]
   API --> Pay[Guarded REST payment service]
   Pay <--> PP[PayPal Sandbox]
   MCP --> PP

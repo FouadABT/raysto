@@ -18,7 +18,7 @@ API-level evidence covers room membership, real Gemini basket/share proposals, e
 | Gemini tools and reviewed actions | `…/platform/assistant.dart` |
 | $35 development + $15 review allowance | `…/platform/ai_budget.dart` |
 | Frozen equal shares and guarded settlement | `…/platform/shares.dart`, `money.dart` |
-| Streamable HTTP MCP and strict read-tool schemas | `…/services/paypal_mcp_client.dart` |
+| Official stdio / Streamable HTTP MCP and strict read-tool schemas | `…/services/paypal_mcp_client.dart`, `…/paypal_mcp_runtime/` |
 | Manager snapshots/layouts | `…/platform/workspace.dart` |
 | Unbuffered bounded event response | `…/web/event_response.dart` |
 | Native conversation and proposal approval | `lib/features/connected/room.dart` |
@@ -43,6 +43,8 @@ Only `get_order` and `get_refund` may cross MCP; provider IDs come from authoriz
 | Real Gemini equal split | Frozen $13.50 share for each of two diners |
 | Checkout recovery | Same checkout resumed after fixing missing return URLs; actual PayPal Sandbox handoff |
 | Remote MCP | Access/protocol errors; no successful runtime read claimed. REST fallback reached PayPal |
+| Self-hosted official MCP, backend 0.11.4 | The same deployed Dart client read the existing USD 13.50 checkout through official stdio MCP as the Raysto service user, validated merchant/amount, and returned `PAYER_ACTION_REQUIRED` in 3.526 s without fallback or ledger changes. [Detailed evidence and limitations](paypal-mcp.md). |
+| Conversational payment check on 0.11.4 | Runs 14–16 timed out in Gemini's model stage before a completed MCP tool result. The direct MCP check passed; complete chat acceptance remains open. |
 | Payment-status assistant after correction | Completed run with `PAYER_ACTION_REQUIRED`, USD 13.50 and explicit REST fallback attribution; no paid-ledger mutation |
 | Console | Real QA Firebase login, table/room/service request and $27 balance displayed in AG workspace |
 | Manager assistant | Selected the bill-requested/unpaid table; browser displayed the completed tool and USD 27 explanation after correcting AG Studio message-part rendering |
@@ -90,7 +92,7 @@ Prior releases and local backups are retained. Off-host restore rehearsal, alert
 ## Remaining acceptance
 
 - Two Personal Sandbox buyers approve/capture their shares; verify webhook, matching balances, partial refund and interrupted-return recovery. [Buyer instructions](paypal-sandbox-buyers.md).
-- A real successful MCP interaction; retain honest REST fallback attribution until then.
+- Conversational payment-status acceptance after Gemini timeouts. A real direct MCP order read passed on backend 0.11.4; hosted MCP access remains blocked and refund-detail acceptance awaits a refund.
 - Fixed AI evaluation: budget ordering, conflicting preferences, unknown allergens, stale availability, French/Arabic input, privacy injection, payment status, cancellation and exhausted allowance. Keep failed attempts in the record.
 - Physical-device Google sign-in, guest admission, coordinated console/mobile activity and notification. Browser manager/filter/layout recovery passed selected checks; selected table/tab restoration and richer operational cards still need polish.
 - Richer grouped service/payment cards. The persistent Menu/Order/Bill bar is implemented and passed the large-text/keyboard layout check.

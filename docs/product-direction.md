@@ -1,6 +1,6 @@
 # Raysto product direction
 
-**Conversation integration — 26 October 2026:** the approved Road to 10/10 milestone now connects native visit rooms, real Gemini tools, exact Sandbox shares and the Next.js AG Grid/AG Studio console at ops.rays.to. Earlier web exclusions describe older phases. See [current status](project-status.md) and [release evidence](road-to-10-10.md); buyer approval, remote MCP access and device/pilot gates remain open.
+**Conversation integration — 26 October 2026:** the approved Road to 10/10 milestone now connects native visit rooms, real Gemini tools, exact Sandbox shares and the Next.js AG Grid/AG Studio console at ops.rays.to. Earlier web exclusions describe older phases. Official self-hosted MCP now passes a real read on backend 0.11.4; hosted access remains blocked. See [current status](project-status.md) and [release evidence](road-to-10-10.md); buyer approval, conversational payment-status latency and device/pilot gates remain open.
 
 **Mobile art direction — 26 October 2026:** version 0.10.0 adds original dining artwork, six native vector scenes, an adaptive spring dock, illustrated connected journeys and the matching explicit offline-demo surfaces. Functional integration remains intact. See [mobile-art-direction.md](mobile-art-direction.md) and its screen review. The current phase permits the focused validation and Android build described there; historical test deferrals below do not apply to this release.
 

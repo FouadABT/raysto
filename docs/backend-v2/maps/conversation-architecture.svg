@@ -62,7 +62,7 @@
 <text x="84" y="946" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Private Firebase Storage imports</text>
 <text x="84" y="977" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Explicit approval before publication</text>
 <rect x="600" y="830" width="480" height="175" rx="18" fill="#fffdf7" stroke="#23493c" stroke-width="2"/>
-<text x="624" y="875" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">PayPal MCP · read only</text>
+<text x="624" y="875" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">PayPal MCP · official stdio</text>
 <text x="624" y="915" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">get_order / get_refund allowlist</text>
 <text x="624" y="946" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Provider IDs from authorized records</text>
 <text x="624" y="977" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">REST fallback names its actual source</text>
@@ -73,7 +73,7 @@
 <text x="1164" y="977" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Then room / staff / dashboard refresh</text>
 <rect x="60" y="1060" width="1560" height="140" rx="18" fill="#d9ee96" stroke="#23493c" stroke-width="2"/>
 <text x="84" y="1105" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="27" font-weight="700">Evidence is the release gate</text>
-<text x="84" y="1145" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Observed: shared room, access revocation, real Gemini basket/share, unapproved Sandbox checkout, console.</text>
-<text x="84" y="1176" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Pending: successful MCP access, two buyer captures/refund, device notifications, pilot and final reviewer release.</text>
+<text x="84" y="1145" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Observed: shared room, real Gemini basket/share, Sandbox checkout, direct MCP order read, console.</text>
+<text x="84" y="1176" fill="#23493c" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="21" font-weight="400">Pending: chat payment-status latency, two buyer captures/refund, device notifications, pilot and final release.</text>
 <text x="60" y="1238" fill="#63776b" font-family="Plus Jakarta Sans,Arial,sans-serif" font-size="18" font-weight="400">PostgreSQL owns business truth. A chat reply or browser redirect cannot mark a bill paid.</text>
 </svg>

@@ -30,7 +30,7 @@ Actual Flutter widget renders with illustrative fixtures. Screenshots demonstrat
 | **Payments** | Server-side PayPal Sandbox checkout, allocations, reconciliation and refund source. Complete buyer approval/capture/refund acceptance remains a separate gate. |
 | **Connected operations** | Firebase sign-in, table map, AG Grid, AG Studio custom widgets/harness, room history, shared attention filters and saved layouts. `/ops` uses the real backend. |
 
-**Status: integration candidate.** Android `0.11.0+2013` is built. Rooms, real Gemini basket/share proposals and an actual $13.50 Sandbox approval handoff have been observed. Buyer capture/refund, successful remote MCP access, the pilot and physical-device acceptance remain release gates. This is not the final judged release. [Road to 10/10 report](docs/road-to-10-10.md) · [Evidence and limitations](docs/project-status.md).
+**Status: integration candidate.** Android `0.11.0+2013` is built. Rooms, real Gemini basket/share proposals, an actual $13.50 Sandbox approval handoff and a real order read through official self-hosted PayPal MCP have been observed. Buyer capture/refund, conversational payment-status acceptance, the pilot and physical-device acceptance remain release gates. This is not the final judged release. [Road to 10/10 report](docs/road-to-10-10.md) · [MCP evidence](docs/paypal-mcp.md) · [Evidence and limitations](docs/project-status.md).
 
 ## Run the mobile preview
 
@@ -59,7 +59,7 @@ flowchart LR
     Jobs --> AI[Gemini: reviewed proposals]
     Jobs --> Notices[Inbox + configured notifications]
     Web[Next.js + AG Grid + AG Studio] --> API
-    AI --> MCP[PayPal MCP reads: acceptance pending]
+    AI --> MCP[Official PayPal MCP: read-only stdio]
     SQL --> Events[Authorized room events]
     Events --> Mobile
     Events --> Web

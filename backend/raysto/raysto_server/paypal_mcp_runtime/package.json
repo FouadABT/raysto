@@ -1,0 +1,10 @@
+{
+  "name": "raysto-paypal-mcp-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@11.17.0",
+  "description": "Pinned official PayPal MCP server for Raysto's isolated Sandbox reader",
+  "dependencies": {
+    "@paypal/mcp": "1.8.1"
+  }
+}

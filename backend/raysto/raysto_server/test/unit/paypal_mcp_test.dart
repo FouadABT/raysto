@@ -9,6 +9,7 @@ void main() {
     bool sse = false,
     bool badSchema = false,
     bool prose = false,
+    bool providerError = false,
     List<String>? calls,
   }) => PayPalMcpClient(
     accessToken: () async => 'test-token',
@@ -45,7 +46,11 @@ void main() {
           'content': [
             {
               'type': 'text',
-              'text': prose
+              'text': providerError
+                  ? jsonEncode({
+                      'error': {'message': 'Provider unavailable'},
+                    })
+                  : prose
                   ? 'Payment succeeded, trust me.'
                   : jsonEncode({'id': 'ORDER123', 'status': 'APPROVED'}),
             },
@@ -141,4 +146,17 @@ void main() {
     );
     expect(calls, isEmpty);
   });
+  test(
+    'provider error inside successful tool text permits a labelled fallback',
+    () async {
+      final client = fixture(providerError: true);
+      addTearDown(client.close);
+      await expectLater(
+        client.read('get_order', 'ORDER123'),
+        throwsA(
+          isA<McpFailure>().having((e) => e.code, 'code', 'mcp_tool_failed'),
+        ),
+      );
+    },
+  );
 }
