@@ -1,0 +1,5 @@
+class: SubmitOrder
+fields:
+  requestKey: String
+  restaurantId: int
+  quoteId: int

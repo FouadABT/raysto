@@ -1,0 +1,16 @@
+class: DiningWaitlist
+table: raysto_dining_waitlist
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  partySize: int
+  status: String
+  contactJson: String
+  offeredTableId: int?
+  offerExpiresAt: DateTime?
+  version: int
+  createdAt: DateTime
+indexes:
+  waitlist_tenant:
+    fields: restaurantId, status, createdAt

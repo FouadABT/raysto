@@ -1,0 +1,7 @@
+class: StartVisit
+fields:
+  requestKey: String
+  restaurantId: int
+  tableId: int
+  guestCount: int
+  seatingToken: String?

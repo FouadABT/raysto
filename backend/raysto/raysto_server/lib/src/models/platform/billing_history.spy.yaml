@@ -1,0 +1,14 @@
+class: BillingHistory
+table: raysto_billing_history
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  providerSubscriptionId: String
+  eventKey: String
+  status: String
+  detailsJson: String
+  createdAt: DateTime
+indexes:
+  billing_history_event:
+    fields: eventKey
+    unique: true

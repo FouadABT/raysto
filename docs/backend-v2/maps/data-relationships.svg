@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200" viewBox="0 0 1800 1200"><rect width="100%" height="100%" fill="#0d1725"/>
+<text x="58" y="80" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">RAYSTO — data relationships</text>
+<text x="60" y="118" fill="#acbfd2" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400">Tenant identifiers accompany business relations; purchased amounts and provider references remain historical evidence</text>
+<rect x="60" y="160" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="200" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Actor</text>
+<text x="82" y="239" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Registered or guest</text>
+<rect x="640" y="160" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="662" y="200" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Membership</text>
+<text x="662" y="239" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Restaurant role + active state</text>
+<rect x="1220" y="160" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="1242" y="200" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Restaurant</text>
+<text x="1242" y="239" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Settings, currency, subscription</text>
+<rect x="1220" y="360" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="1242" y="400" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Menu / drafts</text>
+<text x="1242" y="439" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Items, modifiers, publication</text>
+<rect x="60" y="360" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="400" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Table</text>
+<text x="82" y="439" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Stable ID and public QR</text>
+<rect x="640" y="360" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="662" y="400" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Visit</text>
+<text x="662" y="439" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Active party and participants</text>
+<rect x="640" y="570" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="662" y="610" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Order</text>
+<text x="662" y="649" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Immutable lines + fulfillment</text>
+<rect x="60" y="570" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="610" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Reservation</text>
+<text x="82" y="649" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Timed hold + table allocation</text>
+<rect x="1220" y="570" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="1242" y="610" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Checkout attempt</text>
+<text x="1242" y="649" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Frozen amount + provider state</text>
+<rect x="60" y="800" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="840" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Bill charge</text>
+<text x="82" y="879" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Obligation, credit, paid, reserved</text>
+<rect x="640" y="800" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="662" y="840" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Payment allocation</text>
+<text x="662" y="879" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Exact units or minor-unit share</text>
+<rect x="1220" y="800" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="1242" y="840" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Capture / refund</text>
+<text x="1242" y="879" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">External evidence + ledger</text>
+<rect x="60" y="1010" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="1050" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Jobs / audit / inbox</text>
+<text x="82" y="1089" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Durable effects and history</text>
+<rect x="640" y="1010" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="662" y="1050" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Kitchen / delivery</text>
+<text x="662" y="1089" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Preparation and handoffs</text>
+<rect x="1220" y="1010" width="490" height="110" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="1242" y="1050" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Commission / billing</text>
+<text x="1242" y="1089" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Versioned revenue accounting</text>
+<polyline points="550,215 640,215" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="640,215 628.9472680719654,219.6730201077038 628.9472680719654,210.3269798922962" fill="#55728b"/>
+<polyline points="1130,215 1220,215" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1220,215 1208.9472680719655,219.6730201077038 1208.9472680719655,210.3269798922962" fill="#55728b"/>
+<polyline points="1465,270 1465,360" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1465,360 1460.326979892296,348.94726807196537 1469.673020107704,348.94726807196537" fill="#55728b"/>
+<polyline points="550,415 640,415" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="640,415 628.9472680719654,419.6730201077038 628.9472680719654,410.3269798922962" fill="#55728b"/>
+<polyline points="885,470 885,570" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="885,570 880.3269798922962,558.9472680719654 889.6730201077038,558.9472680719654" fill="#55728b"/>
+<polyline points="305,470 305,570" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="305,570 300.3269798922962,558.9472680719654 309.6730201077038,558.9472680719654" fill="#55728b"/>
+<polyline points="305,570 305,520 710,520 710,470" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="710,470 714.6730201077038,481.05273192803463 705.3269798922962,481.05273192803463" fill="#55728b"/>
+<polyline points="1130,625 1220,625" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1220,625 1208.9472680719655,629.6730201077038 1208.9472680719655,620.3269798922962" fill="#55728b"/>
+<polyline points="885,680 885,735 305,735 305,800" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="305,800 300.3269798922962,788.9472680719654 309.6730201077038,788.9472680719654" fill="#55728b"/>
+<polyline points="550,855 640,855" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="640,855 628.9472680719654,859.6730201077038 628.9472680719654,850.3269798922962" fill="#55728b"/>
+<polyline points="1130,855 1220,855" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1220,855 1208.9472680719655,859.6730201077038 1208.9472680719655,850.3269798922962" fill="#55728b"/>
+<polyline points="1465,680 1465,735 1100,735 1100,800" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1100,800 1095.326979892296,788.9472680719654 1104.673020107704,788.9472680719654" fill="#55728b"/>
+<polyline points="1465,735 1465,800" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1465,800 1460.326979892296,788.9472680719654 1469.673020107704,788.9472680719654" fill="#55728b"/>
+<polyline points="1465,910 1465,1010" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1465,1010 1460.326979892296,998.9472680719654 1469.673020107704,998.9472680719654" fill="#55728b"/>
+<polyline points="885,680 1180,680 1180,980 885,980 885,1010" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="885,1010 880.3269798922962,998.9472680719654 889.6730201077038,998.9472680719654" fill="#55728b"/>
+<text x="60" y="1172" fill="#acbfd2" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">RAYSTO  /  Backend v2 source map  /  Runtime verification and rollout deferred</text>
+</svg>

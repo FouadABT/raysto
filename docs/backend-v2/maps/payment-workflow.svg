@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1280" viewBox="0 0 1800 1280"><rect width="100%" height="100%" fill="#0d1725"/>
+<text x="58" y="80" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">RAYSTO — payment workflow</text>
+<text x="60" y="118" fill="#acbfd2" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400">Approval redirects are a handoff. Only verified provider evidence changes collected money.</text>
+<rect x="60" y="155" width="290" height="80" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="82" y="195" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Customer / waiter</text>
+<rect x="510" y="155" width="290" height="80" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="532" y="195" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Raysto API</text>
+<rect x="960" y="155" width="290" height="80" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="982" y="195" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">PostgreSQL</text>
+<rect x="1410" y="155" width="290" height="80" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="1432" y="195" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">PayPal</text>
+<polyline points="205,260 205,1090" fill="none" stroke="#314b63" stroke-width="3"/>
+<polygon points="205,1090 200.3269798922962,1078.9472680719655 209.6730201077038,1078.9472680719655" fill="#314b63"/>
+<polyline points="655,260 655,1090" fill="none" stroke="#314b63" stroke-width="3"/>
+<polygon points="655,1090 650.3269798922962,1078.9472680719655 659.6730201077038,1078.9472680719655" fill="#314b63"/>
+<polyline points="1105,260 1105,1090" fill="none" stroke="#314b63" stroke-width="3"/>
+<polygon points="1105,1090 1100.326979892296,1078.9472680719655 1109.673020107704,1078.9472680719655" fill="#314b63"/>
+<polyline points="1555,260 1555,1090" fill="none" stroke="#314b63" stroke-width="3"/>
+<polygon points="1555,1090 1550.326979892296,1078.9472680719655 1559.673020107704,1078.9472680719655" fill="#314b63"/>
+<polyline points="205,320 655,320" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="655,320 643.9472680719654,324.6730201077038 643.9472680719654,315.3269798922962" fill="#61d4cf"/>
+<text x="217" y="304" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">1  Confirm bill selection</text>
+<polyline points="655,410 1105,410" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="1105,410 1093.9472680719655,414.6730201077038 1093.9472680719655,405.3269798922962" fill="#61d4cf"/>
+<text x="667" y="394" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">2  Lock balance; reserve exact allocation</text>
+<polyline points="655,500 1555,500" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="1555,500 1543.9472680719655,504.6730201077038 1543.9472680719655,495.3269798922962" fill="#61d4cf"/>
+<text x="667" y="484" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">3  Create order with stable request ID</text>
+<polyline points="1555,590 205,590" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="205,590 216.05273192803463,585.3269798922962 216.05273192803463,594.6730201077038" fill="#61d4cf"/>
+<text x="217" y="574" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">4  Return approval URL; customer approves</text>
+<polyline points="205,680 655,680" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="655,680 643.9472680719654,684.6730201077038 643.9472680719654,675.3269798922962" fill="#61d4cf"/>
+<text x="217" y="664" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">5  Request completion</text>
+<polyline points="655,770 1555,770" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="1555,770 1543.9472680719655,774.6730201077038 1543.9472680719655,765.3269798922962" fill="#61d4cf"/>
+<text x="667" y="754" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">6  Read provider state; capture if approved</text>
+<polyline points="1555,860 655,860" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="655,860 666.0527319280346,855.3269798922962 666.0527319280346,864.6730201077038" fill="#61d4cf"/>
+<text x="667" y="844" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">7  Verified capture result or signed webhook</text>
+<polyline points="655,950 1105,950" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="1105,950 1093.9472680719655,954.6730201077038 1093.9472680719655,945.3269798922962" fill="#61d4cf"/>
+<text x="667" y="934" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">8  Settle allocations; save receipt + outbox</text>
+<polyline points="655,1040 205,1040" fill="none" stroke="#61d4cf" stroke-width="3"/>
+<polygon points="205,1040 216.05273192803463,1035.326979892296 216.05273192803463,1044.673020107704" fill="#61d4cf"/>
+<text x="217" y="1024" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">9  Return remaining balance and receipt</text>
+<rect x="60" y="1120" width="1680" height="90" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="82" y="1160" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">IF THE RESPONSE IS LOST</text>
+<text x="82" y="1199" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Keep the allocation reserved → reconcile the same provider order → never create a replacement charge from a timeout.</text>
+<text x="60" y="1252" fill="#acbfd2" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">RAYSTO  /  Backend v2 source map  /  Runtime verification and rollout deferred</text>
+</svg>

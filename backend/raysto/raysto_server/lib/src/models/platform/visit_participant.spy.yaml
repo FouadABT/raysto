@@ -1,0 +1,13 @@
+class: VisitParticipant
+table: raysto_visit_participant
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  visitId: int, relation(parent=raysto_dining_visit)
+  userId: String
+  active: bool
+  joinedAt: DateTime
+indexes:
+  participant_visit_user:
+    fields: visitId, userId
+    unique: true

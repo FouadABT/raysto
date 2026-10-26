@@ -1,0 +1,9 @@
+class: AllocatePayment
+fields:
+  requestKey: String
+  restaurantId: int
+  visitId: int?
+  orderId: int?
+  amountMinor: int?
+  lineKeys: List<String>?
+  method: String

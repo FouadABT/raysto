@@ -1,0 +1,800 @@
+RAYSTO — COMPLETE MOBILE FRONTEND IMPLEMENTATION PROMPT
+Material 3 • Existing foundation • Motion first • Local demo data
+
+You are the senior mobile product designer and frontend engineer working inside my existing Raysto repository.
+
+Implement the complete mobile application described below. Work in the repository, write the code, run it where the environment permits, inspect the result, and repair defects. This is an implementation assignment, not a request for another plan or a collection of static mockup images.
+
+Raysto is an independent restaurant platform. Its intended website address is rays.to. It supports customer discovery and ordering, dine-in QR ordering, restaurant operations, table layouts and visits, kitchen preparation, delivery, and payments. It is separate from Awhar.
+
+
+1. MISSION AND SCOPE
+
+My existing project already has a solid design-system foundation. Extend that foundation into a complete, polished MOBILE frontend.
+
+Priority order:
+
+1) Preserve and consistently apply the existing Material 3 foundation.
+2) Achieve excellent hierarchy, typography, spacing, accessibility, and layout.
+3) Deliver coherent, responsive, interruptible motion.
+4) Complete connected user journeys across different demo accounts.
+5) Keep the implementation maintainable and ready for later service integration.
+
+"All logic" in this phase means working FRONTEND logic: navigation, validation, local state, calculations, filtering, selection, forms, drafts, mock authentication, role-aware interfaces, simulated AI, simulated payments, and shared local workflows.
+
+Implement local repositories/services behind explicit interfaces. Do not build a backend, provision cloud resources, connect production accounts, integrate live PayPal or AI APIs, send email/SMS, request credentials, or deploy a website. Do not add a separate web application. Retain existing integrations elsewhere in the repository, but prevent this demo mode from invoking them.
+
+The app must demonstrate its main journeys offline with bundled assets and deterministic fixtures. It must look like a usable product, with meaningful actions and outcomes. A decorative screen with dead buttons is incomplete.
+
+Complete the full scope through ordered implementation passes. Do not stop after scaffolding, onboarding, the home screen, or the first successful flow. Respect repository instructions and actual approval boundaries; make reasonable reversible implementation decisions without repeatedly asking routine design questions.
+
+
+2. INSPECT THE FOUNDATION BEFORE EDITING
+
+Read the applicable AGENTS.md, README, manifests, lockfiles, entry points, routes, shared components, design tokens, themes, animation helpers, state management, persistence, assets, localization, and existing tests.
+
+Identify the actual framework and supported SDK versions. Do not assume Flutter solely from this prompt. If it is Flutter, use the installed Material implementation and existing state-management/router conventions. If it is another stack, use its established Material 3 implementation. Do not migrate frameworks or introduce a parallel design system.
+
+Inspect existing work and preserve unrelated changes. Reuse working components before creating new ones. Keep existing brand colors, fonts, naming conventions, and architecture when they satisfy the requirements. Do not replace the foundation with the purple palette from earlier concept images.
+
+Create a concise repository note recording:
+
+- Existing foundation and reusable components.
+- Missing screen families and shared components.
+- Navigation and role mapping.
+- Material 3 gaps requiring targeted fixes.
+- Ordered implementation checklist.
+
+If screenshots or earlier UI boards are available, use them for product coverage and visual context. The repository's approved foundation controls the implemented visual system. Do not reproduce accidental inconsistencies from generated mockups.
+
+If no relevant application source is accessible, report the missing repository access precisely instead of creating an unrelated replacement project.
+
+
+3. STRICT MATERIAL 3 DESIGN CONTRACT
+
+Use the installed framework's real Material 3 components, semantic tokens, interaction states, and navigation conventions. Consult the official references at the end and the documentation matching the installed versions.
+
+COLOR AND SURFACES
+
+- Resolve colors through the existing color scheme: primary/onPrimary, primaryContainer/onPrimaryContainer, secondary, tertiary, surface/onSurface, surfaceContainer roles, outline roles, and error roles.
+- Support coherent light and dark themes. Do not build dark mode by simply inverting colors.
+- Add semantic success/warning/information roles through the existing theme extension mechanism when needed, with appropriate foreground pairs.
+- Show status using text and icons as well as color.
+- Use tonal surfaces and restrained elevation. Avoid arbitrary gradients, glass panels, oversized shadows, and a new radius/color invented for each screen.
+- Preserve established dynamic-color behavior if present; keep branded demo screenshots reproducible.
+
+TYPOGRAPHY
+
+- Use the existing semantic type scale: display, headline, title, body, and label.
+- Preserve the approved font family and Arabic fallback. Do not introduce multiple unrelated display fonts.
+- Apply font size, weight, line height, and tracking through shared styles.
+- Use headline styles selectively for welcome and onboarding; use title styles for operational screens and sections; use body styles for reading and label styles for controls.
+- For an incomplete baseline scale, consult the Material baseline values; examples include titleLarge 22/28, bodyLarge 16/24, bodyMedium 14/20, and labelLarge 14/20, expressed as size/line height. Do not override a correctly configured framework theme with scattered copies.
+- Keep prices and quantities legible, align related values, and avoid shrinking text to conceal overflow.
+- Respect platform text scaling and use flexible layouts. Important totals, warnings, and primary actions must remain readable.
+
+SPACING AND LAYOUT
+
+- Reuse existing spacing tokens. If missing, introduce a documented Raysto spacing scale of 4, 8, 12, 16, 24, 32, and 48 logical units.
+- Suggested Raysto defaults are 16 logical units at compact screen edges, 16 inside standard cards, 8 between closely related elements, and 24 between sections. These are project defaults, not a claim that every Material component uses these dimensions.
+- Material components retain their specified internal spacing and geometry.
+- Maintain consistent text alignment, baselines, image aspect ratios, card padding, and section rhythm.
+- Respect notches, system bars, gesture insets, safe areas, keyboards, and bottom navigation.
+- Place checkout and form actions in keyboard-safe, inset-aware action areas without covering content.
+- Support narrow, normal, and large phones, landscape where useful, long French strings, Arabic RTL, and large text.
+- Do not squeeze desktop dashboards, wide tables, or a four-column Kanban into a phone. Use summaries, lists, tabs, detail screens, and sheets.
+
+COMPONENTS AND INTERACTION
+
+- Prefer Material app bars, navigation bars, buttons, icon buttons, FABs where appropriate, cards, lists, search, chips, segmented controls, fields, switches, dialogs, sheets, snackbars, and progress indicators.
+- Use component-specific shape tokens. Do not apply one pill radius to every surface.
+- Provide correct pressed, focused, selected, disabled, loading, and error states.
+- Keep main touch targets at least 48 by 48 logical units, including small visible icons.
+- Use a consistent Material icon family. Icon-only actions require accessible labels.
+- Use one visually dominant action per task area. Destructive actions require appropriate confirmation or undo.
+- Ordinary text needs a contrast target of at least 4.5:1; meaningful non-text boundaries and large text must also remain distinguishable. Check the actual theme rather than assuming a token combination is sufficient.
+
+Material 3 may expose different motion/component capabilities across SDK versions. Preserve the coherent system already established in this project. If the foundation uses supported Material 3 Expressive components or motion, continue that consistently. Do not mix unrelated baseline and Expressive treatments or force an SDK migration for visual novelty.
+
+
+4. MOTION IS A REQUIRED DESIGN SYSTEM
+
+Audit and extend the existing motion layer. Use framework Material transitions and motion tokens whenever available. Do not add a separate collection of arbitrary easing curves.
+
+For custom motion without existing tokens, define one documented mapping. Suggested Raysto duration defaults are quick 150 ms, standard 250 ms, emphasis 350 ms, and onboarding 450 ms. These are adjustable project defaults, not universal Material requirements. Native Material component motion remains authoritative. If the foundation uses current physics-based Material motion, retain its spring tokens instead of forcing duration-based replacements.
+
+REQUIRED CHOREOGRAPHY
+
+- Navigation into details: preserve spatial continuity; use a suitable shared element/container transition only when the source and destination represent the same object.
+- Back navigation: reverse the relationship naturally and respect platform back gestures and predictive-back behavior where supported.
+- Top-level navigation: preserve destination state and use the established Material transition; do not play an onboarding-style entrance every time a tab is selected.
+- Onboarding steps: animate the changing content and progress together; support forward, backward, skip, and immediate interaction.
+- Sheets/dialogs: use Material entry, dismissal, scrim, drag, keyboard, and focus behavior.
+- Cart changes: animate the affected quantity, item insertion/removal, total, and cart affordance with restrained emphasis. Keep numeric and screen-reader updates understandable.
+- Search/filtering: animate relevant results changes without repeatedly cascading the entire list or moving the search field.
+- Order/service updates: update the changed badge, timeline step, or row. Preserve scroll position and stable keys.
+- Floor-plan editing: direct manipulation follows the finger; snap on release; selection and inspector transitions must not interfere with dragging.
+- AI preview: show brief deterministic progress or typing feedback, then reveal a complete understandable response. Avoid slow character-by-character text that delays use or creates noisy accessibility announcements.
+- Payment: show pending until the selected mock outcome resolves; use a brief confirmation only after local success.
+- Empty/loading states: use stable placeholders that match final geometry. Stop animations when hidden and avoid endless decorative shimmer.
+- Theme/language/account changes: avoid flashes, overlapping shells, stale screens, and animation replay storms.
+
+MOTION RULES
+
+- Input feedback must begin immediately; animation cannot delay data entry, navigation, or critical actions.
+- Transitions must be interruptible. Rapid taps must not stack routes, duplicate sheets, or restart conflicting animations.
+- Use small stagger only for a short introductory group; suggested delay is 20–30 ms per item with a total cap of 120 ms. Do not stagger long lists.
+- Keep decorative movement brief and purposeful. Avoid perpetual floating cards, dramatic parallax, repeated confetti, and bouncing operational queues.
+- Pause or dispose offscreen animations, timers, and listeners. Cancel stale view-owned work on account changes; preserve valid domain operations until completion or explicit reset.
+- Effective reduced motion is enabled when the OS requests it OR the app's "Reduce motion" preference is enabled. Never override an OS request by turning the app preference off.
+- Reduced motion removes parallax, translation, scale, stagger, and decorative loops; use immediate updates or a brief opacity change where useful. Preserve all information and functionality.
+- Haptics are optional, subtle, and preference-aware. Never use sound or haptics as the only signal.
+
+Include a developer-accessible motion/component gallery so these patterns can be reviewed consistently. Do not claim smooth performance solely because animation code exists; inspect actual runtime behavior.
+
+
+5. REUSABLE COMPONENTS AND MOBILE NAVIGATION
+
+Build missing components once, using the existing component APIs and tokens:
+
+- App shell, role-aware app bar, bottom navigation, inset-aware action bar, and section header.
+- Restaurant card, menu card/list row, dietary-information label, unavailable-item state, modifier group, and quantity stepper.
+- Cart summary, itemized money breakdown, payment-status badge, preparation-status badge, and fulfillment timeline.
+- Table tile, visit summary, participant indicator, service-request card, and floor-plan object.
+- Kitchen ticket, delivery task card, notification row, and activity event.
+- AI message bubble, suggested-action chips, proposed basket, and editable import result.
+- Form sections, validation summary, search/filter sheet, confirmation sheet, loading placeholder, empty/error/offline view, and undo snackbar.
+- Demo account picker, scenario controls, and component/motion gallery.
+
+Create abstractions around repeated behavior; do not build a giant configurable screen that makes every feature look identical. Use real layouts appropriate to each task.
+
+Suggested top-level destinations, adapted to established navigation:
+
+Customer:
+Discover / Orders / Assistant / Profile.
+
+Owner or manager:
+Overview / Orders / Tables / Menu / More.
+
+Waiter:
+Shift / Tables / Orders / Requests / More.
+
+Kitchen:
+Queue / Availability / More.
+
+Courier:
+Tasks / Activity / Profile.
+
+Keep destinations to a manageable Material navigation set. More contains secondary workflows. Hide bottom navigation during focused authentication, scanning, editing, and checkout where appropriate. Preserve each destination's scroll position and filters. Restore focus after a sheet closes.
+
+
+6. SHARED LOCAL DEMO MODEL
+
+Implement one coherent local demo world, not disconnected arrays inside screens. Cross-role synchronization operates within one installation. Do not imply synchronization between separate devices.
+
+Use typed models for identity, role assignment, restaurant, service configuration, menu category/item/modifier, table, floor-plan object, table visit, visit participant, cart, order, order item, checkout attempt, payment/refund, service request, delivery task, reservation/waitlist entry, notification, and activity event.
+
+Scope restaurant entities by restaurant ID and personal entities by account ID. Share operational records across authorized roles; isolate customers' private carts, addresses, and profile data. A participant may access the intended shared table bill, but cannot browse another party's visit.
+
+Use stable identifiers, a deterministic seed, a controllable demo clock, explicit local transitions, and derived selectors. Counts, balances, badges, reports, and timelines must come from the same data. Do not hardcode a dashboard number that contradicts its list.
+
+Keep domain actions separate from widget rendering. Reuse existing state management and persistence. Persist preferences, onboarding progress, carts, edits, visits, and demo workflow state through the existing local storage layer. Add a fixture/schema version and a reliable reset path.
+
+Simulate async states through a small local service layer. Default delays should be short and deterministic; provide instant and slow scenarios. No random failures. No timer created inside a build/render function.
+
+DEMO FIXTURES
+
+- Two restaurants: Olive Kitchen and Harbor Cafe, unless suitable repository fixtures already exist.
+- At least 12 believable items per restaurant across useful categories, with modifiers, photos, availability, and some explicitly unknown dietary information.
+- Olive Kitchen has 12 tables across two zones, with occupied, available, reserved, and needs-reset examples.
+- Staff assignments, new requests, active orders, completed orders, a ready delivery, an unresolved payment, and a refund example.
+- Bundle approved or locally generated placeholder assets. Do not make an offline demo depend on remote image URLs or font downloads.
+
+Keep the earlier reference basket consistent if no existing fixture convention supersedes it:
+
+Garden bowl EUR 9.00
++ grilled chicken wrap EUR 10.00
++ lemonade EUR 3.00
+= EUR 22.00.
+
+Delivery adds EUR 2.00, producing EUR 24.00.
+
+Base dine-in has no additional fee or tip. Additional modifiers, discounts, or tips must visibly change the calculation.
+
+Store money in integer minor units with a currency code. Changing language changes formatting, not currency or conversion rates. Each restaurant checkout has one configured currency.
+
+
+7. DEMO ACCOUNTS AND PERMISSIONS
+
+Provide a visible "Explore demo accounts" entry and an account switcher in settings. Use obviously fictional identities and .test email addresses. No real account is created.
+
+Seed:
+
+- New customer: new.customer@raysto.test — onboarding incomplete, no history.
+- Returning customer: customer@raysto.test — addresses, preferences, favorites, history.
+- Active diner: diner@raysto.test — participant in an active Table 06 visit.
+- Owner: owner@raysto.test — full Olive Kitchen configuration and operations.
+- Manager: manager@raysto.test — operations, menu, team, reports; restricted ownership/billing changes.
+- Waiter: waiter@raysto.test — assigned tables, orders, service requests, requesting payment.
+- Kitchen: kitchen@raysto.test — tickets, preparation, permitted availability changes.
+- Courier: courier@raysto.test — assigned deliveries and delivery issues.
+- Harbor Cafe owner: harbor.owner@raysto.test — authorized access to Harbor Cafe only, enabling meaningful restaurant-isolation scenarios.
+- Guest browsing and ordering where the restaurant's demo policy permits.
+
+Offer one-tap entry and a working mock login form. If password demonstration is needed, display a shared fictional password such as RaystoDemo123! and use 123456 as an explicitly shown demo verification code. Never store real credentials.
+
+Role switching preserves shared restaurant state while replacing personal navigation and permissions. A customer-created order must be visible to the relevant manager and kitchen accounts. Directly opening an unauthorized route must show a useful access-denied state, not privileged content.
+
+Demo controls include restaurant/account selection, scenario selection, connectivity state, next payment outcome, time advancement, replay onboarding, reset personal preferences, and reset the whole demo.
+
+Distinguish a personal reset from a global reset. Cancel old timers and operations before global reset.
+
+
+8. SHARED ENTRY AND ONBOARDING SCREENS
+
+Implement these as complete routes or appropriate sheets:
+
+S01 Branded launch/restoration state; avoid an artificial mandatory splash delay.
+S02 Welcome with a restrained animated product story and clear customer/business entry.
+S03 Demo account chooser with role descriptions and account state.
+S04 Sign in with validation, password visibility, loading, error, and recovery.
+S05 Create account with valid/invalid fields and local completion.
+S06 Verification code, resend countdown, wrong/expired code, and retry.
+S07 Forgotten password and clearly simulated reset confirmation.
+S08 Choose language and appearance, with immediate preview.
+S09 Permission education and demo permission states for location, camera, and notifications, with manual alternatives.
+S10 Role-specific onboarding completion and resume.
+S11 Restaurant/workspace selector for staff assigned to multiple demo restaurants.
+S12 Access denied, expired demo session, offline restoration, and recoverable startup error.
+
+Do not request actual OS permissions just to show a mock flow. If an existing optional device feature is used, reflect the true OS permission state. Never display "permission granted" merely because a custom button was tapped.
+
+CUSTOMER ONBOARDING
+
+- Offer a concise conventional flow and a conversational AI-guided alternative.
+- Gather optional name, language, cuisine interests, ordering habits, and dining preferences.
+- Use editable suggestion chips, a visible progress indicator, back, skip, and review.
+- The AI flow is deterministic local guidance with useful responses to supported inputs and an honest fallback for unsupported input.
+- Show a final editable preference summary and a personalized discovery preview.
+- Retain progress and allow replay from demo settings.
+- Make animations reinforce progress and selection; do not introduce a long video, forced carousel, or decorative delay.
+
+OWNER ONBOARDING
+
+- Restaurant identity, service types, hours, menu entry/import, table setup, payment-policy preview, and storefront preview.
+- Save each step locally, allow back/skip where valid, and show the remaining setup tasks.
+- Provide a short contextual tour of the real operational screens, dismissible and replayable.
+
+STAFF ONBOARDING
+
+- Assigned restaurant, role permissions, relevant navigation, a practice task, and finish.
+- A waiter practices a service request; kitchen staff update a ticket; a courier completes a sample handoff. Use sandboxed practice data or restore it clearly.
+
+
+9. CUSTOMER MOBILE EXPERIENCE
+
+C01 Discovery:
+Location, service-mode selection, relevant restaurant sections, search, favorites, and a prominent scan-table action.
+
+C02 Location:
+Manual city/address selection, recent addresses, map preview, service-area validation, and denied-location alternative.
+
+C03 Search:
+Restaurant/dish results, recent queries, clear action, filters, sorting, loading, and meaningful no-results recovery.
+
+C04 Restaurant storefront:
+Cover, identity, opening hours, service modes, menu sections, restaurant information, and availability.
+
+C05 Menu:
+Category navigation, search, dietary filters grounded in fixture data, availability, and cart access.
+
+C06 Item details:
+Photo, description, fixture ingredients, price, required/optional modifier groups, quantity, note, and add/update action.
+
+C07 Favorites:
+Restaurants/items with empty state and unavailable-item handling.
+
+C08 AI assistant:
+Choose a restaurant context; ask for budget/preferences; clarify; compare; suggest valid menu items; explain; revise; review proposed basket.
+
+C09 AI basket review:
+Editable items/modifiers, transparent totals, budget including relevant fees, and explicit approval before cart mutation.
+
+C10 QR scanner preview:
+Use a bundled demo code, manual entry, supported real camera only if already available, and invalid/unknown-code recovery.
+
+C11 Table confirmation:
+Restaurant, table, start/join visit choice, guest count, occupied-table handling, and explicit confirmation.
+
+C12 Visit summary:
+Participants, current orders, shared bill, service requests, and visit status.
+
+C13 Cart:
+Edit/remove/undo, quantities, modifiers, notes, fees, discount fixture, empty state, and changed-availability recovery.
+
+C14 Address book/editor:
+Add/edit/delete/default address, delivery instructions, form validation, and out-of-area result.
+
+C15 Pickup details:
+Now/later where supported, slot selection, contact details, and closed/unavailable slot handling.
+
+C16 Checkout review:
+Items, fulfillment context, charges, optional tip if supported, payment timing, and final confirmation.
+
+C17 Demo payment method/handoff:
+A clearly labelled PayPal simulation with predefined mock instruments; no real card numbers, bank fields, credentials, or external PayPal page.
+
+C18 Payment pending:
+Retained attempt, truthful state, safe exit/resume, and a controlled resolution path.
+
+C19 Payment failed/cancelled:
+Useful message, preserved basket, retry or return, and no paid badge.
+
+C20 Confirmation:
+Order identity, amount, payment status, and preparation status separately.
+
+C21 Order tracking:
+Appropriate dine-in, pickup, or delivery timeline, restaurant notes, support, and eligible cancellation.
+
+C22 Table services:
+Request water, cutlery, waiter assistance, or bill; show sent/acknowledged/completed/cancelled states and prevent accidental duplicate requests.
+
+C23 Open table bill:
+Itemized visit total, paid amount, balance, pay-at-end action, and closed-visit handling.
+
+C24 Another round:
+Create a new order within the same active visit without modifying previously confirmed orders.
+
+C25 Receipt:
+Line items, modifiers, charges, payment/refund summary, restaurant/table/order context, and local preview/share only when implemented.
+
+C26 Order history:
+Filters, detail, receipt, and reorder with current availability/price validation.
+
+C27 Rating/review:
+Local editable feedback, submitted state, and no claim of public publication.
+
+C28 Restaurant conversation/support:
+Local conversation history, supported quick replies, order context, help topics, and unresolved issue.
+
+C29 Reservations:
+Restaurant/party/date/time selection, mock available slots, confirmation, detail, modification, and cancellation.
+
+C30 Waitlist:
+Join, position/status preview, notification simulation, leave, and unavailable state.
+
+C31 Notifications:
+Read/unread, contextual navigation, dismissal, and settings.
+
+C32 Profile and preferences:
+Use the complete shared settings scope below.
+
+REQUIRED CUSTOMER BEHAVIORS
+
+- A menu item with required options cannot be added until they are valid.
+- Maintain separate draft carts per customer and restaurant; checkout contains one restaurant only. Switching restaurants preserves the previous draft and communicates the active cart.
+- Unsupported dietary/allergen information remains "not provided"; recommend asking staff instead of fabricating a guarantee.
+- AI proposals use actual item IDs, current availability, modifiers, and deterministic price calculation. The simulated assistant cannot invent a product or complete payment.
+- Include a fixture coupon that works, one expired coupon, and one invalid-code response; derive totals correctly.
+- Reorder builds a new editable draft; it never replays a charge.
+- The customer can complete dine-in, pickup, and delivery journeys without needing a permanent account where guest ordering is enabled.
+
+
+10. OWNER AND MANAGER MOBILE EXPERIENCE
+
+Use phone-friendly lists, summaries, detail screens, and sheets. Managers reuse the appropriate owner screens with permission-aware actions.
+
+O01 Overview:
+Service status, active orders, occupied tables, pending requests, revenue/payment summary, and actionable attention cards. Metrics open the matching filtered records.
+
+O02 Setup checklist:
+Progress, incomplete tasks, resumable drafts, and live mobile storefront preview.
+
+O03 Restaurant profile:
+Identity, bundled logo/cover choices, description, address, contact information, and local save/preview.
+
+O04 Services and hours:
+Dine-in/pickup/delivery switches, opening intervals, preparation times, temporary pause, and clear effects on new orders.
+
+O05 Delivery configuration:
+Demo service area, fee, minimum order, available slots, and preview of customer eligibility.
+
+O06 Payment policy:
+Pay-before versus pay-at-end, allowed demo methods, PayPal simulation status, and explanatory preview.
+
+O07 Menu catalogue:
+Category/item search, availability, sorting, category management, and quick actions.
+
+O08 Item editor:
+Create/edit/duplicate/archive, description, price, photo selection, dietary information, and customer preview.
+
+O09 Modifier editor:
+Required/optional groups, minimum/maximum selections, mutually exclusive choices, price adjustments, and validation.
+
+O10 AI menu import:
+Choose a bundled menu photo/PDF fixture; show bounded simulated extraction; offer retry/cancel.
+
+O11 Import review:
+Editable extracted fields, at least two review-needed fields, duplicate detection, draft/save/discard, and explicit publish approval.
+
+O12 Storefront preview:
+Reflect current menu/services/hours and demonstrate local publish/unpublish. Do not claim a real public website was deployed.
+
+O13 Tables overview:
+List/grid and live plan modes, zone filters, occupancy, open balances, and request indicators.
+
+O14 Mobile floor-plan editor:
+Implement the detailed editing contract below.
+
+O15 Table editor and QR:
+Name, capacity, shape, zone, active/inactive state, valid local QR preview, and open-demo-link action.
+
+O16 Table visit:
+Guests/participants, orders, bill, activity, service requests, move-table action where valid, and close/reset controls.
+
+O17 Orders:
+Channel, preparation, payment, time, and attention filters; searchable list and meaningful empty states.
+
+O18 Order detail:
+Items/modifiers/notes, customer or table context, independent statuses, event timeline, accept/reject/start/ready/serve/handoff actions as permitted.
+
+O19 Service desk:
+New/acknowledged/completed requests, assignment, priority, and request detail.
+
+O20 Reservations and waitlist:
+List/calendar-like date selection, availability, seating assignment, arrival/no-show/cancel, and seating a party into a fresh visit.
+
+O21 Payments:
+Transaction list, filters, attempt detail, order link, receipt, pending-resolution simulation, and refund flow.
+
+O22 Team:
+Staff directory, role details, local invitation draft, permissions overview, deactivate/reactivate, and assignment.
+
+O23 Reports:
+Date filters, derived sales/orders/average order value/channel mix/top items, readable charts with labels and accessible summaries, and underlying records.
+
+O24 Delivery desk:
+Assigned/unassigned/ready/problem tasks, courier assignment, handoff, and issue resolution.
+
+O25 Business notifications and activity:
+Contextual events and navigation, not a disconnected decorative feed.
+
+O26 Restaurant settings:
+Services, language, theme, notification preferences, demo payment connection, and local data controls.
+
+O27 Subscription/billing preview:
+Clearly fictional plan data and a local preview of changing plans; no actual purchase, charge, or service entitlement claim.
+
+MOBILE FLOOR-PLAN EDITING CONTRACT
+
+- A simple 2D vector canvas with zones, walls, entrance markers, tables, and a legend.
+- Pan, pinch zoom, zoom buttons, fit-to-room, selection, add, duplicate, move, rotate, resize where relevant, delete, undo/redo, save, and cancel.
+- Separate edit mode from live operations mode. The live view opens visits instead of accidentally moving tables.
+- Drag selected objects with clear handles and grid snapping; store stable logical coordinates independent of device pixels.
+- Convert hit-testing coordinates correctly through pan/zoom transforms.
+- Use a bottom inspector sheet for label, seats, shape, zone, position, and rotation.
+- Provide list-based editing and increment/decrement actions as alternatives to gestures.
+- Validate unique labels within the restaurant, positive capacity, reasonable bounds, and occupied-table restrictions.
+- Keep immutable table IDs when labels or positions change.
+- Warn about unsaved edits and support reverting the layout draft.
+- Do not delete or silently merge an occupied table. Moving a visit requires explicit confirmation and an eligible destination.
+- A simple room editor is sufficient; do not attempt an architectural CAD system.
+
+QR BEHAVIOR
+
+- Generate a real code from a parseable local demo payload, using a suitable existing QR component or a justified lightweight dependency.
+- "Use demo QR" and "Open demo link" must exercise the same parsing and table-resolution logic.
+- Do not draw random QR-like squares and call them functional.
+- A static table code identifies restaurant/table, not permission to expose another party's bill.
+- Current visit invitations require their own local join context/code. Expired or revoked invites fail clearly.
+- If export/share is visible, create an actual local artifact and use an available share mechanism. Otherwise omit the control or provide a clearly labelled preview; do not show a fake "downloaded" toast.
+
+
+11. WAITER, KITCHEN, AND COURIER EXPERIENCES
+
+WAITER
+
+W01 Shift home:
+Assigned tables, requests, ready-to-serve orders, and priority tasks.
+
+W02 Live tables:
+Grid/list/plan, zones, separate occupancy/payment/request indicators.
+
+W03 Visit detail:
+Guest count, duration, orders, bill, requests, participant context, and notes.
+
+W04 Assisted order builder:
+Menu, required modifiers, quantities, customer notes, review, and send-to-kitchen.
+
+W05 Service requests:
+Acknowledge, assign if permitted, complete, cancel with reason, and activity.
+
+W06 Ready to serve:
+Order/items ready, table destination, and confirm served.
+
+W07 Bill collection:
+Balance, customer payment QR preview, permitted demo cash recording, receipt, and close-visit eligibility.
+
+W08 Table reset:
+Resolved visit ends, table needs reset, explicit mark-ready action.
+
+W09 Shift profile:
+Assignments, permissions, notifications, and help.
+
+KITCHEN
+
+K01 Queue:
+Accepted / Preparing / Ready tabs or accessible phone-sized lanes, elapsed time, channel, table/order identity, and urgency.
+
+K02 Ticket detail:
+Item quantities, modifiers, notes, preparation progress, item completion, and complete-ticket readiness.
+
+K03 Availability:
+Search and permitted menu availability toggles that affect future customer/staff ordering.
+
+K04 Kitchen settings/help:
+Display preferences, notification simulation, role information, and a dark-theme preview.
+
+Keep kitchen controls large and text legible. Timer labels must use the demo clock. A readied ticket moves consistently in both kitchen and customer/manager views. Do not accidentally mark the order paid when it becomes ready.
+
+COURIER
+
+D01 Assigned tasks:
+Current, upcoming, completed, and empty states.
+
+D02 Pickup detail:
+Restaurant, order reference, packages, preparation status, and permitted pickup confirmation.
+
+D03 Delivery detail:
+Address, instructions, status, bundled schematic map, and contact/support preview.
+
+D04 Delivery progression:
+Collected/out-for-delivery/delivered with appropriate confirmation.
+
+D05 Delivery issue:
+Unavailable customer, address issue, or other reason; attach a local note and show the issue to the manager.
+
+D06 Activity:
+Completed deliveries and task details.
+
+D07 Profile/settings:
+Restaurant assignment, demo availability, notification preferences, and help.
+
+Maps and location animation are explicitly simulated. Do not imply live GPS tracking, real navigation, or a call/message that was never made.
+
+
+12. COMPLETE SHARED SETTINGS AND SUPPORT
+
+Provide functional local interfaces for:
+
+- View/edit profile and avatar from bundled assets.
+- Language: English, French, and Arabic; externalize strings and implement proper RTL.
+- Appearance: system/light/dark using the existing theme.
+- Accessibility: follow system text size, optional app text-size preview, reduce motion, and preference-aware haptics.
+- Dining preferences, saved addresses, favorites, and notification categories.
+- Demo notification permission state and in-app notification preview.
+- Security/account UI with simulated password change, session list, sign-out, and a clear demo account deletion/reset flow.
+- Help/FAQ, local support conversation, app information, and version.
+- Privacy/terms information clearly marked as demo information pending real policy content; do not invent legal commitments.
+- Demo accounts, scenarios, connectivity, reset, onboarding replay, component gallery, and motion gallery.
+
+Make app text size cooperate with platform scaling; do not cap or disable system accessibility settings to make layouts fit. Mirror directional layout for RTL while preserving the meaning of maps, charts, numbers, and non-directional icons.
+
+Local invitations, password resets, notifications, support replies, and account deletion must describe what the demo actually did. Do not claim an email was sent or a real account was deleted.
+
+
+13. DOMAIN AND INTERACTION INVARIANTS
+
+TABLES AND VISITS
+
+- A table is a persistent physical resource; a visit is one party's time-bounded session.
+- A table QR never resurrects a previous party's visit.
+- Starting/joining a visit is explicit and checks the local fixture's eligibility.
+- Orders, participants, requests, and the shared bill refer to the visit ID.
+- Another round creates a new order under the visit.
+- Table occupancy, reservation state, food preparation, payment, and service requests remain independent.
+- A visit cannot close while actionable orders or an unsettled balance remain. Resolve/cancel/settle explicitly.
+- Closing a visit preserves history and moves its table into needs-reset until staff mark it available.
+
+ORDER LIFECYCLE
+
+- Model draft, submitted, accepted, preparing, ready, and channel-specific served/collected/delivered/completed states.
+- Add rejected and cancelled branches with clear eligibility and reasons.
+- Enforce allowed transitions in shared local action handlers, not only by hiding buttons.
+- Historical order lines preserve the purchased price/options even if the menu is later edited.
+- Changing availability blocks new purchases; it does not silently remove an existing order.
+- A paid rejected/cancelled order needs its own refund status; it must not simply become unpaid.
+
+PAYMENT LIFECYCLE
+
+- Keep checkout attempts and payment/refund records separate from food status.
+- Freeze a cart snapshot and assign a stable attempt ID when checkout begins.
+- Pending attempts do not silently absorb later cart edits.
+- Repeated taps, retry callbacks, and restored screens cannot create duplicate orders, payments, tickets, or refunds.
+- In pay-before mode, successful payment releases one order for acceptance; failed/cancelled/pending attempts do not create an actionable kitchen ticket.
+- In pay-at-end mode, submitting an order can leave the bill unpaid while preparation progresses.
+- Payment failure/cancellation preserves the draft and offers a new valid attempt.
+- A pending attempt survives safe navigation and restart and can be resolved by a demo event.
+- Successful payment reduces the correct bill balance once. Refunds update money records without rewriting preparation history.
+- For this prototype, allow only one pending shared-bill checkout per visit. Show other participants that payment is in progress. Reserve the specific payable order amounts in its frozen allocation; release that reservation on failure/cancellation.
+- If another round is added during pending payment, success settles only the frozen allocation and leaves the new round payable. Prevent separate attempts from settling the same amounts twice.
+- Derive billable obligations, settled allocations, refunds, and outstanding balance separately. Cancelling/rejecting an order removes its billable obligation; refunding its earlier payment must not reopen that cancelled amount as money owed. Keep sales, captured payments, refunds, and outstanding balances distinct in reports.
+- A simulated cash collection requires an explicit authorized staff action.
+- Always identify the checkout as "Demo checkout — no real payment."
+
+SHARED BEHAVIOR
+
+- Restaurant/account switching cancels view-owned work only. Valid domain operations retain their original account, restaurant, visit, and attempt associations and may complete while another role is active. Global reset or scenario replacement explicitly invalidates old domain operations so late callbacks cannot alter the new demo world.
+- Empty/error/offline states offer meaningful recovery; retry preserves the user's draft.
+- Back navigation, Android back gesture, keyboard dismissal, and dirty-form confirmation work consistently.
+- All primary actions change local state or open relevant content. Supporting controls are implemented, intentionally disabled with a reason, or omitted.
+- "Coming soon" and generic snackbars are not substitutes for the requested core workflows.
+
+
+14. REQUIRED DEMO SCENARIOS
+
+Provide discoverable presets and a concise walkthrough for each. Scenarios must use the shared repositories, not separate fake screens.
+
+A. FIRST-TIME CUSTOMER
+
+Welcome -> choose language -> guided onboarding -> review preferences -> discover -> restaurant -> customized basket -> demo checkout -> confirmation -> history.
+
+B. DINE-IN ACROSS ROLES
+
+Load a fresh Table 06 visit with a valid demo invitation -> customer scans/joins -> asks for two meals and a drink, one vegetarian, under EUR 25 -> reviews the EUR 22 basket -> completes demo PayPal -> manager accepts -> kitchen prepares/readies -> waiter serves -> customer sees updates -> customer requests water -> waiter completes it -> bill/receipt -> eligible visit closure and table reset.
+
+C. PAY AT END
+
+Create an unpaid dine-in order -> prepare and serve it -> add another round -> inspect the combined bill -> simulate collection -> verify balance -> close the visit.
+
+D. DELIVERY
+
+Choose an eligible address -> EUR 22 basket plus EUR 2 delivery -> pay -> restaurant accepts -> kitchen readies -> manager assigns courier -> courier collects/delivers -> customer tracking and manager metrics update.
+
+E. PICKUP
+
+Choose a valid slot -> order -> ready notification -> collection confirmation -> history and receipt.
+
+F. PAYMENT RECOVERY
+
+Exercise success, pending, failure, cancellation, retry, repeated taps, exit/resume, and restart. Assert one correct payment/order when success finally occurs.
+
+G. OWNER SETUP
+
+Create a demo restaurant draft -> set services/hours -> import a sample menu -> correct flagged fields -> publish locally -> create tables -> open a table QR -> inspect the customer preview.
+
+H. MENU AND AVAILABILITY
+
+Kitchen marks an item unavailable -> customer sees the change -> stale cart receives an actionable explanation -> AI proposes a valid replacement -> historical orders remain unchanged.
+
+I. FLOOR OPERATIONS
+
+Edit/save a layout -> switch to waiter -> inspect matching positions -> create/resolve a request -> attempt invalid occupied-table deletion -> move a visit explicitly -> reset after closure.
+
+J. PERMISSIONS AND ISOLATION
+
+Switch roles and restaurants -> verify permitted actions and shared records -> verify private customer carts and another restaurant's data remain isolated.
+
+K. RESERVATION/WAITLIST
+
+Book/modify/cancel a reservation -> simulate arrival -> seat into a fresh visit -> join/leave a waitlist -> verify no previous party's bill is reused.
+
+L. ACCESSIBILITY AND RECOVERY
+
+Use large text, Arabic RTL, dark mode, reduced motion, keyboard-open forms, simulated offline, empty lists, and recoverable errors. Reset the world and verify no old timer mutates the new seed.
+
+
+15. IMPLEMENTATION PASSES — COMPLETE ALL OF THEM
+
+Pass 1:
+Audit the foundation, map routes/roles/components, and record precise gaps.
+
+Pass 2:
+Extend shared tokens/components/motion helpers and build the local data/scenario layer.
+
+Pass 3:
+Implement authentication, demo access, and role-specific onboarding.
+
+Pass 4:
+Complete customer discovery, menus, AI preview, cart, table visits, checkout, and order tracking.
+
+Pass 5:
+Complete owner/manager setup, menu import, floor plan, orders, payments, reports, and team.
+
+Pass 6:
+Complete waiter, kitchen, courier, reservations, settings, and recovery flows.
+
+Pass 7:
+Connect all roles and scenarios; repair state inconsistencies.
+
+Pass 8:
+Perform visual, motion, accessibility, and runtime verification; fix issues and deliver.
+
+Validate an early complete path before duplicating patterns across the app. Keep the application runnable after each pass. Do not postpone all state integration or accessibility until the end.
+
+Maintain the implementation checklist in the repository so progress survives a context limit. A context limit is not permission to declare the unfinished app complete; record exact completed/pending work and continue from it when resumed.
+
+
+16. QUALITY AND ACCEPTANCE GATES
+
+VISUAL REVIEW
+
+- Inspect representative screens at narrow, standard, and large handset widths; suggested test widths are 320, 360, 390, and 430 logical units.
+- Exercise keyboard-open forms, long content, English/French/Arabic, RTL, light/dark, and text scaling up to 200% as a concrete review target. Do not cap system scaling there.
+- Check typography, alignment, padding, tonal surfaces, component states, safe areas, image crops, and primary-action hierarchy.
+- There must be no clipped critical content, accidental nested scroll traps, unreadable prices, covered actions, or desktop tables squeezed onto phones.
+
+MOTION AND RUNTIME
+
+- Exercise repeated taps, interrupted transitions, back gestures, rapid filtering, cart edits, role switching, and offscreen/foreground changes.
+- Verify reduced motion actually changes behavior while retaining information.
+- Profile representative long lists, the floor-plan canvas, onboarding, and checkout on a physical device or suitable emulator when available.
+- The approximate per-frame budget is 1000 divided by the display refresh rate in milliseconds: about 16.7 ms at 60 Hz and 8.3 ms at 120 Hz. Report measured evidence and limitations; do not claim either frame rate without measurement.
+- If Flutter, profile in profile/release-appropriate conditions and inspect UI/raster work; do not judge production smoothness from debug mode alone.
+- Use lazy lists, stable keys, scoped rebuilds, appropriately sized images, and efficient canvas repainting. Avoid heavy parsing, image processing, or synchronous storage in animation/build paths.
+
+MEANINGFUL VERIFICATION
+
+- Run the repository's existing relevant formatting, analysis, build, and test checks.
+- Add focused tests for money/modifiers/fees, allowed state transitions, duplicate checkout protection, table-visit isolation, account/restaurant isolation, and reset cancellation.
+- Add integration or widget-level coverage for a complete cross-role order journey, payment recovery, and one important reduced-motion/large-text layout path when the tooling supports it.
+- Do not create low-value tests that simply mirror every widget or compare arbitrary internal implementation details.
+- Run the documented scenarios and repair concrete failures. Do not keep expanding the test suite after the meaningful risks are resolved.
+
+COMPLETION REQUIRES
+
+- All listed screen families and their essential states are implemented and reachable.
+- Every core action works locally with consistent data.
+- No active production services are required for the demo.
+- Payment, preparation, fulfillment, visits, and requests remain separate and correct.
+- Permission boundaries, account isolation, resets, and persistence work.
+- The design foundation remains coherent and Material 3 based.
+- Actual screenshots/recordings, when provided, come from the running app.
+
+If a device, SDK, dependency download, or test facility is unavailable, state exactly what could not be verified. Continue all unblocked implementation and checks. Never fabricate test results, screenshots, or performance measurements.
+
+
+17. DELIVERABLES AND FINAL HANDOFF
+
+Deliver:
+
+1) The implemented mobile frontend in the existing project.
+2) Reusable components and coherent motion/theme extensions.
+3) Typed local mock repositories, persistent demo state, accounts, permissions, and scenario controls.
+4) A screen/route/state inventory with completion status.
+5) A short design-and-motion note identifying reused foundation elements and any necessary extensions.
+6) A demo guide listing accounts, entry points, scenario steps, reset behavior, and run commands.
+7) Relevant test/build results and actual visual evidence when available.
+
+In your final response, explain what changed, how to run it, how to enter each role, how to exercise the best cross-role demo, what was verified, and any specific remaining limitations. Do not claim backend readiness, real payment processing, or production security from this local frontend prototype.
+
+Start by inspecting the repository, then implement the complete mobile experience.
+
+
+OFFICIAL REFERENCE LINKS
+
+Use current official guidance and the API documentation matching the repository's installed versions. The Raysto-specific defaults and scope above are implementation decisions; do not misrepresent them as universal Google requirements.
+
+Material 3 foundations and components:
+
+https://m3.material.io/
+https://m3.material.io/styles/typography/overview
+https://m3.material.io/styles/typography/type-scale-tokens
+
+Material motion and transitions:
+
+https://m3.material.io/styles/motion/overview/how-it-works
+https://m3.material.io/styles/motion/easing-and-duration
+https://m3.material.io/styles/motion/transitions
+
+Android accessibility and Material:
+
+https://developer.android.com/design/ui/mobile/guides/foundations/accessibility
+https://developer.android.com/develop/ui/compose/designsystems/material3
+
+If the repository is Flutter:
+
+https://docs.flutter.dev/ui/widgets/material
+https://api.flutter.dev/flutter/material/TextTheme-class.html
+https://docs.flutter.dev/ui/accessibility
+https://docs.flutter.dev/perf/ui-performance

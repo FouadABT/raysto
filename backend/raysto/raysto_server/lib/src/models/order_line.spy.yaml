@@ -1,0 +1,6 @@
+class: OrderLine
+fields:
+  productId: int
+  name: String
+  quantity: int
+  unitPriceMinor: int

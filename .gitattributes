@@ -1,0 +1,14 @@
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ttf binary
+*.woff2 binary
+*.pdf binary
+backend/raysto/raysto_server/lib/src/generated/** linguist-generated=true
+backend/raysto/raysto_client/lib/src/protocol/** linguist-generated=true
+backend/raysto/raysto_server/migrations/** linguist-generated=true
+backend/sdk/typescript/raysto-client.ts linguist-generated=true

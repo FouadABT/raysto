@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Original Raysto geometry: a lime fork and knife on the forest tile. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#173F35"
+        android:pathData="M24,0H84Q108,0 108,24V84Q108,108 84,108H24Q0,108 0,84V24Q0,0 24,0Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D7F978"
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M31,29V43Q31,53 41,53Q51,53 51,43V29M41,29V79M76,29Q64,38 64,56H76V79M76,29V56" />
+</vector>

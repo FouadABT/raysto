@@ -1,0 +1,12 @@
+class: MenuProduct
+table: raysto_menu_product
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  name: String
+  description: String
+  priceMinor: int
+  available: bool
+  version: int
+indexes:
+  product_restaurant:
+    fields: restaurantId

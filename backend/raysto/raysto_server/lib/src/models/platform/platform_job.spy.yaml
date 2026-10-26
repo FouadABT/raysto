@@ -1,0 +1,22 @@
+class: PlatformJob
+table: raysto_platform_job
+serverOnly: true
+fields:
+  restaurantId: int?
+  userId: String?
+  kind: String
+  dedupeKey: String
+  payloadJson: String
+  state: String
+  attempts: int
+  availableAt: DateTime
+  leaseToken: String?
+  leaseUntil: DateTime?
+  lastError: String?
+  createdAt: DateTime
+indexes:
+  job_dedupe:
+    fields: dedupeKey
+    unique: true
+  job_ready:
+    fields: state, availableAt

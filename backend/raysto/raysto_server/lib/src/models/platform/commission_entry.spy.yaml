@@ -1,0 +1,16 @@
+class: CommissionEntry
+table: raysto_commission_entry
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  captureId: int, relation(parent=raysto_payment_capture)
+  refundId: int?
+  eventKey: String
+  amountMinor: int
+  currency: String
+  state: String
+  createdAt: DateTime
+indexes:
+  commission_event:
+    fields: eventKey
+    unique: true

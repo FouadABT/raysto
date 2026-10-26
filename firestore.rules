@@ -1,0 +1,28 @@
+rules_version = '2';
+// Private mobile preferences: users/{Firebase UID}
+// displayName: required string, 1..80 chars (not a verified restaurant identity).
+// locale: required 'en', 'fr' or 'ar'. updatedAt: required server timestamp.
+// No roles, restaurant memberships, payment or order data are accepted here.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function isOwner(uid) { return isAuthenticated() && request.auth.uid == uid; }
+    function isValidPreferences(data) {
+      return data.keys().hasAll(['displayName', 'locale', 'updatedAt'])
+        && data.keys().hasOnly(['displayName', 'locale', 'updatedAt'])
+        && data.displayName is string && data.displayName.size() > 0
+        && data.displayName.size() <= 80
+        && data.locale in ['en', 'fr', 'ar']
+        && data.updatedAt is timestamp && data.updatedAt == request.time;
+    }
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) && isValidPreferences(request.resource.data);
+      allow update: if isOwner(uid) && isValidPreferences(request.resource.data);
+      allow delete: if isOwner(uid);
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

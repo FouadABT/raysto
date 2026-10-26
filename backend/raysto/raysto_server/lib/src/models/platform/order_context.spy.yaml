@@ -1,0 +1,19 @@
+class: OrderContext
+table: raysto_order_context
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  orderId: int, relation(parent=raysto_order)
+  visitId: int?
+  quoteId: int?
+  detailsJson: String
+  paymentTiming: String
+  cancellationRequested: bool
+  stockReleased: bool
+  slotKey: String?
+  couponCode: String?
+  createdAt: DateTime
+indexes:
+  context_order:
+    fields: orderId
+    unique: true

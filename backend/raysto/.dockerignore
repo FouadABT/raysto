@@ -1,0 +1,9 @@
+**/.dart_tool
+**/build
+**/.serverpod
+**/config/passwords.yaml
+**/*service-account*.json
+**/.env
+**/.secrets
+**/test
+.git

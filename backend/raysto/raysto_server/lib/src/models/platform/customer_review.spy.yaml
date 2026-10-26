@@ -1,0 +1,17 @@
+class: CustomerReview
+table: raysto_customer_review
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  orderId: int, relation(parent=raysto_order)
+  userId: String
+  rating: int
+  text: String
+  response: String?
+  status: String
+  version: int
+  createdAt: DateTime
+indexes:
+  review_order:
+    fields: orderId
+    unique: true

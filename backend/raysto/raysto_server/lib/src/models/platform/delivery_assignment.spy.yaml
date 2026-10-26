@@ -1,0 +1,20 @@
+class: DeliveryAssignment
+table: raysto_delivery_assignment
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  orderId: int, relation(parent=raysto_order)
+  courierId: String?
+  status: String
+  issueJson: String
+  locationJson: String?
+  locationExpiresAt: DateTime?
+  locationConsent: bool
+  version: int
+  updatedAt: DateTime
+indexes:
+  delivery_order:
+    fields: orderId
+    unique: true
+  delivery_courier:
+    fields: courierId, status

@@ -1,0 +1,17 @@
+name: phosphor_flutter
+version: 2.1.0+raysto.1
+description: Raysto compatibility subset of MIT Phosphor Flutter 2.1.0.
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  flutter:
+    sdk: flutter
+flutter:
+  fonts:
+    - family: PhosphorRegular
+      fonts:
+        - asset: lib/fonts/Phosphor.ttf
+    - family: PhosphorFill
+      fonts:
+        - asset: lib/fonts/Phosphor-Fill.ttf

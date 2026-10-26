@@ -1,0 +1,21 @@
+class: DiningTable
+table: raysto_dining_table
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  label: String
+  zone: String
+  capacity: int
+  active: bool
+  needsReset: bool
+  qrKey: String
+  geometryJson: String
+  assignedWaiterId: String?
+  version: int
+indexes:
+  table_label:
+    fields: restaurantId, label
+    unique: true
+  table_qr:
+    fields: qrKey
+    unique: true

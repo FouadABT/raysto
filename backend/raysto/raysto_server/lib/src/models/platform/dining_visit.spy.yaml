@@ -1,0 +1,19 @@
+class: DiningVisit
+table: raysto_dining_visit
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  tableId: int, relation(parent=raysto_dining_table)
+  activeTableId: int?
+  guestCount: int
+  status: String
+  version: int
+  openedBy: String
+  createdAt: DateTime
+  closedAt: DateTime?
+indexes:
+  visit_active_table:
+    fields: activeTableId
+    unique: true
+  visit_tenant:
+    fields: restaurantId, status

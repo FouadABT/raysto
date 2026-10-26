@@ -1,0 +1,11 @@
+class: WebhookEvent
+table: raysto_webhook_event
+serverOnly: true
+fields:
+  providerEventId: String
+  eventType: String
+  receivedAt: DateTime
+indexes:
+  webhook_provider_event:
+    fields: providerEventId
+    unique: true

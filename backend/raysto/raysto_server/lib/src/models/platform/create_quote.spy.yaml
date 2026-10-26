@@ -1,0 +1,11 @@
+class: CreateQuote
+fields:
+  requestKey: String
+  restaurantId: int
+  visitId: int?
+  fulfillment: String
+  linesJson: String
+  addressJson: String?
+  slot: DateTime?
+  couponCode: String?
+  tipMinor: int

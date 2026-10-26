@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant C as Customer / waiter
+  participant A as Raysto API
+  participant D as PostgreSQL
+  participant P as PayPal
+  C->>A: Confirm selection and stable request key
+  A->>D: Lock and reserve frozen bill allocation
+  A->>P: Create with stable provider request ID
+  P-->>C: Approval URL
+  C->>P: Approve
+  C->>A: Complete checkout
+  A->>P: Read and capture if eligible
+  P-->>A: Authoritative result
+  A->>D: Capture, allocations, commission and outbox
+  P->>A: Signed webhook
+  A->>D: Durable deduplicated inbox
+  Note over A,P: Lost responses remain uncertain and are reconciled
+  A-->>C: Receipt and remaining balance

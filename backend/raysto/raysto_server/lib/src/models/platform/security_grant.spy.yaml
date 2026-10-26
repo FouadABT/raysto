@@ -1,0 +1,14 @@
+class: SecurityGrant
+table: raysto_security_grant
+serverOnly: true
+fields:
+  userId: String
+  kind: String
+  proofHash: String
+  expiresAt: DateTime
+  usedAt: DateTime?
+  createdAt: DateTime
+indexes:
+  grant_proof:
+    fields: proofHash
+    unique: true

@@ -1,0 +1,16 @@
+# Local only. The Android emulator reaches host loopback through 10.0.2.2.
+{
+    admin off
+    auto_https off
+}
+
+http://localhost:8085, http://127.0.0.1:8085, http://10.0.2.2:8085 {
+    bind 127.0.0.1
+    @rest path /api/* /health /ready /webhooks/* /payments/*
+    handle @rest {
+        reverse_proxy 127.0.0.1:8082
+    }
+    handle {
+        reverse_proxy 127.0.0.1:8080
+    }
+}

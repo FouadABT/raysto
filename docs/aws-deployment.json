@@ -1,0 +1,171 @@
+{
+  "deploymentDate": "2026-10-25",
+  "host": "13.51.45.215",
+  "architecture": "linux_x64",
+  "apiUrl": "https://api.rays.to/",
+  "landingDomain": "rays.to",
+  "wwwRedirect": "https://rays.to/",
+  "landingStatus": "reserved; intentional 503 until the landing page is built",
+  "serverpod": "4.0.4",
+  "compiledWithDart": "3.13.7",
+  "hostGlobalDartPreserved": "3.11.4",
+  "hostPostgresPreserved": "16.15",
+  "service": "raysto.service",
+  "unixUser": "raysto",
+  "release": "/opt/raysto/releases/0.7.0-20261025",
+  "activeRelease": "/opt/raysto/current",
+  "database": "raysto_production",
+  "runtimeRole": "raysto_app",
+  "migrationRole": "raysto_migrator",
+  "migration": "20261025133602556",
+  "ports": {
+    "api": 18080,
+    "insights": 18081,
+    "http": 18082
+  },
+  "portProtection": "existing UFW deny incoming; only 22/80/443 allowed; no firewall changes",
+  "secrets": "generated/stored server-side only; /etc/raysto 0700 and env files 0600",
+  "releaseArchive": {
+    "file": "raysto-backend-0.7.0-linux-x64.tar.gz",
+    "bytes": 7282912,
+    "sha256": "39DD9054E9F828D666A614A90013BFB1678782ED8080C5376B4F35802E1B6242",
+    "remoteChecksumVerified": true
+  },
+  "tls": {
+    "apiCertificate": [
+      "api.rays.to"
+    ],
+    "landingCertificate": [
+      "rays.to",
+      "www.rays.to"
+    ],
+    "originValidation": true,
+    "renewalTimer": "certbot.timer",
+    "apiRenewalDryRunPassed": true,
+    "landingRenewalDryRunPassed": true,
+    "cloudflareSslMode": "not read or changed via authenticated API; user should verify Full (strict)"
+  },
+  "checks": {
+    "publicHealthHttpStatus": 200,
+    "publishedRestaurantCount": 0,
+    "unauthenticatedOrdersRejected": true,
+    "invalidFirebaseTokenRejected": true,
+    "apiCacheControl": "no-store",
+    "cloudflareCacheStatus": "DYNAMIC",
+    "awharApiAndSiteHttpStatus": 200,
+    "awharMainPidUnchanged": 2221016,
+    "awharStartTimeUtc": "2026-10-24 15:24:10 UTC",
+    "awharNginxFileChecksumUnchanged": true,
+    "newRaystoRolesAwHarBusinessTablePrivileges": 0
+  },
+  "backup": {
+    "directory": "/var/backups/raysto",
+    "timer": "raysto-backup.timer",
+    "schedule": "03:30 UTC daily plus up to 10 minutes randomized delay",
+    "retentionDays": 14,
+    "dumpCreatedAndArchiveListingVerified": true,
+    "restoreExerciseOrOffsiteBackupCompleted": false
+  },
+  "realUserOAuthTested": false,
+  "paypalSandboxCredentialsConfigured": true,
+  "mobilePaymentCore": {
+    "versionName": "0.6.0",
+    "sourceBuildNumber": 9,
+    "androidVersionCode": 2009,
+    "apk": "raysto-paypal-core-arm64-preview.apk",
+    "sha256": "BBBF0A93DCFF907C78C9B95F55DF72E03F440944ED89E31D4EE8F9608F19D9C9",
+    "bytes": 26451543,
+    "androidAssociationUrl": "https://api.rays.to/.well-known/assetlinks.json",
+    "androidAssociationHttpStatus": 200,
+    "nginxSyntaxCheckedAndGracefullyReloaded": true,
+    "nginxMasterUnchangedDuringAssociationSetup": true,
+    "awharProcessAndNginxConfigPreservedDuringAssociationSetup": true,
+    "freshAwharPid": 2320581,
+    "freshAwharStartUtc": "2026-10-25 04:52:00 UTC",
+    "physicalDeviceAcceptance": false,
+    "actualBuyerApprovedCaptureAndWebhookAcceptance": false,
+    "report": "paypal-mobile-core.md"
+  },
+  "paypalServerVerification": {
+    "dateUtc": "2026-10-25T04:41:09Z",
+    "apiBase": "https://api-m.sandbox.paypal.com",
+    "merchantId": "FTPS9AY4WXNTJ",
+    "webhookId": "84F063355E5284541",
+    "webhookUrl": "https://api.rays.to/webhooks/paypal",
+    "webhookEvents": [
+      "PAYMENT.CAPTURE.COMPLETED"
+    ],
+    "privateEnvironment": "/etc/raysto/runtime.env",
+    "environmentMode": "0600",
+    "oauthHttpStatus": 200,
+    "checkoutProbe": {
+      "providerOrderId": "3V5150588J175880N",
+      "createHttpStatus": 200,
+      "readHttpStatus": 200,
+      "status": "PAYER_ACTION_REQUIRED",
+      "currency": "USD",
+      "amount": "1.00",
+      "explicitUserApprovalForUnapprovedProbe": true,
+      "sameRequestIdReturnedSameOrder": true,
+      "buyerApproved": false,
+      "captureAttempted": false,
+      "moneyTransferred": false,
+      "linkedToRaystoSqlOrder": false
+    },
+    "buyerApprovedCaptureAndWebhookVerified": false,
+    "unsignedWebhookHttpStatus": 401,
+    "returnAndCancelHttpStatus": 200,
+    "publicHealthHttpStatus": 200,
+    "firebaseSettingsPreserved": true,
+    "restartedServices": [
+      "raysto.service"
+    ],
+    "awharMainPidBeforeAndAfter": 2312912,
+    "awharNginxChecksumUnchanged": true,
+    "report": "paypal-sandbox-status.md"
+  },
+  "firebaseAdminCredentialsConfigured": true,
+  "firebaseServerVerification": {
+    "dateUtc": "2026-10-25T04:10:00Z",
+    "serviceAccount": "raysto-backend@raysto-38505.iam.gserviceaccount.com",
+    "credentialPath": "/opt/raysto/secrets/firebase-admin.json",
+    "credentialOwnerGroup": "root:raysto",
+    "credentialMode": "0640",
+    "credentialDirectoryMode": "0750",
+    "fcmValidationOnlyHttpStatus": 200,
+    "actualPushDeliveryTested": false,
+    "privateServerStorageUploadReadDeletePassed": true,
+    "temporaryLiveObjectAbsent": true,
+    "notificationsEnabled": true,
+    "recurringDispatcherRegistered": true,
+    "publicHealthHttpStatus": 200,
+    "restartedServices": [
+      "raysto.service"
+    ],
+    "awharUnit": "awhar-server.service",
+    "awharMainPidBeforeAndAfter": 2312912,
+    "awharStartTimeUtcBeforeAndAfter": "2026-10-25 03:50:16 UTC",
+    "awharApiAndSiteHttpStatus": 200,
+    "awharNginxChecksumUnchanged": true,
+    "temporaryProjectKeyCreationExceptionStillActive": true,
+    "report": "firebase-server-verification.md"
+  },
+  "standaloneSandboxCheckout": {
+    "versionName": "0.7.0",
+    "androidVersionCode": 2010,
+    "apk": "raysto-paypal-sandbox-arm64-preview.apk",
+    "sha256": "35742362069EAD2A40CF064001231FCDD59272B1577DA03B42BA4575D8216DD1",
+    "bytes": 26451599,
+    "migration": "20261025133602556",
+    "enabled": true,
+    "actualUnapprovedCheckoutAndRetryVerified": true,
+    "buyerApprovedCaptureAndDeliveredWebhookVerified": false,
+    "temporaryQaFixturesRemoved": true,
+    "raystoHealth": 200,
+    "awharHealth": 200,
+    "awharPidBeforeAndAfter": 2327174,
+    "awharStartUtc": "2026-10-25 05:41:00 UTC",
+    "awharNginxChecksumUnchanged": true,
+    "report": "paypal-real-sandbox-test.md"
+  }
+}

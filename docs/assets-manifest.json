@@ -1,0 +1,67 @@
+[
+  {
+    "file": "assets/fixtures/olive-menu.pdf",
+    "bytes": 2204,
+    "sha256": "9ae65dc78a665895e8ce697c01b115f71cab5a34b6a8663d6a11dd4e9b32782c"
+  },
+  {
+    "file": "assets/fixtures/olive-menu.png",
+    "bytes": 73129,
+    "sha256": "4bbf2eac1da7583a792dbab3968001c02be4bdb56fe139b60df7a5445e538c97"
+  },
+  {
+    "file": "assets/fonts/NotoSansArabic.ttf",
+    "bytes": 844676,
+    "sha256": "63111b5b2e074dd48cc67692e0a2726d86ee94c1c37fe8598257b7b4e87e869e"
+  },
+  {
+    "file": "assets/fonts/OFL.txt",
+    "bytes": 4402,
+    "sha256": "995c7199cab65954f545996326755daee7b63cc6b42b06c13da1f9502ab08a99"
+  },
+  {
+    "file": "assets/fonts/PlusJakartaSans-Bold.ttf",
+    "bytes": 128988,
+    "sha256": "5f5342ef76862b5b5365d1dff1a667629dfa484e388dd602552f647219c3870f"
+  },
+  {
+    "file": "assets/fonts/PlusJakartaSans-Medium.ttf",
+    "bytes": 129180,
+    "sha256": "c77bab757d7402ec6d9341d5f7ddaafb2474e17026792697ba4624c7dc89caf7"
+  },
+  {
+    "file": "assets/fonts/PlusJakartaSans-Regular.ttf",
+    "bytes": 128972,
+    "sha256": "bd6276d4060e3b1ebc45047469e0bb86b08f301ba681cdf1ceb6245ea10478d2"
+  },
+  {
+    "file": "assets/fonts/PlusJakartaSans-SemiBold.ttf",
+    "bytes": 129288,
+    "sha256": "65dbcedb6596a41c30869729eb31cb57d1f5edfe365684314bba8a1994eaa4cb"
+  },
+  {
+    "file": "assets/images/salad_bowl.jpg",
+    "bytes": 244367,
+    "sha256": "84c3d0db69f1089a73f2a3677ad3da381042238a61295d6e6e949daca19601b4"
+  },
+  {
+    "file": "assets/images/tomato_pasta.jpg",
+    "bytes": 363305,
+    "sha256": "a1d92e056cdea75c97f7171b0788d6cd06fe3bc4d620a2ebe2752ed273f25295"
+  },
+  {
+    "file": "assets/images/wood_fired_pizza.jpg",
+    "bytes": 609572,
+    "sha256": "4d4ee482ab6a3948e68e4b66b8c03a897070c16c4c100d847585738956ee78c5"
+  },
+  {
+    "file": "assets/licenses/NotoSansArabic-OFL.txt",
+    "bytes": 4382,
+    "sha256": "07fc70bfeb985cc1a87a8587d0a0c80bab11c86c9dc3fd95b6f0cb332f983e96"
+  },
+  {
+    "file": "assets/licenses/phosphor_flutter-LICENSE.txt",
+    "bytes": 1076,
+    "sha256": "687fbe52d0eb5c2353eca27a4037e889145ee0b584d3b1abf67581c4a4a4e47c"
+  }
+]

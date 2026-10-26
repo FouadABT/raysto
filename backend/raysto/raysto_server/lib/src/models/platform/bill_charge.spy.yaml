@@ -1,0 +1,21 @@
+class: BillCharge
+table: raysto_bill_charge
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  orderId: int, relation(parent=raysto_order)
+  visitId: int?
+  lineKey: String
+  kind: String
+  amountMinor: int
+  creditedMinor: int
+  settledMinor: int
+  reservedMinor: int
+  foodNetMinor: int
+  version: int
+indexes:
+  charge_order_line:
+    fields: orderId, lineKey
+    unique: true
+  charge_visit:
+    fields: visitId

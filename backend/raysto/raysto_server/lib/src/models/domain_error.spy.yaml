@@ -1,0 +1,4 @@
+exception: DomainError
+fields:
+  code: String
+  message: String

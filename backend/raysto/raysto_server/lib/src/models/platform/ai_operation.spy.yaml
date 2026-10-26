@@ -1,0 +1,20 @@
+class: AiOperation
+table: raysto_ai_operation
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  kind: String
+  mediaId: int?
+  inputJson: String
+  outputJson: String?
+  status: String
+  menuVersion: int
+  version: int
+  inputTokens: int
+  outputTokens: int
+  expiresAt: DateTime
+  createdAt: DateTime
+indexes:
+  ai_actor_time:
+    fields: userId, createdAt

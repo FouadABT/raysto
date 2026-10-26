@@ -1,0 +1,20 @@
+class: RestaurantSubscription
+table: raysto_restaurant_subscription
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  planId: int, relation(parent=raysto_restaurant_plan)
+  providerSubscriptionId: String?
+  status: String
+  periodEndsAt: DateTime?
+  graceEndsAt: DateTime?
+  approvalUrl: String?
+  requestKey: String
+  updatedAt: DateTime
+indexes:
+  subscription_restaurant:
+    fields: restaurantId
+    unique: true
+  subscription_provider:
+    fields: providerSubscriptionId
+    unique: true

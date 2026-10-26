@@ -1,0 +1,16 @@
+class: PaymentReceipt
+table: raysto_payment_receipt
+serverOnly: true
+fields:
+  orderId: int, relation(parent=raysto_order)
+  captureId: String
+  amountMinor: int
+  currency: String
+  createdAt: DateTime
+indexes:
+  receipt_order:
+    fields: orderId
+    unique: true
+  receipt_capture:
+    fields: captureId
+    unique: true

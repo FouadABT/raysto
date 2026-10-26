@@ -1,0 +1,15 @@
+class: ProviderInbox
+table: raysto_provider_inbox
+serverOnly: true
+fields:
+  provider: String
+  eventId: String
+  eventType: String
+  payloadJson: String
+  status: String
+  receivedAt: DateTime
+  processedAt: DateTime?
+indexes:
+  inbox_provider_event:
+    fields: provider, eventId
+    unique: true

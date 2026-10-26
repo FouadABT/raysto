@@ -1,0 +1,13 @@
+class: CustomerFavorite
+table: raysto_customer_favorite
+serverOnly: true
+fields:
+  userId: String
+  restaurantId: int, relation(parent=raysto_restaurant)
+  productId: int?
+  targetKey: String
+  createdAt: DateTime
+indexes:
+  favorite_target:
+    fields: userId, targetKey
+    unique: true

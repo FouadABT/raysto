@@ -1,0 +1,17 @@
+class: MenuDefinition
+table: raysto_menu_definition
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  productId: int, relation(parent=raysto_menu_product)
+  category: String
+  definitionJson: String
+  archived: bool
+  stockRemaining: int?
+  version: int
+indexes:
+  definition_product:
+    fields: productId
+    unique: true
+  definition_category:
+    fields: restaurantId, category

@@ -1,0 +1,17 @@
+class: ActorProfile
+table: raysto_actor_profile
+serverOnly: true
+fields:
+  userId: String
+  firebaseUid: String?
+  isGuest: bool
+  disabled: bool
+  claimedBy: String?
+  dataJson: String
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  actor_user:
+    fields: userId
+    unique: true

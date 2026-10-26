@@ -1,0 +1,13 @@
+class: ServiceRequest
+table: raysto_service_request
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  orderId: int, relation(parent=raysto_order)
+  customerId: String
+  kind: String
+  status: String
+  createdAt: DateTime
+indexes:
+  service_order_kind:
+    fields: orderId, kind
+    unique: true

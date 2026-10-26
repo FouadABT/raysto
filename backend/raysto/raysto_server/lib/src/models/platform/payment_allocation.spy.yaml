@@ -1,0 +1,15 @@
+class: PaymentAllocation
+table: raysto_payment_allocation
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  checkoutId: int, relation(parent=raysto_checkout_intent)
+  chargeId: int, relation(parent=raysto_bill_charge)
+  amountMinor: int
+  foodNetMinor: int
+  refundedMinor: int
+  state: String
+indexes:
+  allocation_charge_checkout:
+    fields: checkoutId, chargeId
+    unique: true

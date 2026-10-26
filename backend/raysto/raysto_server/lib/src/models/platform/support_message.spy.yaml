@@ -1,0 +1,12 @@
+class: SupportMessage
+table: raysto_support_message
+serverOnly: true
+fields:
+  conversationId: int, relation(parent=raysto_support_conversation)
+  userId: String
+  text: String
+  mediaId: int?
+  createdAt: DateTime
+indexes:
+  message_thread:
+    fields: conversationId, createdAt

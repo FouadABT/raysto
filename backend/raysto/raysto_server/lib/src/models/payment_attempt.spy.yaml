@@ -1,0 +1,17 @@
+class: PaymentAttempt
+table: raysto_payment_attempt
+serverOnly: true
+fields:
+  orderId: int, relation(parent=raysto_order)
+  requestId: String
+  providerOrderId: String?
+  approvalUrl: String?
+  state: String
+  createdAt: DateTime
+indexes:
+  payment_order:
+    fields: orderId
+    unique: true
+  payment_provider_order:
+    fields: providerOrderId
+    unique: true

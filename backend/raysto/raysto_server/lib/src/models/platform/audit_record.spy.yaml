@@ -1,0 +1,15 @@
+class: AuditRecord
+table: raysto_audit_record
+serverOnly: true
+fields:
+  restaurantId: int?
+  userId: String
+  requestKey: String
+  kind: String
+  entityType: String
+  entityId: int?
+  detailsJson: String
+  createdAt: DateTime
+indexes:
+  audit_tenant_time:
+    fields: restaurantId, createdAt

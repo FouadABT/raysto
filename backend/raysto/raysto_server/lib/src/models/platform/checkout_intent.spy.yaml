@@ -1,0 +1,33 @@
+class: CheckoutIntent
+table: raysto_checkout_intent
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  visitId: int?
+  activeVisitId: int?
+  orderId: int?
+  requestKey: String
+  requestHash: String
+  providerRequestId: String
+  providerOrderId: String?
+  merchantId: String
+  approvalUrl: String?
+  state: String
+  method: String
+  currency: String
+  amountMinor: int
+  commissionMinor: int
+  commissionBps: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  checkout_request:
+    fields: userId, requestKey
+    unique: true
+  checkout_active_visit:
+    fields: activeVisitId
+    unique: true
+  checkout_provider:
+    fields: providerOrderId
+    unique: true

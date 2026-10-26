@@ -1,0 +1,26 @@
+class: SandboxPayment
+table: raysto_sandbox_payment
+fields:
+  userId: String
+  requestKey: String
+  providerRequestId: String
+  amountMinor: int
+  currency: String
+  state: String
+  providerOrderId: String?
+  approvalUrl: String?
+  captureId: String?
+  webhookEventId: String?
+  webhookReceivedAt: DateTime?
+  capturedAt: DateTime?
+  createdAt: DateTime
+indexes:
+  sandbox_owner_request:
+    fields: userId, requestKey
+    unique: true
+  sandbox_provider_order:
+    fields: providerOrderId
+    unique: true
+  sandbox_capture:
+    fields: captureId
+    unique: true

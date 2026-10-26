@@ -1,0 +1,6 @@
+{
+  "title": "Raysto authentication runtime",
+  "description": "Read revocation/disabled status and fulfill authenticated account deletion requests for Raysto. No account creation, password reset, role management or IAM administration.",
+  "stage": "GA",
+  "includedPermissions": ["firebaseauth.users.get", "firebaseauth.users.delete"]
+}

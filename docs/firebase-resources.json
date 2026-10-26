@@ -1,0 +1,40 @@
+{
+  "projectId": "raysto-38505",
+  "projectNumber": "110106610042",
+  "region": "europe-west1",
+  "provisionedDate": "2026-10-24",
+  "firestore": {
+    "databaseId": "raysto-mobile",
+    "resource": "projects/raysto-38505/databases/raysto-mobile",
+    "edition": "ENTERPRISE",
+    "type": "FIRESTORE_NATIVE",
+    "firestoreDataAccess": "ENABLED",
+    "realtimeUpdates": "ENABLED",
+    "mongodbCompatibleDataAccess": "DISABLED",
+    "rulesRelease": "projects/raysto-38505/releases/cloud.firestore/raysto-mobile",
+    "ruleset": "projects/raysto-38505/rulesets/7a5f91b1-8e6e-48fb-b0ec-abbfca7a0b62",
+    "rulesSha256": "32674940e0c2d3fb88a0e56541584a6ff4ff47dcb4e475e64b2087da041daaf4"
+  },
+  "storage": {
+    "bucket": "raysto-38505.firebasestorage.app",
+    "storageClass": "STANDARD",
+    "publicIamBindings": 0,
+    "rulesRelease": "projects/raysto-38505/releases/firebase.storage/raysto-38505.firebasestorage.app",
+    "ruleset": "projects/raysto-38505/rulesets/353150a9-5b82-47d3-94a5-6e61d9c04ee2",
+    "rulesSha256": "ece5ed80f88b33764bf2381e3ebbc2a74321aea7b6855c02519e014c74366080"
+  },
+  "realtimeDatabase": {
+    "instance": "raysto-38505-default-rtdb",
+    "url": "https://raysto-38505-default-rtdb.europe-west1.firebasedatabase.app",
+    "state": "ACTIVE",
+    "type": "DEFAULT_DATABASE",
+    "remoteRulesMatchLocal": true
+  },
+  "unauthenticatedReadChecks": {
+    "firestore": { "status": 403, "message": "Missing or insufficient permissions." },
+    "storage": { "status": 403, "message": "Permission denied." },
+    "realtimeDatabase": { "status": 401, "message": "Permission denied" }
+  },
+  "authenticatedLiveCrudTested": false,
+  "productionDocumentsOrObjectsCreatedByValidation": false
+}

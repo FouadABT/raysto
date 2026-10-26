@@ -1,0 +1,25 @@
+class: PurchaseOrder
+table: raysto_order
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  customerId: String
+  requestKey: String
+  requestHash: String
+  fulfillment: String
+  address: String?
+  lines: List<OrderLine>
+  currency: String
+  subtotalMinor: int
+  deliveryFeeMinor: int
+  totalMinor: int
+  status: String
+  paymentStatus: String
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  order_customer_key:
+    fields: customerId, requestKey
+    unique: true
+  order_restaurant_created:
+    fields: restaurantId, createdAt

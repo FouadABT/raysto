@@ -1,0 +1,15 @@
+class: RestaurantPolicy
+table: raysto_restaurant_policy
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  settingsJson: String
+  version: int
+  menuVersion: int
+  suspended: bool
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  policy_restaurant:
+    fields: restaurantId
+    unique: true

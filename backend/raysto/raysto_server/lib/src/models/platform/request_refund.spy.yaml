@@ -1,0 +1,7 @@
+class: RequestRefund
+fields:
+  requestKey: String
+  restaurantId: int
+  captureId: int
+  amountMinor: int
+  reason: String

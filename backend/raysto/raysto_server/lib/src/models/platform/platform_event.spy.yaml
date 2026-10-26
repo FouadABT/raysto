@@ -1,0 +1,6 @@
+class: PlatformEvent
+fields:
+  cursor: int
+  kind: String
+  entityId: int?
+  createdAt: DateTime

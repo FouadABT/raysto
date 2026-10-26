@@ -1,0 +1,42 @@
+firebase:
+  - login:
+  - hasAccount:
+guest:
+  - login:
+jwtRefresh:
+  - refreshAccessToken:
+catalog:
+  - restaurants:
+  - menu:
+commerce:
+  - placeOrder:
+  - order:
+  - myOrders:
+  - checkout:
+  - capture:
+  - registerDevice:
+  - unregisterDevice:
+  - requestService:
+platform:
+  - command:
+  - query:
+  - createQuote:
+  - submitOrder:
+  - startVisit:
+  - allocatePayment:
+  - requestRefund:
+  - uploadContent:
+  - events:
+restaurant:
+  - create:
+  - publish:
+  - setStaff:
+  - saveProduct:
+  - transition:
+  - orders:
+  - queue:
+sandboxPayments:
+  - start:
+  - read:
+  - checkout:
+  - capture:

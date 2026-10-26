@@ -1,0 +1,23 @@
+class: PaymentRefund
+table: raysto_payment_refund
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  captureId: int, relation(parent=raysto_payment_capture)
+  requestKey: String
+  providerRefundId: String?
+  allocationJson: String
+  amountMinor: int
+  commissionMinor: int
+  reason: String
+  state: String
+  createdBy: String
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  refund_request:
+    fields: restaurantId, requestKey
+    unique: true
+  refund_provider:
+    fields: providerRefundId
+    unique: true

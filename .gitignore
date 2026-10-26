@@ -1,0 +1,102 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+**/.dart_tool/
+**/.serverpod/
+**/build/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+/dist/
+/.tooling/
+/backend/.env
+/backend/.secrets/
+**/config/passwords.yaml
+**/firebase-service-account*.json
+firebase-debug*.log
+**/firebase-debug*.log
+**/node_modules/
+**/firestore-debug.log
+**/database-debug.log
+**/ui-debug.log
+
+# Credentials and local configuration (public examples are explicitly allowed).
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+**/*service-account*.json
+**/*service_account*.json
+**/credentials.json
+**/config/passwords*.yaml
+!**/config/passwords.example.yaml
+
+# Machine-local work, private provider evidence, and supplied reference boards.
+/.vscode/
+/ui/
+/docs/qa/
+/docs/runtime/
+/web/artifacts/
+/backend/operations/*analysis.txt
+__pycache__/
+*.tsbuildinfo
+*.apk
+*.aab
+*.ipa
+*.zip
+*.tar.gz
+
+# One-off provisioning/QA tools for the original host are not distribution tools.
+/tool/*qa.cjs
+/tool/google-backend-*.cjs
+/tool/firebase-mobile-config.cjs
+/tool/grant_raysto_auth_role.cjs
+/tool/package_backend*.py
+/deploy/ec2/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release

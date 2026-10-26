@@ -1,0 +1,14 @@
+class: KitchenProgress
+table: raysto_kitchen_progress
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  orderId: int, relation(parent=raysto_order)
+  lineKey: String
+  quantity: int
+  completedQuantity: int
+  version: int
+indexes:
+  kitchen_line:
+    fields: orderId, lineKey
+    unique: true

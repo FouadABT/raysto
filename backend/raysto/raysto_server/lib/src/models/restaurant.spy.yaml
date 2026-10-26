@@ -1,0 +1,8 @@
+class: Restaurant
+table: raysto_restaurant
+fields:
+  name: String
+  currency: String
+  deliveryFeeMinor: int
+  published: bool
+  createdAt: DateTime

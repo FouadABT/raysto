@@ -1,0 +1,76 @@
+/* Raysto's Flutter token roles, translated to Material 3 web surfaces.
+   Typography follows M3's display/headline/title/body/label roles with
+   emphasized weights from the bundled Plus Jakarta Sans family. */
+:root {
+  --paper: #f6f7f2;
+  --surface: #ffffff;
+  --sidebar: #f9faf6;
+  --ink: #173e34;
+  --forest: #173f35;
+  --on-primary: #ffffff;
+  --lime: #d7f978;
+  --support: #e6ede2;
+  --warm: #f3e8db;
+  --outline: #dce2d9;
+  --outline-soft: #e8ece4;
+  --muted: #59675e;
+  --error: #a32d32;
+  --error-surface: #fbe9e6;
+  --warning: #805300;
+  --warning-surface: #f8eed8;
+  --success: #28633f;
+  --success-surface: #e7f1e3;
+  --blue: #365c7a;
+  --blue-surface: #e7eff6;
+  --focus: #597832;
+  --radius-card: 24px;
+  --radius-button: 18px;
+  --feedback: 140ms;
+  --selection: 240ms;
+  --branch: 400ms;
+  --sheet: 360ms;
+  --md-sys-typescale-display-large: 57px;
+  --md-sys-typescale-display-medium: 45px;
+  --md-sys-typescale-display-small: 36px;
+  --md-sys-typescale-headline-large: 32px;
+  --md-sys-typescale-headline-medium: 28px;
+  --md-sys-typescale-headline-small: 24px;
+  --md-sys-typescale-title-large: 22px;
+  --md-sys-typescale-title-medium: 16px;
+  --md-sys-typescale-title-small: 14px;
+  --md-sys-typescale-body-large: 16px;
+  --md-sys-typescale-body-medium: 14px;
+  --md-sys-typescale-body-small: 12px;
+  --md-sys-typescale-label-large: 14px;
+  --md-sys-typescale-label-medium: 12px;
+  --md-sys-typescale-label-small: 11px;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #101e19;
+  --surface: #192a22;
+  --sidebar: #14231c;
+  --ink: #e5ebdd;
+  --forest: #bdd798;
+  --on-primary: #173e34;
+  --lime: #d7f978;
+  --support: #2b3d30;
+  --warm: #3e3529;
+  --outline: #3e5143;
+  --outline-soft: #2c4033;
+  --muted: #b7c6b8;
+  --error: #ffb5ae;
+  --error-surface: #522b2b;
+  --warning: #edcb83;
+  --warning-surface: #44391f;
+  --success: #b2d5a6;
+  --success-surface: #29452c;
+  --blue: #b6d0eb;
+  --blue-surface: #283e4e;
+  --focus: #d7f978;
+}
+html[data-theme="dark"] .stat-card.accent > small,
+html[data-theme="dark"] .mini-table.occupied small,
+html[data-theme="dark"] .floor-table.occupied small {
+  color: #26412e;
+}

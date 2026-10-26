@@ -1,0 +1,15 @@
+class: SupportConversation
+table: raysto_support_conversation
+serverOnly: true
+fields:
+  restaurantId: int?
+  orderId: int?
+  userId: String
+  status: String
+  subject: String
+  escalated: bool
+  version: int
+  createdAt: DateTime
+indexes:
+  conversation_actor:
+    fields: userId, createdAt

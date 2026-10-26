@@ -1,0 +1,14 @@
+class: MutationReceipt
+table: raysto_mutation_receipt
+serverOnly: true
+fields:
+  userId: String
+  requestKey: String
+  operation: String
+  requestHash: String
+  resultJson: String
+  createdAt: DateTime
+indexes:
+  mutation_actor_key:
+    fields: userId, requestKey
+    unique: true

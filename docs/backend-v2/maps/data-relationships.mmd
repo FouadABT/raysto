@@ -1,0 +1,20 @@
+erDiagram
+  ACTOR ||--o{ MEMBERSHIP : has
+  RESTAURANT ||--o{ MEMBERSHIP : authorizes
+  RESTAURANT ||--o{ MENU_ITEM : publishes
+  RESTAURANT ||--o{ TABLE : contains
+  RESTAURANT ||--o{ SUBSCRIPTION : subscribes
+  TABLE ||--o{ VISIT : hosts
+  TABLE ||--o{ RESERVATION : reserves
+  VISIT ||--o{ PARTICIPANT : admits
+  ACTOR ||--o{ PARTICIPANT : joins
+  VISIT o|--o{ ORDER : groups
+  ORDER ||--|{ ORDER_LINE : freezes
+  ORDER ||--o{ BILL_CHARGE : creates
+  ORDER ||--o{ KITCHEN_TICKET : prepares
+  ORDER ||--o| DELIVERY_TASK : fulfills
+  CHECKOUT_ATTEMPT ||--|{ PAYMENT_ALLOCATION : reserves
+  BILL_CHARGE ||--o{ PAYMENT_ALLOCATION : receives
+  CHECKOUT_ATTEMPT ||--o| CAPTURE : records
+  CAPTURE ||--o{ REFUND : refunds
+  CAPTURE ||--o{ COMMISSION_ENTRY : produces

@@ -1,0 +1,14 @@
+class: MenuDraft
+table: raysto_menu_draft
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  itemsJson: String
+  baseMenuVersion: int
+  version: int
+  status: String
+  createdAt: DateTime
+indexes:
+  menu_draft_tenant:
+    fields: restaurantId, status

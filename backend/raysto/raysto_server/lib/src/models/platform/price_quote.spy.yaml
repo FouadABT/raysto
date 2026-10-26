@@ -1,0 +1,17 @@
+class: PriceQuote
+table: raysto_price_quote
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  visitId: int?
+  snapshotJson: String
+  menuVersion: int
+  totalMinor: int
+  currency: String
+  expiresAt: DateTime
+  consumedOrderId: int?
+  createdAt: DateTime
+indexes:
+  quote_actor:
+    fields: userId, createdAt

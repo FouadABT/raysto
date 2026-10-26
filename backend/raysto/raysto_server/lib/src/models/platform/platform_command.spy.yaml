@@ -1,0 +1,7 @@
+class: PlatformCommand
+fields:
+  requestKey: String
+  restaurantId: int?
+  resourceId: int?
+  expectedVersion: int?
+  dataJson: String

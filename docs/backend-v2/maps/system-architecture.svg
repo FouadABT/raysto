@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250"><rect width="100%" height="100%" fill="#0d1725"/>
+<text x="58" y="80" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">RAYSTO — architecture &amp; ownership</text>
+<text x="60" y="118" fill="#acbfd2" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400">A modular monolith with bounded workers; external services provide identity, files, delivery channels and evidence</text>
+<rect x="60" y="170" width="430" height="130" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="82" y="210" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Clients</text>
+<text x="82" y="249" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Flutter mobile</text>
+<text x="82" y="281" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Future connected web</text>
+<rect x="650" y="170" width="480" height="130" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="672" y="210" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">HTTPS edge</text>
+<text x="672" y="249" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Cloudflare → Nginx</text>
+<text x="672" y="281" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Raysto only: api.rays.to</text>
+<rect x="1270" y="170" width="470" height="130" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="1292" y="210" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">API + authorization</text>
+<text x="1292" y="249" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Serverpod RPC and REST v2</text>
+<text x="1292" y="281" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Identity · Roles · Input limits</text>
+<polyline points="490,235 650,235" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="650,235 638.9472680719654,239.6730201077038 638.9472680719654,230.3269798922962" fill="#55728b"/>
+<polyline points="1130,235 1270,235" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1270,235 1258.9472680719655,239.6730201077038 1258.9472680719655,230.3269798922962" fill="#55728b"/>
+<rect x="650" y="400" width="1090" height="150" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="672" y="440" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Business services</text>
+<text x="672" y="479" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Catalogue · Dining · Orders · Fulfillment · Payments · Revenue</text>
+<text x="672" y="511" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Shared rules for RPC, REST, jobs and reviewed AI actions</text>
+<polyline points="1505,300 1505,400" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1505,400 1500.326979892296,388.94726807196537 1509.673020107704,388.94726807196537" fill="#55728b"/>
+<rect x="60" y="400" width="430" height="150" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="440" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Identity boundary</text>
+<text x="82" y="479" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Firebase Authentication</text>
+<text x="82" y="511" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Registered proof + App Check</text>
+<polyline points="1270,270 1190,270 1190,350 275,350 275,400" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="275,400 270.3269798922962,388.94726807196537 279.6730201077038,388.94726807196537" fill="#55728b"/>
+<rect x="650" y="650" width="500" height="170" rx="16" fill="#162638" stroke="#ffb46b" stroke-width="2"/>
+<text x="672" y="690" fill="#ffb46b" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">PostgreSQL — authority</text>
+<text x="672" y="729" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Permissions and restaurant data</text>
+<text x="672" y="761" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Orders, bills, payments and history</text>
+<text x="672" y="793" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Jobs, notifications and audit</text>
+<rect x="1240" y="650" width="500" height="170" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="1262" y="690" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Durable worker</text>
+<text x="1262" y="729" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Claim → external call → acknowledge</text>
+<text x="1262" y="761" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Leases, bounded retry, dead letters</text>
+<text x="1262" y="793" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Reconcile unknown provider outcomes</text>
+<polyline points="900,550 900,650" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="900,650 895.3269798922962,638.9472680719654 904.6730201077038,638.9472680719654" fill="#55728b"/>
+<polyline points="1505,550 1505,650" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1505,650 1500.326979892296,638.9472680719654 1509.673020107704,638.9472680719654" fill="#55728b"/>
+<polyline points="1150,735 1240,735" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1240,735 1228.9472680719655,739.6730201077038 1228.9472680719655,730.3269798922962" fill="#55728b"/>
+<rect x="60" y="650" width="430" height="170" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="690" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Firebase supporting data</text>
+<text x="82" y="729" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Storage: private files</text>
+<text x="82" y="761" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Firestore: display preferences</text>
+<text x="82" y="793" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">RTDB: advisory presence</text>
+<polyline points="650,500 550,500 550,735 490,735" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="490,735 501.05273192803463,730.3269798922962 501.05273192803463,739.6730201077038" fill="#55728b"/>
+<rect x="60" y="935" width="430" height="170" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="82" y="975" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Communication</text>
+<text x="82" y="1014" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">FCM push + in-app inbox</text>
+<text x="82" y="1046" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Amazon SES transactional email</text>
+<rect x="650" y="935" width="500" height="170" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="672" y="975" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">PayPal</text>
+<text x="672" y="1014" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Restaurant merchant + platform fee</text>
+<text x="672" y="1046" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Separate Raysto subscription seller</text>
+<text x="672" y="1078" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Existing Sandbox facility preserved</text>
+<rect x="1240" y="935" width="500" height="170" rx="16" fill="#162638" stroke="#61d4cf" stroke-width="2"/>
+<text x="1262" y="975" fill="#61d4cf" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Google Cloud Gemini</text>
+<text x="1262" y="1014" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">EU endpoint · bounded inputs</text>
+<text x="1262" y="1046" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Extraction, translations, proposals</text>
+<text x="1262" y="1078" fill="#eef5fc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400">Human correction and approval</text>
+<polyline points="1490,820 1490,935" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="1490,935 1485.326979892296,923.9472680719654 1494.673020107704,923.9472680719654" fill="#55728b"/>
+<polyline points="1360,820 1360,875 900,875 900,935" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="900,935 895.3269798922962,923.9472680719654 904.6730201077038,923.9472680719654" fill="#55728b"/>
+<polyline points="1320,820 1320,895 275,895 275,935" fill="none" stroke="#55728b" stroke-width="3"/>
+<polygon points="275,935 270.3269798922962,923.9472680719654 279.6730201077038,923.9472680719654" fill="#55728b"/>
+<text x="60" y="1222" fill="#acbfd2" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">RAYSTO  /  Backend v2 source map  /  Runtime verification and rollout deferred</text>
+</svg>

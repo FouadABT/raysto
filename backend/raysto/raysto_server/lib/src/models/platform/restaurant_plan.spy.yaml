@@ -1,0 +1,17 @@
+class: RestaurantPlan
+table: raysto_restaurant_plan
+serverOnly: true
+fields:
+  code: String
+  version: int
+  currency: String
+  priceMinor: int
+  commissionBps: int
+  featuresJson: String
+  providerPlanId: String?
+  active: bool
+  createdAt: DateTime
+indexes:
+  plan_code_version:
+    fields: code, version
+    unique: true

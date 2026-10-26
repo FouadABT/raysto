@@ -1,0 +1,16 @@
+class: VisitRequest
+table: raysto_visit_request
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  visitId: int, relation(parent=raysto_dining_visit)
+  userId: String
+  kind: String
+  status: String
+  assignedUserId: String?
+  reason: String?
+  version: int
+  createdAt: DateTime
+indexes:
+  visit_request_status:
+    fields: visitId, status

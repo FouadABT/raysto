@@ -1,0 +1,14 @@
+class: OutboxEvent
+table: raysto_outbox
+serverOnly: true
+fields:
+  orderId: int, relation(parent=raysto_order)
+  userId: String
+  kind: String
+  createdAt: DateTime
+  deliveredAt: DateTime?
+  attempts: int
+  nextAttemptAt: DateTime
+indexes:
+  outbox_pending:
+    fields: deliveredAt, nextAttemptAt

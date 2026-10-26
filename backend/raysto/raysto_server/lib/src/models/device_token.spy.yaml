@@ -1,0 +1,11 @@
+class: DeviceToken
+table: raysto_device_token
+serverOnly: true
+fields:
+  userId: String
+  token: String
+  updatedAt: DateTime
+indexes:
+  device_token_unique:
+    fields: token
+    unique: true

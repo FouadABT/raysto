@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "110106610042",
+    "firebase_url": "https://raysto-38505-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "raysto-38505",
+    "storage_bucket": "raysto-38505.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110106610042:android:0c26736df2eb8f90076ec3",
+        "android_client_info": {
+          "package_name": "com.gmrt.raysto"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "110106610042-r1b51euak2tf0r2t8j9qa258okl8semj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gmrt.raysto",
+            "certificate_hash": "d530d3184ae71564c3f39f7eea12c8f2ce4e6865"
+          }
+        },
+        {
+          "client_id": "110106610042-qbqte6o60c0rbeepbgh5nndt3cf7rfta.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbZsZJP-NUeYUbFH4ml8sh3bn--fwewEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "110106610042-qbqte6o60c0rbeepbgh5nndt3cf7rfta.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "110106610042-e4g6jirssnau63fl3ahi94sv2kjl78s6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gmrt.raysto"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

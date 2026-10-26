@@ -1,0 +1,18 @@
+class: PaymentException
+table: raysto_payment_exception
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  captureId: int, relation(parent=raysto_payment_capture)
+  providerEventId: String
+  kind: String
+  status: String
+  amountMinor: int
+  currency: String
+  evidenceJson: String
+  version: int
+  createdAt: DateTime
+indexes:
+  exception_event:
+    fields: providerEventId
+    unique: true

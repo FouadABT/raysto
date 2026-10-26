@@ -1,0 +1,11 @@
+class: RateWindow
+table: raysto_rate_window
+serverOnly: true
+fields:
+  bucket: String
+  windowStart: DateTime
+  requests: int
+indexes:
+  rate_bucket:
+    fields: bucket, windowStart
+    unique: true

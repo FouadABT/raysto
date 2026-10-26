@@ -1,0 +1,19 @@
+class: DiningReservation
+table: raysto_dining_reservation
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  tableId: int, relation(parent=raysto_dining_table)
+  partySize: int
+  startsAt: DateTime
+  endsAt: DateTime
+  holdExpiresAt: DateTime?
+  status: String
+  contactJson: String
+  visitId: int?
+  version: int
+  createdAt: DateTime
+indexes:
+  reservation_interval:
+    fields: restaurantId, startsAt, endsAt

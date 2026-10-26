@@ -1,0 +1,16 @@
+class: UserNotification
+table: raysto_user_notification
+serverOnly: true
+fields:
+  userId: String
+  restaurantId: int?
+  eventKey: String
+  kind: String
+  referenceJson: String
+  readAt: DateTime?
+  dismissedAt: DateTime?
+  createdAt: DateTime
+indexes:
+  notification_event_user:
+    fields: eventKey, userId
+    unique: true

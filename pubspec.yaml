@@ -1,0 +1,66 @@
+name: raysto
+description: Raysto mobile restaurant platform with connected accounts and an isolated offline demo.
+publish_to: 'none'
+version: 0.10.0+2012
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  phosphor_flutter:
+    path: third_party/phosphor_flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^11.2.0
+  qr_flutter: ^4.1.0
+  raysto_client:
+    path: backend/raysto/raysto_client
+  firebase_core: ^4.15.2
+  firebase_auth: ^6.7.1
+  firebase_messaging: ^16.7.1
+  firebase_storage: ^13.6.1
+  serverpod_flutter: 4.0.4
+  serverpod_auth_idp_flutter: 4.0.4
+  serverpod_auth_idp_flutter_firebase: 4.0.4
+  google_sign_in: ^7.2.0
+  cloud_firestore: ^6.10.2
+  firebase_database: ^12.6.1
+  url_launcher: 6.3.3
+  mobile_scanner: 7.4.2
+  http: ^1.6.0
+  crypto: ^3.0.7
+  firebase_app_check: ^0.4.9
+  file_picker: ^13.2.0
+  image_picker: ^1.2.4
+  geolocator: ^14.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/fixtures/
+    - assets/images/
+    - assets/fonts/OFL.txt
+    - assets/licenses/
+  fonts:
+    - family: NotoSansArabic
+      fonts:
+        - asset: assets/fonts/NotoSansArabic.ttf
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700

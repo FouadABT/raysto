@@ -1,0 +1,7 @@
+name: raysto_backend_tooling
+description: Pinned Serverpod generation tools for Raysto.
+publish_to: none
+environment:
+  sdk: ^3.13.0
+dependencies:
+  serverpod_cli: 4.0.4

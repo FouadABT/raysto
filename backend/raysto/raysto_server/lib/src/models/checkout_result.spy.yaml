@@ -1,0 +1,5 @@
+class: CheckoutResult
+fields:
+  orderId: int
+  providerOrderId: String
+  approvalUrl: String

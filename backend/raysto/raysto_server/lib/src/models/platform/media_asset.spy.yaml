@@ -1,0 +1,19 @@
+class: MediaAsset
+table: raysto_media_asset
+serverOnly: true
+fields:
+  restaurantId: int?
+  userId: String
+  purpose: String
+  objectName: String
+  mime: String
+  byteLength: int
+  sha256: String
+  status: String
+  public: bool
+  metadataJson: String
+  createdAt: DateTime
+indexes:
+  media_object:
+    fields: objectName
+    unique: true

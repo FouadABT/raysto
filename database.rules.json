@@ -1,0 +1,18 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "presence": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
+        "$connection": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
+          ".validate": "$connection.matches(/^[A-Za-z0-9_-]{1,64}$/) && newData.hasChildren(['state', 'updatedAt'])",
+          "state": { ".validate": "newData.isString() && (newData.val() === 'online' || newData.val() === 'offline')" },
+          "updatedAt": { ".validate": "newData.isNumber() && newData.val() <= now && newData.val() >= now - 300000" },
+          "$other": { ".validate": false }
+        }
+      }
+    }
+  }
+}

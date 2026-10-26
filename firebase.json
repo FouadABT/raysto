@@ -1,0 +1,23 @@
+{
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Raysto",
+        "supportEmail": "contact@awhar.com",
+        "authorizedRedirectUris": [
+          "https://raysto-38505.firebaseapp.com/__/auth/handler"
+        ]
+      }
+    }
+  },
+  "firestore": {
+    "database": "raysto-mobile",
+    "edition": "enterprise",
+    "location": "europe-west1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": { "rules": "storage.rules" },
+  "database": { "rules": "database.rules.json" }
+}

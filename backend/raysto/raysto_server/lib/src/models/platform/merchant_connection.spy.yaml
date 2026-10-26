@@ -1,0 +1,19 @@
+class: MerchantConnection
+table: raysto_merchant_connection
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  trackingId: String
+  merchantId: String?
+  environment: String
+  status: String
+  capabilitiesJson: String
+  verifiedAt: DateTime?
+  createdAt: DateTime
+indexes:
+  merchant_restaurant:
+    fields: restaurantId, environment
+    unique: true
+  merchant_tracking:
+    fields: trackingId
+    unique: true

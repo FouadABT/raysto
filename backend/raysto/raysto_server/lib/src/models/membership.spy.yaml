@@ -1,0 +1,12 @@
+class: Membership
+table: raysto_membership
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  role: String
+  active: bool
+indexes:
+  membership_tenant_user:
+    fields: restaurantId, userId
+    unique: true

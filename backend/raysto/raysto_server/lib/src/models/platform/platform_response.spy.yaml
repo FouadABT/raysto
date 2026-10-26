@@ -1,0 +1,4 @@
+class: PlatformResponse
+fields:
+  requestId: String
+  dataJson: String

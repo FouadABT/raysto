@@ -1,0 +1,4 @@
+class: CartLine
+fields:
+  productId: int
+  quantity: int

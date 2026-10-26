@@ -1,0 +1,13 @@
+class: CustomerCart
+table: raysto_customer_cart
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String
+  linesJson: String
+  version: int
+  updatedAt: DateTime
+indexes:
+  cart_actor_restaurant:
+    fields: userId, restaurantId
+    unique: true

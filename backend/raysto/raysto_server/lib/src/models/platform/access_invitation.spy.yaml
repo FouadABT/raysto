@@ -1,0 +1,19 @@
+class: AccessInvitation
+table: raysto_access_invitation
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  kind: String
+  targetId: int
+  tokenHash: String
+  createdBy: String
+  recipientEmail: String?
+  role: String?
+  expiresAt: DateTime
+  usesRemaining: int
+  revoked: bool
+  createdAt: DateTime
+indexes:
+  invitation_token:
+    fields: tokenHash
+    unique: true

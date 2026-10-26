@@ -1,0 +1,17 @@
+flowchart TB
+  Clients[Flutter mobile + future web] --> Edge[Cloudflare + HTTPS + Raysto Nginx]
+  Edge --> API[Serverpod RPC + REST v2]
+  API --> Guard[Identity + tenant + role + validation]
+  Guard --> Modules[Business modules]
+  Guard <--> Auth[Firebase Authentication]
+  Modules <--> DB[(PostgreSQL authoritative records)]
+  Modules --> Outbox[Transactional outbox]
+  Outbox --> Workers[Leased bounded workers]
+  Workers <--> DB
+  Workers --> PayPal[PayPal restaurant marketplace]
+  Workers --> Billing[Separate PayPal subscription seller]
+  Workers --> Gemini[Gemini EU - reviewed proposals]
+  Workers --> Channels[Inbox + FCM + SES]
+  Modules --> Files[Firebase Storage private files]
+  Clients -.-> Prefs[Firestore private preferences]
+  Clients -.-> Presence[RTDB advisory presence]
