@@ -12,7 +12,15 @@ The conversation candidate connects Flutter visit rooms and the hosted [AG Grid/
 | Connected mobile + configured backend | Real identities, server-owned records and configured providers. | Automatically available reviewer accounts or complete buyer-to-refund acceptance. |
 | Connected `/ops` | Real authorized records, AG Grid, three AG Studio widgets, table room and server assistant. | Public staff credentials, completed buyer/refund acceptance or guaranteed trial access after December 10. |
 
-[Setup](getting-started.md) covers all three. This snapshot has no public APK release attached; build from source. A hosted API URL alone is not a walkthrough or public admin credential.
+[Setup](getting-started.md) covers all three. The owner has the versioned APK/checksum in the [candidate handoff](release-candidate-2026-10-27.md); this snapshot has no public APK release attached, so public reviewers should build from source until the judging release is published. A hosted API URL alone is not a walkthrough or public admin credential.
+
+## Connected acceptance journey
+
+Use the configured QA restaurant with two admitted diners and its assigned waiter. The room shows its audience explicitly; the host alone confirms a group order. Ask Raysto for a bounded shared meal, review its authoritative quote, then follow the order in the kitchen and console. Each diner separately reviews a share and approves it on PayPal's real Sandbox page. A verified backend receipt and matching remaining balance establish settlement.
+
+The [device checklist and pilot protocol](device-and-pilot-checklist.md) give the exact sequence, recovery/refund checks and observations. The [fixed AI evaluation](ai-evaluation.md) includes failures, privacy boundaries, multilingual requests and unknown dietary information. Private QA credentials are supplied separately; the public repository grants no restaurant permissions.
+
+Until live acceptance is recorded, treat this as a candidate workflow—not evidence that every step passed. The offline flow below remains useful for reviewing design without provider access.
 
 ## Interface walkthrough
 

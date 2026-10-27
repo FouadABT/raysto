@@ -39,6 +39,14 @@ as an alternative, so Raysto now supports that official option.
 
 ## Verification and remaining work
 
+**October 27 update:** the same deployed Dart reader verified a fresh, unapproved
+USD 1.00 order through official stdio MCP in 2,737 ms, returning
+`PAYER_ACTION_REQUIRED` with no REST fallback. The temporary checkout was then
+cancelled through the guarded API; no capture occurred. Gemini's HTTP 429
+`RESOURCE_EXHAUSTED` responses still block complete chat-to-MCP acceptance.
+See the [current candidate report](release-candidate-2026-10-27.md). The older
+0.11.4 observations below are retained as historical evidence.
+
 Eighteen distinct focused Dart cases passed: seven existing/extended HTTP and
 response checks, nine subprocess/configuration cases, and two assistant-fact
 checks. The second run repeated the six HTTP cases and added the provider-error
@@ -78,8 +86,9 @@ gates. Two US Personal Sandbox accounts were shown as created; their credentials
 or interactive buyer participation are still needed. See the
 [buyer instructions](paypal-sandbox-buyers.md).
 
-The upstream dependency audit is not clean. The initial lock reported 12 affected
-package entries, including transitive advisories. Unused agent integrations and
+The upstream dependency audit is not clean. The October 27 refresh reported 13
+affected package entries (12 high, one moderate), including transitive advisories.
+Unused agent integrations and
 the restrictions on the two loaded read tools are documented in the
 [runtime review](../backend/raysto/raysto_server/paypal_mcp_runtime/README.md).
 Review upstream patches before widening the integration beyond this Sandbox

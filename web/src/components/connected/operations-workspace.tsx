@@ -224,6 +224,7 @@ export function OperationsWorkspace({
   const selection = useRef(0);
   const roomDraft = useRef(false);
   const restored = useRef(false);
+  const pendingRestore = useRef<Json | null>(null);
   const refreshRef = useRef<() => Promise<void>>(async () => {});
   const focusRef = useRef<
     (
@@ -339,14 +340,32 @@ export function OperationsWorkspace({
         if (!active || next.filter !== filterRef.current) return;
         if (!restored.current) {
           restored.current = true;
+          pendingRestore.current = next.layout;
           const saved = next.layout?.filter;
           if (
             saved === "all" ||
             saved === "billRequested" ||
             saved === "paymentExceptions"
           ) {
-            if (saved !== filterRef.current) setFilter(saved);
+            if (saved !== filterRef.current) {
+              setFilter(saved);
+              return;
+            }
           }
+        }
+        if (pendingRestore.current) {
+          const saved = pendingRestore.current;
+          pendingRestore.current = null;
+          if (
+            ["tables", "orders", "services", "payments"].includes(
+              String(saved.tab),
+            )
+          )
+            setTab(String(saved.tab));
+          // Saved IDs are preferences, never authority to read a table or room.
+          const row = next.rows.find((row) => row.id === saved.selectedTableId);
+          setSelected(row?.id);
+          setRoomId(row?.roomId ?? undefined);
         }
         if (cursor === 0) cursor = next.eventCursor;
         setSnapshot(next);
@@ -464,6 +483,7 @@ export function OperationsWorkspace({
             panels: current.panels,
             filter,
             selectedTableId: selected,
+            tab,
           },
         },
         { version: layoutVersion },

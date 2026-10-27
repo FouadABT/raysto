@@ -1,5 +1,36 @@
 part of 'connected_app.dart';
 
+/// Collapse only adjacent updates to the same record. Conversation and unread
+/// boundaries remain in order, and every original event remains inspectable.
+List<Json> groupRoomActivity(List<Json> messages, {int? unreadSequence}) {
+  final result = <Json>[];
+  for (final message in messages) {
+    final previous = result.lastOrNull;
+    final body = obj(message['body']);
+    final prior = obj(previous?['body']);
+    if (message['kind'] == 'activity' &&
+        previous?['kind'] == 'activity' &&
+        message['sequence'] != unreadSequence &&
+        previous?['sequence'] != unreadSequence &&
+        body['entityId'] != null &&
+        body['entityId'] == prior['entityId'] &&
+        body['entityType'] == prior['entityType']) {
+      result[result.length - 1] = {
+        ...message,
+        'activityHistory': [
+          ...(records(previous?['activityHistory']).isEmpty
+              ? [previous!]
+              : records(previous?['activityHistory'])),
+          message,
+        ],
+      };
+    } else {
+      result.add(message);
+    }
+  }
+  return result;
+}
+
 class TableRoomPage extends StatefulWidget {
   const TableRoomPage({
     super.key,
@@ -478,6 +509,86 @@ class _TableRoomPageState extends State<TableRoomPage>
     }
   }
 
+  String activityTitle(Json body) => switch (body['event']) {
+    'service.sent' => 'Your waiter has the request',
+    'service.acknowledged' => 'Your waiter acknowledged it',
+    'service.completed' => 'Service request completed',
+    'payment.reserved' => 'A share is reserved for checkout',
+    'payment.created' => 'PayPal approval is ready',
+    'payment.capturing' => 'Confirming the payment',
+    'payment.uncertain' => 'Payment is being checked',
+    'payment.completed' => 'Payment confirmed',
+    'payment.refund_requested' => 'Refund requested',
+    'payment.refunded' => 'Refund confirmed',
+    'order.submitted' => 'Your order reached the restaurant',
+    'order.accepted' => 'The restaurant accepted your order',
+    'order.preparing' => 'The kitchen is preparing your order',
+    'order.ready' => 'Your order is ready',
+    'kitchen.progress' => 'An update from the kitchen',
+    _ => friendly('${body['event'] ?? 'Table updated'}').replaceAll('.', ' '),
+  };
+
+  Widget activityCard(Json m) {
+    final body = obj(m['body']);
+    final history = records(m['activityHistory']);
+    final type = '${body['entityType']}';
+    final icon = type == 'serviceRequest'
+        ? Icons.room_service_outlined
+        : {'checkout', 'capture', 'refund'}.contains(type)
+        ? Icons.payments_outlined
+        : type == 'order'
+        ? Icons.restaurant_outlined
+        : Icons.table_restaurant_outlined;
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: colors.primary),
+          const SizedBox(height: 8),
+          Text(
+            activityTitle(body),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          if (body['serviceKind'] != null)
+            Text(friendly('${body['serviceKind']}')),
+          if (body['amountMinor'] is int && body['currency'] is String)
+            Text(money(body['amountMinor'], body['currency'])),
+          if (body['event'] == 'service.sent')
+            const Text(
+              'Delivered to the room. Waiting for your waiter to acknowledge.',
+            ),
+          if (body['event'] == 'payment.uncertain')
+            const Text(
+              'Keep the existing checkout. The bill updates after verification.',
+            ),
+          if (history.length > 1)
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text('${history.length} updates'),
+              children: [
+                for (final event in history)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(activityTitle(obj(event['body']))),
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget message(Json m) {
     final body = obj(m['body']);
     final mine = m['userId'] == room!['currentUserId'];
@@ -486,11 +597,21 @@ class _TableRoomPageState extends State<TableRoomPage>
         .where((p) => p['userId'] == m['userId'])
         .firstOrNull;
     final proposal = obj(body['proposal']);
+    final retryRequest = records(room!['messages'])
+        .where(
+          (request) =>
+              request['kind'] == 'assistant.request' &&
+              request['userId'] == room!['currentUserId'] &&
+              obj(request['body'])['runId'] == body['runId'],
+        )
+        .firstOrNull;
+    final expires = DateTime.tryParse('${proposal['expiresAt']}');
+    final expired = expires != null && !expires.isAfter(DateTime.now());
     final enabled = proposal['kind'] == 'basket'
         ? room!['hostUserId'] == room!['currentUserId']
         : proposal['userId'] == room!['currentUserId'];
-    if (m['kind'] == 'activity' ||
-        m['kind'] == 'preferences.changed' ||
+    if (m['kind'] == 'activity') return activityCard(m);
+    if (m['kind'] == 'preferences.changed' ||
         m['kind'] == 'staff.changed' ||
         m['kind'] == 'host.changed') {
       return Padding(
@@ -579,6 +700,21 @@ class _TableRoomPageState extends State<TableRoomPage>
                 ),
               ),
             SelectableText('${body['text'] ?? ''}'),
+            if (body['retryable'] == true && retryRequest != null && !closed)
+              TextButton.icon(
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Review question & retry'),
+                onPressed: composer.text.trim().isNotEmpty || activeRun != null
+                    ? null
+                    : () {
+                        setState(() {
+                          asking = true;
+                          composer.text =
+                              '${obj(retryRequest['body'])['text']}';
+                        });
+                        unawaited(saveDraft());
+                      },
+              ),
             if (m['kind'] == 'assistant.suggestion' &&
                 body['prompt'] is String &&
                 !closed)
@@ -615,6 +751,7 @@ class _TableRoomPageState extends State<TableRoomPage>
               const SizedBox(height: 8),
               if (!closed &&
                   enabled &&
+                  !expired &&
                   {'review', 'approved'}.contains(proposal['status']))
                 AppButton(
                   label: proposal['kind'] == 'basket'
@@ -624,7 +761,9 @@ class _TableRoomPageState extends State<TableRoomPage>
                 )
               else
                 Text(
-                  proposal['status'] == 'review'
+                  expired && {'review', 'approved'}.contains(proposal['status'])
+                      ? 'This proposal expired. Ask Raysto for an updated one.'
+                      : proposal['status'] == 'review'
                       ? 'Waiting for ${proposal['kind'] == 'basket' ? 'the table host' : 'this payer'} to review.'
                       : friendly('${proposal['status']}'),
                 ),
@@ -873,7 +1012,10 @@ class _TableRoomPageState extends State<TableRoomPage>
                               },
                               child: const Text('Earlier messages'),
                             ),
-                          for (final m in records(room!['messages'])) ...[
+                          for (final m in groupRoomActivity(
+                            records(room!['messages']),
+                            unreadSequence: firstUnreadSequence,
+                          )) ...[
                             if (m['sequence'] == firstUnreadSequence)
                               const Padding(
                                 padding: EdgeInsets.all(8),
@@ -1008,6 +1150,13 @@ class _TableRoomPageState extends State<TableRoomPage>
                                       ),
                                   ],
                                 ),
+                                if (activeRun != null)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Text(
+                                      'Raysto is working on your request. You can keep chatting or cancel it.',
+                                    ),
+                                  ),
                                 if (asking)
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 6),

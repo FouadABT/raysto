@@ -219,6 +219,7 @@ class WorkspaceModule {
           'panels',
           'filter',
           'selectedTableId',
+          'tab',
         });
         final encoded = jsonEncode(state);
         if (utf8.encode(encoded).length > 65536) {
@@ -231,16 +232,35 @@ class WorkspaceModule {
             choices: {'all', 'billRequested', 'paymentExceptions'},
           );
         }
+        if (state['tab'] != null) {
+          _str(
+            state,
+            'tab',
+            choices: {'tables', 'orders', 'services', 'payments'},
+          );
+        }
+        if (state['selectedTableId'] != null) {
+          final table = await DiningTable.db.findById(
+            s,
+            _int(state, 'selectedTableId', min: 1),
+            transaction: w.tx,
+          );
+          if (table == null || table.restaurantId != w.tenant) {
+            _fail('not_found', 'Selected table is unavailable.');
+          }
+        }
         final pages = _list(state, 'pages', max: 8);
         final pageIds = <String>{};
         for (final raw in pages) {
           final page = _object(raw);
           final pageId = _str(page, 'id', max: 100);
-          if (!pageIds.add(pageId))
+          if (!pageIds.add(pageId)) {
             _fail('invalid_input', 'Duplicate dashboard page.');
+          }
           final widgets = _object(page['widgets'] ?? {});
-          if (widgets.length > 24)
+          if (widgets.length > 24) {
             _fail('limit_exceeded', 'Use at most 24 widgets per page.');
+          }
           for (final value in widgets.values) {
             final widget = _object(value);
             _str(

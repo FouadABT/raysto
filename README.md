@@ -30,7 +30,7 @@ Actual Flutter widget renders with illustrative fixtures. Screenshots demonstrat
 | **Payments** | Server-side PayPal Sandbox checkout, allocations, reconciliation and refund source. Complete buyer approval/capture/refund acceptance remains a separate gate. |
 | **Connected operations** | Firebase sign-in, table map, AG Grid, AG Studio custom widgets/harness, room history, shared attention filters and saved layouts. `/ops` uses the real backend. |
 
-**Status: integration candidate.** Android `0.11.0+2013` is built. Rooms, real Gemini basket/share proposals, an actual $13.50 Sandbox approval handoff and a real order read through official self-hosted PayPal MCP have been observed. Buyer capture/refund, conversational payment-status acceptance, the pilot and physical-device acceptance remain release gates. This is not the final judged release. [Road to 10/10 report](docs/road-to-10-10.md) · [MCP evidence](docs/paypal-mcp.md) · [Evidence and limitations](docs/project-status.md).
+**Status: integration candidate.** Android `0.11.5+2014` is built. Rooms, real Gemini basket/share proposals, Sandbox approval handoffs and real order reads through official PayPal MCP have been observed. Grouped mobile activity, assistant error recovery and console selection recovery are implemented. Google is currently returning capacity errors; complete conversational MCP acceptance, buyer capture/refund, the pilot and physical-device acceptance remain release gates. [October 27 candidate](docs/release-candidate-2026-10-27.md) · [MCP evidence](docs/paypal-mcp.md) · [Evidence and limitations](docs/project-status.md).
 
 ## Run the mobile preview
 

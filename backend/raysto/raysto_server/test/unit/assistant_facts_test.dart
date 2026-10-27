@@ -2,6 +2,18 @@ import 'package:raysto_server/src/platform/platform.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('cancelled checkout does not claim a fresh PayPal confirmation', () {
+    final text = AssistantModule.factualAnswer('payment_status', {
+      'source': 'raysto_ledger',
+      'status': 'cancelled',
+      'currency': 'USD',
+      'amountMinor': 100,
+    })!;
+    expect(text, contains('cancelled for USD 1.00'));
+    expect(text, contains('PayPal was not queried'));
+    expect(text, isNot(contains('PayPal reports')));
+    expect(text, isNot(contains('REST fallback')));
+  });
   test(
     'provider pending status remains informational and exposes REST fallback',
     () {

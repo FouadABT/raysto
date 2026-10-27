@@ -5,6 +5,14 @@ class AssistantModule {
   /// avoids another paid model round and prevents a late paraphrase changing money.
   static String? factualAnswer(String tool, Json value) {
     if (tool == 'payment_status') {
+      if (value['source'] == 'raysto_ledger' &&
+          value['status'] == 'cancelled') {
+        return 'Raysto records this checkout as cancelled for ${value['currency']} '
+            '${PayPalGateway.money(value['amountMinor'] as int)}. '
+            'It can no longer be completed through Raysto. '
+            'Source: Raysto checkout history; PayPal was not queried. '
+            'Open Bill to review the current balance.';
+      }
       final source = value['source'] == 'paypal_mcp'
           ? 'PayPal MCP'
           : 'PayPal REST fallback';
@@ -609,6 +617,42 @@ class AssistantModule {
     }
   }
 
+  static Future<CheckoutIntent> paymentIntent(
+    Work w, {
+    int? roomId,
+    int? checkoutId,
+  }) async {
+    final room = roomId == null
+        ? null
+        : await ConversationModule.room(w, roomId);
+    if (checkoutId == null) {
+      if (room == null) _fail('invalid_input', 'Choose a checkout to inspect.');
+      final latest = await CheckoutIntent.db.findFirstRow(
+        w.s,
+        where: (t) =>
+            t.restaurantId.equals(w.tenant) &
+            t.userId.equals(w.user) &
+            (room.visitId != null
+                ? t.visitId.equals(room.visitId)
+                : t.orderId.equals(room.orderId!)),
+        orderBy: (t) => t.id.desc(),
+        transaction: w.tx,
+      );
+      if (latest == null) {
+        _fail('not_found', 'You have no checkout in this conversation.');
+      }
+      checkoutId = latest.id!;
+    }
+    final intent = await MoneyModule._intent(w, checkoutId);
+    if (room != null &&
+        (room.visitId != null
+            ? intent.visitId != room.visitId
+            : intent.orderId != room.orderId)) {
+      _fail('not_found', 'Checkout is outside this conversation.');
+    }
+    return intent;
+  }
+
   static Future<Json> paymentRead(
     Session s,
     AssistantRun run,
@@ -620,7 +664,13 @@ class AssistantModule {
       w,
     ) async {
       await access(w, run, worker: true);
-      final i = await MoneyModule._intent(w, _int(args, 'checkoutId', min: 1));
+      final i = await paymentIntent(
+        w,
+        roomId: run.roomId,
+        checkoutId: args['checkoutId'] == null
+            ? null
+            : _int(args, 'checkoutId', min: 1),
+      );
       if (!ProviderClients.singleRestaurant(w.tenant) ||
           i.providerMode != 'singleMerchantSandbox' ||
           i.merchantId !=
@@ -652,6 +702,19 @@ class AssistantModule {
       return (i, refund);
     });
     final (intent, refund) = binding;
+    // A cancelled checkout has no remaining capture path in Raysto. Its provider
+    // record may later disappear; do not turn that into a failed status enquiry
+    // or infer a payment/refund from a provider 404.
+    if (intent.state == 'cancelled' && refund == null) {
+      return {
+        'source': 'raysto_ledger',
+        'checkoutId': intent.id,
+        'status': intent.state,
+        'amountMinor': intent.amountMinor,
+        'currency': intent.currency,
+        'checkedAt': _now().toIso8601String(),
+      };
+    }
     Json response;
     String source = 'paypal_mcp';
     String? fallback;
@@ -734,7 +797,7 @@ class AssistantModule {
           'propose_payment' =>
             'Propose only the requesting payer’s exact share. Does not reserve or charge.',
           'payment_status' =>
-            'Read an authorized checkout/refund through PayPal MCP. No financial mutations.',
+            'Read an authorized checkout/refund through PayPal MCP. Omit checkoutId to check the requesting diner’s latest checkout in this room. No financial mutations.',
           _ => 'Read manager-authorized table and payment attention rows.',
         },
         'parameters': toolSchema(name),
@@ -796,7 +859,6 @@ class AssistantModule {
       'type': 'OBJECT',
       'properties': properties,
       if (name == 'quote_basket') 'required': ['lines'],
-      if (name == 'payment_status') 'required': ['checkoutId'],
     };
   }
 
@@ -924,6 +986,10 @@ class AssistantModule {
               instruction,
               contents,
               declarations,
+              deadline: Duration(
+                milliseconds: max(1, 30000 - watch.elapsedMilliseconds),
+              ),
+              onStage: (stage) => phase = stage,
             ).timeout(
               Duration(milliseconds: max(1, 30000 - watch.elapsedMilliseconds)),
             );
@@ -1012,6 +1078,8 @@ class AssistantModule {
               'status': 'completed',
               'durationMs': step.elapsedMilliseconds,
               if (result['source'] != null) 'source': result['source'],
+              if (result['mcpTransport'] != null)
+                'transport': result['mcpTransport'],
               if (result['fallbackReason'] != null)
                 'fallbackReason': result['fallbackReason'],
             });
@@ -1099,7 +1167,8 @@ class AssistantModule {
       // Fixed categories only: never log prompts, tokens or provider bodies.
       s.log(
         'assistant_failure run=$id phase=$phase type=${error.runtimeType} '
-        'elapsedMs=${watch.elapsedMilliseconds}',
+        'elapsedMs=${watch.elapsedMilliseconds}'
+        '${error is GeminiFailure ? ' code=${error.code} http=${error.httpStatus ?? 0}' : ''}',
         level: LogLevel.warning,
       );
       await MoneyModule.locked(s, run.restaurantId, run.userId, (w) async {
@@ -1113,12 +1182,19 @@ class AssistantModule {
         current.version++;
         current.completedAt = _now();
         current.outputJson = jsonEncode({
-          'text': error is TimeoutException
+          'text': error is GeminiFailure
+              ? error.message
+              : error is TimeoutException
               ? 'This request took too long. No order or payment was made. You can try again.'
               : error is DomainError
               ? error.message
               : 'The assistant is unavailable. No action was taken.',
-          'code': error is TimeoutException
+          'retryable': error is GeminiFailure
+              ? error.retryable
+              : error is TimeoutException,
+          'code': error is GeminiFailure
+              ? error.code
+              : error is TimeoutException
               ? 'ai_timeout'
               : error is DomainError
               ? error.code

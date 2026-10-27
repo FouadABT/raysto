@@ -578,6 +578,7 @@ class ConversationModule {
     }
     int? visitId;
     int? orderId;
+    final activity = <String, dynamic>{};
     if (kind == 'menu.availability' && type == 'product') {
       final product = await MenuProduct.db.findById(w.s, id, transaction: w.tx);
       if (product?.available != false) return;
@@ -633,11 +634,18 @@ class ConversationModule {
     }
     if (type == 'order') orderId = id;
     if (type == 'serviceRequest') {
-      visitId = (await VisitRequest.db.findById(
+      final service = await VisitRequest.db.findById(
         w.s,
         id,
         transaction: w.tx,
-      ))?.visitId;
+      );
+      visitId = service?.visitId;
+      if (service != null) {
+        activity.addAll({
+          'serviceKind': service.kind,
+          'status': service.status,
+        });
+      }
     }
     if (type == 'checkout' || type == 'capture' || type == 'refund') {
       int? checkoutId = type == 'checkout' ? id : null;
@@ -667,6 +675,14 @@ class ConversationModule {
             );
       visitId = i?.visitId;
       orderId = i?.orderId;
+      // Shared activity contains no payer identity, provider IDs or approval URL.
+      if (i != null && type != 'refund') {
+        activity.addAll({
+          'amountMinor': i.amountMinor,
+          'currency': i.currency,
+          'status': i.state,
+        });
+      }
     }
     if (orderId != null) {
       visitId ??= (await OrderContext.db.findFirstRow(
@@ -700,6 +716,7 @@ class ConversationModule {
         'event': kind,
         'entityType': type,
         'entityId': id,
+        ...activity,
       }, notify: false);
       if (kind == 'service.sent' && type == 'serviceRequest') {
         final request = await VisitRequest.db.findById(

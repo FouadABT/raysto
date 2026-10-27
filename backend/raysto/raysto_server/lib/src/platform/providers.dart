@@ -541,66 +541,84 @@ class ProviderClients {
   static Uri storageUri(String name, {bool download = false}) => Uri.parse(
     'https://storage.googleapis.com/storage/v1/b/${Uri.encodeComponent(required('FIREBASE_STORAGE_BUCKET'))}/o/${Uri.encodeComponent(name)}${download ? '?alt=media' : ''}',
   );
-  static Future<Json> gemini(
-    String instruction,
-    List<Json> parts,
-  ) async {
-    final estimate = await googleJson(
-      'POST',
-      Uri.https(
-        'aiplatform.eu.rep.googleapis.com',
-        '/v1/projects/${required('GOOGLE_CLOUD_PROJECT')}/locations/eu/publishers/google/models/gemini-3.8-flash:countTokens',
-      ),
-      body: {
-        'systemInstruction': {
-          'parts': [
-            {'text': instruction},
-          ],
-        },
-        'contents': [
-          {'role': 'user', 'parts': parts},
-        ],
-      },
-    );
-    if (estimate['totalTokens'] is! int ||
-        (estimate['totalTokens'] as int) > 16384) {
-      _fail(
-        'ai_input_too_large',
-        'Reduce the document or request before extraction.',
+  // Token counting refreshes the cached Google credential. Generation uses a
+  // dedicated transport so a timeout closes only this model request, never
+  // Firebase identity checks or another assistant run. No automatic paid retry.
+  static Future<Json> geminiRequest(
+    Json body,
+    Json config, {
+    Duration deadline = const Duration(seconds: 30),
+    void Function(String stage)? onStage,
+  }) async {
+    final watch = Stopwatch()..start();
+    Duration remaining() => deadline - watch.elapsed;
+    final path =
+        '/v1/projects/${required('GOOGLE_CLOUD_PROJECT')}/locations/eu/publishers/google/models/gemini-3.8-flash';
+    onStage?.call('google_auth');
+    return google(null, (auth) async {
+      onStage?.call('count_tokens');
+      final estimate = await GeminiTransport.post(
+        auth,
+        Uri.https('aiplatform.eu.rep.googleapis.com', '$path:countTokens'),
+        body,
+        stage: 'count_tokens',
+        timeout: remaining(),
       );
-    }
-    return googleJson(
-      'POST',
-      Uri.https(
-        'aiplatform.eu.rep.googleapis.com',
-        '/v1/projects/${required('GOOGLE_CLOUD_PROJECT')}/locations/eu/publishers/google/models/gemini-3.8-flash:generateContent',
-      ),
-      body: {
-        'systemInstruction': {
-          'parts': [
-            {'text': instruction},
+      if (estimate['totalTokens'] is! int || estimate['totalTokens'] > 16384) {
+        throw const GeminiFailure('ai_input_too_large', 'count_tokens');
+      }
+      onStage?.call('generate');
+      final transport = http.Client();
+      try {
+        return await GeminiTransport.post(
+          transport,
+          Uri.https(
+            'aiplatform.eu.rep.googleapis.com',
+            '$path:streamGenerateContent',
+            {'alt': 'sse'},
+          ),
+          {...body, 'generationConfig': config},
+          stage: 'generate',
+          timeout: remaining(),
+          streaming: true,
+          headers: {
+            'Authorization': 'Bearer ${auth.credentials.accessToken.data}',
+          },
+        );
+      } finally {
+        transport.close();
+      }
+    });
+  }
+
+  static Future<Json> gemini(String instruction, List<Json> parts) =>
+      geminiRequest(
+        {
+          'systemInstruction': {
+            'parts': [
+              {'text': instruction},
+            ],
+          },
+          'contents': [
+            {'role': 'user', 'parts': parts},
           ],
         },
-        'contents': [
-          {'role': 'user', 'parts': parts},
-        ],
-        'generationConfig': {
+        {
           'maxOutputTokens': 8192,
           'responseMimeType': 'application/json',
           'thinkingConfig': {'thinkingLevel': 'LOW'},
         },
-      },
-    );
-  }
+        deadline: const Duration(seconds: 60),
+      );
 
   static Future<Json> geminiTurn(
     String instruction,
     List<Json> contents,
-    List<Json> declarations,
-  ) async {
-    final path =
-        '/v1/projects/${required('GOOGLE_CLOUD_PROJECT')}/locations/eu/publishers/google/models/gemini-3.8-flash';
-    final body = <String, dynamic>{
+    List<Json> declarations, {
+    Duration deadline = const Duration(seconds: 30),
+    void Function(String stage)? onStage,
+  }) => geminiRequest(
+    {
       'systemInstruction': {
         'parts': [
           {'text': instruction},
@@ -610,27 +628,14 @@ class ProviderClients {
       'tools': [
         {'functionDeclarations': declarations},
       ],
-    };
-    final estimate = await googleJson(
-      'POST',
-      Uri.https('aiplatform.eu.rep.googleapis.com', '$path:countTokens'),
-      body: body,
-    );
-    if (estimate['totalTokens'] is! int || estimate['totalTokens'] > 16384) {
-      _fail('ai_input_too_large', 'Narrow the conversation or menu search.');
-    }
-    return googleJson(
-      'POST',
-      Uri.https('aiplatform.eu.rep.googleapis.com', '$path:generateContent'),
-      body: {
-        ...body,
-        'generationConfig': {
-          'maxOutputTokens': 4096,
-          'thinkingConfig': {'thinkingLevel': 'LOW'},
-        },
-      },
-    );
-  }
+    },
+    {
+      'maxOutputTokens': 4096,
+      'thinkingConfig': {'thinkingLevel': 'LOW'},
+    },
+    deadline: deadline,
+    onStage: onStage,
+  );
 
   static Future<void> email(String to, String subject, String text) async {
     final region = required('AWS_SES_REGION');

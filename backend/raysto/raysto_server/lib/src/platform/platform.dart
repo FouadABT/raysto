@@ -21,6 +21,7 @@ import '../generated/protocol.dart';
 import '../services/firebase_services.dart';
 import '../services/paypal_gateway.dart';
 import '../services/paypal_mcp_client.dart';
+import '../services/gemini_transport.dart';
 
 part 'core.dart';
 part 'identity.dart';

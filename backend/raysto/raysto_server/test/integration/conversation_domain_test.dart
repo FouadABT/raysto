@@ -487,6 +487,98 @@ void main() {
       );
     });
     test(
+      'implicit payment lookup uses only this payer and conversation',
+      () async {
+        final s = builder.build();
+        final now = DateTime.now().toUtc();
+        Future<CheckoutIntent> add(String user, int? visitId) =>
+            CheckoutIntent.db.insertRow(
+              s,
+              CheckoutIntent(
+                restaurantId: restaurant.id!,
+                userId: user,
+                visitId: visitId,
+                requestKey: key(),
+                requestHash: 'fixture',
+                providerRequestId: key(),
+                merchantId: 'fixture',
+                state: 'created',
+                method: 'paypal',
+                currency: 'USD',
+                amountMinor: 500,
+                commissionMinor: 0,
+                commissionBps: 0,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        final mine = await add('diner-a', visit.id);
+        final someoneElse = await add('diner-b', visit.id);
+        final otherConversation = await add('diner-a', null);
+        final found = await work(
+          'diner-a',
+          (w) => AssistantModule.paymentIntent(w, roomId: room.id),
+        );
+        expect(found.id, mine.id);
+        for (final denied in [someoneElse.id, otherConversation.id]) {
+          await expectLater(
+            work(
+              'diner-a',
+              (w) => AssistantModule.paymentIntent(
+                w,
+                roomId: room.id,
+                checkoutId: denied,
+              ),
+            ),
+            throwsA(isA<DomainError>()),
+          );
+        }
+      },
+    );
+    test(
+      'saved workspace rejects foreign tables and unsupported tabs',
+      () async {
+        final s = owner.build();
+        Future<Json> save(Json state, int version) =>
+            WorkspaceModule.saveLayout(
+              s,
+              command({
+                'state': {'pages': [], ...state},
+              }, version: version),
+            );
+        await save({'selectedTableId': visit.tableId, 'tab': 'payments'}, 0);
+        final snapshot = await work(
+          'room-owner',
+          (w) => WorkspaceModule.snapshot(w, {}),
+        );
+        expect(snapshot['layout']['selectedTableId'], visit.tableId);
+        expect(snapshot['layout']['tab'], 'payments');
+        final foreign = await IdentityModule.createRestaurant(
+          s,
+          PlatformCommand(
+            requestKey: key(),
+            dataJson: '{"name":"Other fixture","currency":"USD"}',
+          ),
+        );
+        final original = (await DiningTable.db.findById(s, visit.tableId))!;
+        final otherTable = await DiningTable.db.insertRow(
+          s,
+          original.copyWith(
+            id: null,
+            restaurantId: foreign['id'],
+            qrKey: key(),
+          ),
+        );
+        await expectLater(
+          save({'selectedTableId': otherTable.id, 'tab': 'orders'}, 1),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'not_found'),
+          ),
+        );
+        await expectLater(save({'tab': 'sql'}, 1), throwsA(isA<DomainError>()));
+      },
+    );
+    test(
       'unknown AI cost is retained and budget exhaustion rejects new work',
       () async {
         final s = builder.build();

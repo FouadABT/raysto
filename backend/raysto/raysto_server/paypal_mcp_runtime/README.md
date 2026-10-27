@@ -36,6 +36,16 @@ characters. Untrusted arrays, expressions, schemas and free-form tool arguments
 never reach them. Keep this runtime restricted to the isolated Sandbox reader;
 reassess and update the upstream dependencies before widening its scope.
 
+A read-only audit refresh on **27 October 2026** reported **13 affected package
+entries: 12 high and one moderate**, with no critical entry. Advisory counts can
+change without changing the lockfile. The loaded mathjs 14.9.1 and Zod 3.25.76
+now have fixes outside the toolkit's declared compatible major ranges
+(mathjs 15.2.0 and Zod 4.6.6). Forcing those incompatible majors without validating
+the official toolkit is not treated as a repair. The selected order/refund
+reader does not expose expression evaluation or user-supplied schemas. The
+audit nevertheless remains an open dependency risk; live-money activation or
+broader tool exposure requires an upstream-compatible update and reassessment.
+
 Focused tests cover transport negotiation, schema rejection, write-tool
 denial, isolated process environment, response IDs, malformed/oversized output,
 unexpected exit and the 15-second deadline. Those fixture tests are not payment

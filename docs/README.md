@@ -8,6 +8,7 @@ Start here rather than reading historical implementation notes in filename order
 | Install and run the source | [Getting started](getting-started.md) |
 | Separate verified behavior, source and pending work | [Project status](project-status.md) |
 | Inspect the conversation release and remaining gates | [Road to 10/10](road-to-10-10.md) |
+| Install and evaluate the current candidate | [October 27 handoff](release-candidate-2026-10-27.md) · [Device/pilot checklist](device-and-pilot-checklist.md) · [AI cases](ai-evaluation.md) |
 | Prepare real Sandbox approval | [Two buyer accounts](paypal-sandbox-buyers.md) |
 | Understand the proposed conversation experience | [Conversation roadmap](conversation-roadmap.md) |
 | Inspect contracts and system maps | [Backend v2 index](backend-v2/README.md) |

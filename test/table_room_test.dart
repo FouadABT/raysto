@@ -79,6 +79,38 @@ class Runtime implements LiveRuntime {
 }
 
 void main() {
+  test(
+    'activity grouping preserves conversation, unread boundary and history',
+    () {
+      Map<String, dynamic> event(int sequence) => {
+        'sequence': sequence,
+        'kind': 'activity',
+        'body': {
+          'entityType': 'serviceRequest',
+          'entityId': 7,
+          'event': 'service.acknowledged',
+        },
+      };
+      final messages = [
+        event(1),
+        event(2),
+        {
+          'sequence': 3,
+          'kind': 'message',
+          'body': {'text': 'Thank you'},
+        },
+        event(4),
+        event(5),
+        event(6),
+      ];
+      final grouped = groupRoomActivity(messages, unreadSequence: 5);
+      expect(grouped.length, 5);
+      expect((grouped.first['activityHistory'] as List).length, 2);
+      expect(grouped[1]['kind'], 'message');
+      expect(grouped[3]['sequence'], 5);
+      expect(messages.length, 6);
+    },
+  );
   testWidgets(
     'room remains usable on a narrow phone with large text and keyboard',
     (tester) async {

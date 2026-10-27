@@ -1,6 +1,6 @@
 # Road to 10/10 — integration candidate
 
-**26 October 2026.** The target is strong evidence across implementation, design, impact, innovation and presentation, not a predicted judging score. [Current status](project-status.md) is the release authority.
+**Updated 27 October 2026.** The target is strong evidence across implementation, design, impact, innovation and presentation, not a predicted judging score. [Current status](project-status.md) is the release authority. The [October 27 candidate report](release-candidate-2026-10-27.md) records the new APK, grouped mobile cards, workspace recovery, fresh MCP read, Google capacity failures and participation checklist. Earlier observations below are preserved as historical evidence.
 
 ## The connected journey
 
@@ -73,10 +73,10 @@ Build backend from `backend/raysto` with its Dockerfile. Build `web/Dockerfile` 
 flutter build apk --release --target-platform android-arm64 --dart-define=RAYSTO_API_URL=https://api.rays.to/
 ```
 
-Local artifact: `raysto-0.11.0-2013-android-arm64.apk` (development signing, direct testing only). SHA-256:
+Current local artifact: `raysto-0.11.5-2014-android-arm64.apk` (development signing, direct testing only). SHA-256:
 
 ```text
-e087965a6babfdda5d5e3bbf634cbf785a3dc1b6d5bc1425936f543bd2c2f70f
+d507b703c114830b5162b9820f586d5d2315111a00e159281d0d73ddea2e8860
 ```
 
 1. Back up Raysto database/runtime and capture previous links plus Awhar service/configuration fingerprints.
@@ -92,10 +92,9 @@ Prior releases and local backups are retained. Off-host restore rehearsal, alert
 ## Remaining acceptance
 
 - Two Personal Sandbox buyers approve/capture their shares; verify webhook, matching balances, partial refund and interrupted-return recovery. [Buyer instructions](paypal-sandbox-buyers.md).
-- Conversational payment-status acceptance after Gemini timeouts. A real direct MCP order read passed on backend 0.11.4; hosted MCP access remains blocked and refund-detail acceptance awaits a refund.
+- Conversational payment-status acceptance after Gemini timeouts/capacity errors. Direct MCP reads passed for the earlier $13.50 share and a fresh $1 probe; hosted MCP access remains blocked and refund-detail acceptance awaits a refund.
 - Fixed AI evaluation: budget ordering, conflicting preferences, unknown allergens, stale availability, French/Arabic input, privacy injection, payment status, cancellation and exhausted allowance. Keep failed attempts in the record.
-- Physical-device Google sign-in, guest admission, coordinated console/mobile activity and notification. Browser manager/filter/layout recovery passed selected checks; selected table/tab restoration and richer operational cards still need polish.
-- Richer grouped service/payment cards. The persistent Menu/Order/Bill bar is implemented and passed the large-text/keyboard layout check.
+- Physical-device Google sign-in, guest admission, coordinated console/mobile activity and notification. Browser filter/table/tab/room recovery passed. Grouped service/payment cards are implemented with focused layout/grouping checks; physical-device review remains pending.
 - Three short restaurant/diner pilots: record party size, experience, manual/assisted task order, decision time, corrections, staff clarifications, settlement success and audience/approval comprehension. Obtain permission before recording/quoting; report the small sample and learning effects. No pilot findings exist yet.
 - AG trial extension, clean-checkout reproduction and final reviewer release. iOS, voice, live marketplace, commercial subscriptions and public web ordering remain separate milestones.
 
