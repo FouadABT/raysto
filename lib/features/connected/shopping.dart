@@ -327,9 +327,10 @@ class _StorefrontPageState extends State<StorefrontPage> {
           ),
         ),
         tile(
-          'Ask the menu assistant',
+          'Ask Raysto what to order',
           Icons.auto_awesome,
-          () => push(c, aiHome(widget.live, customer: true)),
+          () => push(c, AskRaystoPage(live: widget.live)),
+          subtitle: 'Suggestions you approve, then pay with PayPal.',
         ),
         if (records(d['reviews']).isNotEmpty)
           ExpansionTile(

@@ -101,7 +101,32 @@ class PlatformApi {
 
   /// A separate transport is owned by each subscription and closed on cancel.
   /// Credentials are refreshed on reconnect, never placed in the URL.
-  Stream<RecordData> watchRoom(int restaurantId, int roomId, int after) async* {
+  Stream<RecordData> watchRoom(int restaurantId, int roomId, int after) =>
+      _watch(
+        '/api/v2/rooms/$roomId/events',
+        restaurantId,
+        after,
+        'room_access_ended',
+        'Live conversation is unavailable.',
+      );
+
+  /// Restaurant-wide change notices for the staff boards: orders, kitchen
+  /// tickets and payments. Each notice only says that something changed.
+  Stream<RecordData> watchRestaurant(int restaurantId, int after) => _watch(
+    '/api/v2/events',
+    restaurantId,
+    after,
+    'stream_access_ended',
+    'Live updates are unavailable.',
+  );
+
+  Stream<RecordData> _watch(
+    String path,
+    int restaurantId,
+    int after,
+    String accessCode,
+    String unavailable,
+  ) async* {
     final owner = identity();
     final client = http.Client();
     var cursor = after;
@@ -114,7 +139,7 @@ class PlatformApi {
               http.Request(
                   'GET',
                   origin
-                      .resolve('/api/v2/rooms/$roomId/events')
+                      .resolve(path)
                       .replace(
                         queryParameters: {
                           'restaurantId': '$restaurantId',
@@ -144,9 +169,9 @@ class PlatformApi {
               response.statusCode == 401 ||
                       response.statusCode == 403 ||
                       response.statusCode == 404
-                  ? 'room_access_ended'
+                  ? accessCode
                   : 'stream_unavailable',
-              'Live conversation is unavailable.',
+              unavailable,
             );
           }
           final data = <String>[];
@@ -174,10 +199,7 @@ class PlatformApi {
               data.clear();
               bytes = 0;
               if (event['kind'] == 'access.error') {
-                throw const PlatformFailure(
-                  'room_access_ended',
-                  'Your conversation access ended.',
-                );
+                throw PlatformFailure(accessCode, 'Your access ended.');
               }
               if (event['cursor'] is int) cursor = event['cursor'] as int;
               failures = 0;
@@ -185,7 +207,7 @@ class PlatformApi {
             }
           }
         } on PlatformFailure catch (e) {
-          if ({'room_access_ended', 'session_changed'}.contains(e.code)) {
+          if ({accessCode, 'session_changed'}.contains(e.code)) {
             rethrow;
           }
           if (++failures >= 3) rethrow;

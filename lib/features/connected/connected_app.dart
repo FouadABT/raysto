@@ -2,6 +2,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,16 +18,24 @@ import '../../backend/live_runtime.dart';
 import '../../app/navigation.dart';
 import '../../backend/platform_api.dart';
 import '../../design_system/design_system.dart';
+import '../../l10n/app_localizations.dart';
 import '../scanning/qr_camera_screen.dart';
 import '../payments/sandbox_test_screen.dart';
 import 'forms.dart';
 import 'schemas.dart';
 import 'security.dart';
+import 'assistant_message_body.dart';
 part 'shopping.dart';
 part 'operations.dart';
 part 'activity.dart';
 part 'administration.dart';
 part 'room.dart';
+part 'staff_models.dart';
+part 'staff_shell.dart';
+part 'staff_orders.dart';
+part 'staff_kitchen.dart';
+part 'staff_counter.dart';
+part 'assistant_flows.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};
@@ -40,24 +49,39 @@ class LiveContext {
     this.restaurantId,
     this.role = 'customer',
     this.name = 'Raysto',
+    this.capabilities = const [],
   });
   final LiveRuntime runtime;
   final int? restaurantId;
   final String role, name;
+  final List<String> capabilities;
   PlatformApi get api => runtime.platform;
   bool get manager => {'owner', 'manager'}.contains(role);
   bool get operator => manager || role == 'waiter';
+  /// Managers hold every capability; other staff only what they were granted.
+  bool can(String capability) => manager || capabilities.contains(capability);
   Json params([Json extra = const {}]) => {
     if (restaurantId != null) 'restaurantId': restaurantId,
     ...extra,
   };
-  LiveContext tenant(int id, {String role = 'customer', String? name}) =>
-      LiveContext(
-        runtime,
-        restaurantId: id,
-        role: role,
-        name: name ?? this.name,
-      );
+  LiveContext tenant(
+    int id, {
+    String role = 'customer',
+    String? name,
+    List<String> capabilities = const [],
+  }) => LiveContext(
+    runtime,
+    restaurantId: id,
+    role: role,
+    name: name ?? this.name,
+    capabilities: capabilities,
+  );
+  LiveContext forMembership(Json m) => tenant(
+    m['restaurantId'] as int,
+    role: '${m['role']}',
+    name: m['name'] as String?,
+    capabilities: List<String>.from(m['capabilities'] as List? ?? const []),
+  );
 
   Future<Json?> action(
     BuildContext context,
@@ -123,9 +147,35 @@ class _ConnectedAppState extends State<ConnectedApp> {
     openedNotification = FirebaseMessaging.onMessageOpenedApp.listen(
       openNotification,
     );
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null && mounted) openNotification(message);
-    }).catchError((Object _) { /* The in-app inbox remains available. */ });
+    // A notification that opened the app wins; otherwise staff land on their
+    // boards. The customer tabs stay underneath either way.
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((message) {
+          if (!mounted) return;
+          if (message != null) {
+            openNotification(message);
+          } else {
+            openStaffShell();
+          }
+        })
+        .catchError((Object _) {
+          if (mounted) openStaffShell();
+        });
+  }
+
+  /// Staff land on their restaurant's boards; the customer tabs stay beneath.
+  Future<void> openStaffShell() async {
+    try {
+      final me = await live.api.query('me');
+      final staff = records(me['memberships']);
+      if (staff.isEmpty || !mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) push(context, StaffShell(live: live, memberships: staff));
+      });
+    } catch (_) {
+      // The Restaurants tab still opens the boards later.
+    }
   }
 
   void openNotification(RemoteMessage message) {
@@ -198,12 +248,15 @@ class DataPage extends StatefulWidget {
     required this.load,
     required this.content,
     this.poll = false,
+    this.trigger,
   });
   final String title;
   final Future<Json> Function() load;
   final List<Widget> Function(BuildContext, Json, Future<void> Function())
   content;
   final bool poll;
+  /// Refreshes when notified, for boards fed by live change notices.
+  final Listenable? trigger;
   @override
   State<DataPage> createState() => _DataPageState();
 }
@@ -218,6 +271,7 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    widget.trigger?.addListener(_triggered);
     refresh();
     if (widget.poll) {
       timer = Timer.periodic(const Duration(seconds: 20), (_) {
@@ -226,14 +280,25 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
     }
   }
 
+  void _triggered() {
+    if (foreground && ModalRoute.of(context)?.isCurrent == true) refresh();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     foreground = state == AppLifecycleState.resumed;
     if (foreground && ModalRoute.of(context)?.isCurrent == true) refresh();
   }
 
+  bool again = false;
+
   Future<void> refresh() async {
-    if (busy || !mounted) return;
+    if (!mounted) return;
+    // A notice that arrives mid-load runs once more afterwards, never lost.
+    if (busy) {
+      again = true;
+      return;
+    }
     setState(() {
       busy = true;
       error = null;
@@ -244,20 +309,25 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
     } catch (e) {
       if (mounted) {
         setState(() {
+          // The last good data stays on screen beneath the notice.
           error = e is PlatformFailure
               ? e.message
               : 'Could not refresh. Please try again.';
-          data = null;
         });
       }
     } finally {
       if (mounted) setState(() => busy = false);
+      if (again && mounted) {
+        again = false;
+        unawaited(refresh());
+      }
     }
   }
 
   @override
   void dispose() {
     timer?.cancel();
+    widget.trigger?.removeListener(_triggered);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

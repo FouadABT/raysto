@@ -18,12 +18,10 @@ Widget teamsHome(LiveContext live) => DataPage(
         Icons.storefront,
         () => push(
           c,
-          restaurantHome(
-            live.tenant(
-              membership['restaurantId'],
-              role: membership['role'],
-              name: membership['name'],
-            ),
+          StaffShell(
+            live: live,
+            memberships: records(d['memberships']),
+            initial: membership,
           ),
         ),
         subtitle: friendly('${membership['role']}'),
@@ -65,11 +63,7 @@ Widget restaurantHome(LiveContext live) => DataPage(
     if (current == null) {
       return [empty('Your access to this restaurant has ended')];
     }
-    final authorized = live.tenant(
-      live.restaurantId!,
-      role: current['role'],
-      name: current['name'],
-    );
+    final authorized = live.forMembership(current);
     return [
       RaystoStoryHeader(
         eyebrow: 'Your service · ${friendly(authorized.role)}',
@@ -81,6 +75,14 @@ Widget restaurantHome(LiveContext live) => DataPage(
         compact: true,
         dark: true,
       ),
+      ...staffTiles(c, authorized),
+    ];
+  },
+);
+
+/// Every page a member of staff may open, by role. The staff shell's More
+/// tab and the restaurant home share this list.
+List<Widget> staffTiles(BuildContext c, LiveContext authorized) => [
       if (authorized.operator) ...[
         tile(
           'Orders',
@@ -186,11 +188,9 @@ Widget restaurantHome(LiveContext live) => DataPage(
       tile(
         'Verify identity for sensitive changes',
         Icons.security,
-        () => push(c, SecurityPage(runtime: live.runtime)),
+        () => push(c, SecurityPage(runtime: authorized.runtime)),
       ),
-    ];
-  },
-);
+];
 
 Widget configurePage(LiveContext live) => DataPage(
   title: 'Restaurant setup',

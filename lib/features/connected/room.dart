@@ -699,7 +699,10 @@ class _TableRoomPageState extends State<TableRoomPage>
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ),
-            SelectableText('${body['text'] ?? ''}'),
+            if (m['kind'] == 'assistant.answer')
+              AssistantMessageBody(text: '${body['text'] ?? ''}')
+            else
+              SelectableText('${body['text'] ?? ''}'),
             if (body['retryable'] == true && retryRequest != null && !closed)
               TextButton.icon(
                 icon: const Icon(Icons.edit_outlined),
@@ -1097,6 +1100,22 @@ class _TableRoomPageState extends State<TableRoomPage>
                                             setState(() => activeRun = null);
                                           }
                                         },
+                                      ),
+                                    if (room!['visitId'] != null && !closed)
+                                      ActionChip(
+                                        avatar: const Icon(
+                                          Icons.call_split,
+                                          size: 18,
+                                        ),
+                                        label: const Text('Split equally'),
+                                        onPressed: activeRun != null
+                                            ? null
+                                            : () => splitEqually(
+                                                context,
+                                                live,
+                                                id!,
+                                                room!,
+                                              ),
                                       ),
                                     if (room!['hostUserId'] ==
                                             room!['currentUserId'] ||

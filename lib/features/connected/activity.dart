@@ -585,7 +585,9 @@ Widget checkoutPage(LiveContext live, int id) => DataPage(
       ),
     if ({'created', 'approved', 'capturing', 'uncertain'}.contains(d['state']))
       AppButton(
-        label: 'I approved in PayPal · check payment',
+        label: {'capturing', 'uncertain'}.contains(d['state'])
+            ? 'Check again with PayPal'
+            : 'I approved in PayPal · confirm payment',
         onPressed: () async {
           await live.action(
             c,
@@ -609,6 +611,19 @@ Widget checkoutPage(LiveContext live, int id) => DataPage(
         },
         child: const Text('Cancel checkout'),
       ),
+    if (live.manager && {'capturing', 'uncertain'}.contains(d['state']))
+      OutlinedButton(
+        onPressed: () async {
+          await live.action(
+            c,
+            'Release this checkout',
+            'payment.release',
+            id: id,
+          );
+          await refresh();
+        },
+        child: const Text('Release checkout (manager)'),
+      ),
     if (live.manager && d['captureId'] != null)
       OutlinedButton(
         onPressed: () async {
@@ -617,7 +632,7 @@ Widget checkoutPage(LiveContext live, int id) => DataPage(
             'Request refund',
             'payment.refund',
             typed: true,
-            fixed: {'captureId': d['captureId']},
+            fixed: {'captureId': d['captureId'], 'orderId': ?d['orderId']},
             fields: const [
               InputSpec('amountMinor', 'Amount to refund', kind: 'money'),
               InputSpec('reason', 'Reason for refund'),
