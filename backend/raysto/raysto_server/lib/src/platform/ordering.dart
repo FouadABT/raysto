@@ -116,6 +116,8 @@ class OrderingModule {
         'slot': r.slot?.toUtc().toIso8601String(),
         'couponCode': r.couponCode,
         'tipMinor': r.tipMinor,
+        if (r.onBehalf == true) 'onBehalf': true,
+        if (r.customerLabel != null) 'customerLabel': r.customerLabel,
       }),
     ),
     'order.quote',
@@ -142,8 +144,12 @@ class OrderingModule {
         ...snapshot,
       };
     },
-    active: true,
+    active: r.onBehalf != true,
   );
+
+  /// The priced snapshot for an order input, exactly as a quote stores it.
+  /// Assistant proposals and their approval compare these snapshots.
+  static Future<Json> price(Work w, Json input) => _price(w, input);
 
   static Future<Json> _price(Work w, Json input) async {
     final mode = _str(
@@ -171,8 +177,24 @@ class OrderingModule {
         );
       }
     }
-    if (!(w.settings['modes'] as List).contains(mode) ||
-        w.settings['paused'] == true) {
+    // A counter sale is a takeaway rung up by staff for a walk-in customer.
+    final counter = input['onBehalf'] == true;
+    String? customerLabel;
+    if (counter) {
+      await _capable(w, 'counter');
+      await _accepting(w, counter: true);
+      if (mode != 'pickup') {
+        _fail('invalid_input', 'Counter sales are takeaway orders.');
+      }
+      if (input['customerLabel'] != null) {
+        customerLabel = _str(input, 'customerLabel', max: 80).trim();
+      }
+    } else if (input['customerLabel'] != null) {
+      _fail('invalid_input', 'Only counter sales carry a customer label.');
+    }
+    if (!counter &&
+        (!(w.settings['modes'] as List).contains(mode) ||
+            w.settings['paused'] == true)) {
       _fail('unavailable', 'Service is currently unavailable.');
     }
     if (w.actor.isGuest && w.settings['guestOrdering'] != true) {
@@ -183,7 +205,7 @@ class OrderingModule {
         requestedTime.isAfter(_now().add(const Duration(days: 7)))) {
       _fail('slot_unavailable', 'Choose a current service slot.');
     }
-    if (!CatalogueModule.openAt(w.settings, requestedTime)) {
+    if (!counter && !CatalogueModule.openAt(w.settings, requestedTime)) {
       _fail('closed', 'Restaurant is closed for this time.');
     }
     if (input['slot'] != null &&
@@ -415,6 +437,8 @@ class OrderingModule {
       'paymentTiming': mode == 'dineIn'
           ? w.settings['paymentTiming']
           : 'before',
+      'origin': counter ? 'counter' : 'online',
+      'customerLabel': ?(customerLabel?.isEmpty == true ? null : customerLabel),
       'originalInput': input,
     };
   }
@@ -454,6 +478,7 @@ class OrderingModule {
         _fail('quote_expired', 'Refresh the quote before ordering.');
       }
       final snapshot = _json(q.snapshotJson);
+      await _accepting(w, counter: snapshot['origin'] == 'counter');
       final refreshed = await _price(w, _object(snapshot['originalInput']));
       if (jsonEncode(refreshed) != jsonEncode(snapshot)) {
         _fail(
@@ -488,11 +513,32 @@ class OrderingModule {
         }
       }
       final items = (snapshot['lines'] as List).cast<Json>();
+      final counter = snapshot['origin'] == 'counter';
+      // Daily ticket numbers run under the restaurant lock _mutate holds.
+      final day = serviceDay(w.settings, _now());
+      final policy = w.policy!;
+      if (policy.orderSeqDay != day) {
+        // Resume after the day's highest number, so a timezone change can
+        // never hand out a number that day already used.
+        final last = await OrderContext.db.findFirstRow(
+          s,
+          where: (t) =>
+              t.restaurantId.equals(w.tenant) & t.serviceDay.equals(day),
+          orderBy: (t) => t.orderNumber.desc(),
+          transaction: w.tx,
+        );
+        policy.orderSeqDay = day;
+        policy.orderSeq = last?.orderNumber ?? 0;
+      }
+      policy.orderSeq++;
+      await RestaurantPolicy.db.updateRow(s, policy, transaction: w.tx);
       final order = await PurchaseOrder.db.insertRow(
         s,
         PurchaseOrder(
           restaurantId: w.tenant,
-          customerId: w.user,
+          // A walk-in has no account; the cashier is kept as placedBy instead,
+          // so the sale never lands in the cashier's own order history.
+          customerId: counter ? walkIn(w.tenant) : w.user,
           requestKey: r.requestKey,
           requestHash: _hash(q.snapshotJson),
           fulfillment: snapshot['fulfillment'],
@@ -536,6 +582,14 @@ class OrderingModule {
           stockReleased: false,
           slotKey: slotKey,
           couponCode: snapshot['couponCode'],
+          origin: snapshot['origin'] ?? 'online',
+          customerLabel: snapshot['customerLabel'],
+          placedBy: counter ? w.user : null,
+          serviceDay: day,
+          orderNumber: policy.orderSeq,
+          pickupCode: snapshot['fulfillment'] == 'pickup'
+              ? await _pickupCode(w, day)
+              : null,
           createdAt: _now(),
         ),
         transaction: w.tx,
@@ -615,9 +669,12 @@ class OrderingModule {
       }
       await PriceQuote.db.updateRow(s, q, transaction: w.tx);
       await w.audit('order.submitted', 'order', order.id);
-      await w.notify(w.user, 'order.created', {
-        'orderId': order.id,
-      }, 'order:${order.id}:created');
+      if (!counter) {
+        await w.notify(w.user, 'order.created', {
+          'orderId': order.id,
+        }, 'order:${order.id}:created');
+      }
+      if (order.status == 'submitted') await alertTeam(w, order);
       if (order.status == 'awaitingPayment') {
         await w.job('order.expire', 'order:${order.id}:expire', {
           'orderId': order.id,
@@ -627,10 +684,75 @@ class OrderingModule {
         'orderId': order.id,
         'status': order.status,
         'paymentStatus': order.paymentStatus,
+        'number': policy.orderSeq,
       };
     },
-    active: true,
   );
+
+  /// Tells the kitchen and the counter that an order is ready to work on.
+  static Future<void> alertTeam(Work w, PurchaseOrder o) async {
+    final team = await Membership.db.find(
+      w.s,
+      where: (t) => t.restaurantId.equals(w.tenant) & t.active.equals(true),
+      limit: 200,
+      transaction: w.tx,
+    );
+    for (final m in team) {
+      if (m.userId == w.user) continue;
+      if (m.role == 'kitchen' ||
+          (m.capabilities ?? const []).contains('counter')) {
+        await w.notify(m.userId, 'order.incoming', {
+          'orderId': o.id,
+        }, 'order:${o.id}:incoming');
+      }
+    }
+  }
+
+  /// Whether a pay-first order may move on. A refund is a manager decision
+  /// taken after payment, so it never strands an order already in progress;
+  /// a fully refunded order is not accepted into the kitchen anew.
+  static bool paymentCleared(
+    PurchaseOrder o,
+    OrderContext ctx, {
+    bool accepting = false,
+  }) =>
+      ctx.paymentTiming != 'before' ||
+      o.paymentStatus == 'paid' ||
+      o.paymentStatus == 'partiallyRefunded' ||
+      !accepting && o.paymentStatus == 'refunded';
+
+  /// A 4-digit code no other order of the day carries, so the counter can
+  /// never hand over the wrong bag.
+  static Future<String> _pickupCode(Work w, String day) async {
+    final random = Random.secure();
+    for (var attempt = 0; attempt < 50; attempt++) {
+      final code = random.nextInt(10000).toString().padLeft(4, '0');
+      final taken = await OrderContext.db.findFirstRow(
+        w.s,
+        where: (t) =>
+            t.restaurantId.equals(w.tenant) &
+            t.serviceDay.equals(day) &
+            t.pickupCode.equals(code),
+        transaction: w.tx,
+      );
+      if (taken == null) return code;
+    }
+    _fail('busy', 'Too many pickups today. Try again.');
+  }
+
+  /// The customer id of a counter sale: never a real account id.
+  static String walkIn(int tenant) => 'walk-in:$tenant';
+  static bool isWalkIn(String customerId) => customerId.startsWith('walk-in:');
+
+  static String serviceDay(Json settings, DateTime at) {
+    final local = tz.TZDateTime.from(
+      at,
+      CatalogueModule.zone(settings['timezone'] as String),
+    );
+    return '${local.year.toString().padLeft(4, '0')}-'
+        '${local.month.toString().padLeft(2, '0')}-'
+        '${local.day.toString().padLeft(2, '0')}';
+  }
 
   static Future<(PurchaseOrder, OrderContext)> _order(Work w, int id) async {
     final order = await PurchaseOrder.db.findById(w.s, id, transaction: w.tx);
@@ -650,16 +772,18 @@ class OrderingModule {
     o.updatedAt = _now();
     await PurchaseOrder.db.updateRow(w.s, o, transaction: w.tx);
     await w.audit(event, 'order', o.id);
-    await w.notify(o.customerId, event, {
-      'orderId': o.id,
-    }, 'order:${o.id}:${o.version}');
+    if (!isWalkIn(o.customerId)) {
+      await w.notify(o.customerId, event, {
+        'orderId': o.id,
+      }, 'order:${o.id}:${o.version}');
+    }
   }
 
   static Future<Json> transition(
     Session s,
     PlatformCommand c,
   ) => _mutate(s, c, 'order.transition', (w, d) async {
-    _keys(d, {'status', 'reason'});
+    _keys(d, {'status', 'reason', 'code'});
     final (o, ctx) = await _order(w, _id(c));
     _version(o.version, c.expectedVersion);
     final next = _str(
@@ -677,8 +801,13 @@ class OrderingModule {
     );
     final role = await w.role({'owner', 'manager', 'waiter', 'kitchen'});
     final kitchen = {'preparing', 'ready'}.contains(next);
+    // A kitchen trusted to take orders accepts them straight onto its board.
+    final accepting =
+        {'accepted', 'rejected'}.contains(next) &&
+        role.role == 'kitchen' &&
+        _holds(role, 'acceptOrders');
     if (kitchen && !{'owner', 'manager', 'kitchen'}.contains(role.role) ||
-        !kitchen && !_operators.contains(role.role)) {
+        !kitchen && !accepting && !_operators.contains(role.role)) {
       _fail('forbidden', 'Your role cannot perform this action.');
     }
     if (role.role == 'waiter') await _orderAccess(w, o, manage: true);
@@ -705,8 +834,17 @@ class OrderingModule {
     if (!valid.contains(next)) {
       _fail('invalid_transition', 'Invalid order transition.');
     }
-    if (ctx.paymentTiming == 'before' && o.paymentStatus != 'paid') {
+    if (!paymentCleared(o, ctx, accepting: next == 'accepted')) {
       _fail('payment_required', 'Payment must be verified before preparation.');
+    }
+    // An online pickup is handed over against the code on the customer's
+    // phone; a manager may hand over without it.
+    if (next == 'collected' &&
+        ctx.origin != 'counter' &&
+        ctx.pickupCode != null &&
+        (d['code'] != null || !_managers.contains(role.role)) &&
+        d['code'] != ctx.pickupCode) {
+      _fail('pickup_code_mismatch', 'The pickup code does not match.');
     }
     if (next == 'ready') {
       final items = await KitchenProgress.db.find(
@@ -795,7 +933,9 @@ class OrderingModule {
       _mutate(s, c, 'order.cancel', (w, d) async {
         _keys(d, {'reason', 'approve'});
         final (o, ctx) = await _order(w, _id(c));
-        if (o.customerId != w.user) await _orderAccess(w, o, manage: true);
+        if (o.customerId != w.user) {
+          await _orderAccess(w, o, manage: true, walkInOnly: true);
+        }
         _version(o.version, c.expectedVersion);
         final reason = _str(d, 'reason', max: 500);
         if ({
@@ -832,7 +972,7 @@ class OrderingModule {
       _keys(d, {'lineKey', 'completedQuantity'});
       final (o, ctx) = await _order(w, _id(c));
       if (!{'accepted', 'preparing'}.contains(o.status) ||
-          ctx.paymentTiming == 'before' && o.paymentStatus != 'paid') {
+          !paymentCleared(o, ctx)) {
         _fail('invalid_transition', 'Ticket is not actionable.');
       }
       final item = await KitchenProgress.db.findFirstRow(
@@ -867,6 +1007,7 @@ class OrderingModule {
         if (!{'unassigned', 'assigned', 'issue'}.contains(task.status)) {
           _fail('invalid_transition', 'Cannot reassign after collection.');
         }
+        await _capable(w, 'dispatch');
         final courier = _str(d, 'courierId', max: 100);
         await _role(s, courier, w.tenant, {'courier'}, tx: w.tx);
         task.courierId = courier;
@@ -879,7 +1020,7 @@ class OrderingModule {
         }, 'delivery:${task.id}:${task.version}');
         await w.audit('delivery.assigned', 'delivery', task.id);
         return {'version': task.version};
-      }, roles: _managers);
+      }, roles: _staff);
   static Future<Json> delivery(Session s, PlatformCommand c) => _mutate(
     s,
     c,
@@ -943,7 +1084,7 @@ class OrderingModule {
           _fail('invalid_transition', 'Invalid delivery transition.');
         }
         if (next == 'collected' &&
-            (o.status != 'ready' || o.paymentStatus != 'paid')) {
+            (o.status != 'ready' || !paymentCleared(o, ctx))) {
           _fail('not_ready', 'Order must be ready and paid before handoff.');
         }
         task.status = next;

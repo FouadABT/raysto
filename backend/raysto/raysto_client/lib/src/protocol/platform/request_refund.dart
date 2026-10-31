@@ -20,6 +20,7 @@ abstract class RequestRefund
     required this.captureId,
     required this.amountMinor,
     required this.reason,
+    this.orderId,
   });
 
   factory RequestRefund({
@@ -28,6 +29,7 @@ abstract class RequestRefund
     required int captureId,
     required int amountMinor,
     required String reason,
+    int? orderId,
   }) = _RequestRefundImpl;
 
   factory RequestRefund.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -37,6 +39,7 @@ abstract class RequestRefund
       captureId: jsonSerialization['captureId'] as int,
       amountMinor: jsonSerialization['amountMinor'] as int,
       reason: jsonSerialization['reason'] as String,
+      orderId: jsonSerialization['orderId'] as int?,
     );
   }
 
@@ -50,6 +53,8 @@ abstract class RequestRefund
 
   String reason;
 
+  int? orderId;
+
   /// Returns a shallow copy of this [RequestRefund]
   /// with some or all fields replaced by the given arguments.
   @_isc.useResult
@@ -59,6 +64,7 @@ abstract class RequestRefund
     int? captureId,
     int? amountMinor,
     String? reason,
+    int? orderId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -69,6 +75,7 @@ abstract class RequestRefund
       'captureId': captureId,
       'amountMinor': amountMinor,
       'reason': reason,
+      if (orderId != null) 'orderId': orderId,
     };
   }
 
@@ -81,6 +88,7 @@ abstract class RequestRefund
       'captureId': captureId,
       'amountMinor': amountMinor,
       'reason': reason,
+      if (orderId != null) 'orderId': orderId,
     };
   }
 
@@ -90,6 +98,8 @@ abstract class RequestRefund
   }
 }
 
+class _Undefined {}
+
 class _RequestRefundImpl extends RequestRefund {
   _RequestRefundImpl({
     required String requestKey,
@@ -97,12 +107,14 @@ class _RequestRefundImpl extends RequestRefund {
     required int captureId,
     required int amountMinor,
     required String reason,
+    int? orderId,
   }) : super._(
          requestKey: requestKey,
          restaurantId: restaurantId,
          captureId: captureId,
          amountMinor: amountMinor,
          reason: reason,
+         orderId: orderId,
        );
 
   /// Returns a shallow copy of this [RequestRefund]
@@ -115,6 +127,7 @@ class _RequestRefundImpl extends RequestRefund {
     int? captureId,
     int? amountMinor,
     String? reason,
+    Object? orderId = _Undefined,
   }) {
     return RequestRefund(
       requestKey: requestKey ?? this.requestKey,
@@ -122,6 +135,7 @@ class _RequestRefundImpl extends RequestRefund {
       captureId: captureId ?? this.captureId,
       amountMinor: amountMinor ?? this.amountMinor,
       reason: reason ?? this.reason,
+      orderId: orderId is int? ? orderId : this.orderId,
     );
   }
 }

@@ -5,6 +5,13 @@ class PlatformQueries {
     PlatformApi.enabled();
     final limit = _int(d, 'limit', min: 1, max: 100, fallback: 30);
     final cursor = _int(d, 'cursor', fallback: 0, max: 9007199254740991);
+    // Newest-first lists page backwards: cursor 0 starts at the latest row.
+    final desc = d['order'] == 'desc';
+    Expression<dynamic> after(ColumnComparable<int?> id) => !desc
+        ? id > cursor
+        : cursor == 0
+        ? Constant.bool(true)
+        : id < cursor;
     if (name == 'discovery') return discover(s, d, limit, cursor);
     if (name == 'table.resolve') {
       _keys(d, {'qr'});
@@ -156,14 +163,14 @@ class PlatformQueries {
           final attempts = await CheckoutIntent.db.find(
             s,
             where: (t) =>
-                (t.id > cursor) &
+                after(t.id) &
                 (tenant == null
                     ? Constant.bool(true)
                     : t.restaurantId.equals(tenant)) &
                 (d['staff'] == true
                     ? Constant.bool(true)
                     : t.userId.equals(w.user)),
-            orderBy: (t) => t.id,
+            orderBy: (t) => desc ? t.id.desc() : t.id,
             limit: limit,
             transaction: tx,
           );
@@ -174,6 +181,8 @@ class PlatformQueries {
                     'id': a.id,
                     'restaurantId': a.restaurantId,
                     ...MoneyModule.view(a),
+                    'method': a.method,
+                    'createdAt': a.createdAt.toIso8601String(),
                   },
                 )
                 .toList(),
@@ -446,6 +455,10 @@ class PlatformQueries {
                 {
                   'restaurantId': m.restaurantId,
                   'role': m.role,
+                  'capabilities': [
+                    for (final c in _capabilities)
+                      if (_holds(m, c)) c,
+                  ],
                   'name': (await Restaurant.db.findById(
                     s,
                     m.restaurantId,
@@ -469,7 +482,27 @@ class PlatformQueries {
           final staff = d['staff'] == true;
           Membership? staffMember;
           if (staff) staffMember = await w.role(_operators);
-          final assignedTables = staffMember?.role == 'waiter'
+          // A waiter sees their tables; one running the counter sees the shop.
+          final scoped =
+              staffMember?.role == 'waiter' &&
+              !_holds(staffMember!, 'counter');
+          Set<int>? found;
+          if (staff && d['q'] != null) {
+            // Numbers and codes are per service day, like the tickets.
+            final q = _str(d, 'q', max: 8);
+            final day = OrderingModule.serviceDay(w.settings, _now());
+            found = (await OrderContext.db.find(
+              s,
+              where: (t) =>
+                  t.restaurantId.equals(w.tenant) &
+                  t.serviceDay.equals(day) &
+                  (t.pickupCode.equals(q) |
+                      t.orderNumber.equals(int.tryParse(q) ?? -1)),
+              limit: 20,
+              transaction: tx,
+            )).map((c) => c.orderId).toSet();
+          }
+          final assignedTables = scoped
               ? (await DiningTable.db.find(
                   s,
                   where: (t) =>
@@ -478,14 +511,14 @@ class PlatformQueries {
                   transaction: tx,
                 )).map((t) => t.id!).toSet()
               : <int>{};
-          final assignedVisits = staffMember?.role == 'waiter'
+          final assignedVisits = scoped
               ? (await DiningVisit.db.find(
                   s,
                   where: (t) => t.tableId.inSet(assignedTables),
                   transaction: tx,
                 )).map((v) => v.id!).toSet()
               : <int>{};
-          final assignedOrders = staffMember?.role == 'waiter'
+          final assignedOrders = scoped
               ? (await OrderContext.db.find(
                   s,
                   where: (t) => t.visitId.inSet(assignedVisits),
@@ -495,14 +528,17 @@ class PlatformQueries {
           final rows = await PurchaseOrder.db.find(
             s,
             where: (t) =>
-                (t.id > cursor) &
+                after(t.id) &
                 (staff
                     ? t.restaurantId.equals(w.tenant) &
-                          (staffMember?.role == 'waiter'
+                          (scoped
                               ? t.id.inSet(assignedOrders)
-                              : Constant.bool(true))
+                              : Constant.bool(true)) &
+                          (found == null
+                              ? Constant.bool(true)
+                              : t.id.inSet(found))
                     : t.customerId.equals(w.user)),
-            orderBy: (t) => t.id,
+            orderBy: (t) => desc ? t.id.desc() : t.id,
             limit: limit,
             transaction: tx,
           );
@@ -536,6 +572,7 @@ class PlatformQueries {
           );
           return {
             ..._safeOrder(o, ctx, contact: o.customerId == w.user),
+            if (d['staff'] == true) 'payments': await orderPayments(w, o),
             'timeline': events
                 .map(
                   (e) => {
@@ -651,6 +688,19 @@ class PlatformQueries {
                 )
                 .toList(),
           );
+        case 'counter.menu':
+          // The till works whether or not online ordering is published.
+          await _capable(w, 'counter');
+          if (policy?.suspended != false) {
+            _fail('unavailable', 'Restaurant is suspended.');
+          }
+          return {
+            'id': w.tenant,
+            'name': restaurant!.name,
+            'currency': restaurant.currency,
+            'menuVersion': policy!.menuVersion,
+            'menu': await sellable(s, w.tenant, tx: tx),
+          };
         case 'menu.manage':
           await w.role({'owner', 'manager', 'kitchen'});
           final items = await MenuDefinition.db.find(
@@ -1007,42 +1057,14 @@ class PlatformQueries {
               'commission',
               'audit',
               'summary',
+              'channels',
             },
           );
-          if (report == 'summary') {
-            final totals = await s.db.unsafeQuery(
-              '''SELECT
-              (SELECT COUNT(*) FROM raysto_order WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end),
-              (SELECT COUNT(*) FROM raysto_order WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end AND status='completed'),
-              (SELECT COALESCE(SUM("totalMinor"),0) FROM raysto_order WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end AND status NOT IN ('cancelled','rejected','awaitingPayment')),
-              (SELECT COALESCE(SUM("amountMinor"),0) FROM raysto_payment_capture WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end AND state='completed'),
-              (SELECT COALESCE(SUM("amountMinor"),0) FROM raysto_payment_refund WHERE "restaurantId"=@tenant AND "updatedAt">=@start AND "updatedAt"<@end AND state='completed'),
-              (SELECT COALESCE(SUM("amountMinor"),0) FROM raysto_commission_entry WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end),
-              (SELECT COALESCE(SUM(GREATEST(0,b."amountMinor"-b."creditedMinor"-b."settledMinor")),0) FROM raysto_bill_charge b JOIN raysto_order o ON o.id=b."orderId" WHERE b."restaurantId"=@tenant AND o."createdAt">=@start AND o."createdAt"<@end)
-            ''',
-              parameters: QueryParameters.named({
-                'tenant': w.tenant,
-                'start': from,
-                'end': until,
-              }),
-              transaction: tx,
-            );
-            final row = totals.single;
-            final labels = [
-              'ordersCreated',
-              'completedOrders',
-              'bookedSalesMinor',
-              'collectionsMinor',
-              'refundsMinor',
-              'commissionMinor',
-              'currentOutstandingMinorForOrdersInRange',
-            ];
+          if (report == 'summary') return summary(w, from, until);
+          if (report == 'channels') {
             return {
               'currency': restaurant!.currency,
-              'from': from.toIso8601String(),
-              'until': until.toIso8601String(),
-              for (var n = 0; n < labels.length; n++)
-                labels[n]: int.parse('${row[n]}'),
+              'channels': await channels(w, from, until),
             };
           }
           if (report == 'orders') {
@@ -1085,20 +1107,12 @@ class PlatformQueries {
               limit: limit,
               transaction: tx,
             );
-            return page(
-              rows
-                  .map(
-                    (r) => {
-                      'id': r.id,
-                      'checkoutId': r.checkoutId,
-                      'amountMinor': r.amountMinor,
-                      'refundedMinor': r.refundedMinor,
-                      'currency': r.currency,
-                      'state': r.state,
-                    },
-                  )
-                  .toList(),
-            );
+            return page([
+              for (final r in rows)
+                {
+                  ...await collectionRow(w, r),
+                },
+            ]);
           }
           if (report == 'refunds') {
             final rows = await PaymentRefund.db.find(
@@ -1118,9 +1132,11 @@ class PlatformQueries {
                     (r) => {
                       'id': r.id,
                       'captureId': r.captureId,
+                      'providerRefundId': r.providerRefundId,
                       'amountMinor': r.amountMinor,
                       'state': r.state,
                       'reason': r.reason,
+                      'createdAt': r.createdAt.toIso8601String(),
                     },
                   )
                   .toList(),
@@ -1400,25 +1416,24 @@ class PlatformQueries {
     };
   }
 
-  static Future<Json> storefront(Session s, int id) async {
-    final r = await Restaurant.db.findById(s, id);
-    final p = await RestaurantPolicy.db.findFirstRow(
-      s,
-      where: (t) => t.restaurantId.equals(id),
-    );
-    if (r == null || !r.published || p == null || p.suspended) {
-      _fail('not_found', 'Restaurant not found.');
-    }
+  /// Items a customer or the counter can order now, with their definitions.
+  static Future<List<Json>> sellable(
+    Session s,
+    int id, {
+    Transaction? tx,
+  }) async {
     final items = await MenuProduct.db.find(
       s,
       where: (t) => t.restaurantId.equals(id) & t.available.equals(true),
       limit: 200,
+      transaction: tx,
     );
     final menu = <Json>[];
     for (final i in items) {
       final def = await MenuDefinition.db.findFirstRow(
         s,
         where: (t) => t.productId.equals(i.id!),
+        transaction: tx,
       );
       if (def == null || def.archived) continue;
       menu.add({
@@ -1431,6 +1446,19 @@ class PlatformQueries {
         'version': i.version,
       });
     }
+    return menu;
+  }
+
+  static Future<Json> storefront(Session s, int id) async {
+    final r = await Restaurant.db.findById(s, id);
+    final p = await RestaurantPolicy.db.findFirstRow(
+      s,
+      where: (t) => t.restaurantId.equals(id),
+    );
+    if (r == null || !r.published || p == null || p.suspended) {
+      _fail('not_found', 'Restaurant not found.');
+    }
+    final menu = await sellable(s, id);
     final reviews = await CustomerReview.db.find(
       s,
       where: (t) => t.restaurantId.equals(id) & t.status.equals('published'),
@@ -1469,6 +1497,153 @@ class PlatformQueries {
             (r) => {'rating': r.rating, 'text': r.text, 'response': r.response},
           )
           .toList(),
+    };
+  }
+
+  /// One collected payment as the console shows it: PayPal or cash, the
+  /// provider capture id, and what it paid for.
+  static Future<Json> collectionRow(Work w, PaymentCapture r) async {
+    final i = await CheckoutIntent.db.findById(
+      w.s,
+      r.checkoutId,
+      transaction: w.tx,
+    );
+    return {
+      'id': r.id,
+      'checkoutId': r.checkoutId,
+      'method': i?.method,
+      'providerCaptureId': i?.method == 'paypal' ? r.providerCaptureId : null,
+      'orderId': i?.orderId,
+      'visitId': i?.visitId,
+      'amountMinor': r.amountMinor,
+      'refundedMinor': r.refundedMinor,
+      'currency': r.currency,
+      'state': r.state,
+      'createdAt': r.createdAt.toIso8601String(),
+    };
+  }
+
+  /// Every checkout that put money against this order's charges, with its
+  /// capture and refunds, for the staff order panel.
+  static Future<List<Json>> orderPayments(Work w, PurchaseOrder o) async {
+    await _orderAccess(w, o, manage: true, walkInOnly: true);
+    final charges = await BillCharge.db.find(
+      w.s,
+      where: (t) => t.orderId.equals(o.id!),
+      transaction: w.tx,
+    );
+    final ids = {for (final b in charges) b.id!};
+    final checkouts = <int>{};
+    if (ids.isNotEmpty) {
+      for (final a in await PaymentAllocation.db.find(
+        w.s,
+        where: (t) => t.chargeId.inSet(ids),
+        transaction: w.tx,
+      )) {
+        checkouts.add(a.checkoutId);
+      }
+    }
+    final out = <Json>[];
+    for (final id in checkouts.toList()..sort()) {
+      final i = (await CheckoutIntent.db.findById(w.s, id, transaction: w.tx))!;
+      final capture = await PaymentCapture.db.findFirstRow(
+        w.s,
+        where: (t) => t.checkoutId.equals(id),
+        transaction: w.tx,
+      );
+      final refunds = capture == null
+          ? <PaymentRefund>[]
+          : await PaymentRefund.db.find(
+              w.s,
+              where: (t) => t.captureId.equals(capture.id!),
+              transaction: w.tx,
+            );
+      out.add({
+        'checkoutId': id,
+        'method': i.method,
+        'state': i.state,
+        'amountMinor': i.amountMinor,
+        'currency': i.currency,
+        'createdAt': i.createdAt.toIso8601String(),
+        'captureId': capture?.id,
+        'providerCaptureId': i.method == 'paypal'
+            ? capture?.providerCaptureId
+            : null,
+        'refunds': [
+          for (final r in refunds)
+            {
+              'id': r.id,
+              'amountMinor': r.amountMinor,
+              'state': r.state,
+              'providerRefundId': r.providerRefundId,
+            },
+        ],
+      });
+    }
+    return out;
+  }
+
+  /// Money and order totals for a window, shared by the report query and the
+  /// manager assistant. Every sum is in integer minor units.
+  static Future<Json> summary(Work w, DateTime from, DateTime until) async {
+    final totals = await w.s.db.unsafeQuery(
+      '''SELECT
+      (SELECT COUNT(*) FROM raysto_order WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end),
+      (SELECT COUNT(*) FROM raysto_order WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end AND status='completed'),
+      (SELECT COALESCE(SUM("totalMinor"),0) FROM raysto_order WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end AND status NOT IN ('cancelled','rejected','awaitingPayment')),
+      (SELECT COALESCE(SUM("amountMinor"),0) FROM raysto_payment_capture WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end AND state='completed'),
+      (SELECT COALESCE(SUM("amountMinor"),0) FROM raysto_payment_refund WHERE "restaurantId"=@tenant AND "updatedAt">=@start AND "updatedAt"<@end AND state='completed'),
+      (SELECT COALESCE(SUM("amountMinor"),0) FROM raysto_commission_entry WHERE "restaurantId"=@tenant AND "createdAt">=@start AND "createdAt"<@end),
+      (SELECT COALESCE(SUM(GREATEST(0,b."amountMinor"-b."creditedMinor"-b."settledMinor")),0) FROM raysto_bill_charge b JOIN raysto_order o ON o.id=b."orderId" WHERE b."restaurantId"=@tenant AND o."createdAt">=@start AND o."createdAt"<@end)
+    ''',
+      parameters: QueryParameters.named({
+        'tenant': w.tenant,
+        'start': from,
+        'end': until,
+      }),
+      transaction: w.tx,
+    );
+    final row = totals.single;
+    final labels = [
+      'ordersCreated',
+      'completedOrders',
+      'bookedSalesMinor',
+      'collectionsMinor',
+      'refundsMinor',
+      'commissionMinor',
+      'currentOutstandingMinorForOrdersInRange',
+    ];
+    return {
+      'currency': w.restaurant!.currency,
+      'from': from.toIso8601String(),
+      'until': until.toIso8601String(),
+      for (var n = 0; n < labels.length; n++)
+        labels[n]: int.parse('${row[n]}'),
+    };
+  }
+
+  /// Orders in a window by sales channel and origin, so a snack bar sees its
+  /// walk-in counter trade apart from app orders. Keys read `pickup:counter`.
+  static Future<Json> channels(Work w, DateTime from, DateTime until) async {
+    final rows = await w.s.db.unsafeQuery(
+      '''SELECT o.fulfillment, c.origin, COUNT(*), COALESCE(SUM(o."totalMinor"),0)
+      FROM raysto_order o JOIN raysto_order_context c ON c."orderId"=o.id
+      WHERE o."restaurantId"=@tenant AND o."createdAt">=@start AND o."createdAt"<@end
+        AND o.status NOT IN ('cancelled','rejected','awaitingPayment')
+      GROUP BY 1, 2 ORDER BY 1, 2''',
+      parameters: QueryParameters.named({
+        'tenant': w.tenant,
+        'start': from,
+        'end': until,
+      }),
+      transaction: w.tx,
+    );
+    return {
+      for (final r in rows)
+        '${r[0]}:${r[1]}': {
+          'orders': int.parse('${r[2]}'),
+          'salesMinor': int.parse('${r[3]}'),
+        },
     };
   }
 
@@ -1535,6 +1710,14 @@ class PlatformQueries {
             'kitchen',
             'courier',
           });
+          if (cursor < 0) {
+            final last = await AuditRecord.db.findFirstRow(
+              poll,
+              where: (t) => t.restaurantId.equals(restaurantId),
+              orderBy: (t) => t.id.desc(),
+            );
+            cursor = last?.id ?? 0;
+          }
           final rows = await AuditRecord.db.find(
             poll,
             where: (t) => t.restaurantId.equals(restaurantId) & (t.id > cursor),

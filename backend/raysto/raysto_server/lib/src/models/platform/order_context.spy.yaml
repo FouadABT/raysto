@@ -12,8 +12,17 @@ fields:
   stockReleased: bool
   slotKey: String?
   couponCode: String?
+  origin: String, default='online'
+  customerLabel: String?
+  placedBy: String?
+  serviceDay: String?
+  orderNumber: int?
+  pickupCode: String?
   createdAt: DateTime
 indexes:
   context_order:
     fields: orderId
+    unique: true
+  context_daily_number:
+    fields: restaurantId, serviceDay, orderNumber
     unique: true

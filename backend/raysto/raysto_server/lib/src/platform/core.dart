@@ -10,7 +10,10 @@ class Work {
   Work(this.s, this.tx, this.actor, this.command, this.restaurant, this.policy);
   String get user => actor.userId;
   int get tenant => restaurant!.id!;
-  Json get settings => policy == null ? {} : _json(policy!.settingsJson);
+  // Stored settings predate newer keys, so reads always see the defaults too.
+  Json get settings => policy == null
+      ? {}
+      : {...CatalogueModule.defaults, ..._json(policy!.settingsJson)};
   Future<Membership> role(Set<String> roles) =>
       _role(s, user, tenant, roles, tx: tx);
   Future<void> audit(
@@ -403,10 +406,49 @@ Future<void> _visitAccess(
   _fail('not_found', 'Visit not found.');
 }
 
+/// Extra duties a member can hold on top of their role, for example a waiter
+/// who also runs the counter. Owners and managers implicitly hold all of them.
+const _capabilities = {'counter', 'dispatch', 'acceptOrders'};
+const _staff = {'owner', 'manager', 'waiter', 'kitchen', 'courier'};
+
+/// Which roles may hold each capability. A grant outside this list is ignored,
+/// so a courier can never run the till or accept orders.
+const _capabilityRoles = <String, Set<String>>{
+  'counter': {'waiter', 'kitchen'},
+  'dispatch': {'waiter'},
+  'acceptOrders': {'waiter', 'kitchen'},
+};
+
+bool _holds(Membership m, String capability) =>
+    _managers.contains(m.role) ||
+    (m.capabilities ?? const []).contains(capability) &&
+        (_capabilityRoles[capability] ?? const {}).contains(m.role);
+
+/// A restaurant taking new activity: published and not suspended. The counter
+/// only needs the restaurant not to be suspended, so a snack bar that never
+/// publishes online ordering can still sell.
+Future<void> _accepting(Work w, {bool counter = false}) async {
+  if (w.policy == null ||
+      w.policy!.suspended ||
+      !counter && w.restaurant?.published != true) {
+    _fail('unavailable', 'Restaurant is not accepting new activity.');
+  }
+  await _entitled(w.s, w.tenant, w.tx);
+}
+
+Future<Membership> _capable(Work w, String capability) async {
+  final m = await w.role(_staff);
+  if (!_holds(m, capability)) {
+    _fail('forbidden', 'This action is not permitted.');
+  }
+  return m;
+}
+
 Future<void> _orderAccess(
   Work w,
   PurchaseOrder order, {
   bool manage = false,
+  bool walkInOnly = false,
 }) async {
   if (order.restaurantId != w.tenant) _fail('not_found', 'Order not found.');
   if (!manage && order.customerId == w.user) return;
@@ -426,7 +468,14 @@ Future<void> _orderAccess(
       return;
     }
   }
-  await w.role(_managers);
+  // Pickup, delivery and counter orders have no table: the counter hands them
+  // over. Money and private conversations on a customer's own order stay with
+  // managers; there the counter only acts on its own walk-in sales.
+  if (walkInOnly && !OrderingModule.isWalkIn(order.customerId)) {
+    await w.role(_managers);
+  } else {
+    await _capable(w, 'counter');
+  }
 }
 
 Json _safeOrder(
@@ -444,6 +493,10 @@ Json _safeOrder(
   'totalMinor': o.totalMinor,
   'createdAt': o.createdAt.toIso8601String(),
   'visitId': context?.visitId,
+  'origin': context?.origin ?? 'online',
+  'number': context?.orderNumber,
+  'customerLabel': context?.customerLabel,
+  'pickupCode': context?.pickupCode,
   if (contact) 'address': o.address,
   'lines': context == null
       ? o.lines

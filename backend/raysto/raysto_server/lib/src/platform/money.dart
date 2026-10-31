@@ -14,6 +14,7 @@ class MoneyModule {
         'lineKeys': r.lineKeys,
         'shares': r.shares?.map((s) => s.toJson()).toList(),
         'assistantProposalId': r.assistantProposalId,
+        if (r.splitPlanId != null) 'splitPlanId': r.splitPlanId,
         'method': r.method,
       }),
     );
@@ -72,6 +73,33 @@ class MoneyModule {
           }
         }
       }
+      if (r.splitPlanId != null) {
+        // An equal share chosen without the assistant binds to the same
+        // frozen plan, and only that payer's exact remaining share is accepted.
+        if (proposal != null || r.visitId == null || r.shares == null) {
+          _fail('invalid_input', 'An equal share pays exact shares of a visit.');
+        }
+        final expected = [
+          for (final v in await EqualShares.mine(w, r.splitPlanId!, r.visitId!))
+            {
+              'chargeId': v['chargeId'],
+              'amountMinor': v['amountMinor'],
+              'expectedVersion': v['expectedVersion'],
+            },
+        ];
+        final actual = [
+          for (final v in r.shares!)
+            {
+              'chargeId': v.chargeId,
+              'amountMinor': v.amountMinor,
+              'expectedVersion': v.expectedVersion,
+            },
+        ];
+        if (expected.isEmpty || jsonEncode(expected) != jsonEncode(actual)) {
+          _fail('stale_proposal', 'Payment must match your exact equal share.');
+        }
+        splitPlanId = r.splitPlanId;
+      }
       if ((r.visitId == null) == (r.orderId == null)) {
         _fail('invalid_input', 'Choose one visit or order.');
       }
@@ -87,12 +115,19 @@ class MoneyModule {
       }
       if (r.orderId != null) {
         final (o, ctx) = await OrderingModule._order(w, r.orderId!);
-        await _orderAccess(w, o, manage: r.method == 'cash');
+        await _orderAccess(
+          w,
+          o,
+          manage: r.method == 'cash',
+          walkInOnly: true,
+        );
         if (ctx.visitId != null) {
           _fail('invalid_input', 'Pay this order through its shared visit.');
         }
       }
-      if (r.method == 'cash') await w.role(_operators);
+      // Order cash was authorized above (manager or counter); table cash is
+      // collected by the floor team.
+      if (r.method == 'cash' && r.visitId != null) await w.role(_operators);
       if (r.orderId != null &&
           await CheckoutIntent.db.findFirstRow(
                 s,
@@ -348,7 +383,19 @@ class MoneyModule {
           staffOnly: true,
         );
       } else {
-        await w.role(_managers);
+        final order = i.orderId == null
+            ? null
+            : await PurchaseOrder.db.findById(
+                w.s,
+                i.orderId!,
+                transaction: w.tx,
+              );
+        // A walk-in sale belongs to the till, not to the cashier who rang it.
+        if (order != null && OrderingModule.isWalkIn(order.customerId)) {
+          await _capable(w, 'counter');
+        } else {
+          await w.role(_managers);
+        }
       }
     }
     return i;
@@ -392,6 +439,24 @@ class MoneyModule {
     return reconcile(s, _id(c), capture: true);
   }
 
+  /// Reads the checkout and, when PayPal shows the buyer approved it, captures
+  /// at once so payment never waits for the payer to come back to the app.
+  /// Webhooks, the retry job and the PayPal return page all land here.
+  static Future<Json> settleApproved(Session s, int id) async {
+    final read = await reconcile(s, id, audit: true);
+    if (read['state'] != 'approved') return read;
+    final i = (await CheckoutIntent.db.findById(s, id))!;
+    final leased = await locked(s, i.restaurantId, i.userId, (w) async {
+      final row = (await CheckoutIntent.db.findById(s, id, transaction: w.tx))!;
+      if (row.method != 'paypal' || row.state != 'approved') return false;
+      row.state = 'capturing';
+      row.updatedAt = _now();
+      await CheckoutIntent.db.updateRow(s, row, transaction: w.tx);
+      return true;
+    });
+    return leased ? reconcile(s, id, capture: true) : read;
+  }
+
   static Future<Json> cancel(Session s, PlatformCommand c) => _mutate(
     s,
     c,
@@ -411,6 +476,64 @@ class MoneyModule {
       return {'state': i.state};
     },
   );
+
+  /// Manager release for a PayPal checkout that automatic recovery cannot
+  /// settle or free. PayPal is read first: a capture there is reconciled,
+  /// never released, and the row must not change while the read runs.
+  static Future<Json> release(Session s, PlatformCommand c) async {
+    await _mutate(s, c, 'payment.release', (w, d) async {
+      _keys(d, {});
+      await _stepUp(w);
+      final i = await _intent(w, _id(c));
+      if (i.method != 'paypal') {
+        _fail('invalid_transition', 'Cash is already recorded.');
+      }
+      await w.audit('payment.release_requested', 'checkout', i.id);
+      return {'checkoutId': i.id};
+    }, roles: _managers);
+    final id = _id(c);
+    final before = (await CheckoutIntent.db.findById(s, id))!;
+    if ({'completed', 'cancelled', 'failed'}.contains(before.state)) {
+      return {...view(before), 'released': false};
+    }
+    // Provider calls are bounded well under three minutes, so an older lease
+    // cannot still have a capture request on the wire.
+    if ({'creating', 'capturing', 'uncertain'}.contains(before.state) &&
+        _now().difference(before.updatedAt).inMinutes < 3) {
+      _fail(
+        'payment_pending',
+        'A PayPal request may still be running. Try again in a few minutes.',
+      );
+    }
+    if (before.providerOrderId != null) {
+      final provider = await ProviderClients.paypal(
+        'GET',
+        '/v2/checkout/orders/${before.providerOrderId}',
+        singleMerchant: before.providerMode == 'singleMerchantSandbox',
+      );
+      validateOrder(before, provider);
+      final unit = _object((provider['purchase_units'] as List).single);
+      if (((unit['payments'] as Map?)?['captures'] as List? ?? [])
+          .isNotEmpty) {
+        return {...await reconcile(s, id), 'released': false};
+      }
+    }
+    return locked(s, before.restaurantId, before.userId, (w) async {
+      final row = (await CheckoutIntent.db.findById(s, id, transaction: w.tx))!;
+      if ({'completed', 'cancelled', 'failed'}.contains(row.state)) {
+        return {...view(row), 'released': false};
+      }
+      if (row.updatedAt.millisecondsSinceEpoch !=
+          before.updatedAt.millisecondsSinceEpoch) {
+        _fail(
+          'payment_pending',
+          'The checkout changed while PayPal was checked. Try again.',
+        );
+      }
+      await _release(w, row, 'cancelled');
+      return {...view(row), 'released': true};
+    });
+  }
   static Future<void> _release(Work w, CheckoutIntent i, String state) async {
     final allocations = await PaymentAllocation.db.find(
       w.s,
@@ -498,10 +621,23 @@ class MoneyModule {
           )
           ? 'paid'
           : 'partiallyPaid';
-      if (o.paymentStatus == 'paid' && o.status == 'awaitingPayment') {
-        o.status = 'submitted';
+      final released =
+          o.paymentStatus == 'paid' && o.status == 'awaitingPayment';
+      if (released) {
+        // A counter sale was taken by staff, so it is already accepted; other
+        // paid orders follow the restaurant's auto-accept setting.
+        final ctx = await OrderContext.db.findFirstRow(
+          w.s,
+          where: (t) => t.orderId.equals(id),
+          transaction: w.tx,
+        );
+        o.status =
+            ctx?.origin == 'counter' || w.settings['autoAcceptPaid'] == true
+            ? 'accepted'
+            : 'submitted';
       }
       await OrderingModule._changed(w, o, 'order.payment_recorded');
+      if (released) await OrderingModule.alertTeam(w, o);
     }
     if (i.commissionMinor > 0) {
       await CommissionEntry.db.insertRow(
@@ -573,11 +709,16 @@ class MoneyModule {
     int id, {
     bool create = false,
     bool capture = false,
+    bool audit = false,
   }) async {
     var i = await CheckoutIntent.db.findById(s, id);
     if (i == null) _fail('not_found', 'Checkout not found.');
     var doCreate = false;
     var doCapture = false;
+    // Set when this call takes the create/capture lease. Only the lease holder
+    // may undo `capturing`, and only while no other writer has touched the row.
+    DateTime? lease;
+    var posted = false;
     i = await locked(s, i.restaurantId, i.userId, (w) async {
       final row = (await CheckoutIntent.db.findById(s, id, transaction: w.tx))!;
       if (row.state == 'reserved' && create) {
@@ -599,11 +740,18 @@ class MoneyModule {
       }
       if (doCreate || doCapture) {
         row.updatedAt = _now();
+        lease = row.updatedAt;
         await CheckoutIntent.db.updateRow(s, row, transaction: w.tx);
       }
       return row;
     });
-    if ({'completed', 'cancelled', 'failed'}.contains(i.state)) return view(i);
+    bool held(CheckoutIntent row) =>
+        lease != null &&
+        row.updatedAt.millisecondsSinceEpoch == lease!.millisecondsSinceEpoch;
+    if ({'completed', 'cancelled', 'failed'}.contains(i.state)) {
+      if (audit && i.state != 'completed') await _auditReleased(s, i);
+      return view(i);
+    }
     try {
       Json provider;
       if (doCreate) {
@@ -619,6 +767,23 @@ class MoneyModule {
       }
       validateOrder(i, provider);
       if (doCapture && provider['status'] == 'APPROVED') {
+        // Renew the lease under the lock just before the capture request. A
+        // manager release must then wait out this request's whole time limit,
+        // and a newer capture call takes over instead of racing this one.
+        final renewed = await locked(s, i.restaurantId, i.userId, (w) async {
+          final row = (await CheckoutIntent.db.findById(
+            s,
+            id,
+            transaction: w.tx,
+          ))!;
+          if (row.state != 'capturing' || !held(row)) return false;
+          row.updatedAt = _now();
+          lease = row.updatedAt;
+          await CheckoutIntent.db.updateRow(s, row, transaction: w.tx);
+          return true;
+        });
+        if (!renewed) return view((await CheckoutIntent.db.findById(s, id))!);
+        posted = true;
         provider = await ProviderClients.paypal(
           'POST',
           '/v2/checkout/orders/${provider['id']}/capture',
@@ -638,6 +803,11 @@ class MoneyModule {
         if ({'completed', 'cancelled', 'failed'}.contains(current.state)) {
           return view(current);
         }
+        final before = (
+          current.state,
+          current.providerOrderId,
+          current.approvalUrl,
+        );
         current.providerOrderId = _str(provider, 'id', max: 50);
         current.approvalUrl = ProviderClients.approval(provider);
         final units = provider['purchase_units'] as List;
@@ -671,22 +841,39 @@ class MoneyModule {
           current.state = provider['status'] == 'APPROVED'
               ? 'approved'
               : 'created';
+        } else if (!posted && held(current)) {
+          // This call held the lease and sent no capture, and the provider shows
+          // none, so nothing can settle later: make the checkout cancellable.
+          current.state = provider['status'] == 'APPROVED'
+              ? 'approved'
+              : 'created';
         }
-        current.updatedAt = _now();
-        await CheckoutIntent.db.updateRow(s, current, transaction: w.tx);
-        if (current.state == 'uncertain') {
-          await w.audit('payment.uncertain', 'checkout', current.id);
+        // A plain read that changes nothing leaves the row alone: its time
+        // stamp is the capture lease and the manager-release guard.
+        if (before !=
+            (current.state, current.providerOrderId, current.approvalUrl)) {
+          current.updatedAt = _now();
+          await CheckoutIntent.db.updateRow(s, current, transaction: w.tx);
+          if (current.state == 'uncertain') {
+            await w.audit('payment.uncertain', 'checkout', current.id);
+          }
         }
         return view(current);
       });
-    } catch (_) {
+    } catch (e) {
+      // A failed read proves nothing either way, so it keeps the current state
+      // for the next read to decide. Only an unanswered capture or a provider
+      // record that contradicts the frozen checkout is uncertain.
+      final unknown =
+          posted || (e is DomainError && e.code == 'payment_mismatch');
       await locked(s, i.restaurantId, i.userId, (w) async {
         final row = (await CheckoutIntent.db.findById(
           s,
           id,
           transaction: w.tx,
         ))!;
-        if (!{'completed', 'cancelled', 'failed'}.contains(row.state)) {
+        if (!{'completed', 'cancelled', 'failed'}.contains(row.state) &&
+            (row.providerOrderId == null || unknown)) {
           row.state = row.providerOrderId == null ? 'creating' : 'uncertain';
           row.updatedAt = _now();
           await CheckoutIntent.db.updateRow(s, row, transaction: w.tx);
@@ -696,6 +883,74 @@ class MoneyModule {
         }
       });
       rethrow;
+    }
+  }
+
+  /// A checkout released or failed in Raysto must never hold money at PayPal.
+  /// If PayPal shows a capture anyway (a capture that finished after a
+  /// release), record it for review instead of returning quietly.
+  static Future<void> _auditReleased(Session s, CheckoutIntent i) async {
+    if (i.providerOrderId == null || i.method != 'paypal') return;
+    final Json provider;
+    try {
+      provider = await ProviderClients.paypal(
+        'GET',
+        '/v2/checkout/orders/${i.providerOrderId}',
+        singleMerchant: i.providerMode == 'singleMerchantSandbox',
+      );
+    } catch (_) {
+      return; // The next webhook or job retries the read.
+    }
+    final unit = _object((provider['purchase_units'] as List).single);
+    final captures = (unit['payments'] as Map?)?['captures'] as List? ?? [];
+    for (final raw in captures) {
+      final p = _object(raw);
+      if (!{'COMPLETED', 'PENDING'}.contains(p['status'])) continue;
+      final providerCapture = _str(p, 'id', max: 50);
+      await locked(s, i.restaurantId, i.userId, (w) async {
+        final known = await PaymentCapture.db.findFirstRow(
+          s,
+          where: (t) => t.providerCaptureId.equals(providerCapture),
+          transaction: w.tx,
+        );
+        if (known != null) return;
+        final amount = _object(p['amount']);
+        final minor = PayPalGateway.parseMoney(_str(amount, 'value'));
+        final capture = await PaymentCapture.db.insertRow(
+          s,
+          PaymentCapture(
+            restaurantId: i.restaurantId,
+            checkoutId: i.id!,
+            providerCaptureId: providerCapture,
+            amountMinor: minor,
+            refundedMinor: 0,
+            currency: _str(amount, 'currency_code', max: 3),
+            state: 'review',
+            createdAt: _now(),
+          ),
+          transaction: w.tx,
+        );
+        await PaymentException.db.insertRow(
+          s,
+          PaymentException(
+            restaurantId: i.restaurantId,
+            captureId: capture.id!,
+            providerEventId: 'released-capture:$providerCapture',
+            kind: 'captureAfterRelease',
+            status: 'review',
+            amountMinor: minor,
+            currency: capture.currency,
+            evidenceJson: jsonEncode({
+              'checkoutState': i.state,
+              'providerStatus': p['status'],
+            }),
+            version: 1,
+            createdAt: _now(),
+          ),
+          transaction: w.tx,
+        );
+        await w.audit('payment.capture_after_release', 'checkout', i.id);
+      });
     }
   }
 
@@ -735,6 +990,7 @@ class MoneyModule {
         dataJson: jsonEncode({
           'amountMinor': r.amountMinor,
           'reason': r.reason,
+          'orderId': ?r.orderId,
         }),
       ),
       'payment.refund',
@@ -762,12 +1018,29 @@ class MoneyModule {
           p.checkoutId,
           transaction: w.tx,
         ))!;
-        final allocations = await PaymentAllocation.db.find(
+        var allocations = await PaymentAllocation.db.find(
           s,
           where: (t) => t.checkoutId.equals(i.id!),
           orderBy: (t) => t.id,
           transaction: w.tx,
         );
+        // One capture can pay several orders: a refund for one order consumes
+        // only that order's charges, so the others keep their payment status.
+        if (r.orderId != null) {
+          final charges = await BillCharge.db.find(
+            s,
+            where: (t) =>
+                t.orderId.equals(r.orderId!) & t.restaurantId.equals(w.tenant),
+            transaction: w.tx,
+          );
+          final ids = {for (final b in charges) b.id};
+          allocations = allocations
+              .where((a) => ids.contains(a.chargeId))
+              .toList();
+          if (allocations.isEmpty) {
+            _fail('not_found', 'This capture did not pay that order.');
+          }
+        }
         final used = <int, int>{};
         for (final f in pending) {
           for (final a

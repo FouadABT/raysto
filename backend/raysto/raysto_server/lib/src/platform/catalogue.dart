@@ -15,6 +15,7 @@ class CatalogueModule {
     'customerChatEnabled': true,
     'selfSeating': false,
     'paymentTiming': 'before',
+    'autoAcceptPaid': false,
     'deliveryFeeMinor': 0,
     'deliveryMinimumMinor': 0,
     'deliveryZones': [],
@@ -92,6 +93,7 @@ class CatalogueModule {
       'selfSeating',
       'taxConfigured',
       'pricesIncludeTax',
+      'autoAcceptPaid',
     ]) {
       _bool(merged, b);
     }
@@ -219,8 +221,13 @@ class CatalogueModule {
             'Initialize this restaurant before configuring v2.',
           );
       _version(p.version, c.expectedVersion);
-      final settings = validateSettings(_object(d['settings']));
+      // A partial save changes only the keys it sends; everything else keeps
+      // its saved value instead of falling back to a default.
       final prior = w.settings;
+      final settings = validateSettings({
+        ...prior,
+        ..._object(d['settings']),
+      });
       if (settings['paymentTiming'] != prior['paymentTiming'] ||
           settings['taxBps'] != prior['taxBps'] ||
           settings['pricesIncludeTax'] != prior['pricesIncludeTax']) {
@@ -496,6 +503,9 @@ class CatalogueModule {
   static Future<Json> availability(Session s, PlatformCommand c) =>
       _mutate(s, c, 'menu.availability', (w, d) async {
         _keys(d, {'available', 'stockRemaining'});
+        if (d['available'] is! bool) {
+          _fail('invalid_input', 'State whether the item is available.');
+        }
         final product = await MenuProduct.db.findById(
           s,
           _id(c),
@@ -520,7 +530,8 @@ class CatalogueModule {
           def.version = product.version;
           await MenuDefinition.db.updateRow(s, def, transaction: w.tx);
         }
-        await _bumpMenu(w);
+        // Availability is not a menu edit: order.submit re-prices every quote
+        // and refuses lines that became unavailable, so other quotes stay valid.
         await w.audit('menu.availability', 'product', product.id);
         return {'version': product.version};
       }, roles: {'owner', 'manager', 'kitchen'});

@@ -6,6 +6,7 @@ fields:
   userId: String
   role: String
   active: bool
+  capabilities: List<String>?
 indexes:
   membership_tenant_user:
     fields: restaurantId, userId

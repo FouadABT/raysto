@@ -9,3 +9,5 @@ fields:
   slot: DateTime?
   couponCode: String?
   tipMinor: int
+  onBehalf: bool?
+  customerLabel: String?

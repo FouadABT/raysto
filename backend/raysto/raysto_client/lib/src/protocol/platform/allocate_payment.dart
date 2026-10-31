@@ -25,6 +25,7 @@ abstract class AllocatePayment
     this.lineKeys,
     this.shares,
     this.assistantProposalId,
+    this.splitPlanId,
     required this.method,
   });
 
@@ -37,6 +38,7 @@ abstract class AllocatePayment
     List<String>? lineKeys,
     List<_iz7ehvxk.ChargeShare>? shares,
     int? assistantProposalId,
+    int? splitPlanId,
     required String method,
   }) = _AllocatePaymentImpl;
 
@@ -58,6 +60,7 @@ abstract class AllocatePayment
               jsonSerialization['shares'],
             ),
       assistantProposalId: jsonSerialization['assistantProposalId'] as int?,
+      splitPlanId: jsonSerialization['splitPlanId'] as int?,
       method: jsonSerialization['method'] as String,
     );
   }
@@ -78,6 +81,8 @@ abstract class AllocatePayment
 
   int? assistantProposalId;
 
+  int? splitPlanId;
+
   String method;
 
   /// Returns a shallow copy of this [AllocatePayment]
@@ -92,6 +97,7 @@ abstract class AllocatePayment
     List<String>? lineKeys,
     List<_iz7ehvxk.ChargeShare>? shares,
     int? assistantProposalId,
+    int? splitPlanId,
     String? method,
   });
   @override
@@ -108,6 +114,7 @@ abstract class AllocatePayment
         'shares': shares?.toJson(valueToJson: (v) => v.toJson()),
       if (assistantProposalId != null)
         'assistantProposalId': assistantProposalId,
+      if (splitPlanId != null) 'splitPlanId': splitPlanId,
       'method': method,
     };
   }
@@ -126,6 +133,7 @@ abstract class AllocatePayment
         'shares': shares?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
       if (assistantProposalId != null)
         'assistantProposalId': assistantProposalId,
+      if (splitPlanId != null) 'splitPlanId': splitPlanId,
       'method': method,
     };
   }
@@ -148,6 +156,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
     List<String>? lineKeys,
     List<_iz7ehvxk.ChargeShare>? shares,
     int? assistantProposalId,
+    int? splitPlanId,
     required String method,
   }) : super._(
          requestKey: requestKey,
@@ -158,6 +167,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
          lineKeys: lineKeys,
          shares: shares,
          assistantProposalId: assistantProposalId,
+         splitPlanId: splitPlanId,
          method: method,
        );
 
@@ -174,6 +184,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
     Object? lineKeys = _Undefined,
     Object? shares = _Undefined,
     Object? assistantProposalId = _Undefined,
+    Object? splitPlanId = _Undefined,
     String? method,
   }) {
     return AllocatePayment(
@@ -191,6 +202,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
       assistantProposalId: assistantProposalId is int?
           ? assistantProposalId
           : this.assistantProposalId,
+      splitPlanId: splitPlanId is int? ? splitPlanId : this.splitPlanId,
       method: method ?? this.method,
     );
   }

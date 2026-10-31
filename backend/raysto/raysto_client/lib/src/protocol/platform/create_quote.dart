@@ -24,6 +24,8 @@ abstract class CreateQuote
     this.slot,
     this.couponCode,
     required this.tipMinor,
+    this.onBehalf,
+    this.customerLabel,
   });
 
   factory CreateQuote({
@@ -36,6 +38,8 @@ abstract class CreateQuote
     DateTime? slot,
     String? couponCode,
     required int tipMinor,
+    bool? onBehalf,
+    String? customerLabel,
   }) = _CreateQuoteImpl;
 
   factory CreateQuote.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -51,6 +55,10 @@ abstract class CreateQuote
           : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['slot']),
       couponCode: jsonSerialization['couponCode'] as String?,
       tipMinor: jsonSerialization['tipMinor'] as int,
+      onBehalf: jsonSerialization['onBehalf'] == null
+          ? null
+          : _isc.BoolJsonExtension.fromJson(jsonSerialization['onBehalf']),
+      customerLabel: jsonSerialization['customerLabel'] as String?,
     );
   }
 
@@ -72,6 +80,10 @@ abstract class CreateQuote
 
   int tipMinor;
 
+  bool? onBehalf;
+
+  String? customerLabel;
+
   /// Returns a shallow copy of this [CreateQuote]
   /// with some or all fields replaced by the given arguments.
   @_isc.useResult
@@ -85,6 +97,8 @@ abstract class CreateQuote
     DateTime? slot,
     String? couponCode,
     int? tipMinor,
+    bool? onBehalf,
+    String? customerLabel,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -99,6 +113,8 @@ abstract class CreateQuote
       if (slot != null) 'slot': slot?.toJson(),
       if (couponCode != null) 'couponCode': couponCode,
       'tipMinor': tipMinor,
+      if (onBehalf != null) 'onBehalf': onBehalf,
+      if (customerLabel != null) 'customerLabel': customerLabel,
     };
   }
 
@@ -115,6 +131,8 @@ abstract class CreateQuote
       if (slot != null) 'slot': slot?.toJson(),
       if (couponCode != null) 'couponCode': couponCode,
       'tipMinor': tipMinor,
+      if (onBehalf != null) 'onBehalf': onBehalf,
+      if (customerLabel != null) 'customerLabel': customerLabel,
     };
   }
 
@@ -137,6 +155,8 @@ class _CreateQuoteImpl extends CreateQuote {
     DateTime? slot,
     String? couponCode,
     required int tipMinor,
+    bool? onBehalf,
+    String? customerLabel,
   }) : super._(
          requestKey: requestKey,
          restaurantId: restaurantId,
@@ -147,6 +167,8 @@ class _CreateQuoteImpl extends CreateQuote {
          slot: slot,
          couponCode: couponCode,
          tipMinor: tipMinor,
+         onBehalf: onBehalf,
+         customerLabel: customerLabel,
        );
 
   /// Returns a shallow copy of this [CreateQuote]
@@ -163,6 +185,8 @@ class _CreateQuoteImpl extends CreateQuote {
     Object? slot = _Undefined,
     Object? couponCode = _Undefined,
     int? tipMinor,
+    Object? onBehalf = _Undefined,
+    Object? customerLabel = _Undefined,
   }) {
     return CreateQuote(
       requestKey: requestKey ?? this.requestKey,
@@ -174,6 +198,10 @@ class _CreateQuoteImpl extends CreateQuote {
       slot: slot is DateTime? ? slot : this.slot,
       couponCode: couponCode is String? ? couponCode : this.couponCode,
       tipMinor: tipMinor ?? this.tipMinor,
+      onBehalf: onBehalf is bool? ? onBehalf : this.onBehalf,
+      customerLabel: customerLabel is String?
+          ? customerLabel
+          : this.customerLabel,
     );
   }
 }

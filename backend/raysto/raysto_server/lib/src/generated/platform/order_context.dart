@@ -26,8 +26,14 @@ abstract class OrderContext
     required this.stockReleased,
     this.slotKey,
     this.couponCode,
+    String? origin,
+    this.customerLabel,
+    this.placedBy,
+    this.serviceDay,
+    this.orderNumber,
+    this.pickupCode,
     required this.createdAt,
-  });
+  }) : origin = origin ?? 'online';
 
   factory OrderContext({
     int? id,
@@ -41,6 +47,12 @@ abstract class OrderContext
     required bool stockReleased,
     String? slotKey,
     String? couponCode,
+    String? origin,
+    String? customerLabel,
+    String? placedBy,
+    String? serviceDay,
+    int? orderNumber,
+    String? pickupCode,
     required DateTime createdAt,
   }) = _OrderContextImpl;
 
@@ -61,6 +73,12 @@ abstract class OrderContext
       ),
       slotKey: jsonSerialization['slotKey'] as String?,
       couponCode: jsonSerialization['couponCode'] as String?,
+      origin: jsonSerialization['origin'] as String?,
+      customerLabel: jsonSerialization['customerLabel'] as String?,
+      placedBy: jsonSerialization['placedBy'] as String?,
+      serviceDay: jsonSerialization['serviceDay'] as String?,
+      orderNumber: jsonSerialization['orderNumber'] as int?,
+      pickupCode: jsonSerialization['pickupCode'] as String?,
       createdAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -94,6 +112,18 @@ abstract class OrderContext
 
   String? couponCode;
 
+  String origin;
+
+  String? customerLabel;
+
+  String? placedBy;
+
+  String? serviceDay;
+
+  int? orderNumber;
+
+  String? pickupCode;
+
   DateTime createdAt;
 
   @override
@@ -114,6 +144,12 @@ abstract class OrderContext
     bool? stockReleased,
     String? slotKey,
     String? couponCode,
+    String? origin,
+    String? customerLabel,
+    String? placedBy,
+    String? serviceDay,
+    int? orderNumber,
+    String? pickupCode,
     DateTime? createdAt,
   });
   @override
@@ -131,6 +167,12 @@ abstract class OrderContext
       'stockReleased': stockReleased,
       if (slotKey != null) 'slotKey': slotKey,
       if (couponCode != null) 'couponCode': couponCode,
+      'origin': origin,
+      if (customerLabel != null) 'customerLabel': customerLabel,
+      if (placedBy != null) 'placedBy': placedBy,
+      if (serviceDay != null) 'serviceDay': serviceDay,
+      if (orderNumber != null) 'orderNumber': orderNumber,
+      if (pickupCode != null) 'pickupCode': pickupCode,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -183,6 +225,12 @@ class _OrderContextImpl extends OrderContext {
     required bool stockReleased,
     String? slotKey,
     String? couponCode,
+    String? origin,
+    String? customerLabel,
+    String? placedBy,
+    String? serviceDay,
+    int? orderNumber,
+    String? pickupCode,
     required DateTime createdAt,
   }) : super._(
          id: id,
@@ -196,6 +244,12 @@ class _OrderContextImpl extends OrderContext {
          stockReleased: stockReleased,
          slotKey: slotKey,
          couponCode: couponCode,
+         origin: origin,
+         customerLabel: customerLabel,
+         placedBy: placedBy,
+         serviceDay: serviceDay,
+         orderNumber: orderNumber,
+         pickupCode: pickupCode,
          createdAt: createdAt,
        );
 
@@ -215,6 +269,12 @@ class _OrderContextImpl extends OrderContext {
     bool? stockReleased,
     Object? slotKey = _Undefined,
     Object? couponCode = _Undefined,
+    String? origin,
+    Object? customerLabel = _Undefined,
+    Object? placedBy = _Undefined,
+    Object? serviceDay = _Undefined,
+    Object? orderNumber = _Undefined,
+    Object? pickupCode = _Undefined,
     DateTime? createdAt,
   }) {
     return OrderContext(
@@ -230,6 +290,14 @@ class _OrderContextImpl extends OrderContext {
       stockReleased: stockReleased ?? this.stockReleased,
       slotKey: slotKey is String? ? slotKey : this.slotKey,
       couponCode: couponCode is String? ? couponCode : this.couponCode,
+      origin: origin ?? this.origin,
+      customerLabel: customerLabel is String?
+          ? customerLabel
+          : this.customerLabel,
+      placedBy: placedBy is String? ? placedBy : this.placedBy,
+      serviceDay: serviceDay is String? ? serviceDay : this.serviceDay,
+      orderNumber: orderNumber is int? ? orderNumber : this.orderNumber,
+      pickupCode: pickupCode is String? ? pickupCode : this.pickupCode,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -290,6 +358,37 @@ class OrderContextUpdateTable extends _is.UpdateTable<OrderContextTable> {
     value,
   );
 
+  _is.ColumnValue<String, String> origin(String value) => _is.ColumnValue(
+    table.origin,
+    value,
+  );
+
+  _is.ColumnValue<String, String> customerLabel(String? value) =>
+      _is.ColumnValue(
+        table.customerLabel,
+        value,
+      );
+
+  _is.ColumnValue<String, String> placedBy(String? value) => _is.ColumnValue(
+    table.placedBy,
+    value,
+  );
+
+  _is.ColumnValue<String, String> serviceDay(String? value) => _is.ColumnValue(
+    table.serviceDay,
+    value,
+  );
+
+  _is.ColumnValue<int, int> orderNumber(int? value) => _is.ColumnValue(
+    table.orderNumber,
+    value,
+  );
+
+  _is.ColumnValue<String, String> pickupCode(String? value) => _is.ColumnValue(
+    table.pickupCode,
+    value,
+  );
+
   _is.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _is.ColumnValue(
         table.createdAt,
@@ -341,6 +440,31 @@ class OrderContextTable extends _is.Table<int?> {
       'couponCode',
       this,
     );
+    origin = _is.ColumnString(
+      'origin',
+      this,
+      hasDefault: true,
+    );
+    customerLabel = _is.ColumnString(
+      'customerLabel',
+      this,
+    );
+    placedBy = _is.ColumnString(
+      'placedBy',
+      this,
+    );
+    serviceDay = _is.ColumnString(
+      'serviceDay',
+      this,
+    );
+    orderNumber = _is.ColumnInt(
+      'orderNumber',
+      this,
+    );
+    pickupCode = _is.ColumnString(
+      'pickupCode',
+      this,
+    );
     createdAt = _is.ColumnDateTime(
       'createdAt',
       this,
@@ -369,6 +493,18 @@ class OrderContextTable extends _is.Table<int?> {
 
   late final _is.ColumnString couponCode;
 
+  late final _is.ColumnString origin;
+
+  late final _is.ColumnString customerLabel;
+
+  late final _is.ColumnString placedBy;
+
+  late final _is.ColumnString serviceDay;
+
+  late final _is.ColumnInt orderNumber;
+
+  late final _is.ColumnString pickupCode;
+
   late final _is.ColumnDateTime createdAt;
 
   @override
@@ -384,6 +520,12 @@ class OrderContextTable extends _is.Table<int?> {
     stockReleased,
     slotKey,
     couponCode,
+    origin,
+    customerLabel,
+    placedBy,
+    serviceDay,
+    orderNumber,
+    pickupCode,
     createdAt,
   ];
 }

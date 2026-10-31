@@ -21,9 +21,11 @@ abstract class RestaurantPolicy
     required this.version,
     required this.menuVersion,
     required this.suspended,
+    int? orderSeq,
+    this.orderSeqDay,
     required this.createdAt,
     required this.updatedAt,
-  });
+  }) : orderSeq = orderSeq ?? 0;
 
   factory RestaurantPolicy({
     int? id,
@@ -32,6 +34,8 @@ abstract class RestaurantPolicy
     required int version,
     required int menuVersion,
     required bool suspended,
+    int? orderSeq,
+    String? orderSeqDay,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _RestaurantPolicyImpl;
@@ -44,6 +48,8 @@ abstract class RestaurantPolicy
       version: jsonSerialization['version'] as int,
       menuVersion: jsonSerialization['menuVersion'] as int,
       suspended: _is.BoolJsonExtension.fromJson(jsonSerialization['suspended']),
+      orderSeq: jsonSerialization['orderSeq'] as int?,
+      orderSeqDay: jsonSerialization['orderSeqDay'] as String?,
       createdAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -70,6 +76,10 @@ abstract class RestaurantPolicy
 
   bool suspended;
 
+  int orderSeq;
+
+  String? orderSeqDay;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -87,6 +97,8 @@ abstract class RestaurantPolicy
     int? version,
     int? menuVersion,
     bool? suspended,
+    int? orderSeq,
+    String? orderSeqDay,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -100,6 +112,8 @@ abstract class RestaurantPolicy
       'version': version,
       'menuVersion': menuVersion,
       'suspended': suspended,
+      'orderSeq': orderSeq,
+      if (orderSeqDay != null) 'orderSeqDay': orderSeqDay,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -148,6 +162,8 @@ class _RestaurantPolicyImpl extends RestaurantPolicy {
     required int version,
     required int menuVersion,
     required bool suspended,
+    int? orderSeq,
+    String? orderSeqDay,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) : super._(
@@ -157,6 +173,8 @@ class _RestaurantPolicyImpl extends RestaurantPolicy {
          version: version,
          menuVersion: menuVersion,
          suspended: suspended,
+         orderSeq: orderSeq,
+         orderSeqDay: orderSeqDay,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -172,6 +190,8 @@ class _RestaurantPolicyImpl extends RestaurantPolicy {
     int? version,
     int? menuVersion,
     bool? suspended,
+    int? orderSeq,
+    Object? orderSeqDay = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -182,6 +202,8 @@ class _RestaurantPolicyImpl extends RestaurantPolicy {
       version: version ?? this.version,
       menuVersion: menuVersion ?? this.menuVersion,
       suspended: suspended ?? this.suspended,
+      orderSeq: orderSeq ?? this.orderSeq,
+      orderSeqDay: orderSeqDay is String? ? orderSeqDay : this.orderSeqDay,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -214,6 +236,16 @@ class RestaurantPolicyUpdateTable
 
   _is.ColumnValue<bool, bool> suspended(bool value) => _is.ColumnValue(
     table.suspended,
+    value,
+  );
+
+  _is.ColumnValue<int, int> orderSeq(int value) => _is.ColumnValue(
+    table.orderSeq,
+    value,
+  );
+
+  _is.ColumnValue<String, String> orderSeqDay(String? value) => _is.ColumnValue(
+    table.orderSeqDay,
     value,
   );
 
@@ -254,6 +286,15 @@ class RestaurantPolicyTable extends _is.Table<int?> {
       'suspended',
       this,
     );
+    orderSeq = _is.ColumnInt(
+      'orderSeq',
+      this,
+      hasDefault: true,
+    );
+    orderSeqDay = _is.ColumnString(
+      'orderSeqDay',
+      this,
+    );
     createdAt = _is.ColumnDateTime(
       'createdAt',
       this,
@@ -276,6 +317,10 @@ class RestaurantPolicyTable extends _is.Table<int?> {
 
   late final _is.ColumnBool suspended;
 
+  late final _is.ColumnInt orderSeq;
+
+  late final _is.ColumnString orderSeqDay;
+
   late final _is.ColumnDateTime createdAt;
 
   late final _is.ColumnDateTime updatedAt;
@@ -288,6 +333,8 @@ class RestaurantPolicyTable extends _is.Table<int?> {
     version,
     menuVersion,
     suspended,
+    orderSeq,
+    orderSeqDay,
     createdAt,
     updatedAt,
   ];

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../platform/platform.dart';
 import '../services/payment_service.dart';
 import '../services/raysto_service.dart';
 
@@ -110,12 +111,30 @@ class PayPalWebhookRoute extends Route {
 
 class PayPalReturnRoute extends Route {
   @override
-  Future<Result> handleCall(
-    Session session,
-    Request request,
-  ) async => Response.ok(
-    body: Body.fromString(
-      'Return to Raysto to check your payment status. This page does not confirm payment.',
-    ),
-  );
+  Future<Result> handleCall(Session session, Request request) async {
+    var text =
+        'Return to Raysto to check your payment status. This page does not confirm payment.';
+    final q = request.url.queryParameters;
+    final id = int.tryParse(q['checkoutId'] ?? '');
+    // PayPal appends its order id as `token`; only the payer holds it, so a
+    // match lets a walk-in without the app be captured right away. The
+    // capture itself still re-reads PayPal and checks every amount.
+    if (request.url.path.endsWith('/return') && q['v'] == '2' && id != null) {
+      try {
+        final checkout = await CheckoutIntent.db.findById(session, id);
+        final token = q['token'];
+        if (checkout != null &&
+            token != null &&
+            checkout.providerOrderId == token) {
+          final result = await MoneyModule.settleApproved(session, id);
+          if (result['state'] == 'completed') {
+            text = 'Payment received. Thank you.';
+          }
+        }
+      } catch (_) {
+        // The neutral message stands; the worker keeps reconciling.
+      }
+    }
+    return Response.ok(body: Body.fromString(text));
+  }
 }

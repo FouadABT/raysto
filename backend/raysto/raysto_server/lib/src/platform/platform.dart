@@ -250,6 +250,7 @@ class PlatformApi {
   static final Map<String, Future<Json> Function(Session, PlatformCommand)>
   commands = {
     'room.split.reset': EqualShares.reset,
+    'room.split.equal': EqualShares.equal,
     'operations.archiveThread': WorkspaceModule.archiveThread,
     'assistant.start': AssistantModule.start,
     'assistant.cancel': AssistantModule.cancel,
@@ -302,6 +303,7 @@ class PlatformApi {
     'payment.checkout': MoneyModule.checkout,
     'payment.capture': MoneyModule.capture,
     'payment.cancel': MoneyModule.cancel,
+    'payment.release': MoneyModule.release,
     'merchant.connect': MoneyModule.connectMerchant,
     'merchant.refresh': MoneyModule.refreshMerchant,
     'billing.subscribe': OperationsModule.subscribe,

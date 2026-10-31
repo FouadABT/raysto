@@ -8,4 +8,5 @@ fields:
   lineKeys: List<String>?
   shares: List<ChargeShare>?
   assistantProposalId: int?
+  splitPlanId: int?
   method: String

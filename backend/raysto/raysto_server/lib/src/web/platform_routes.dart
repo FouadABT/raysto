@@ -212,8 +212,9 @@ class PlatformRoute extends Route {
         final tenant = int.tryParse(
           r.url.queryParameters['restaurantId'] ?? '',
         );
+        // after=-1 starts from the newest change instead of replaying history.
         final cursor = int.tryParse(r.url.queryParameters['after'] ?? '0');
-        if (tenant == null || cursor == null || cursor < 0) {
+        if (tenant == null || cursor == null || cursor < -1) {
           return jsonResponse(400, {'error': 'invalid_input'});
         }
         final events = PlatformQueries.events(s, tenant, cursor).map(

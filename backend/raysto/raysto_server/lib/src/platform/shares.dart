@@ -134,6 +134,67 @@ class EqualShares {
     };
   }
 
+  /// The equal split without the assistant: the same frozen shares a diner
+  /// would get from an approved AI proposal, so splitting never needs AI.
+  static Future<Json> equal(
+    Session s,
+    PlatformCommand c,
+  ) => _mutate(s, c, 'room.split.equal', (w, d) async {
+    _keys(d, {'payers'});
+    final room = await ConversationModule.room(w, _id(c), write: true);
+    if (room.visitId == null) {
+      _fail('invalid_input', 'Equal shares split a table bill.');
+    }
+    final raw = _list(d, 'payers', max: 50);
+    if (raw.any((p) => p is! String)) _fail('invalid_input', 'Invalid payers.');
+    final payers = raw.cast<String>().toList();
+    final diners = await ConversationModule.diners(w, room);
+    if (payers.isEmpty ||
+        payers.toSet().length != payers.length ||
+        !payers.contains(w.user) ||
+        payers.any((p) => !diners.contains(p))) {
+      _fail('invalid_input', 'Choose current diners including yourself.');
+    }
+    final bill = await AssistantModule.bill(w, room);
+    return prepare(w, room, payers, (bill['charges'] as List).cast<Json>());
+  });
+
+  /// The caller's remaining frozen share of an active equal split, used by
+  /// payment.allocate to refuse any amount other than that exact share.
+  static Future<List<Json>> mine(Work w, int splitPlanId, int visitId) async {
+    final plan = await BillSplitPlan.db.findById(
+      w.s,
+      splitPlanId,
+      transaction: w.tx,
+    );
+    final room = plan?.activeRoomId == null
+        ? null
+        : await ConversationRoom.db.findById(
+            w.s,
+            plan!.activeRoomId!,
+            transaction: w.tx,
+          );
+    if (plan == null ||
+        plan.restaurantId != w.tenant ||
+        room == null ||
+        room.visitId != visitId) {
+      _fail('stale_proposal', 'This equal split was reset. Review a new share.');
+    }
+    final bill = await AssistantModule.bill(w, room);
+    final split = await prepare(
+      w,
+      room,
+      (jsonDecode(plan.payersJson) as List).cast<String>(),
+      (bill['charges'] as List).cast<Json>(),
+    );
+    // A fully paid plan is replaced by prepare; a payment must not be
+    // stamped with the old one, or the new plan would not count it.
+    if (split['splitPlanId'] != plan.id) {
+      _fail('stale_proposal', 'This equal split was reset. Review a new share.');
+    }
+    return (split['shares'] as List).cast<Json>();
+  }
+
   static Future<Json> reset(
     Session s,
     PlatformCommand c,

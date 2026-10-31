@@ -674,7 +674,7 @@ class IdentityModule {
     c,
     'team.membership',
     (w, d) async {
-      _keys(d, {'userId', 'role', 'active'});
+      _keys(d, {'userId', 'role', 'active', 'capabilities'});
       final caller = await w.role(_managers);
       final target = await Membership.db.findFirstRow(
         s,
@@ -697,6 +697,17 @@ class IdentityModule {
       );
       if (!target.active && _bool(d, 'active')) await teamCapacity(w);
       target.active = _bool(d, 'active');
+      if (d.containsKey('capabilities')) {
+        final granted = _list(d, 'capabilities', max: _capabilities.length);
+        if (granted.any((c) => !_capabilities.contains(c)) ||
+            granted.toSet().length != granted.length) {
+          _fail('invalid_input', 'Unknown or repeated capability.');
+        }
+        if (granted.any((c) => !_capabilityRoles[c]!.contains(target.role))) {
+          _fail('invalid_input', 'This role cannot hold that capability.');
+        }
+        target.capabilities = [...granted.cast<String>()]..sort();
+      }
       await Membership.db.updateRow(s, target, transaction: w.tx);
       await AccessInvitation.db.updateWhere(
         s,
@@ -708,8 +719,14 @@ class IdentityModule {
       await w.audit('team.membership_changed', 'membership', target.id, {
         'role': target.role,
         'active': target.active,
+        'capabilities': target.capabilities ?? const [],
       });
-      return {'id': target.id, 'active': target.active, 'role': target.role};
+      return {
+        'id': target.id,
+        'active': target.active,
+        'role': target.role,
+        'capabilities': target.capabilities ?? const [],
+      };
     },
     roles: _managers,
     registered: true,

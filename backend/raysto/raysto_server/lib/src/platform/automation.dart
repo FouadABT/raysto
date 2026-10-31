@@ -370,15 +370,37 @@ class AiModule {
           t.restaurantId.equals(a.restaurantId) & t.available.equals(true),
       limit: 200,
     );
+    // A recommendation needs the dietary facts the restaurant recorded; an
+    // item without them stays "unknown", never "safe".
+    final definitions = {
+      for (final d in await MenuDefinition.db.find(
+        s,
+        where: (t) =>
+            t.restaurantId.equals(a.restaurantId) & t.archived.equals(false),
+        limit: 200,
+      ))
+        d.productId: _json(d.definitionJson),
+    };
     final parts = <Json>[
       {
         'text': jsonEncode({
           'request': _json(a.inputJson),
-          'menu': menu
-              .map(
-                (p) => {'id': p.id, 'name': p.name, 'priceMinor': p.priceMinor},
-              )
-              .toList(),
+          'unknownAllergensAreNotSafe': true,
+          'menu': [
+            for (final p in menu)
+              if (a.kind != 'recommend' || definitions.containsKey(p.id))
+                {
+                  'id': p.id,
+                  'name': p.name,
+                  'priceMinor': p.priceMinor,
+                  if (a.kind == 'recommend') ...{
+                    'category': definitions[p.id]?['category'],
+                    'allergens': definitions[p.id]?['allergens'],
+                    'dietary': definitions[p.id]?['dietary'],
+                    'ingredients': definitions[p.id]?['ingredients'],
+                  },
+                },
+          ],
         }),
       },
     ];
@@ -720,7 +742,7 @@ class PlatformWorker {
             }
           });
         }
-        final state = await MoneyModule.reconcile(
+        final state = await MoneyModule.settleApproved(
           s,
           _int(d, 'checkoutId', min: 1),
         );
@@ -912,9 +934,28 @@ class PlatformWorker {
   static Future<void> expireOrder(Session s, int id) async {
     final o = await PurchaseOrder.db.findById(s, id);
     if (o == null) return;
-    await MoneyModule.locked(s, o.restaurantId, o.customerId, (w) async {
+    // A counter sale has no customer account; act as the cashier who rang it.
+    final actor = OrderingModule.isWalkIn(o.customerId)
+        ? (await OrderContext.db.findFirstRow(
+            s,
+            where: (t) => t.orderId.equals(id),
+          ))?.placedBy
+        : o.customerId;
+    if (actor == null) return;
+    await MoneyModule.locked(s, o.restaurantId, actor, (w) async {
       final (order, ctx) = await OrderingModule._order(w, id);
       if (order.status == 'awaitingPayment' && order.paymentStatus != 'paid') {
+        // A split bill is paid by several people: while one of them is in
+        // checkout or has already paid a share, wait (bounded) for the rest.
+        final charges = await BillCharge.db.find(
+          s,
+          where: (t) => t.orderId.equals(id),
+          transaction: w.tx,
+        );
+        if (charges.any((b) => b.reservedMinor > 0 || b.settledMinor > 0) &&
+            _now().difference(order.createdAt).inHours < 3) {
+          _fail('payment_pending', 'A payer is still completing this order.');
+        }
         await OrderingModule._cancel(
           w,
           order,
@@ -1135,7 +1176,7 @@ class PlatformWorker {
               'Webhook channel does not match the payment.',
             );
           }
-          await MoneyModule.reconcile(s, i.id!);
+          await MoneyModule.settleApproved(s, i.id!);
         }
       }
       if (event.eventType.contains('REFUND')) {

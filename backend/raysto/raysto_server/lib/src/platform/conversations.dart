@@ -35,7 +35,7 @@ class ConversationModule {
         transaction: w.tx,
       );
       if (o == null) _fail('not_found', 'Order not found.');
-      await _orderAccess(w, o);
+      await _orderAccess(w, o, walkInOnly: true);
       if (write && {'completed', 'cancelled', 'rejected'}.contains(o.status)) {
         _fail(
           'room_closed',
@@ -132,7 +132,7 @@ class ConversationModule {
             transaction: w.tx,
           );
           if (o == null) _fail('not_found', 'Order not found.');
-          await _orderAccess(w, o);
+          await _orderAccess(w, o, walkInOnly: true);
           final context = await OrderContext.db.findFirstRow(
             s,
             where: (t) => t.orderId.equals(orderId!),

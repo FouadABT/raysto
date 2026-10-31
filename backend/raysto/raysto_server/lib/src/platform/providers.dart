@@ -2,6 +2,12 @@ part of 'platform.dart';
 
 /// Fixed-host transports. Response bodies and credentials never enter client errors.
 class ProviderClients {
+  // Test seams: integration tests swap in a mock PayPal transport and fixture
+  // credentials. Production always uses the defaults.
+  static http.Client Function() httpClient = http.Client.new;
+  static Map<String, String> Function() environment = () =>
+      Platform.environment;
+
   // Only used after PlatformApi.guard has cryptographically verified this proof.
   static int identityAuthTime(Session s) {
     final token = PlatformApi.requestHeader(s, 'x-raysto-firebase-token');
@@ -16,20 +22,20 @@ class ProviderClients {
 
   static bool singleRestaurant(int tenant) =>
       paypalEnvironment == 'sandbox' &&
-      Platform.environment['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] ==
+      environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] ==
           'true' &&
       int.tryParse(
-            Platform.environment['RAYSTO_SANDBOX_RESTAURANT_ID'] ?? '',
+            environment()['RAYSTO_SANDBOX_RESTAURANT_ID'] ?? '',
           ) ==
           tenant;
 
   static Future<String> paypalReadToken() async {
     if (paypalEnvironment != 'sandbox' ||
-        Platform.environment['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
+        environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
             'true') {
       _fail('not_configured', 'Sandbox merchant reads are not enabled.');
     }
-    final client = http.Client();
+    final client = httpClient();
     try {
       final id = required('PAYPAL_SANDBOX_CLIENT_ID');
       final secret = required('PAYPAL_SANDBOX_CLIENT_SECRET');
@@ -51,15 +57,15 @@ class ProviderClients {
   }
 
   static String required(String key) =>
-      Platform.environment[key]?.trim().isNotEmpty == true
-      ? Platform.environment[key]!.trim()
+      environment()[key]?.trim().isNotEmpty == true
+      ? environment()[key]!.trim()
       : _fail('not_configured', 'Missing server configuration: $key.');
   static String get paypalEnvironment =>
-      Platform.environment['RAYSTO_PAYPAL_ENVIRONMENT'] ?? 'sandbox';
+      environment()['RAYSTO_PAYPAL_ENVIRONMENT'] ?? 'sandbox';
   static String get paypalHost {
     if (paypalEnvironment == 'sandbox') return 'api-m.sandbox.paypal.com';
     if (paypalEnvironment == 'live' &&
-        Platform.environment['RAYSTO_LIVE_PAYMENTS_APPROVED'] == 'true') {
+        environment()['RAYSTO_LIVE_PAYMENTS_APPROVED'] == 'true') {
       return 'api-m.paypal.com';
     }
     return _fail(
@@ -120,7 +126,7 @@ class ProviderClients {
     if (singleMerchant &&
         (billing ||
             paypalEnvironment != 'sandbox' ||
-            Platform.environment['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
+            environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
                 'true' ||
             (merchant != null &&
                 merchant != required('PAYPAL_SANDBOX_MERCHANT_ID')))) {
@@ -141,7 +147,7 @@ class ProviderClients {
         'Subscriptions require a separate direct seller account.',
       );
     }
-    final client = http.Client();
+    final client = httpClient();
     try {
       final token = await sendJson(
         client,
@@ -541,9 +547,44 @@ class ProviderClients {
   static Uri storageUri(String name, {bool download = false}) => Uri.parse(
     'https://storage.googleapis.com/storage/v1/b/${Uri.encodeComponent(required('FIREBASE_STORAGE_BUCKET'))}/o/${Uri.encodeComponent(name)}${download ? '?alt=media' : ''}',
   );
-  // Token counting refreshes the cached Google credential. Generation uses a
-  // dedicated transport so a timeout closes only this model request, never
-  // Firebase identity checks or another assistant run. No automatic paid retry.
+  static String get geminiModel =>
+      environment()['GEMINI_MODEL']?.trim().isNotEmpty == true
+      ? environment()['GEMINI_MODEL']!.trim()
+      : 'gemini-3.6-flash';
+
+  // A 429/503 is a definite refusal that Google never bills, so waiting a
+  // moment and asking again spends nothing extra and stays inside the run's
+  // budget reservation. Timeouts are never retried: their outcome is unknown
+  // and may already have been charged.
+  static Future<Json> _retryCapacity(
+    Future<Json> Function() attempt,
+    Duration Function() remaining,
+  ) async {
+    for (var wait = 1; ; wait *= 3) {
+      try {
+        return await attempt();
+      } on GeminiFailure catch (e) {
+        if (e.code != 'ai_capacity' ||
+            wait > 3 ||
+            remaining() < Duration(seconds: wait + 5)) {
+          rethrow;
+        }
+        await Future<void>.delayed(Duration(seconds: wait));
+      }
+    }
+  }
+
+  static void _boundedInput(Json estimate) {
+    if (estimate['totalTokens'] is! int || estimate['totalTokens'] > 16384) {
+      throw const GeminiFailure('ai_input_too_large', 'count_tokens');
+    }
+  }
+
+  // Gemini runs on Vertex AI in the EU with the service account unless
+  // GEMINI_API_KEY is set, which sends the same requests to the Gemini
+  // Developer API (global). Token counting refreshes the cached Google
+  // credential. Generation uses a dedicated transport so a timeout closes only
+  // this model request, never Firebase identity checks or another run.
   static Future<Json> geminiRequest(
     Json body,
     Json config, {
@@ -552,38 +593,87 @@ class ProviderClients {
   }) async {
     final watch = Stopwatch()..start();
     Duration remaining() => deadline - watch.elapsed;
+    final key = environment()['GEMINI_API_KEY']?.trim() ?? '';
+    if (key.isNotEmpty) {
+      const host = 'generativelanguage.googleapis.com';
+      final model = 'models/$geminiModel';
+      final headers = {'x-goog-api-key': key};
+      final client = httpClient();
+      try {
+        onStage?.call('count_tokens');
+        // The Developer API counts system instructions and tools only when
+        // they are wrapped in a full generation request.
+        _boundedInput(
+          await _retryCapacity(
+            () => GeminiTransport.post(
+              client,
+              Uri.https(host, '/v1beta/$model:countTokens'),
+              {
+                'generateContentRequest': {'model': model, ...body},
+              },
+              stage: 'count_tokens',
+              timeout: remaining(),
+              headers: headers,
+            ),
+            remaining,
+          ),
+        );
+        onStage?.call('generate');
+        return await _retryCapacity(
+          () => GeminiTransport.post(
+            client,
+            Uri.https(host, '/v1beta/$model:streamGenerateContent', {
+              'alt': 'sse',
+            }),
+            {...body, 'generationConfig': config},
+            stage: 'generate',
+            timeout: remaining(),
+            streaming: true,
+            headers: headers,
+          ),
+          remaining,
+        );
+      } finally {
+        client.close();
+      }
+    }
     final path =
-        '/v1/projects/${required('GOOGLE_CLOUD_PROJECT')}/locations/eu/publishers/google/models/gemini-3.8-flash';
+        '/v1/projects/${required('GOOGLE_CLOUD_PROJECT')}/locations/eu/publishers/google/models/$geminiModel';
     onStage?.call('google_auth');
     return google(null, (auth) async {
       onStage?.call('count_tokens');
-      final estimate = await GeminiTransport.post(
-        auth,
-        Uri.https('aiplatform.eu.rep.googleapis.com', '$path:countTokens'),
-        body,
-        stage: 'count_tokens',
-        timeout: remaining(),
-      );
-      if (estimate['totalTokens'] is! int || estimate['totalTokens'] > 16384) {
-        throw const GeminiFailure('ai_input_too_large', 'count_tokens');
-      }
-      onStage?.call('generate');
-      final transport = http.Client();
-      try {
-        return await GeminiTransport.post(
-          transport,
-          Uri.https(
-            'aiplatform.eu.rep.googleapis.com',
-            '$path:streamGenerateContent',
-            {'alt': 'sse'},
+      _boundedInput(
+        await _retryCapacity(
+          () => GeminiTransport.post(
+            auth,
+            Uri.https('aiplatform.eu.rep.googleapis.com', '$path:countTokens'),
+            body,
+            stage: 'count_tokens',
+            timeout: remaining(),
           ),
-          {...body, 'generationConfig': config},
-          stage: 'generate',
-          timeout: remaining(),
-          streaming: true,
-          headers: {
-            'Authorization': 'Bearer ${auth.credentials.accessToken.data}',
-          },
+          remaining,
+        ),
+      );
+      onStage?.call('generate');
+      final transport = httpClient();
+      try {
+        return await _retryCapacity(
+          () => GeminiTransport.post(
+            transport,
+            Uri.https(
+              'aiplatform.eu.rep.googleapis.com',
+              '$path:streamGenerateContent',
+              {'alt': 'sse'},
+            ),
+            {...body, 'generationConfig': config},
+            stage: 'generate',
+            timeout: remaining(),
+            streaming: true,
+            headers: {
+              'Authorization': 'Bearer ${auth.credentials.accessToken.data}',
+            },
+          ),
+          remaining,
         );
       } finally {
         transport.close();

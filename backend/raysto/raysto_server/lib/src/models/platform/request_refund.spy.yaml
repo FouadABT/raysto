@@ -5,3 +5,4 @@ fields:
   captureId: int
   amountMinor: int
   reason: String
+  orderId: int?

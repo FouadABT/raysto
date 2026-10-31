@@ -10,6 +10,7 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:raysto_server/src/generated/protocol.dart' as _irq02k2f;
 import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class Membership
@@ -20,6 +21,7 @@ abstract class Membership
     required this.userId,
     required this.role,
     required this.active,
+    this.capabilities,
   });
 
   factory Membership({
@@ -28,6 +30,7 @@ abstract class Membership
     required String userId,
     required String role,
     required bool active,
+    List<String>? capabilities,
   }) = _MembershipImpl;
 
   factory Membership.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -37,6 +40,11 @@ abstract class Membership
       userId: jsonSerialization['userId'] as String,
       role: jsonSerialization['role'] as String,
       active: _is.BoolJsonExtension.fromJson(jsonSerialization['active']),
+      capabilities: jsonSerialization['capabilities'] == null
+          ? null
+          : _irq02k2f.Protocol().deserialize<List<String>>(
+              jsonSerialization['capabilities'],
+            ),
     );
   }
 
@@ -55,6 +63,8 @@ abstract class Membership
 
   bool active;
 
+  List<String>? capabilities;
+
   @override
   _is.Table<int?> get table => t;
 
@@ -67,6 +77,7 @@ abstract class Membership
     String? userId,
     String? role,
     bool? active,
+    List<String>? capabilities,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -77,6 +88,7 @@ abstract class Membership
       'userId': userId,
       'role': role,
       'active': active,
+      if (capabilities != null) 'capabilities': capabilities?.toJson(),
     };
   }
 
@@ -122,12 +134,14 @@ class _MembershipImpl extends Membership {
     required String userId,
     required String role,
     required bool active,
+    List<String>? capabilities,
   }) : super._(
          id: id,
          restaurantId: restaurantId,
          userId: userId,
          role: role,
          active: active,
+         capabilities: capabilities,
        );
 
   /// Returns a shallow copy of this [Membership]
@@ -140,6 +154,7 @@ class _MembershipImpl extends Membership {
     String? userId,
     String? role,
     bool? active,
+    Object? capabilities = _Undefined,
   }) {
     return Membership(
       id: id is int? ? id : this.id,
@@ -147,6 +162,9 @@ class _MembershipImpl extends Membership {
       userId: userId ?? this.userId,
       role: role ?? this.role,
       active: active ?? this.active,
+      capabilities: capabilities is List<String>?
+          ? capabilities
+          : this.capabilities?.map((e0) => e0).toList(),
     );
   }
 }
@@ -173,6 +191,13 @@ class MembershipUpdateTable extends _is.UpdateTable<MembershipTable> {
     table.active,
     value,
   );
+
+  _is.ColumnValue<List<String>, List<String>> capabilities(
+    List<String>? value,
+  ) => _is.ColumnValue(
+    table.capabilities,
+    value,
+  );
 }
 
 class MembershipTable extends _is.Table<int?> {
@@ -195,6 +220,10 @@ class MembershipTable extends _is.Table<int?> {
       'active',
       this,
     );
+    capabilities = _is.ColumnSerializable<List<String>>(
+      'capabilities',
+      this,
+    );
   }
 
   late final MembershipUpdateTable updateTable;
@@ -207,6 +236,8 @@ class MembershipTable extends _is.Table<int?> {
 
   late final _is.ColumnBool active;
 
+  late final _is.ColumnSerializable<List<String>> capabilities;
+
   @override
   List<_is.Column> get columns => [
     id,
@@ -214,6 +245,7 @@ class MembershipTable extends _is.Table<int?> {
     userId,
     role,
     active,
+    capabilities,
   ];
 }
 

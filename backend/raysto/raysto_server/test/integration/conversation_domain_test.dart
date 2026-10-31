@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:raysto_server/src/generated/protocol.dart';
 import 'package:raysto_server/src/platform/platform.dart';
 import 'package:test/test.dart';
@@ -485,6 +486,54 @@ void main() {
         ),
         throwsA(isA<DomainError>()),
       );
+    });
+    test('an equal split works without the assistant and binds exact shares', () async {
+      final split = await EqualShares.equal(
+        first.build(),
+        command({
+          'payers': ['diner-a', 'diner-b'],
+        }, id: room.id),
+      );
+      final mine = (split['shares'] as List).cast<Json>();
+      expect(mine.single['amountMinor'], 501);
+      AllocatePayment pay(int amount) => AllocatePayment(
+        requestKey: key(),
+        restaurantId: restaurant.id!,
+        visitId: visit.id,
+        splitPlanId: split['splitPlanId'] as int,
+        shares: [
+          ChargeShare(
+            chargeId: mine.single['chargeId'] as int,
+            amountMinor: amount,
+            expectedVersion: mine.single['expectedVersion'] as int,
+          ),
+        ],
+        method: 'paypal',
+      );
+      await expectLater(
+        MoneyModule.allocate(first.build(), pay(1001)),
+        throwsA(
+          isA<DomainError>().having((e) => e.code, 'code', 'stale_proposal'),
+        ),
+      );
+      ProviderClients.environment = () => {
+        ...Platform.environment,
+        'RAYSTO_PAYPAL_ENVIRONMENT': 'sandbox',
+        'RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED': 'true',
+        'RAYSTO_SANDBOX_RESTAURANT_ID': '${restaurant.id}',
+        'PAYPAL_SANDBOX_MERCHANT_ID': 'MERCHANT-FIXTURE',
+      };
+      try {
+        final reserved = await MoneyModule.allocate(first.build(), pay(501));
+        final intent = (await CheckoutIntent.db.findById(
+          builder.build(),
+          reserved['checkoutId'] as int,
+        ))!;
+        expect(intent.splitPlanId, split['splitPlanId']);
+        expect(intent.amountMinor, 501);
+      } finally {
+        ProviderClients.environment = () => Platform.environment;
+      }
     });
     test(
       'implicit payment lookup uses only this payer and conversation',
