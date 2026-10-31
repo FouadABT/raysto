@@ -38,6 +38,12 @@ import {
   type TableRow,
 } from "@/lib/connected/contracts";
 import { RoomPanel } from "./room-panel";
+import {
+  BusinessOverview,
+  OrdersSection,
+  PaymentsSection,
+  type Section,
+} from "./business-sections";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 const license = process.env.NEXT_PUBLIC_AG_STUDIO_LICENSE;
@@ -214,6 +220,9 @@ export function OperationsWorkspace({
   const [error, setError] = useState(""),
     [delivery, setDelivery] = useState("Connecting");
   const [tab, setTab] = useState("tables");
+  // The whole business first; the table floor is one section among four.
+  const [section, setSection] = useState<Section | "floor">("overview");
+  const [focus, setFocus] = useState<string>();
   const [layout, setLayout] = useState<AgReportState<Registry>>();
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -604,7 +613,7 @@ export function OperationsWorkspace({
       <section className="ops-workspace">
         <div className="ops-heading">
           <div>
-            <span className="ops-eyebrow">MAKE EVERY TABLE FEEL SEEN</span>
+            <span className="ops-eyebrow">EVERY ORDER, EVERY TABLE, EVERY PAYMENT</span>
             <h1>{snapshot.name}</h1>
           </div>
           <span className="ops-live">● {delivery}</span>
@@ -618,6 +627,64 @@ export function OperationsWorkspace({
             {error}
           </p>
         )}
+        <nav className="ops-sections" aria-label="Console sections">
+          {(
+            [
+              ["overview", "Overview"],
+              ["orders", "Orders"],
+              ["payments", "Payments"],
+              ["floor", "Floor"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              aria-pressed={section === id}
+              onClick={() => {
+                setFocus(undefined);
+                setSection(id);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+        {section !== "floor" ? (
+          section === "overview" ? (
+            <BusinessOverview
+              api={api}
+              tenant={tenant}
+              revision={snapshot.asOf}
+              currencyCode={snapshot.currency}
+              openRequests={snapshot.rows.reduce(
+                (sum, row) => sum + row.serviceCount,
+                0,
+              )}
+              open={(next, f) => {
+                setFocus(f);
+                setSection(next);
+              }}
+            />
+          ) : section === "orders" ? (
+            <OrdersSection
+              key={focus ?? "orders"}
+              api={api}
+              tenant={tenant}
+              revision={snapshot.asOf}
+              focus={focus}
+              currencyCode={snapshot.currency}
+            />
+          ) : (
+            <PaymentsSection
+              key={focus ?? "payments"}
+              api={api}
+              tenant={tenant}
+              revision={snapshot.asOf}
+              focus={focus}
+              currencyCode={snapshot.currency}
+            />
+          )
+        ) : (
+          <>
         <div className="ops-filters" aria-label="Shared workspace filter">
           {(["all", "billRequested", "paymentExceptions"] as const).map(
             (value) => (
@@ -867,6 +934,8 @@ export function OperationsWorkspace({
             )}
           </aside>
         </div>
+          </>
+        )}
       </section>
     </Context.Provider>
   );

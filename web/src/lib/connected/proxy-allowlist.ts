@@ -10,6 +10,7 @@ export const consoleQueries = new Set([
   "checkouts",
   "report",
   "kitchen",
+  "payment.exceptions",
   "room",
   "assistant.run",
 ]);
