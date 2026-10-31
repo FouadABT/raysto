@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
+import { allowedPath } from "@/lib/connected/proxy-allowlist";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const safePath =
-  /^(auth\/firebase|queries\/[a-z.]+|commands\/[a-z.]+|rooms\/[1-9][0-9]*\/events|events)$/;
 const maximum = 131072;
 
 async function proxy(
@@ -11,7 +10,7 @@ async function proxy(
   context: { params: Promise<{ path: string[] }> },
 ) {
   const path = (await context.params).path.join("/");
-  if (!safePath.test(path))
+  if (!allowedPath(path))
     return Response.json({ error: { code: "not_found" } }, { status: 404 });
   const origin =
     process.env.RAYSTO_CONSOLE_ORIGIN ??
