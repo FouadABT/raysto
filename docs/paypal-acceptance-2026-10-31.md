@@ -62,6 +62,8 @@ The console's Agents section loaded on 0.13.0 for the QA owner with no errors an
 - **Menu headings (0.13.1).** Sections came out in the menu's printed capitals ("BREAKFAST"). Headings printed in capitals are now shown as "Breakfast"; names an owner typed keep their case.
 - **Voice route size limit (Nginx).** The first voice request got `413` from Nginx, whose `/api/v2/` limit is 128 KB. The exact voice route now has its own 1100 KB limit on Raysto's `api.rays.to` site. Awhar's site was checked unchanged.
 - **Payments agent wording (0.13.2).** The release proposal said the payment would free "the table", though this was a pickup order. The ledger read now names the sale (pickup order, counter sale or table bill) and the agent uses those words.
+- **Copilot false rush (0.13.4).** On 0.13.3 the copilot measured lateness from when an order was placed, so order 7 (paid tonight for 12:30 tomorrow) looked 30 minutes old and it proposed "Promise 35 minutes instead of 20" twice. Nothing changed, since a manager must approve; the QA owner turned the first card down. Lateness is now measured from each order's due time (its pickup slot, or placement plus the preparation time).
+- **Sessions past 100 sign-ins (0.13.5).** After 103 scripted sign-ins the QA owner's new sessions were refused as "revoked": the auth library's token listing returns only the first 100. Raysto now looks the current session up by its id.
 - **Assistant time limit (0.13.3).** Run 27 timed out at 30 s while Gemini composed the basket; earlier runs took 14–23 s. Assistant runs now have 45 s; they run in their own worker lane, so no payment job waits on them.
 
 ## Owner console
