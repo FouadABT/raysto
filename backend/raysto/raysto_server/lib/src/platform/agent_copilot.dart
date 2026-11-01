@@ -11,35 +11,63 @@ class CopilotAgent {
   /// The queue is a rush when this many orders are open...
   static const rushQueue = 6;
 
-  /// ...or the oldest open order is this many minutes past the promise.
+  /// ...or an order is this many minutes past when it was due.
   static const rushLateMinutes = 10;
 
   static DateTime? _lastSweep;
 
   /// What the kitchen looks like now, read from orders, never estimated.
+  /// An order is due at its pickup slot, or when it was placed plus the
+  /// preparation time; orders scheduled beyond that window are not in the
+  /// queue yet.
   static Future<Json> kitchen(Work w) async {
-    final since = _now().subtract(const Duration(hours: 6));
+    // Orders may be placed up to 7 days ahead of their slot.
+    final placed = _now().subtract(const Duration(days: 8));
+    final hour = _now().subtract(const Duration(hours: 1));
     final orders = await PurchaseOrder.db.find(
       w.s,
       where: (t) =>
           t.restaurantId.equals(w.tenant) &
-          (t.createdAt > since) &
-          t.status.inSet({..._open, 'ready', 'collected', 'completed'}),
+          ((t.status.inSet(_open) & (t.createdAt > placed)) |
+              (t.status.inSet({'ready', 'collected', 'completed'}) &
+                  (t.updatedAt > hour))),
       limit: 2000,
       transaction: w.tx,
     );
-    int age(PurchaseOrder o) => _now().difference(o.createdAt).inMinutes;
+    final prep = w.settings['preparationMinutes'] as int;
     final open = orders.where((o) => _open.contains(o.status)).toList();
-    final hour = _now().subtract(const Duration(hours: 1));
+    final contexts = open.isEmpty
+        ? const <OrderContext>[]
+        : await OrderContext.db.find(
+            w.s,
+            where: (t) => t.orderId.inSet({for (final o in open) o.id!}),
+            transaction: w.tx,
+          );
+    final slots = {
+      for (final c in contexts)
+        if (c.slotKey != null)
+          c.orderId: DateTime.tryParse(
+            c.slotKey!.substring(c.slotKey!.indexOf(':') + 1),
+          ),
+    };
+    DateTime due(PurchaseOrder o) =>
+        slots[o.id] ?? o.createdAt.add(Duration(minutes: prep));
+    final horizon = _now().add(Duration(minutes: prep));
+    final queue = open.where((o) => !due(o).isAfter(horizon)).toList();
+    int minutes(DateTime from, DateTime to) => to.difference(from).inMinutes;
     return {
-      'waitingToBeAccepted': open.where((o) => o.status == 'submitted').length,
-      'cooking': open.where((o) => o.status != 'submitted').length,
-      'queue': open.length,
-      'oldestOpenMinutes': open.isEmpty ? 0 : open.map(age).reduce(max),
-      'finishedLastHour': orders
-          .where((o) => !_open.contains(o.status) && o.updatedAt.isAfter(hour))
-          .length,
-      'preparationMinutes': w.settings['preparationMinutes'],
+      'waitingToBeAccepted': queue.where((o) => o.status == 'submitted').length,
+      'cooking': queue.where((o) => o.status != 'submitted').length,
+      'queue': queue.length,
+      'oldestOpenMinutes': queue.isEmpty
+          ? 0
+          : queue.map((o) => minutes(o.createdAt, _now())).reduce(max),
+      'mostLateMinutes': queue.isEmpty
+          ? 0
+          : max(0, queue.map((o) => minutes(due(o), _now())).reduce(max)),
+      'scheduledLater': open.length - queue.length,
+      'finishedLastHour': orders.where((o) => !_open.contains(o.status)).length,
+      'preparationMinutes': prep,
       'slotMinutes': w.settings['slotMinutes'],
       'onlineOrdersPaused': w.settings['paused'] == true,
     };
@@ -59,7 +87,7 @@ class CopilotAgent {
       s,
       where: (t) =>
           t.status.inSet(_open) &
-          (t.createdAt > _now().subtract(const Duration(hours: 6))),
+          (t.createdAt > _now().subtract(const Duration(days: 8))),
       limit: 2000,
     );
     // The copilot's own raises still in force, newest first.
@@ -90,12 +118,10 @@ class CopilotAgent {
           transaction: w.tx,
         );
         if (pending > 0) return;
-        final queue = open.where((o) => o.restaurantId == rid).toList();
-        final oldest = queue.isEmpty
-            ? 0
-            : queue
-                  .map((o) => _now().difference(o.createdAt).inMinutes)
-                  .reduce(max);
+        final k = await kitchen(w);
+        final queue = k['queue'] as int;
+        final late = k['mostLateMinutes'] as int;
+        final oldest = k['oldestOpenMinutes'] as int;
         final prep = w.settings['preparationMinutes'] as int;
         final last = raised.where((a) => a.restaurantId == rid).firstOrNull;
         final raisedTo = last == null
@@ -106,18 +132,19 @@ class CopilotAgent {
         final usual = raisedTo == prep
             ? _json(last!.evidenceJson)['usualMinutes'] as int?
             : null;
-        if (queue.length >= rushQueue || oldest >= prep + rushLateMinutes) {
+        if (queue >= rushQueue || late >= rushLateMinutes) {
           await AgentModule.enqueue(
             w,
             agent: agent,
             trigger: 'schedule',
             dedupeKey: 'copilot:rush:$rid:$window',
-            title: 'Kitchen rush: ${queue.length} orders open',
+            title: 'Kitchen rush: $queue orders open',
             input: {'signal': 'rush', 'usualMinutes': usual ?? prep},
           );
         } else if (usual != null &&
             usual < prep &&
-            queue.length <= 2 &&
+            queue <= 2 &&
+            late == 0 &&
             oldest < usual) {
           await AgentModule.enqueue(
             w,
@@ -166,7 +193,7 @@ class CopilotAgent {
       tools: [
         AgentRuntime.declaration(
           'read_kitchen',
-          'Orders waiting and cooking now, the oldest open order in minutes, orders finished in the last hour, and the current preparation time, slot length and pause state.',
+          'Orders due now that are waiting or cooking, the oldest one\'s age, how many minutes the most overdue one is late, orders scheduled for later, orders finished in the last hour, and the current preparation time, slot length and pause state.',
           {},
         ),
         AgentRuntime.declaration(
@@ -224,6 +251,7 @@ class CopilotAgent {
                 'signal': rush ? 'rush' : 'calm',
                 'queue': k['queue'],
                 'oldestOpenMinutes': k['oldestOpenMinutes'],
+                'mostLateMinutes': k['mostLateMinutes'],
                 'finishedLastHour': k['finishedLastHour'],
                 'usualMinutes': usual,
               },

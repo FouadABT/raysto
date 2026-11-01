@@ -922,6 +922,47 @@ void main() {
           ...Platform.environment,
           'GEMINI_API_KEY': 'fixture-key',
         };
+        // Placed 40 minutes ago for pickup tomorrow: not late, not queued.
+        final ahead = await PurchaseOrder.db.insertRow(
+          s,
+          PurchaseOrder(
+            restaurantId: restaurant.id!,
+            customerId: 'agents-customer',
+            requestKey: key(),
+            requestHash: 'fixture',
+            fulfillment: 'pickup',
+            lines: [],
+            currency: 'EUR',
+            subtotalMinor: 900,
+            deliveryFeeMinor: 0,
+            totalMinor: 900,
+            status: 'submitted',
+            paymentStatus: 'paid',
+            version: 1,
+            createdAt: now.subtract(const Duration(minutes: 40)),
+            updatedAt: now.subtract(const Duration(minutes: 40)),
+          ),
+        );
+        await OrderContext.db.insertRow(
+          s,
+          OrderContext(
+            restaurantId: restaurant.id!,
+            orderId: ahead.id!,
+            detailsJson: '{}',
+            paymentTiming: 'before',
+            cancellationRequested: false,
+            stockReleased: false,
+            slotKey:
+                'pickup:${now.add(const Duration(days: 1)).toIso8601String()}',
+            createdAt: now.subtract(const Duration(minutes: 40)),
+          ),
+        );
+        await CopilotAgent.sweep(s, force: true);
+        expect(
+          await AgentTask.db.count(s, where: (t) => t.agent.equals('copilot')),
+          0,
+          reason: 'An order scheduled for tomorrow is not late.',
+        );
         // One order accepted 35 minutes ago: past the 20-minute promise.
         final late = await PurchaseOrder.db.insertRow(
           s,
@@ -1012,6 +1053,7 @@ void main() {
         final evidence = jsonDecode(raise.evidenceJson) as Map;
         expect(evidence['queue'], 1);
         expect(evidence['oldestOpenMinutes'], greaterThanOrEqualTo(35));
+        expect(evidence['mostLateMinutes'], greaterThanOrEqualTo(15));
         expect(evidence['usualMinutes'], 20);
         // While the proposal waits, the next sweep does not stack another.
         await CopilotAgent.sweep(s, force: true);
