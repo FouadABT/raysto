@@ -768,6 +768,17 @@ class AssistantModule {
       return (i, refund);
     });
     final (intent, refund) = binding;
+    return providerEvidence(s, intent, refund);
+  }
+
+  /// What PayPal reports for one checkout (or one of its refunds), read
+  /// through the PayPal MCP server with a REST fallback, checked against the
+  /// ledger. Evidence only: it never changes Raysto's records.
+  static Future<Json> providerEvidence(
+    Session s,
+    CheckoutIntent intent,
+    PaymentRefund? refund,
+  ) async {
     // A cancelled checkout has no remaining capture path in Raysto. Its provider
     // record may later disappear; do not turn that into a failed status enquiry
     // or infer a payment/refund from a provider 404.

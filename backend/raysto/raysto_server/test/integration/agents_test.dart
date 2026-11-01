@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:raysto_server/src/generated/protocol.dart';
 import 'package:raysto_server/src/platform/platform.dart';
 import 'package:test/test.dart';
@@ -154,6 +156,8 @@ void main() {
       AgentModule.environment = () => Platform.environment;
       AgentModule.handlers.remove('copilot');
       AiBudget.environment = () => Platform.environment;
+      ProviderClients.environment = () => Platform.environment;
+      ProviderClients.httpClient = http.Client.new;
     });
 
     Future<Json> decide(
@@ -358,6 +362,126 @@ void main() {
         );
         expect(await PlatformWorker.dispatch(s, lane: 'ai', limit: 1), 1);
         expect((await PlatformJob.db.findById(s, ai.id!))!.state, 'done');
+      },
+    );
+
+    test(
+      'the payments agent finds an abandoned checkout and drafts its release',
+      () async {
+        final s = builder.build();
+        final now = DateTime.now().toUtc();
+        final checkout = await CheckoutIntent.db.insertRow(
+          s,
+          CheckoutIntent(
+            restaurantId: restaurant.id!,
+            userId: 'agents-owner',
+            requestKey: key(),
+            requestHash: 'fixture',
+            providerRequestId: 'fixture-request-2',
+            merchantId: 'MERCHANT-FIXTURE',
+            state: 'created',
+            method: 'paypal',
+            currency: 'EUR',
+            amountMinor: 1350,
+            commissionMinor: 0,
+            commissionBps: 0,
+            createdAt: now.subtract(const Duration(minutes: 40)),
+            updatedAt: now.subtract(const Duration(minutes: 40)),
+          ),
+        );
+        AgentModule.environment = () => {
+          ...Platform.environment,
+          'RAYSTO_AGENT_PAYMENTS_ENABLED': 'true',
+        };
+        ProviderClients.environment = () => {
+          ...Platform.environment,
+          'GEMINI_API_KEY': 'fixture-key',
+        };
+        String sse(List<Json> parts) =>
+            'data: ${jsonEncode({
+              'candidates': [
+                {
+                  'index': 0,
+                  'content': {'role': 'model', 'parts': parts},
+                  'finishReason': 'STOP',
+                },
+              ],
+              'usageMetadata': {'promptTokenCount': 400, 'candidatesTokenCount': 60, 'totalTokenCount': 460},
+            })}\r\n\r\n';
+        var turn = 0;
+        final seenTools = <String>[];
+        ProviderClients.httpClient = () => MockClient((r) async {
+          if (r.url.path.endsWith(':countTokens')) {
+            return http.Response('{"totalTokens": 400}', 200);
+          }
+          final body = jsonDecode(r.body) as Map;
+          seenTools.addAll([
+            for (final d
+                in (body['tools'] as List).single['functionDeclarations']
+                    as List)
+              d['name'] as String,
+          ]);
+          turn++;
+          return http.Response.bytes(
+            utf8.encode(
+              turn == 1
+                  ? sse([
+                      {
+                        'functionCall': {'name': 'read_ledger', 'args': {}},
+                      },
+                      {
+                        'functionCall': {'name': 'read_paypal', 'args': {}},
+                      },
+                    ])
+                  : sse([
+                      {
+                        'functionCall': {
+                          'name': 'propose_fix',
+                          'args': {
+                            'fix': 'release',
+                            'explanation':
+                                'The customer opened PayPal 40 minutes ago but never approved €13.50. Releasing it frees the bill for another payment.',
+                          },
+                        },
+                      },
+                    ]),
+            ),
+            200,
+            headers: {'content-type': 'text/event-stream; charset=utf-8'},
+          );
+        });
+
+        await PaymentAgent.sweep(s);
+        final task = await AgentTask.db.findFirstRow(
+          s,
+          where: (t) =>
+              t.dedupeKey.equals('payments:checkout:${checkout.id}:created'),
+        );
+        expect(task, isNotNull);
+        await AgentModule.run(s, task!.id!);
+        final done = (await AgentTask.db.findById(s, task.id!))!;
+        expect(
+          done.status,
+          'done',
+          reason: '${done.summary} ${done.stateJson}',
+        );
+        expect(done.chargedMicros, greaterThan(0));
+        expect(seenTools.toSet(), {
+          'read_ledger',
+          'read_paypal',
+          'propose_fix',
+        });
+        final action = (await AgentAction.db.find(
+          s,
+          where: (t) => t.taskId.equals(task.id!),
+        )).single;
+        expect(action.command, 'payment.release');
+        expect(action.risk, 'money');
+        expect(action.rationale, contains('40 minutes'));
+        final evidence = jsonDecode(action.evidenceJson) as Map;
+        expect(evidence['paypalStatus'], 'NO_PAYPAL_ORDER');
+        expect(evidence['ledgerState'], 'created');
+        expect(evidence['amountMinor'], 1350);
       },
     );
 

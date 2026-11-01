@@ -613,6 +613,7 @@ class PlatformWorker {
       where: (t) => t.expiresAt < _now().subtract(const Duration(days: 1)),
     );
     await AgentModule.sweep(s);
+    await PaymentAgent.sweep(s);
     await RateWindow.db.deleteWhere(
       s,
       where: (t) =>
@@ -782,6 +783,16 @@ class PlatformWorker {
         if (!{'completed', 'failed', 'cancelled'}.contains(state['state'])) {
           if (attempt != null &&
               _now().difference(attempt.createdAt).inHours >= 5) {
+            // Past automatic recovery: say so, so the payments agent and the
+            // managers hear about it instead of a job dying quietly.
+            await MoneyModule.locked(
+              s,
+              attempt.restaurantId,
+              attempt.userId,
+              (w) => w.audit('payment.attention', 'checkout', attempt.id, {
+                'reason': 'manual_reconciliation_required',
+              }),
+            );
             _fail(
               'manual_reconciliation_required',
               'The unresolved checkout has exceeded the safe automatic retry window.',

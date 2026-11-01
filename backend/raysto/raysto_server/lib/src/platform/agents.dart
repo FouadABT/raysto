@@ -57,10 +57,12 @@ class AgentOutcome {
     this.summary, {
     this.drafts = const [],
     this.trace = const [],
+    this.chargedMicros = 0,
   });
   final String summary;
   final List<AgentDraft> drafts;
   final List<Json> trace;
+  final int chargedMicros;
 }
 
 typedef AgentHandler = Future<AgentOutcome> Function(Session s, AgentTask task);
@@ -86,10 +88,15 @@ class AgentModule {
   };
 
   /// Agents register their handlers here as they are built.
-  static final Map<String, AgentHandler> handlers = {};
+  static final Map<String, AgentHandler> handlers = {
+    PaymentAgent.agent: PaymentAgent.run,
+  };
 
   /// Audit kinds that wake an agent, e.g. `payment.attention` → payments.
-  static final Map<String, AgentTrigger> triggers = {};
+  static final Map<String, AgentTrigger> triggers = {
+    'payment.uncertain': PaymentAgent.onCheckout,
+    'payment.attention': PaymentAgent.onCheckout,
+  };
 
   static final Map<String, AgentCommand> commands = {
     'menu.soldOut': AgentCommand(
@@ -487,13 +494,15 @@ class AgentModule {
     } on DomainError catch (e) {
       await _finish(s, task, 'failed', e.message, code: e.code);
       return;
-    } catch (_) {
+    } catch (e) {
+      // The type only: provider bodies and stack traces stay out of records.
       await _finish(
         s,
         task,
         'failed',
         'The agent stopped unexpectedly.',
         code: 'agent_failure',
+        detail: e.runtimeType.toString(),
       );
       return;
     }
@@ -546,6 +555,7 @@ class AgentModule {
       }
       fresh.status = 'done';
       fresh.summary = outcome.summary;
+      fresh.chargedMicros = outcome.chargedMicros;
       fresh.traceJson = jsonEncode(trace);
       fresh.stateJson = jsonEncode({
         ..._json(fresh.stateJson),
@@ -586,10 +596,15 @@ class AgentModule {
     String status,
     String summary, {
     String? code,
+    String? detail,
   }) async {
     task.status = status;
     task.summary = summary;
-    task.stateJson = jsonEncode({..._json(task.stateJson), 'code': ?code});
+    task.stateJson = jsonEncode({
+      ..._json(task.stateJson),
+      'code': ?code,
+      'detail': ?detail,
+    });
     task.completedAt = _now();
     task.updatedAt = _now();
     task.version++;
