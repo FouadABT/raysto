@@ -44,6 +44,24 @@ Every event in these sessions arrived at `https://api.rays.to/api/v2/webhooks/pa
 - **AI refund answer (0.12.2).** Run 23 reported "COMPLETED for checkout 5: USD 5.00", which could be read as a $5 payment. A refund check now names the refund ("refund 1 on checkout 5").
 - **Console (0.12.1).** While loading, the Payments tab showed $0.00 totals, which looked like no money had been taken. It now says it is loading. The Orders grid shows a loading overlay instead of "No Rows To Show".
 
+## Session 3 — AI coworkers (1 November, backend 0.13.0 and 0.13.1)
+
+Live runs of the new agents against production. The menu and voice runs used the QA owner's own unpublished restaurant "Atelier Café · QA" (id 4, EUR), so the demo restaurant's menu did not change. The payment run used the Sandbox restaurant (id 3). Scripts: `tool/agents_live_qa.cjs` and the `abandon` / `operator` modes of `tool/live_session_qa.cjs` (both outside git, like the session 1–2 script).
+
+| Agent | Input | What the agent did | Result |
+|---|---|---|---|
+| Menu ("Snap your menu") | A rendered image of a printed café menu (not a camera photo): 14 dishes in 5 sections, two priced options, one dish with no price ("ask us") | One Gemini vision call for the page, then one organising call. Task 1 took 18 s and cost $0.013 | 14 of 14 dishes and 14 of 14 prices read. "Soup of the day" was held back as unavailable, with "1 price to check". Options read with their prices: fried egg +1.00 on the croque monsieur, oat milk +0.40 on the cappuccino. The owner approved action 1 and the merge published menu version 2: 14 dishes in 5 sections |
+| Payments | Diner 2 ordered a $12.00 pickup (order 6), opened PayPal checkout 10 at 20:47 UTC and never approved it | At 21:18 UTC (30 minutes on, at the next sweep) the agent read the ledger, then PayPal through PayPal MCP over stdio: `PAYER_ACTION_REQUIRED`. It proposed `payment.release`, a money action. 11.3 s, $0.003 | The owner signed in again, passed `identity.stepUp` and approved action 2. Checkout 10 was released (`cancelled`, `released: true`) |
+| Counter voice | A 7.5 s synthetic recording (Kokoro TTS, not a person): "Two croque monsieur, one of them with a fried egg. A cappuccino with oat milk. And a lemonade. The name is Sam." | `POST /api/v2/voice/counter`: one Gemini call with the counter menu and the audio. 3.9 s round trip, 2.6 s on the server | Ticket lines: 1× croque monsieur, 1× croque monsieur with fried egg, 1× cappuccino with oat milk. Customer label "Sam". "lemonade" reported as not on the menu |
+
+The console's Agents section loaded on 0.13.0 for the QA owner with no errors and no horizontal scroll at 390 px.
+
+### Fixes found by session 3
+
+- **Menu headings (0.13.1).** Sections came out in the menu's printed capitals ("BREAKFAST"). Headings printed in capitals are now shown as "Breakfast"; names an owner typed keep their case.
+- **Voice route size limit (Nginx).** The first voice request got `413` from Nginx, whose `/api/v2/` limit is 128 KB. The exact voice route now has its own 1100 KB limit on Raysto's `api.rays.to` site. Awhar's site was checked unchanged.
+- **Payments agent wording (next release).** The release proposal said the payment would free "the table", though this was a pickup order. The ledger read now names the sale (pickup order, counter sale or table bill) and the agent uses those words.
+
 ## Owner console
 
 The console at `https://ops.rays.to/ops` (0.12.0, then 0.12.1) showed the same records to the QA owner:
@@ -55,3 +73,4 @@ The console at `https://ops.rays.to/ops` (0.12.0, then 0.12.1) showed the same r
 
 - Physical-phone runs of the Android build (0.12.1, code 2015). The sessions drove the same backend commands the app sends.
 - Delivery, iOS, and live (non-Sandbox) PayPal.
+- For the agents: a camera photo of a real paper menu, a person speaking at a real counter, and the one-tap "Order and approve in PayPal" from the takeaway assistant (built, not yet deployed).
