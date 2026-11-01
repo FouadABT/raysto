@@ -143,8 +143,10 @@ void main() {
     final live = LiveContext(Runtime(api), restaurantId: 1, role: 'owner');
     await tester.pumpWidget(host(agentsPage(live)));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Approve').first, 200);
-    await tester.tap(find.text('Approve').first);
+    final approve = find.widgetWithText(AppButton, 'Approve');
+    await tester.ensureVisible(approve);
+    await tester.pumpAndSettle();
+    await tester.tap(approve);
     await tester.pumpAndSettle();
     expect(api.decided, hasLength(1));
     expect(api.decided.single, contains('agent.decide'));
