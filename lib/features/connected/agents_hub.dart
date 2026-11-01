@@ -180,6 +180,15 @@ class _AgentActionCardState extends State<AgentActionCard> {
           ),
           const SizedBox(height: 10),
           Text('${a['title']}', style: theme.textTheme.titleMedium),
+          if (preview['mediaId'] is int) ...[
+            const SizedBox(height: 10),
+            MediaPhoto(
+              live: widget.live,
+              id: preview['mediaId'] as int,
+              height: 200,
+              label: '${preview['dish'] ?? ''}',
+            ),
+          ],
           const SizedBox(height: 6),
           Text('${a['rationale']}'),
           const SizedBox(height: 10),
@@ -238,6 +247,8 @@ List<String> evidenceChips(BuildContext c, Json evidence, Json preview) => [
   if (evidence['oldestOpenMinutes'] != null)
     '${c.tr('Oldest order')}: ${evidence['oldestOpenMinutes']} ${c.tr('min')}',
   if (preview['item'] != null) '${preview['item']}: ${c.tr('sold out')}',
+  if (evidence['provider'] != null)
+    '${c.tr('Drawn by')} ${evidence['provider'] == 'gemini' ? 'Gemini' : 'OpenAI'} · ${evidence['model']}',
   for (final e in preview.entries)
     if (e.value is Map && obj(e.value).containsKey('to'))
       settingChange(c, e.key, obj(e.value)['from'], obj(e.value)['to']),
@@ -290,4 +301,118 @@ Widget agentTaskTile(BuildContext c, Json t) {
       ],
     ),
   );
+}
+
+/// A restaurant photo read with the signed-in person's own access, so an
+/// owner can see a generated photo before anyone else can.
+class MediaPhoto extends StatefulWidget {
+  const MediaPhoto({
+    super.key,
+    required this.live,
+    required this.id,
+    required this.height,
+    this.label = '',
+  });
+  final LiveContext live;
+  final int id;
+  final double height;
+  final String label;
+  @override
+  State<MediaPhoto> createState() => _MediaPhotoState();
+}
+
+class _MediaPhotoState extends State<MediaPhoto> {
+  late final Future<Uint8List> bytes = widget.live.api.download(widget.id);
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(AppRadius.card),
+    child: SizedBox(
+      height: widget.height,
+      width: double.infinity,
+      child: FutureBuilder<Uint8List>(
+        future: bytes,
+        builder: (c, s) => s.hasData
+            ? Image.memory(
+                s.data!,
+                fit: BoxFit.cover,
+                semanticLabel: widget.label.isEmpty
+                    ? c.tr('Photo')
+                    : '${c.tr('Photo')}: ${widget.label}',
+              )
+            : ColoredBox(
+                color: Theme.of(c).colorScheme.surfaceContainerHigh,
+                child: Center(
+                  child: s.hasError
+                      ? Text(c.tr('Photo unavailable'))
+                      : const SizedBox.shrink(),
+                ),
+              ),
+      ),
+    ),
+  );
+}
+
+/// Asks the image studio for photos of [ids] with Gemini or OpenAI. Each
+/// photo waits in Agents for approval before anyone else sees it.
+Future<void> askForPhotos(
+  BuildContext context,
+  LiveContext live,
+  List<int> ids,
+) async {
+  final provider = await showModalBottomSheet<String>(
+    context: context,
+    showDragHandle: true,
+    builder: (c) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              ids.length == 1
+                  ? c.tr('Photo with AI')
+                  : '${c.tr('Photos with AI')} · ${ids.length}',
+              style: Theme.of(c).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              c.tr(
+                'Drawn from the dish’s name, description and ingredients. Each photo waits in Agents for your approval, and customers see it marked as an AI image.',
+              ),
+            ),
+            const SizedBox(height: 16),
+            AppButton(
+              label: c.tr('Draw with Gemini'),
+              icon: Icons.auto_awesome,
+              onPressed: () => Navigator.pop(c, 'gemini'),
+            ),
+            const SizedBox(height: 10),
+            AppButton(
+              label: c.tr('Draw with OpenAI'),
+              icon: Icons.auto_awesome_outlined,
+              secondary: true,
+              onPressed: () => Navigator.pop(c, 'openai'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+  if (provider == null || !context.mounted) return;
+  final started = context.tr(
+    'The image studio is drawing. Photos wait in Agents for your approval.',
+  );
+  await perform(context, () async {
+    await live.api.command('menu.photo', {
+      'productIds': ids,
+      'provider': provider,
+    }, restaurantId: live.restaurantId);
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(started)));
+    }
+  });
 }

@@ -280,6 +280,15 @@ Widget menuPage(LiveContext live) => rowsPage(
                 }),
                 child: const Text('Edit item'),
               ),
+            if (live.manager && r['archived'] != true)
+              TextButton(
+                onPressed: () => askForPhotos(c, live, [r['productId'] as int]),
+                child: Text(
+                  obj(r['definition'])['mediaId'] == null
+                      ? c.tr('Photo with AI')
+                      : c.tr('New photo with AI'),
+                ),
+              ),
             TextButton(
               onPressed: () async {
                 await live.action(
@@ -312,6 +321,24 @@ Widget menuPage(LiveContext live) => rowsPage(
     ),
   ),
   before: (c, d, refresh) => [
+    if (live.manager &&
+        records(d['rows']).any(
+          (r) =>
+              r['archived'] != true && obj(r['definition'])['mediaId'] == null,
+        )) ...[
+      AppButton(
+        label: c.tr('Fill missing photos with AI'),
+        icon: Icons.auto_awesome,
+        secondary: true,
+        onPressed: () => askForPhotos(c, live, [
+          for (final r in records(d['rows']))
+            if (r['archived'] != true &&
+                obj(r['definition'])['mediaId'] == null)
+              r['productId'] as int,
+        ].take(12).toList()),
+      ),
+      const SizedBox(height: 10),
+    ],
     if (live.manager)
       AppButton(
         label: 'Add a dish',

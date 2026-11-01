@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,6 +91,60 @@ class AgentsApi extends PlatformApi {
       const Stream.empty();
 }
 
+/// One generated photo waiting for the owner, and a menu with one dish.
+class PhotoApi extends AgentsApi {
+  // A 1×1 PNG.
+  static final png = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1kAAAAASUVORK5CYII=',
+  );
+  final downloads = <int>[];
+
+  @override
+  Future<Map<String, dynamic>> query(
+    String operation, [
+    Map<String, dynamic> params = const {},
+  ]) async => switch (operation) {
+    'agent.inbox' => {
+      'rows': [
+        {
+          'id': 9,
+          'agent': 'images',
+          'command': 'menu.image',
+          'title': 'Use this photo for Burger',
+          'rationale':
+              'Drawn by OpenAI (gpt-image-1) from the dish’s own name, description and ingredients.',
+          'risk': 'catalogue',
+          'status': 'pending',
+          'version': 1,
+          'preview': {'dish': 'Burger', 'mediaId': 44, 'provider': 'openai'},
+          'evidence': {'provider': 'openai', 'model': 'gpt-image-1'},
+        },
+      ],
+    },
+    'agent.activity' => {'rows': const []},
+    'menu.manage' => {
+      'menuVersion': 3,
+      'rows': [
+        {
+          'id': 1,
+          'productId': 10,
+          'version': 2,
+          'archived': false,
+          'definition': {'name': 'Burger', 'category': 'Mains'},
+        },
+      ],
+      'nextCursor': null,
+    },
+    _ => {},
+  };
+
+  @override
+  Future<Uint8List> download(int id) async {
+    downloads.add(id);
+    return png;
+  }
+}
+
 class Runtime implements LiveRuntime {
   Runtime(this.platform);
   @override
@@ -164,6 +221,48 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.scrollUntilVisible(find.text('موافقة وتأكيد'), 300);
     expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a generated photo is shown for approval with who drew it', (
+    tester,
+  ) async {
+    final api = PhotoApi();
+    final live = LiveContext(Runtime(api), restaurantId: 1, role: 'owner');
+    await tester.pumpWidget(host(agentsPage(live)));
+    await tester.pumpAndSettle();
+    expect(find.text('Use this photo for Burger'), findsOneWidget);
+    expect(find.text('Drawn by OpenAI · gpt-image-1'), findsOneWidget);
+    expect(api.downloads, [44]);
+    expect(find.byType(Image), findsOneWidget);
+    final approve = find.widgetWithText(AppButton, 'Approve');
+    await tester.ensureVisible(approve);
+    await tester.pumpAndSettle();
+    await tester.tap(approve);
+    await tester.pumpAndSettle();
+    expect(api.decided.single, contains('agent.decide'));
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a dish asks the image studio for a photo', (tester) async {
+    final api = PhotoApi();
+    final live = LiveContext(Runtime(api), restaurantId: 1, role: 'owner');
+    await tester.pumpWidget(host(Scaffold(body: menuPage(live))));
+    await tester.pumpAndSettle();
+    expect(find.text('Fill missing photos with AI'), findsOneWidget);
+    await tester.tap(find.text('Photo with AI'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Draw with OpenAI'));
+    await tester.pumpAndSettle();
+    expect(api.decided.single, startsWith('menu.photo:'));
+    expect(api.decided.single, contains('"productIds":[10]'));
+    expect(api.decided.single, contains('"provider":"openai"'));
+    expect(
+      find.text(
+        'The image studio is drawing. Photos wait in Agents for your approval.',
+      ),
+      findsOneWidget,
+    );
     await tester.pumpWidget(const SizedBox());
   });
 }

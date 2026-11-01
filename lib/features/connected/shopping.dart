@@ -226,13 +226,28 @@ class _StorefrontPageState extends State<StorefrontPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (item['mediaId'] != null)
-                  Image.network(
-                    widget.live.api.origin
-                        .resolve('/api/v2/media/${item['mediaId']}')
-                        .toString(),
-                    height: 180,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  Stack(
+                    children: [
+                      Image.network(
+                        widget.live.api.origin
+                            .resolve('/api/v2/media/${item['mediaId']}')
+                            .toString(),
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                      ),
+                      // A generated photo is always labelled as one.
+                      if (item['aiImage'] == true)
+                        PositionedDirectional(
+                          start: 10,
+                          bottom: 10,
+                          child: AppPill(
+                            label: context.tr('AI image'),
+                            icon: Icons.auto_awesome,
+                          ),
+                        ),
+                    ],
                   ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 4),
