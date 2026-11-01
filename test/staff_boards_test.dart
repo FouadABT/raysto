@@ -126,6 +126,7 @@ class BoardApi extends PlatformApi {
       orderPaid = true;
     }
     return switch (command.operation) {
+      'assistant.approve' => {'kind': 'basket', 'quoteId': 9},
       'quote.create' => {'id': 9, 'totalMinor': 1250},
       'order.submit' => {'orderId': 7, 'status': 'awaitingPayment', 'number': 7},
       'payment.allocate' => {'checkoutId': 5, 'state': 'reserved'},
@@ -390,11 +391,18 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('a basket proposal waiting for review is shown for approval', (
+  testWidgets('one tap orders the proposed basket and opens PayPal', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(400, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
+    final opened = <Uri>[];
+    final browser = launchProvider;
+    addTearDown(() => launchProvider = browser);
+    launchProvider = (uri) async {
+      opened.add(uri);
+      return true;
+    };
     final api = BoardApi()
       ..run = {
         'id': 41,
@@ -409,6 +417,7 @@ void main() {
             'quote': {
               'currency': 'EUR',
               'totalMinor': 1250,
+              'slot': DateTime.utc(2026, 11, 2, 11, 30).toIso8601String(),
               'lines': [
                 {'name': 'Burger', 'quantity': 1},
                 {'name': 'Fries', 'quantity': 1},
@@ -424,9 +433,26 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
-    expect(find.text('Approve basket'), findsOneWidget);
+    expect(find.text('Order and approve in PayPal'), findsOneWidget);
     expect(find.textContaining('12.50'), findsOneWidget);
+    expect(find.textContaining('Pickup at'), findsOneWidget);
     expect(find.text('Raysto is thinking…'), findsNothing);
+    final pay = find.text('Order and approve in PayPal');
+    await tester.ensureVisible(pay);
+    await tester.tap(pay);
+    await tester.pumpAndSettle();
+    // The customer's PayPal approval is the only step left.
+    expect(
+      api.commands,
+      containsAllInOrder([
+        'assistant.approve',
+        'order.submit',
+        'payment.allocate',
+        'payment.checkout',
+      ]),
+    );
+    expect(opened.single.host, 'www.sandbox.paypal.com');
+    expect(find.text('Payment #5'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 

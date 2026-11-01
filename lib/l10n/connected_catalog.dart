@@ -337,6 +337,24 @@ const connectedTranslations = <String, (String, String)>{
     'تم · أضف إلى التذكرة',
   ),
   'Say the order': ('Dire la commande', 'قل الطلب'),
+  'Order and approve in PayPal': (
+    'Commander et approuver dans PayPal',
+    'اطلب ووافق في PayPal',
+  ),
+  'Raysto places this pickup order and creates the PayPal payment. Nothing is charged until you approve it in PayPal.':
+      (
+        'Raysto passe cette commande à emporter et crée le paiement PayPal. Rien n’est débité avant votre approbation dans PayPal.',
+        'يضع رايستو طلب الاستلام هذا وينشئ دفعة PayPal. لا يُخصم شيء حتى توافق عليها في PayPal.',
+      ),
+  'Review the order first': (
+    'Vérifier la commande d’abord',
+    'راجع الطلب أولًا',
+  ),
+  'Pickup as soon as it is ready': (
+    'Retrait dès que c’est prêt',
+    'الاستلام فور الجاهزية',
+  ),
+  'Pickup at': ('Retrait à', 'الاستلام في'),
   'Listening… say the dishes, options and a name.': (
     'J’écoute… dites les plats, les options et un prénom.',
     'أستمع… قل الأطباق والخيارات واسمًا.',
@@ -408,11 +426,6 @@ const connectedTranslations = <String, (String, String)>{
   ),
   'A quick lunch for two': ('Un déjeuner rapide pour deux', 'غداء سريع لشخصين'),
   'Proposed basket': ('Panier proposé', 'السلة المقترحة'),
-  'Approve basket': ('Approuver le panier', 'الموافقة على السلة'),
-  'You will review the final price and pay with PayPal.': (
-    'Vous vérifierez le prix final et paierez avec PayPal.',
-    'ستراجع السعر النهائي وتدفع عبر PayPal.',
-  ),
   'Raysto is thinking…': ('Raysto réfléchit…', 'رايستو يفكّر…'),
   'Raysto could not answer. Try again.': (
     'Raysto n’a pas pu répondre. Réessayez.',

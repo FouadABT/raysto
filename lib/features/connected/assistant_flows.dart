@@ -18,7 +18,12 @@ class _AskRaystoPageState extends State<AskRaystoPage> {
   int? runId;
   Timer? poll;
   Json? proposal;
-  bool busy = false;
+  bool busy = false, paying = false;
+  // One tap orders the approved basket and opens PayPal. Each step keeps its
+  // request, so a retry after a dropped connection resumes and never orders
+  // or charges twice.
+  PendingCommand? approveRequest, submitRequest, allocateRequest;
+  PendingCommand? checkoutRequest;
 
   LiveContext get live => widget.live;
   List<String> get starters => widget.manager
@@ -47,19 +52,16 @@ class _AskRaystoPageState extends State<AskRaystoPage> {
       thread.add({'role': 'you', 'text': t});
       busy = true;
       proposal = null;
+      approveRequest = submitRequest = allocateRequest = checkoutRequest = null;
       composer.clear();
     });
     try {
-      final started = await live.api.command(
-        'assistant.start',
-        {
-          'text': t,
-          'locale': Localizations.localeOf(context).languageCode,
-          if (!widget.manager) 'context': 'cart',
-          'threadKey': threadKey,
-        },
-        restaurantId: live.restaurantId,
-      );
+      final started = await live.api.command('assistant.start', {
+        'text': t,
+        'locale': Localizations.localeOf(context).languageCode,
+        if (!widget.manager) 'context': 'cart',
+        'threadKey': threadKey,
+      }, restaurantId: live.restaurantId);
       runId = started['runId'] as int;
       poll = Timer.periodic(const Duration(milliseconds: 1500), (_) => check());
     } catch (e) {
@@ -161,10 +163,59 @@ class _AskRaystoPageState extends State<AskRaystoPage> {
     });
   }
 
+  /// Places the pickup order and creates its PayPal order, then opens PayPal:
+  /// the customer's approval there is the only step that moves money.
+  Future<void> orderAndPay() async {
+    final p = proposal;
+    if (p == null || paying) return;
+    final noLink = context.tr('PayPal did not return a payment link. Retry.');
+    setState(() => paying = true);
+    await perform(context, () async {
+      approveRequest ??= live.api.prepare(
+        'assistant.approve',
+        const {},
+        restaurantId: live.restaurantId,
+        resourceId: p['id'] as int,
+        version: p['version'] as int?,
+      );
+      final approved = await live.api.submit(approveRequest!);
+      submitRequest ??= PendingCommand(
+        'order.submit',
+        live.params({'quoteId': approved['quoteId']}),
+      );
+      final placed = await live.api.submit(submitRequest!);
+      allocateRequest ??= PendingCommand(
+        'payment.allocate',
+        live.params({'orderId': placed['orderId'], 'method': 'paypal'}),
+      );
+      final checkoutId =
+          (await live.api.submit(allocateRequest!))['checkoutId'] as int;
+      checkoutRequest ??= live.api.prepare(
+        'payment.checkout',
+        const {},
+        restaurantId: live.restaurantId,
+        resourceId: checkoutId,
+      );
+      final created = await live.api.submit(checkoutRequest!);
+      final url = created['approvalUrl'] as String?;
+      if (url == null) throw PlatformFailure('paypal_unavailable', noLink);
+      if (!mounted) return;
+      setState(() {
+        proposal = null;
+        approveRequest = submitRequest = allocateRequest = null;
+        checkoutRequest = null;
+      });
+      await openProvider(url);
+      if (mounted) await push(context, checkoutPage(live, checkoutId));
+    });
+    if (mounted) setState(() => paying = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final quote = obj(obj(proposal?['payload'])['quote']);
+    final slot = DateTime.tryParse('${quote['slot'] ?? ''}')?.toLocal();
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -239,21 +290,31 @@ class _AskRaystoPageState extends State<AskRaystoPage> {
                             Text('${line['quantity']}× ${line['name']}'),
                           const SizedBox(height: 8),
                           Text(
+                            slot == null
+                                ? context.tr('Pickup as soon as it is ready')
+                                : '${context.tr('Pickup at')} ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(slot))}',
+                          ),
+                          Text(
                             '${context.tr('Total')} ${money(quote['totalMinor'], '${quote['currency'] ?? ''}')}',
                             style: theme.textTheme.titleMedium,
                           ),
                           const SizedBox(height: 12),
                           AppButton(
-                            label: context.tr('Approve basket'),
-                            icon: Icons.check,
-                            onPressed: approve,
+                            label: context.tr('Order and approve in PayPal'),
+                            icon: Icons.lock_outline,
+                            busy: paying,
+                            onPressed: paying ? null : orderAndPay,
                           ),
                           const SizedBox(height: 6),
                           Text(
                             context.tr(
-                              'You will review the final price and pay with PayPal.',
+                              'Raysto places this pickup order and creates the PayPal payment. Nothing is charged until you approve it in PayPal.',
                             ),
                             style: theme.textTheme.bodySmall,
+                          ),
+                          TextButton(
+                            onPressed: paying ? null : approve,
+                            child: Text(context.tr('Review the order first')),
                           ),
                         ],
                       ),

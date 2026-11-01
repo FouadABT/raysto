@@ -63,6 +63,7 @@ class LiveContext {
   PlatformApi get api => runtime.platform;
   bool get manager => {'owner', 'manager'}.contains(role);
   bool get operator => manager || role == 'waiter';
+
   /// Managers hold every capability; other staff only what they were granted.
   bool can(String capability) => manager || capabilities.contains(capability);
   Json params([Json extra = const {}]) => {
@@ -260,6 +261,7 @@ class DataPage extends StatefulWidget {
   final List<Widget> Function(BuildContext, Json, Future<void> Function())
   content;
   final bool poll;
+
   /// Refreshes when notified, for boards fed by live change notices.
   final Listenable? trigger;
   @override
@@ -527,10 +529,14 @@ Future<void> openProvider(String value) async {
       'The payment provider link is invalid.',
     );
   }
-  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+  if (!await launchProvider(uri)) {
     throw const PlatformFailure('browser_failed', 'Unable to open PayPal.');
   }
 }
+
+/// Opens a vetted PayPal link outside the app; replaced in tests.
+Future<bool> Function(Uri) launchProvider = (uri) =>
+    launchUrl(uri, mode: LaunchMode.externalApplication);
 
 Future<void> notice(BuildContext context, String title, Json result) =>
     showDialog<void>(
