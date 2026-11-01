@@ -177,6 +177,8 @@ export function OrdersSection({
   currencyCode: string;
 }) {
   const [rows, setRows] = useState<OrderRow[]>([]);
+  // Until the first page arrives the grid shows loading, not "no rows".
+  const [loaded, setLoaded] = useState(false);
   const [cursor, setCursor] = useState<number | null>(null);
   const [channel, setChannel] = useState<Channel | "All">("All");
   const [group, setGroup] = useState<StatusGroup | "Active" | "All">(focus === "active" ? "Active" : "All");
@@ -194,6 +196,7 @@ export function OrdersSection({
         });
         setRows((old) => (more ? [...old, ...page.rows] : page.rows));
         setCursor(page.nextCursor);
+        setLoaded(true);
         setError("");
       } catch (e) {
         setError(String(e instanceof Error ? e.message : e));
@@ -239,6 +242,7 @@ export function OrdersSection({
           <AgGridReact<OrderRow>
             theme={gridTheme}
             rowData={shown}
+            loading={!loaded && !error}
             columnDefs={columns}
             defaultColDef={defaults}
             getRowId={(p) => String(p.data.id)}
@@ -400,6 +404,8 @@ export function PaymentsSection({
     ["refunds", "Refunds"],
     ["attempts", "Attempts"],
   ];
+  // Zero totals while loading would read as "no money taken".
+  if (!data) return <p className="ops-note">{error || "Loading payments…"}</p>;
   return (
     <div className="ops-business">
       <div className="ops-kpis compact">
