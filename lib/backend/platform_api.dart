@@ -296,6 +296,17 @@ class PlatformApi {
   Future<RecordData> upload(int id, Uint8List bytes) =>
       _request('PUT', 'media/$id/content', bytes: bytes);
 
+  /// Sends a short counter recording; the server answers with ticket lines
+  /// matched to the counter menu. The audio is not stored.
+  Future<RecordData> listen(int restaurantId, Uint8List audio, String mime) =>
+      _request(
+        'POST',
+        'voice/counter',
+        parameters: {'restaurantId': restaurantId},
+        bytes: audio,
+        contentType: mime,
+      );
+
   Future<Uint8List> download(int id) async {
     final owner = identity();
     final response = await _http
@@ -326,6 +337,7 @@ class PlatformApi {
     RecordData? parameters,
     RecordData? body,
     Uint8List? bytes,
+    String contentType = 'application/octet-stream',
   }) async {
     final owner = identity();
     final url = origin
@@ -346,13 +358,10 @@ class PlatformApi {
         response =
             await (method == 'GET'
                     ? _http.get(url, headers: h)
-                    : method == 'PUT'
-                    ? _http.put(
+                    : bytes != null
+                    ? (method == 'PUT' ? _http.put : _http.post)(
                         url,
-                        headers: {
-                          ...h,
-                          'Content-Type': 'application/octet-stream',
-                        },
+                        headers: {...h, 'Content-Type': contentType},
                         body: bytes,
                       )
                     : _http.post(

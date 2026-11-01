@@ -704,6 +704,8 @@ class PlatformQueries {
             'currency': restaurant.currency,
             'menuVersion': policy!.menuVersion,
             'menu': await sellable(s, w.tenant, tx: tx),
+            // The till shows its microphone only while voice ordering is on.
+            'voice': AgentModule.enabled(VoiceModule.agent),
           };
         case 'menu.manage':
           await w.role({'owner', 'manager', 'kitchen'});

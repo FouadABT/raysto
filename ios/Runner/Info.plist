@@ -53,6 +53,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan a table QR code or take a menu photo when you choose to.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Take a counter order by voice when you tap the microphone. The recording is not stored.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Select a photo for your restaurant menu or a support attachment.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

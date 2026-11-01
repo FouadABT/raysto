@@ -40,6 +40,12 @@ class _CounterScreenState extends State<CounterScreen> {
   Timer? poll;
   DateTime? waitingSince;
   bool busy = false, checking = false;
+  // Voice ordering: the till's microphone and what it last heard.
+  CounterMic? mic;
+  Timer? recording;
+  int recorded = 0;
+  bool listening = false, hearing = false;
+  VoiceHeard? heard;
 
   LiveContext get live => widget.live;
   String get currency => '${menu?['currency'] ?? 'EUR'}';
@@ -53,6 +59,8 @@ class _CounterScreenState extends State<CounterScreen> {
   @override
   void dispose() {
     poll?.cancel();
+    recording?.cancel();
+    mic?.dispose();
     label.dispose();
     super.dispose();
   }
@@ -77,9 +85,10 @@ class _CounterScreenState extends State<CounterScreen> {
     }
   }
 
-  Json? item(int productId) => records(
-    menu?['menu'],
-  ).where((i) => i['productId'] == productId).firstOrNull;
+  Json? item(int productId) =>
+      records(menu?['menu'])
+          .where((i) => i['productId'] == productId)
+          .firstOrNull;
 
   int unitPrice(Json line) {
     final it = item(line['productId'] as int);
@@ -117,21 +126,109 @@ class _CounterScreenState extends State<CounterScreen> {
           }
         : await chooseItem(context, it, currency);
     if (line == null || !mounted) return;
+    setState(() => merge(line));
+  }
+
+  void merge(Json line) {
+    changed();
+    final same = lines.indexWhere(
+      (l) =>
+          l['productId'] == line['productId'] &&
+          jsonEncode(l['options']) == jsonEncode(line['options']) &&
+          l['note'] == line['note'],
+    );
+    if (same >= 0) {
+      lines[same]['quantity'] =
+          (lines[same]['quantity'] as int) + (line['quantity'] as int);
+    } else {
+      lines.add(line);
+    }
+  }
+
+  void notice(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+
+  /// Starts recording the order. Recording stops by itself at the limit.
+  Future<void> listen() async {
+    if (listening || hearing || busy || sale?.placed == true) return;
+    final denied = context.tr('Allow the microphone to take orders by voice.');
+    final failed = context.tr('The microphone could not start. Try again.');
+    final m = mic ??= CounterMic.create();
+    if (!await m.allowed()) {
+      if (mounted) notice(denied);
+      return;
+    }
+    try {
+      await m.start();
+    } catch (_) {
+      if (mounted) notice(failed);
+      return;
+    }
+    if (!mounted) {
+      await m.cancel();
+      return;
+    }
     setState(() {
-      changed();
-      final same = lines.indexWhere(
-        (l) =>
-            l['productId'] == line['productId'] &&
-            jsonEncode(l['options']) == jsonEncode(line['options']) &&
-            l['note'] == line['note'],
-      );
-      if (same >= 0) {
-        lines[same]['quantity'] =
-            (lines[same]['quantity'] as int) + (line['quantity'] as int);
-      } else {
-        lines.add(line);
-      }
+      listening = true;
+      recorded = 0;
+      heard = null;
     });
+    recording = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => recorded++);
+      if (recorded >= CounterMic.limit.inSeconds) hear();
+    });
+  }
+
+  /// Sends the recording and adds what was heard to the ticket.
+  Future<void> hear() async {
+    if (!listening) return;
+    recording?.cancel();
+    final failed = context.tr('The order could not be heard. Try again.');
+    setState(() {
+      listening = false;
+      hearing = true;
+    });
+    try {
+      final audio = await mic!.stop();
+      final result = await live.api.listen(
+        live.restaurantId!,
+        audio,
+        'audio/wav',
+      );
+      if (!mounted || sale?.placed == true) return;
+      setState(() {
+        final added = <String>[];
+        for (final l in records(result['lines'])) {
+          final it = item(l['productId'] as int);
+          if (it == null) continue;
+          merge({
+            'productId': l['productId'],
+            'quantity': l['quantity'],
+            'options': List<String>.from(l['options'] as List? ?? const []),
+            'note': '${l['note'] ?? ''}',
+          });
+          added.add('${l['quantity']}× ${it['name']}');
+        }
+        final name = result['customerLabel'];
+        if (name is String && label.text.trim().isEmpty) label.text = name;
+        heard = VoiceHeard(added, [
+          for (final u in result['unmatched'] as List? ?? const []) '$u',
+        ]);
+      });
+    } on PlatformFailure catch (e) {
+      if (mounted) notice(e.message);
+    } catch (_) {
+      if (mounted) notice(failed);
+    } finally {
+      if (mounted) setState(() => hearing = false);
+    }
+  }
+
+  Future<void> stopListening() async {
+    recording?.cancel();
+    setState(() => listening = false);
+    await mic?.cancel();
   }
 
   void adjust(Json line, int delta) => setState(() {
@@ -161,10 +258,9 @@ class _CounterScreenState extends State<CounterScreen> {
     if (lines.isEmpty || busy) return;
     setState(() => busy = true);
     try {
-      final s = sale ??= _Sale(
-        [for (final l in lines) Map<String, dynamic>.from(l)],
-        label.text.trim(),
-      );
+      final s = sale ??= _Sale([
+        for (final l in lines) Map<String, dynamic>.from(l),
+      ], label.text.trim());
       s.quoteRequest ??= PendingCommand(
         'quote.create',
         live.params({
@@ -357,7 +453,9 @@ class _CounterScreenState extends State<CounterScreen> {
           builder: (c) => AlertDialog(
             title: Text(c.tr('Void this sale?')),
             content: Text(
-              c.tr('The unpaid order is cancelled and leaves the kitchen board.'),
+              c.tr(
+                'The unpaid order is cancelled and leaves the kitchen board.',
+              ),
             ),
             actions: [
               TextButton(
@@ -401,6 +499,7 @@ class _CounterScreenState extends State<CounterScreen> {
 
   void reset() => setState(() {
     poll?.cancel();
+    heard = null;
     lines.clear();
     label.clear();
     sale = null;
@@ -461,9 +560,9 @@ class _CounterScreenState extends State<CounterScreen> {
                     SizedBox(
                       width: box.maxWidth >= 1100 ? 420 : 360,
                       child: Material(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLow,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerLow,
                         child: ListView(
                           padding: const EdgeInsets.all(20),
                           children: ticketSide,
@@ -702,6 +801,72 @@ class _CounterScreenState extends State<CounterScreen> {
     ];
   }
 
+  /// Say the order instead of tapping it. What was heard is listed, with
+  /// anything not on the menu, so the cashier checks before charging.
+  List<Widget> voice(BuildContext context) {
+    final theme = Theme.of(context);
+    final h = heard;
+    final left = CounterMic.limit.inSeconds - recorded;
+    return [
+      AppButton(
+        label: listening
+            ? '${context.tr('Done · add to the ticket')} · $left s'
+            : context.tr('Say the order'),
+        icon: listening ? Icons.stop_circle_outlined : Icons.mic_none,
+        secondary: !listening,
+        busy: hearing,
+        onPressed: busy || hearing ? null : (listening ? hear : listen),
+      ),
+      if (listening) ...[
+        const SizedBox(height: 8),
+        Semantics(
+          liveRegion: true,
+          child: Text(
+            context.tr('Listening… say the dishes, options and a name.'),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        TextButton(
+          onPressed: stopListening,
+          child: Text(context.tr('Cancel recording')),
+        ),
+      ],
+      if (hearing) ...[
+        const SizedBox(height: 8),
+        Semantics(
+          liveRegion: true,
+          child: Text(
+            context.tr('Matching what was said to your menu…'),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+      if (h != null) ...[
+        const SizedBox(height: 8),
+        AppNotice(
+          title: h.added.isEmpty
+              ? context.tr('No dish from the menu was heard')
+              : context.tr('Added from what was said'),
+          icon: Icons.record_voice_over_outlined,
+          message: [
+            if (h.added.isNotEmpty) h.added.join(', '),
+            if (h.unmatched.isNotEmpty)
+              '${context.tr('Not on the menu')}: ${h.unmatched.join(', ')}',
+            context.tr('Check the ticket before taking payment.'),
+          ].join('\n'),
+        ),
+      ],
+      const SizedBox(height: 12),
+      Text(
+        context.tr('Voice is matched by AI and never stored.'),
+        style: theme.textTheme.bodySmall!.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      const SizedBox(height: 12),
+    ];
+  }
+
   List<Widget> basket(BuildContext context) {
     final theme = Theme.of(context);
     final s = sale;
@@ -713,6 +878,7 @@ class _CounterScreenState extends State<CounterScreen> {
             : context.tr('This sale'),
       ),
       const SizedBox(height: 8),
+      if (menu?['voice'] == true && !placed) ...voice(context),
       if (lines.isEmpty)
         Text(
           context.tr('Tap items to add them.'),
@@ -726,7 +892,8 @@ class _CounterScreenState extends State<CounterScreen> {
             Expanded(
               child: Text(
                 '${item(line['productId'] as int)?['name'] ?? 'Item'}'
-                '${(line['options'] as List).isEmpty ? '' : ' · ${(line['options'] as List).length} ${context.tr('options')}'}',
+                '${(line['options'] as List).isEmpty ? '' : ' · ${(line['options'] as List).length} ${context.tr('options')}'}'
+                '${'${line['note'] ?? ''}'.isEmpty ? '' : ' · ${line['note']}'}',
               ),
             ),
             IconButton(
@@ -743,9 +910,7 @@ class _CounterScreenState extends State<CounterScreen> {
             SizedBox(
               width: 80,
               child: Text(
-                money(unitPrice(line) * (line['quantity'] as int),
-                  currency,
-                ),
+                money(unitPrice(line) * (line['quantity'] as int), currency),
                 textAlign: TextAlign.end,
               ),
             ),

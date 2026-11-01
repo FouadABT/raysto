@@ -3,6 +3,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:record/record.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../backend/live_runtime.dart';
@@ -38,6 +40,7 @@ part 'staff_counter.dart';
 part 'assistant_flows.dart';
 part 'agents_hub.dart';
 part 'menu_snap.dart';
+part 'counter_voice.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};
