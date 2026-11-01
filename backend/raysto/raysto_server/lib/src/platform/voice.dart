@@ -132,15 +132,8 @@ class VoiceModule {
                           'productId': m['productId'],
                           'name': m['name'],
                           'options': [
-                            for (final g
-                                in (m['modifiers'] as List? ?? const []))
-                              for (final o
-                                  in (_object(g)['options'] as List? ??
-                                      const []))
-                                {
-                                  'id': _object(o)['id'],
-                                  'name': _object(o)['name'],
-                                },
+                            for (final (id, name) in _options(m))
+                              {'id': id, 'name': name},
                           ],
                         },
                     ],
@@ -189,14 +182,10 @@ class VoiceModule {
       final l = _object(raw);
       final item = byId[l['productId']];
       final quantity = l['quantity'];
-      if (item == null || quantity is! int || quantity < 1 || quantity > 50) {
+      if (item == null || quantity is! int || quantity < 1 || quantity > 20) {
         continue;
       }
-      final valid = {
-        for (final g in (item['modifiers'] as List? ?? const []))
-          for (final o in (_object(g)['options'] as List? ?? const []))
-            '${_object(o)['id']}',
-      };
+      final valid = {for (final (id, _) in _options(item)) id};
       final options = [
         for (final o in (l['options'] as List? ?? const []))
           if (valid.contains('$o')) '$o',
@@ -211,10 +200,19 @@ class VoiceModule {
     }
     final label = (heard['customerLabel'] as String? ?? '').trim();
     return {
-      'lines': OrderingModule.lines(lines),
+      'lines': lines.isEmpty ? <Json>[] : OrderingModule.lines(lines),
       if (label.isNotEmpty && label.length <= 80) 'customerLabel': label,
       'unmatched': unmatched.take(10).toList(),
       'ms': watch.elapsedMilliseconds,
     };
+  }
+
+  /// A dish's options as the ordering line names them: `group:option`.
+  static Iterable<(String, Object?)> _options(Json item) sync* {
+    for (final g in (item['modifiers'] as List? ?? const [])) {
+      for (final o in (_object(g)['options'] as List? ?? const [])) {
+        yield ('${_object(g)['id']}:${_object(o)['id']}', _object(o)['name']);
+      }
+    }
   }
 }

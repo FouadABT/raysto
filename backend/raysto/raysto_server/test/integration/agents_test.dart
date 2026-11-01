@@ -744,13 +744,39 @@ void main() {
           ...Platform.environment,
           'GEMINI_API_KEY': 'fixture-key',
         };
+        final policy = (await RestaurantPolicy.db.findFirstRow(
+          builder.build(),
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ))!;
+        final coffee =
+            (await CatalogueModule.saveItem(
+                  owner.build(),
+                  command({
+                    'name': 'Coffee',
+                    'category': 'Drinks',
+                    'priceMinor': 300,
+                    'modifiers': [
+                      {
+                        'id': 'milk',
+                        'name': 'Milk',
+                        'min': 0,
+                        'max': 1,
+                        'options': [
+                          {
+                            'id': 'oat',
+                            'name': 'Oat milk',
+                            'priceMinor': 40,
+                            'available': true,
+                          },
+                        ],
+                      },
+                    ],
+                  }, version: policy.menuVersion),
+                ))['id']
+                as int;
         final seen = <Map>[];
-        ProviderClients.httpClient = () => MockClient((r) async {
-          if (r.url.path.endsWith(':countTokens')) {
-            return http.Response('{"totalTokens": 300}', 200);
-          }
-          seen.add(jsonDecode(r.body) as Map);
-          final text = jsonEncode({
+        final replies = [
+          {
             'lines': [
               {
                 'productId': burger,
@@ -758,11 +784,28 @@ void main() {
                 'options': ['bogus'],
                 'note': 'no onion',
               },
+              {
+                'productId': coffee,
+                'quantity': 1,
+                'options': ['milk:oat', 'oat'],
+              },
               {'productId': 999999, 'quantity': 1},
+              {'productId': burger, 'quantity': 40},
             ],
             'customerLabel': 'Sam',
             'unmatched': ['lemonade'],
-          });
+          },
+          {
+            'lines': <Map>[],
+            'unmatched': ['a song on the radio'],
+          },
+        ];
+        ProviderClients.httpClient = () => MockClient((r) async {
+          if (r.url.path.endsWith(':countTokens')) {
+            return http.Response('{"totalTokens": 300}', 200);
+          }
+          seen.add(jsonDecode(r.body) as Map);
+          final text = jsonEncode(replies[seen.length - 1]);
           return http.Response.bytes(
             utf8.encode(
               'data: ${jsonEncode({
@@ -798,6 +841,12 @@ void main() {
             'options': [],
             'note': 'no onion',
           },
+          {
+            'productId': coffee,
+            'quantity': 1,
+            'options': ['milk:oat'],
+            'note': '',
+          },
         ]);
         expect(heard['customerLabel'], 'Sam');
         expect(heard['unmatched'], ['lemonade']);
@@ -805,6 +854,23 @@ void main() {
         final parts = (request['contents'] as List).single['parts'] as List;
         expect(parts.last['inlineData']['mimeType'], 'audio/wav');
         expect(request['generationConfig']['responseSchema'], isNotNull);
+        // The model is shown options exactly as an order line names them.
+        final shown = jsonDecode(parts.first['text'] as String)['menu'] as List;
+        expect(
+          shown.firstWhere((m) => m['productId'] == coffee)['options'],
+          [
+            {'id': 'milk:oat', 'name': 'Oat milk'},
+          ],
+        );
+        // Hearing no dish is an answer, not an error.
+        final nothing = await VoiceModule.counter(
+          owner.build(),
+          restaurant.id!,
+          Uint8List.fromList(List.filled(2000, 1)),
+          'audio/wav',
+        );
+        expect(nothing['lines'], isEmpty);
+        expect(nothing['unmatched'], ['a song on the radio']);
         await expectLater(
           VoiceModule.counter(
             waiter.build(),
