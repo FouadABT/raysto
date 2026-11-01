@@ -16,10 +16,34 @@ class AssistantModule {
       final source = value['source'] == 'paypal_mcp'
           ? 'PayPal MCP'
           : 'PayPal REST fallback';
-      return 'PayPal reports ${value['status']} for ${value['currency']} '
+      final refund = value['refundId'] != null;
+      final subject = refund
+          ? 'refund ${value['refundId']} on checkout ${value['checkoutId']}'
+          : 'checkout ${value['checkoutId']}';
+      return 'PayPal reports ${value['status']} for $subject: '
+          '${value['currency']} '
           '${PayPalGateway.money(value['amountMinor'] as int)}. '
-          'Source: $source. This status check does not mark the bill paid; '
-          'Raysto records payment only after verified reconciliation.';
+          'Source: $source. '
+          '${refund ? 'This status check does not change the ledger; Raysto records refunds through its own refund records.' : 'This status check does not mark the bill paid; Raysto records payment only after verified reconciliation.'}';
+    }
+    if (tool == 'unresolved_payments') {
+      final checkouts = (value['checkouts'] as List).cast<Json>();
+      final exceptions = (value['exceptions'] as List).cast<Json>();
+      String amount(Json x) =>
+          '${x['currency']} ${PayPalGateway.money(x['amountMinor'] as int)}';
+      if (checkouts.isEmpty && exceptions.isEmpty) {
+        return 'No PayPal payment needs attention: nothing is capturing, '
+            'uncertain or left unfinished, and no payment exception is under review.';
+      }
+      return [
+        'PayPal payments needing attention: ${checkouts.length} checkout(s) '
+            'and ${exceptions.length} payment exception(s) under review.',
+        for (final c in checkouts.take(8))
+          'Checkout ${c['checkoutId']}: ${c['state']}, ${amount(c)}, '
+              '${c['ageMinutes']} min old.',
+        for (final e in exceptions.take(8))
+          'Exception ${e['id']}: ${e['kind']}, ${amount(e)}.',
+      ].join('\n');
     }
     if (tool == 'operations_summary') {
       final rows = (value['rows'] as List).cast<Json>();
@@ -803,6 +827,7 @@ class AssistantModule {
       'mcpTransport': source == 'paypal_mcp' ? client?.transport : null,
       'fallbackReason': fallback,
       'checkoutId': intent.id,
+      'refundId': ?refund?.id,
       'status': _str(response, 'status', max: 80),
       'amountMinor': refund?.amountMinor ?? intent.amountMinor,
       'currency': intent.currency,
@@ -819,7 +844,12 @@ class AssistantModule {
     final zone = CatalogueModule.zone(w.settings['timezone'] as String);
     var local = tz.TZDateTime.from(_now(), zone);
     if (day == 'yesterday') local = local.subtract(const Duration(days: 1));
-    final start = tz.TZDateTime(zone, local.year, local.month, local.day).toUtc();
+    final start = tz.TZDateTime(
+      zone,
+      local.year,
+      local.month,
+      local.day,
+    ).toUtc();
     final end = start.add(const Duration(days: 1));
     return {
       'day': day,
@@ -902,8 +932,7 @@ class AssistantModule {
           t.restaurantId.equals(w.tenant) &
           t.method.equals('paypal') &
           (t.state.inSet({'capturing', 'uncertain'}) |
-              (t.state.inSet({'created', 'approved'}) &
-                  (t.createdAt < stale))),
+              (t.state.inSet({'created', 'approved'}) & (t.createdAt < stale))),
       orderBy: (t) => t.id.desc(),
       limit: 20,
       transaction: w.tx,
@@ -1126,6 +1155,10 @@ class AssistantModule {
     Json? proposed;
     String? proposedHash;
     String finalText = '';
+    // Ledger and provider facts in the order the tools ran. A PayPal status
+    // or table summary ends the run with all of them, so an earlier finding
+    // (such as the unresolved list) is not dropped from the answer.
+    final facts = <String>[];
     Json? presentation;
     var phase = 'budget';
     try {
@@ -1323,8 +1356,13 @@ class AssistantModule {
               if (result['fallbackReason'] != null)
                 'fallbackReason': result['fallbackReason'],
             });
-            final facts = factualAnswer(name, result);
-            if (facts != null) finalText = facts;
+            final fact = factualAnswer(name, result);
+            if (fact != null) {
+              facts.add(fact);
+              if (name != 'unresolved_payments') {
+                finalText = facts.join('\n\n');
+              }
+            }
           } on DomainError catch (e) {
             result = {'error': e.code, 'message': e.message};
             trace.add({'tool': name, 'status': 'rejected', 'code': e.code});
