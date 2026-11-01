@@ -91,6 +91,10 @@ export function channelMix(
     .sort((a, b) => b.salesMinor - a.salesMinor);
 }
 
+/** Who an order is for: the name given at the counter, the table visit, or the app account. */
+export const customerOf = (o: Pick<OrderRow, "customerLabel" | "visitId" | "origin">) =>
+  o.customerLabel ?? (o.visitId ? `Visit ${o.visitId}` : o.origin === "counter" ? "Walk-in" : "App customer");
+
 export type StatusGroup = "New" | "Preparing" | "Ready" | "Done";
 
 export const statusGroup = (status: string): StatusGroup =>

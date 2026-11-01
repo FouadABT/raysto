@@ -4,6 +4,7 @@ import {
   channelMix,
   channelOf,
   collectionTotals,
+  customerOf,
   dayRange,
   nextStep,
   statusGroup,
@@ -77,4 +78,11 @@ test("a day range covers local midnight to midnight", () => {
   const { from, until } = dayRange(new Date(2026, 9, 31, 15, 30));
   assert.equal(new Date(until).getTime() - new Date(from).getTime(), 86400000);
   assert.equal(new Date(from).getHours(), 0);
+});
+
+test("a counter sale without a name is a walk-in, not an app customer", () => {
+  assert.equal(customerOf({ customerLabel: null, visitId: null, origin: "counter" }), "Walk-in");
+  assert.equal(customerOf({ customerLabel: "Sam", visitId: null, origin: "counter" }), "Sam");
+  assert.equal(customerOf({ customerLabel: null, visitId: 2, origin: "online" }), "Visit 2");
+  assert.equal(customerOf({ customerLabel: null, visitId: null, origin: "online" }), "App customer");
 });
