@@ -186,11 +186,9 @@ class PlatformApi {
     );
     if (identity == null) return null;
     final userId = UuidValue.fromString(identity.userIdentifier);
-    final sessions = await AuthServices.instance.tokenManager.listTokens(
-      s,
-      authUserId: userId,
-    );
-    if (!sessions.any((item) => item.tokenId == identity.authId)) return null;
+    if (!await sessionExists(s, identity.userIdentifier, identity.authId)) {
+      return null;
+    }
     final actor = await ActorProfile.db.findFirstRow(
       s,
       where: (t) => t.userId.equals(identity.userIdentifier),
@@ -245,13 +243,31 @@ class PlatformApi {
   static Future<void> requireCurrentSession(Session s) async {
     final identity = s.authenticated;
     if (identity == null) _fail('unauthorized', 'Sign in to continue.');
-    final tokens = await AuthServices.instance.tokenManager.listTokens(
-      s,
-      authUserId: UuidValue.fromString(identity.userIdentifier),
-    );
-    if (!tokens.any((t) => t.tokenId == identity.authId)) {
+    if (!await sessionExists(s, identity.userIdentifier, identity.authId)) {
       _fail('unauthorized', 'This backend session has been revoked.');
     }
+  }
+
+  /// Whether this one backend session still exists. Listing a user's tokens
+  /// stops at 100, so anyone who had signed in more often than that looked
+  /// signed out; the session is looked up by its id instead.
+  static Future<bool> sessionExists(
+    Session s,
+    String userId,
+    Object? authId,
+  ) async {
+    if (authId is! String) return false;
+    final UuidValue id, user;
+    try {
+      id = UuidValue.withValidation(authId);
+      user = UuidValue.withValidation(userId);
+    } catch (_) {
+      return false;
+    }
+    final refresh = await RefreshToken.db.findById(s, id);
+    if (refresh != null) return refresh.authUserId == user;
+    final session = await ServerSideSession.db.findById(s, id);
+    return session != null && session.authUserId == user;
   }
 
   static final Map<String, Future<Json> Function(Session, PlatformCommand)>

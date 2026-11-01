@@ -211,14 +211,13 @@ class AssistantModule {
       }
       if (!isCart(run)) await w.role(_managers);
     }
-    if (worker) {
-      final tokens = await AuthServices.instance.tokenManager.listTokens(
-        w.s,
-        authUserId: UuidValue.fromString(run.userId),
-      );
-      if (!tokens.any((t) => t.tokenId == _json(run.inputJson)['authId'])) {
-        _fail('unauthorized', 'The initiating session ended.');
-      }
+    if (worker &&
+        !await PlatformApi.sessionExists(
+          w.s,
+          run.userId,
+          _json(run.inputJson)['authId'],
+        )) {
+      _fail('unauthorized', 'The initiating session ended.');
     }
   }
 
