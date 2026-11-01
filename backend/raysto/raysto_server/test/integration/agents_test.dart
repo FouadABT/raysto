@@ -1057,6 +1057,158 @@ void main() {
     );
 
     test(
+      'the image studio draws a dish, and approving it labels and publishes the photo',
+      () async {
+        final s = builder.build();
+        AgentModule.environment = () => {
+          ...Platform.environment,
+          'RAYSTO_AGENT_IMAGES_ENABLED': 'true',
+        };
+        ProviderClients.environment = () => {
+          ...Platform.environment,
+          'OPENAI_API_KEY': 'fixture-openai',
+          'RAYSTO_AI_IMAGE_USD_OPENAI': '0.05',
+        }..remove('GEMINI_API_KEY');
+        final stored = <String, Uint8List>{};
+        final store = ImageAgent.store, scan = ImageAgent.scan;
+        addTearDown(() {
+          ImageAgent.store = store;
+          ImageAgent.scan = scan;
+        });
+        ImageAgent.store = (name, bytes, mime) async => stored[name] = bytes;
+        // Stands in for the virus scan and re-encode of an upload.
+        ImageAgent.scan = (s, id) async {
+          final a = (await MediaAsset.db.findById(s, id))!;
+          a
+            ..status = 'approved'
+            ..objectName = 'v2/sanitized/$id/${a.sha256}.jpg'
+            ..mime = 'image/jpeg'
+            ..metadataJson = jsonEncode({
+              ...jsonDecode(a.metadataJson) as Map,
+              'width': 1536,
+              'height': 1024,
+            });
+          await MediaAsset.db.updateRow(s, a);
+        };
+        final requests = <http.Request>[];
+        ProviderClients.httpClient = () => MockClient((r) async {
+          requests.add(r);
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {'b64_json': base64Encode(List.filled(4000, 7))},
+              ],
+            }),
+            200,
+          );
+        });
+        final policy = (await RestaurantPolicy.db.findFirstRow(
+          s,
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ))!;
+
+        await expectLater(
+          ImageAgent.photo(
+            owner.build(),
+            command({
+              'productIds': [burger],
+              'provider': 'gemini',
+            }),
+          ),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'unavailable'),
+          ),
+        );
+        await expectLater(
+          ImageAgent.photo(
+            waiter.build(),
+            command({
+              'productIds': [burger],
+              'provider': 'openai',
+            }),
+          ),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'forbidden'),
+          ),
+        );
+        final started = await ImageAgent.photo(
+          owner.build(),
+          command({
+            'productIds': [burger],
+            'provider': 'openai',
+          }),
+        );
+        final taskId = (started['taskIds'] as List).single as int;
+        await AgentModule.run(s, taskId);
+        final task = (await AgentTask.db.findById(s, taskId))!;
+        expect(
+          task.status,
+          'done',
+          reason: '${task.summary} ${task.stateJson}',
+        );
+        expect(task.chargedMicros, 50000);
+        final sent = requests.single;
+        expect(sent.url.host, 'api.openai.com');
+        expect(sent.headers['authorization'], 'Bearer fixture-openai');
+        final body = jsonDecode(sent.body) as Map;
+        expect(body['model'], 'gpt-image-1');
+        expect(body['prompt'], contains('Burger'));
+        expect(body['prompt'], contains('no people'));
+        expect(stored.keys.single, startsWith('v2/quarantine/gen/'));
+
+        final action = (await AgentAction.db.find(
+          s,
+          where: (t) => t.taskId.equals(taskId),
+        )).single;
+        expect(action.command, 'menu.image');
+        expect(action.risk, 'catalogue');
+        final preview = jsonDecode(action.previewJson) as Map;
+        expect(preview['dish'], 'Burger');
+        expect(preview['provider'], 'openai');
+        final mediaId = preview['mediaId'] as int;
+        expect(
+          (await MediaAsset.db.findById(s, mediaId))!.public,
+          isFalse,
+          reason: 'Nobody sees the photo before the owner approves it.',
+        );
+
+        expect((await decide(owner, action))['state'], 'executed');
+        final media = (await MediaAsset.db.findById(s, mediaId))!;
+        expect(media.public, isTrue);
+        expect(jsonDecode(media.metadataJson)['origin'], 'ai');
+        expect(
+          (await RestaurantPolicy.db.findById(s, policy.id!))!.menuVersion,
+          policy.menuVersion,
+          reason: 'A photo changes no price, so open quotes stay valid.',
+        );
+        final item = (await PlatformQueries.sellable(
+          s,
+          restaurant.id!,
+        )).singleWhere((i) => i['productId'] == burger);
+        expect(item['mediaId'], mediaId);
+        expect(item['aiImage'], isTrue);
+
+        // An owner's later edit keeps the photo labelled as AI.
+        await CatalogueModule.saveItem(
+          owner.build(),
+          command({
+            'productId': burger,
+            'name': 'Burger',
+            'category': 'Mains',
+            'priceMinor': 950,
+            'mediaId': mediaId,
+          }, version: policy.menuVersion),
+        );
+        final edited = (await PlatformQueries.sellable(
+          s,
+          restaurant.id!,
+        )).singleWhere((i) => i['productId'] == burger);
+        expect(edited['priceMinor'], 950);
+        expect(edited['aiImage'], isTrue);
+      },
+    );
+
+    test(
       'feature and restaurant ceilings stop spending before the total',
       () async {
         AiBudget.environment = () => {

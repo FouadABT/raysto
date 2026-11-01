@@ -328,6 +328,8 @@ class MenuAgent {
           .toList();
       final item = <String, dynamic>{
         if (old != null) 'productId': old['productId'],
+        // A dish keeps its photo when the menu is read again.
+        if (old?['mediaId'] != null) 'mediaId': old!['mediaId'],
         'name': (old?['name'] as String?) ?? r['name'],
         'description':
             ((o['description'] ?? r['description']) as String?)?.trim() ??

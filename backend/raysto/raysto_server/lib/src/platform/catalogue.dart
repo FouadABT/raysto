@@ -511,6 +511,10 @@ class CatalogueModule {
           !media.public) {
         _fail('invalid_input', 'Choose an approved published menu image.');
       }
+      // Customers see a generated photo labelled as one, whoever edits later.
+      if (_json(media.metadataJson)['origin'] == 'ai') {
+        definition['aiImage'] = true;
+      }
     }
     final existing = await MenuDefinition.db.findFirstRow(
       w.s,
@@ -558,6 +562,63 @@ class CatalogueModule {
         await w.audit('menu.item_saved', 'product', id);
         return {'id': id, 'menuVersion': w.policy!.menuVersion};
       }, roles: _managers);
+
+  /// Puts an approved photo on a dish: publishes the file and points the dish
+  /// at it. Prices and options do not change, so the menu version stays and
+  /// open quotes and carts stay valid.
+  static Future<Json> image(Session s, PlatformCommand c) => _mutate(
+    s,
+    c,
+    'menu.image',
+    (w, d) async {
+      _keys(d, {'mediaId'});
+      final product = await MenuProduct.db.findById(
+        s,
+        _id(c),
+        transaction: w.tx,
+      );
+      if (product == null || product.restaurantId != w.tenant) {
+        _fail('not_found', 'Item not found.');
+      }
+      final media = await MediaAsset.db.findById(
+        s,
+        _int(d, 'mediaId', min: 1),
+        transaction: w.tx,
+        lockMode: LockMode.forUpdate,
+      );
+      if (media == null ||
+          media.restaurantId != w.tenant ||
+          media.purpose != 'menuImage' ||
+          media.status != 'approved') {
+        _fail('invalid_input', 'Choose an approved menu image.');
+      }
+      final definition = await MenuDefinition.db.findFirstRow(
+        s,
+        where: (t) => t.productId.equals(product.id!),
+        transaction: w.tx,
+      );
+      if (definition == null || definition.archived) {
+        _fail('not_found', 'Item not found.');
+      }
+      if (!media.public) {
+        media.public = true;
+        await MediaAsset.db.updateRow(s, media, transaction: w.tx);
+      }
+      final ai = _json(media.metadataJson)['origin'] == 'ai';
+      definition.definitionJson = jsonEncode(
+        {
+          ..._json(definition.definitionJson),
+          'mediaId': media.id,
+          'aiImage': ai,
+        }..removeWhere((k, v) => k == 'aiImage' && v == false),
+      );
+      await MenuDefinition.db.updateRow(s, definition, transaction: w.tx);
+      await w.audit('menu.image', 'product', product.id);
+      return {'productId': product.id, 'mediaId': media.id, 'aiImage': ai};
+    },
+    roles: _managers,
+  );
+
   static Future<Json> availability(Session s, PlatformCommand c) => _mutate(
     s,
     c,

@@ -92,6 +92,7 @@ class AgentModule {
     PaymentAgent.agent: PaymentAgent.run,
     MenuAgent.agent: MenuAgent.run,
     CopilotAgent.agent: CopilotAgent.run,
+    ImageAgent.agent: ImageAgent.run,
   };
 
   /// Audit kinds that wake an agent, e.g. `payment.attention` → payments.
@@ -102,6 +103,7 @@ class AgentModule {
 
   static final Map<String, AgentCommand> commands = {
     'menu.publish': MenuAgent.publishCommand,
+    'menu.image': ImageAgent.imageCommand,
     'menu.soldOut': AgentCommand(
       roles: {'owner', 'manager', 'kitchen'},
       risk: 'catalogue',

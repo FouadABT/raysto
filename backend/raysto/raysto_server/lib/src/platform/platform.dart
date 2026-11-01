@@ -45,6 +45,8 @@ part 'agent_payments.dart';
 part 'agent_menu.dart';
 part 'voice.dart';
 part 'agent_copilot.dart';
+part 'agent_images.dart';
+part 'media_ai.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -263,6 +265,8 @@ class PlatformApi {
     'agent.decide': AgentModule.decide,
     'menu.snap': MenuAgent.snap,
     'menu.sections': CatalogueModule.sections,
+    'menu.photo': ImageAgent.photo,
+    'menu.image': CatalogueModule.image,
     'operations.layout': WorkspaceModule.saveLayout,
     'room.open': ConversationModule.open,
     'room.message': ConversationModule.send,

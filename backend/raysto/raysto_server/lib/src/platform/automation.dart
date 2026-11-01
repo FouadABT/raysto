@@ -169,6 +169,8 @@ class AiModule {
         size = clean.length;
         await ProviderClients.putFile(object, clean, mime);
         metadata = {
+          // Keeps provenance, such as a generated photo's provider.
+          ..._json(a.metadataJson),
           'originalObject': a.objectName,
           ...dimensions,
         };
