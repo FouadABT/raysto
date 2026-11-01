@@ -505,6 +505,19 @@ class AgentModule {
     } on DomainError catch (e) {
       await _finish(s, task, 'failed', e.message, code: e.code);
       return;
+    } on GeminiFailure catch (e) {
+      // Busy or over its quota: say so, so the person knows to retry later.
+      await _finish(
+        s,
+        task,
+        'failed',
+        e.code == 'ai_capacity'
+            ? 'The AI service is busy or has reached its limit. Try again later.'
+            : 'The AI service did not answer. Try again later.',
+        code: e.code,
+        detail: 'http ${e.httpStatus ?? 0}',
+      );
+      return;
     } catch (e) {
       // The type only: provider bodies and stack traces stay out of records.
       await _finish(

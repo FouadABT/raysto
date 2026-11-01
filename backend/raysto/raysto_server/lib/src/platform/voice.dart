@@ -157,6 +157,14 @@ class VoiceModule {
         },
         deadline: const Duration(seconds: 25),
       );
+    } on GeminiFailure catch (e) {
+      await AiBudget.settle(s, key);
+      _fail(
+        e.code == 'ai_capacity' ? 'ai_capacity' : 'ai_unavailable',
+        e.code == 'ai_capacity'
+            ? 'Voice ordering is busy right now. Tap the items instead.'
+            : 'The order could not be heard. Tap the items instead.',
+      );
     } catch (_) {
       await AiBudget.settle(s, key);
       rethrow;
