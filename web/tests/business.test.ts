@@ -101,6 +101,10 @@ test("agent evidence reads as facts: PayPal status, source, amount and the chang
     ["PayPal: APPROVED", "Checked through PayPal MCP", "13.50 USD", "Raysto: created"],
   );
   assert.deepEqual(evidenceChips({}, { paused: { from: false, to: true } }, format), ["Online orders: open → paused"]);
+  assert.deepEqual(
+    evidenceChips({ queue: 7, oldestOpenMinutes: 34, usualMinutes: 20 }, { preparationMinutes: { from: 20, to: 40 } }, format),
+    ["Orders open: 7", "Oldest order: 34 min", "Prep time: 20 min → 40 min"],
+  );
   assert.equal(agentName("payments"), "Payments agent");
   assert.equal(agentCost(1800), "$0.002");
 });

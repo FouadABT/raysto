@@ -337,6 +337,8 @@ const connectedTranslations = <String, (String, String)>{
     'تم · أضف إلى التذكرة',
   ),
   'Say the order': ('Dire la commande', 'قل الطلب'),
+  'Orders open': ('Commandes en cours', 'طلبات مفتوحة'),
+  'Oldest order': ('Commande la plus ancienne', 'أقدم طلب'),
   'Order and approve in PayPal': (
     'Commander et approuver dans PayPal',
     'اطلب ووافق في PayPal',

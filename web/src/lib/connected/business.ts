@@ -237,6 +237,8 @@ export function evidenceChips(evidence: Json, preview: Json, format: (minor: num
   else if (evidence.paypalSource === "paypal_rest") chips.push("Checked through PayPal REST");
   if (typeof evidence.amountMinor === "number") chips.push(format(evidence.amountMinor, String(evidence.currency ?? "")));
   if (evidence.ledgerState) chips.push(`Raysto: ${evidence.ledgerState}`);
+  if (typeof evidence.queue === "number") chips.push(`Orders open: ${evidence.queue}`);
+  if (typeof evidence.oldestOpenMinutes === "number") chips.push(`Oldest order: ${evidence.oldestOpenMinutes} min`);
   if (preview.item) chips.push(`${preview.item}: sold out`);
   const labels: Record<string, string> = { paused: "Online orders", preparationMinutes: "Prep time", slotCapacity: "Orders per slot" };
   for (const [key, value] of Object.entries(preview)) {

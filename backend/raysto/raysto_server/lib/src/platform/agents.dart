@@ -91,6 +91,7 @@ class AgentModule {
   static final Map<String, AgentHandler> handlers = {
     PaymentAgent.agent: PaymentAgent.run,
     MenuAgent.agent: MenuAgent.run,
+    CopilotAgent.agent: CopilotAgent.run,
   };
 
   /// Audit kinds that wake an agent, e.g. `payment.attention` → payments.

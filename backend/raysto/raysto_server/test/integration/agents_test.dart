@@ -39,8 +39,10 @@ void main() {
           dataJson: jsonEncode(data),
         );
     List<AgentDraft> drafts = [];
+    AgentHandler? previousHandler;
 
-    /// Runs one copilot task that proposes [drafts]; returns its actions.
+    /// Runs one fixture task that proposes [drafts]; returns its actions.
+    /// The fixture borrows the not-yet-built reviews agent's name.
     Future<List<AgentAction>> propose() async {
       final s = builder.build();
       final task = await AgentModule.asAgent(
@@ -48,7 +50,7 @@ void main() {
         restaurant.id!,
         (w) => AgentModule.enqueue(
           w,
-          agent: 'copilot',
+          agent: 'reviews',
           trigger: 'event',
           dedupeKey: 'fixture:${key()}',
           title: 'Fixture suggestion',
@@ -148,14 +150,19 @@ void main() {
               as int;
       AgentModule.environment = () => {
         ...Platform.environment,
-        'RAYSTO_AGENT_COPILOT_ENABLED': 'true',
+        'RAYSTO_AGENT_REVIEWS_ENABLED': 'true',
       };
-      AgentModule.handlers['copilot'] = (s, task) async =>
+      previousHandler = AgentModule.handlers['reviews'];
+      AgentModule.handlers['reviews'] = (s, task) async =>
           AgentOutcome('Fixture outcome', drafts: drafts);
     });
     tearDown(() {
       AgentModule.environment = () => Platform.environment;
-      AgentModule.handlers.remove('copilot');
+      if (previousHandler == null) {
+        AgentModule.handlers.remove('reviews');
+      } else {
+        AgentModule.handlers['reviews'] = previousHandler!;
+      }
       AiBudget.environment = () => Platform.environment;
       ProviderClients.environment = () => Platform.environment;
       ProviderClients.httpClient = http.Client.new;
@@ -882,6 +889,170 @@ void main() {
             isA<DomainError>().having((e) => e.code, 'code', 'forbidden'),
           ),
         );
+      },
+    );
+
+    test(
+      'the copilot asks for a longer promise in a rush and goes back after',
+      () async {
+        final s = builder.build();
+        final now = DateTime.now().toUtc();
+        // A real configuration, so approving a settings change validates.
+        final policy = (await RestaurantPolicy.db.findFirstRow(
+          s,
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ))!;
+        policy.settingsJson = jsonEncode({
+          ...jsonDecode(policy.settingsJson) as Map,
+          'taxConfigured': true,
+          'address': 'Fixture street',
+          'contactEmail': 'owner@example.test',
+          'country': 'BE',
+          'hours': [
+            for (var day = 1; day <= 7; day++)
+              {'day': day, 'start': 0, 'end': 1440},
+          ],
+        });
+        await RestaurantPolicy.db.updateRow(s, policy);
+        AgentModule.environment = () => {
+          ...Platform.environment,
+          'RAYSTO_AGENT_COPILOT_ENABLED': 'true',
+        };
+        ProviderClients.environment = () => {
+          ...Platform.environment,
+          'GEMINI_API_KEY': 'fixture-key',
+        };
+        // One order accepted 35 minutes ago: past the 20-minute promise.
+        final late = await PurchaseOrder.db.insertRow(
+          s,
+          PurchaseOrder(
+            restaurantId: restaurant.id!,
+            customerId: 'agents-customer',
+            requestKey: key(),
+            requestHash: 'fixture',
+            fulfillment: 'pickup',
+            lines: [],
+            currency: 'EUR',
+            subtotalMinor: 900,
+            deliveryFeeMinor: 0,
+            totalMinor: 900,
+            status: 'accepted',
+            paymentStatus: 'paid',
+            version: 1,
+            createdAt: now.subtract(const Duration(minutes: 35)),
+            updatedAt: now.subtract(const Duration(minutes: 30)),
+          ),
+        );
+        String sse(Json part) =>
+            'data: ${jsonEncode({
+              'candidates': [
+                {
+                  'index': 0,
+                  'content': {
+                    'role': 'model',
+                    'parts': [part],
+                  },
+                  'finishReason': 'STOP',
+                },
+              ],
+              'usageMetadata': {'promptTokenCount': 300, 'candidatesTokenCount': 40, 'totalTokenCount': 340},
+            })}\r\n\r\n';
+        Json call(String name, [Json args = const {}]) => {
+          'functionCall': {'name': name, 'args': args},
+        };
+        final script = [
+          call('read_kitchen'),
+          call('propose_preparation_time', {
+            'decision': 'change',
+            'minutes': 45,
+            'explanation':
+                'One order has waited 35 minutes against a 20-minute promise. Promising 45 minutes keeps new pickups honest.',
+          }),
+          call('read_kitchen'),
+          call('propose_preparation_time', {
+            'decision': 'change',
+            'minutes': 20,
+            'explanation':
+                'The queue is empty and nothing is late. Customers can be promised 20 minutes again.',
+          }),
+        ];
+        final prompts = <String>[];
+        ProviderClients.httpClient = () => MockClient((r) async {
+          if (r.url.path.endsWith(':countTokens')) {
+            return http.Response('{"totalTokens": 300}', 200);
+          }
+          final body = jsonDecode(r.body) as Map;
+          prompts.add(jsonEncode(body['systemInstruction']));
+          return http.Response.bytes(
+            utf8.encode(sse(script.removeAt(0))),
+            200,
+            headers: {'content-type': 'text/event-stream; charset=utf-8'},
+          );
+        });
+
+        await CopilotAgent.sweep(s, force: true);
+        final rush = (await AgentTask.db.find(
+          s,
+          where: (t) =>
+              t.restaurantId.equals(restaurant.id!) & t.agent.equals('copilot'),
+        )).single;
+        expect(jsonDecode(rush.inputJson), {
+          'signal': 'rush',
+          'usualMinutes': 20,
+        });
+        await AgentModule.run(s, rush.id!);
+        final raise = (await AgentAction.db.find(
+          s,
+          where: (t) => t.taskId.equals(rush.id!),
+        )).single;
+        expect(raise.command, 'settings.patch');
+        expect(jsonDecode(raise.payloadJson), {
+          'settings': {'preparationMinutes': 45},
+        });
+        final evidence = jsonDecode(raise.evidenceJson) as Map;
+        expect(evidence['queue'], 1);
+        expect(evidence['oldestOpenMinutes'], greaterThanOrEqualTo(35));
+        expect(evidence['usualMinutes'], 20);
+        // While the proposal waits, the next sweep does not stack another.
+        await CopilotAgent.sweep(s, force: true);
+        expect(
+          await AgentTask.db.count(
+            s,
+            where: (t) => t.agent.equals('copilot'),
+          ),
+          1,
+        );
+        expect((await decide(owner, raise))['state'], 'executed');
+        Future<int> promised() async => jsonDecode(
+          (await RestaurantPolicy.db.findById(s, policy.id!))!.settingsJson,
+        )['preparationMinutes'];
+        expect(await promised(), 45);
+
+        // The order is collected; the kitchen is calm again.
+        late.status = 'collected';
+        late.updatedAt = DateTime.now().toUtc();
+        await PurchaseOrder.db.updateRow(s, late);
+        await CopilotAgent.sweep(s, force: true);
+        final calm = (await AgentTask.db.find(
+          s,
+          where: (t) =>
+              t.restaurantId.equals(restaurant.id!) &
+              t.agent.equals('copilot') &
+              t.id.notEquals(rush.id!),
+        )).single;
+        expect(jsonDecode(calm.inputJson), {
+          'signal': 'calm',
+          'usualMinutes': 20,
+        });
+        await AgentModule.run(s, calm.id!);
+        final back = (await AgentAction.db.find(
+          s,
+          where: (t) => t.taskId.equals(calm.id!),
+        )).single;
+        expect(back.title, contains('Back to 20 minutes'));
+        expect((await decide(owner, back))['state'], 'executed');
+        expect(await promised(), 20);
+        expect(prompts.last, contains('usual 20 minutes'));
       },
     );
 

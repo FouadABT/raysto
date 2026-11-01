@@ -44,6 +44,7 @@ part 'agents.dart';
 part 'agent_payments.dart';
 part 'agent_menu.dart';
 part 'voice.dart';
+part 'agent_copilot.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();

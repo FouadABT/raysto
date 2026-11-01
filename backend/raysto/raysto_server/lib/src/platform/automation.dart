@@ -614,6 +614,7 @@ class PlatformWorker {
     );
     await AgentModule.sweep(s);
     await PaymentAgent.sweep(s);
+    await CopilotAgent.sweep(s);
     await RateWindow.db.deleteWhere(
       s,
       where: (t) =>

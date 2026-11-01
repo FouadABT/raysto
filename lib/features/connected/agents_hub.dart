@@ -234,6 +234,9 @@ List<String> evidenceChips(BuildContext c, Json evidence, Json preview) => [
     money(evidence['amountMinor'], '${evidence['currency'] ?? ''}'),
   if (evidence['ledgerState'] != null)
     '${c.tr('Raysto')}: ${statusLabel(c, '${evidence['ledgerState']}')}',
+  if (evidence['queue'] != null) '${c.tr('Orders open')}: ${evidence['queue']}',
+  if (evidence['oldestOpenMinutes'] != null)
+    '${c.tr('Oldest order')}: ${evidence['oldestOpenMinutes']} ${c.tr('min')}',
   if (preview['item'] != null) '${preview['item']}: ${c.tr('sold out')}',
   for (final e in preview.entries)
     if (e.value is Map && obj(e.value).containsKey('to'))
