@@ -1,6 +1,6 @@
 # PayPal Sandbox acceptance — 31 October 2026
 
-Two live sessions against production (`api.rays.to`, backend 0.12.0, then 0.12.1 for the last AI checks) on the single-merchant Sandbox restaurant (id 3, USD). Two separate PayPal Sandbox personal buyers approved every payment on PayPal's own Sandbox checkout page in a real browser. Only virtual Sandbox funds moved.
+Two live sessions against production (`api.rays.to`, backend 0.12.0; the last AI checks ran on 0.12.1 and 0.12.2) on the single-merchant Sandbox restaurant (id 3, USD). Two separate PayPal Sandbox personal buyers approved every payment on PayPal's own Sandbox checkout page in a real browser. Only virtual Sandbox funds moved.
 
 The script that ran the sessions is `tool/live_session_qa.cjs` (kept out of git because it reads the private QA and buyer logins). It stores every request key, so a rerun resumes and never creates a duplicate. Buyer logins, tokens and screenshots of PayPal's pages (which show buyer emails) are not in the repository.
 
@@ -18,7 +18,7 @@ The script that ran the sessions is `tool/live_session_qa.cjs` (kept out of git 
 | Equal split, buyers 1 and 2 | Table visit 2 had a $27.00 dine-in bill. Each diner called `room.split.equal` and got the same frozen plan (plan 1), then paid their own $13.50 share | Checkouts 7 and 8 completed. Order 2 paid, bill remaining $0.00, settled $27.00. Captures `4MG67343RS1841023` and `47E23175WJ603464A` |
 | Partial refund | Owner signed in again, passed `identity.stepUp`, refunded $5.00 of the pickup capture against order 3 | Refund completed at PayPal as `2J851836BE9699524`. Order 3 is `partiallyRefunded` |
 | AI: unresolved payments and a PayPal check (run 22) | Manager asked: "Are any PayPal payments unresolved right now? Then check with PayPal whether the payment for checkout 5 really went through." | Tools: `unresolved_payments` (ledger, 12 ms), then `payment_status` (PayPal MCP over stdio, 5.1 s). Answer: "No PayPal payment needs attention… PayPal reports COMPLETED for checkout 5: USD 12.00. Source: PayPal MCP." |
-| AI: refund check (run 23) | Manager asked whether the $5 refund on checkout 5 completed at PayPal | `payment_status` read the refund through PayPal MCP: COMPLETED, USD 5.00 |
+| AI: refund check (runs 23–24) | Manager asked whether the $5 refund on checkout 5 completed at PayPal | `payment_status` read the refund through PayPal MCP: COMPLETED, USD 5.00. On 0.12.2 (run 24) the answer reads "PayPal reports COMPLETED for refund 1 on checkout 5: USD 5.00. Source: PayPal MCP." |
 
 ### Webhooks
 

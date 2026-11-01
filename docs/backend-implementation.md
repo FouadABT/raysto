@@ -2,7 +2,16 @@
 
 **Current update — 27 October 2026:** the v2 backend, connected mobile rooms and AG Grid/Studio console are implemented. Backend/console patch `0.11.6` is deployed on Raysto-only AWS services; Android candidate `0.11.5+2014` is built. See [the current candidate report](release-candidate-2026-10-27.md) and [project status](project-status.md) for verified scope, Google capacity failures and outstanding buyer/device/pilot acceptance. The preparation notes below are historical; [mobile integration](mobile-backend-integration.md) preserves earlier evidence. PostgreSQL owns visits, split allocations, reservations, kitchen/courier operations, subscriptions, AI approvals and audit/outbox records.
 
-**Hackathon scope correction — 28–29 October 2026 (branch `hackathon/full-suite`, uncommitted):** the audit in [`audits/raysto-full-product-audit.md`](audits/raysto-full-product-audit.md) found the product narrowed to the shared table. Work since, all on the isolated test database and not yet deployed:
+**Deployed and accepted — 31 October to 1 November 2026:** the scope correction below is committed on `main` and live.
+
+- Backend 0.12.0 applied migration `20261028134922094` and switched Gemini to the Developer API (3.6 Flash). 0.12.1 and 0.12.2 changed only Ask Raysto's answers: every fact is kept, and refund checks are named.
+- Console 0.12.1 opens on Overview / Orders / Payments (AG Grid) at ops.rays.to.
+- The PayPal webhook was already registered and matches `PAYPAL_SANDBOX_WEBHOOK_ID`.
+- Live Sandbox acceptance with two buyers passed: pickup, counter QR, a two-buyer equal split, a $5 partial refund, and the manager assistant reading PayPal through MCP. Ids are in [paypal-acceptance-2026-10-31.md](paypal-acceptance-2026-10-31.md).
+- Android 0.12.1+2015 (arm64 release, `RAYSTO_API_URL=https://api.rays.to/`) is built but has not been run on a physical phone.
+- Backend 123/123, web 14/14.
+
+**Hackathon scope correction — 28–29 October 2026 (branch `hackathon/full-suite`):** the audit in [`audits/raysto-full-product-audit.md`](audits/raysto-full-product-audit.md) found the product narrowed to the shared table. Work since, all on the isolated test database and not yet deployed:
 
 - Money: a checkout "checked" before approval returns to `created` instead of sticking in `capturing`; read failures are no longer `uncertain`; managers get `payment.release` (re-reads PayPal, refuses if captured); refunds take an `orderId` so one capture over several orders refunds the right one; capture now runs server-side as soon as PayPal shows `APPROVED` (webhook, retry job, or the PayPal return page); partial refunds no longer strand preparation; split bills with a settled share are not expired.
 - Snack bar: `counter`, `dispatch` and `acceptOrders` capabilities on memberships; counter sales (`quote.create` with `onBehalf`), daily ticket numbers, 4-digit pickup codes, `walk-in:<restaurant>` customer, `autoAcceptPaid`, staff alerts, newest-first `orders`/`checkouts` with `q` lookup by number or code.
