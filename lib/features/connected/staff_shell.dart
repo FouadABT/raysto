@@ -59,6 +59,16 @@ class _StaffShellState extends State<StaffShell> {
           ),
           KitchenBoard(live: l),
         ),
+      // AI coworkers: managers see everything, the kitchen its menu changes.
+      if (l.manager || l.role == 'kitchen')
+        (
+          DockDestination(
+            context.tr('Agents'),
+            Icons.auto_awesome_outlined,
+            Icons.auto_awesome,
+          ),
+          agentsPage(l),
+        ),
       if (l.role == 'courier')
         (
           DockDestination(

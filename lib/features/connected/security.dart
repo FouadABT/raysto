@@ -95,6 +95,56 @@ Future<String> _sendSms(
   return completer.future;
 }
 
+/// Confirms the signed-in person again (password or Google) and records a
+/// short-lived step-up on the server, for sensitive actions such as approving
+/// a refund. Returns false if they cancel.
+Future<bool> verifyIdentity(BuildContext context, LiveRuntime runtime) async {
+  final user = runtime.firebase.currentUser;
+  if (user == null) return false;
+  try {
+    try {
+      if (user.providerData.any((p) => p.providerId == 'password')) {
+        final value = await editFields(
+          context,
+          'Confirm your password',
+          const [InputSpec('password', 'Password', kind: 'password')],
+          save: (v) async {
+            try {
+              await user.reauthenticateWithCredential(
+                EmailAuthProvider.credential(
+                  email: user.email!,
+                  password: v['password'],
+                ),
+              );
+            } on FirebaseAuthMultiFactorException catch (e) {
+              if (!context.mounted) rethrow;
+              await resolveFactor(context, e);
+            }
+            return {'verified': true};
+          },
+        );
+        if (value == null) return false;
+      } else {
+        final google = await GoogleSignIn.instance.authenticate();
+        await user.reauthenticateWithCredential(
+          GoogleAuthProvider.credential(idToken: google.authentication.idToken),
+        );
+      }
+    } on FirebaseAuthMultiFactorException catch (e) {
+      if (!context.mounted) return false;
+      await resolveFactor(context, e);
+    }
+    await runtime.platform.command('identity.stepUp', {
+      'firebaseIdToken': await user.getIdToken(true),
+    });
+    return true;
+  } on AccountSignInCanceled {
+    return false;
+  } on GoogleSignInException {
+    return false;
+  }
+}
+
 class SecurityPage extends StatefulWidget {
   const SecurityPage({super.key, required this.runtime});
   final LiveRuntime runtime;
