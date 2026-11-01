@@ -41,6 +41,19 @@ Widget agentsPage(LiveContext live) => DataPage(
       scene: RaystoScene.kitchen,
       compact: true,
     ),
+    if (live.manager)
+      Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          AppButton(
+            label: c.tr('Snap your menu'),
+            icon: Icons.photo_camera_outlined,
+            expanded: false,
+            onPressed: () => push(c, MenuSnapPage(live: live)),
+          ),
+        ],
+      ),
     AppSectionTitle(title: c.tr('Waiting for you')),
     if (records(d['inbox']).isEmpty)
       RaystoEmptyState(

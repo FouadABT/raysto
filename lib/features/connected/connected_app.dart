@@ -37,6 +37,7 @@ part 'staff_kitchen.dart';
 part 'staff_counter.dart';
 part 'assistant_flows.dart';
 part 'agents_hub.dart';
+part 'menu_snap.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};

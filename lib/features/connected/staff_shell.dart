@@ -175,6 +175,13 @@ Widget staffMore(
       ),
     if (live.manager)
       tile(
+        c.tr('Snap your menu'),
+        Icons.photo_camera_outlined,
+        () => push(c, MenuSnapPage(live: live)),
+        subtitle: c.tr('Photograph a paper menu; Raysto prepares it for you.'),
+      ),
+    if (live.manager)
+      tile(
         c.tr('Ask Raysto about today'),
         Icons.auto_awesome,
         () => push(c, AskRaystoPage(live: live, manager: true)),
