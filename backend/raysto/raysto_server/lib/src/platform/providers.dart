@@ -22,8 +22,7 @@ class ProviderClients {
 
   static bool singleRestaurant(int tenant) =>
       paypalEnvironment == 'sandbox' &&
-      environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] ==
-          'true' &&
+      environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] == 'true' &&
       int.tryParse(
             environment()['RAYSTO_SANDBOX_RESTAURANT_ID'] ?? '',
           ) ==
@@ -31,8 +30,7 @@ class ProviderClients {
 
   static Future<String> paypalReadToken() async {
     if (paypalEnvironment != 'sandbox' ||
-        environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
-            'true') {
+        environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] != 'true') {
       _fail('not_configured', 'Sandbox merchant reads are not enabled.');
     }
     final client = httpClient();
@@ -126,8 +124,7 @@ class ProviderClients {
     if (singleMerchant &&
         (billing ||
             paypalEnvironment != 'sandbox' ||
-            environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] !=
-                'true' ||
+            environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] != 'true' ||
             (merchant != null &&
                 merchant != required('PAYPAL_SANDBOX_MERCHANT_ID')))) {
       _fail('not_configured', 'Invalid direct Sandbox merchant configuration.');

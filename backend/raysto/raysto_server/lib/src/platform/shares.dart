@@ -178,7 +178,10 @@ class EqualShares {
         plan.restaurantId != w.tenant ||
         room == null ||
         room.visitId != visitId) {
-      _fail('stale_proposal', 'This equal split was reset. Review a new share.');
+      _fail(
+        'stale_proposal',
+        'This equal split was reset. Review a new share.',
+      );
     }
     final bill = await AssistantModule.bill(w, room);
     final split = await prepare(
@@ -190,7 +193,10 @@ class EqualShares {
     // A fully paid plan is replaced by prepare; a payment must not be
     // stamped with the old one, or the new plan would not count it.
     if (split['splitPlanId'] != plan.id) {
-      _fail('stale_proposal', 'This equal split was reset. Review a new share.');
+      _fail(
+        'stale_proposal',
+        'This equal split was reset. Review a new share.',
+      );
     }
     return (split['shares'] as List).cast<Json>();
   }

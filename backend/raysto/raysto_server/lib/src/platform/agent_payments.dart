@@ -207,50 +207,57 @@ class PaymentAgent {
     Json? paypal;
     AgentDraft? draft;
 
-    Future<Json> readLedger() async => ledger ??= await AgentModule.asAgent<Json>(
-      s,
-      task.restaurantId,
-      (w) async {
-        final i = await CheckoutIntent.db.findById(
+    Future<Json> readLedger() async =>
+        ledger ??= await AgentModule.asAgent<Json>(
           s,
-          checkoutId,
-          transaction: w.tx,
+          task.restaurantId,
+          (w) async {
+            final i = await CheckoutIntent.db.findById(
+              s,
+              checkoutId,
+              transaction: w.tx,
+            );
+            if (i == null || i.restaurantId != w.tenant) {
+              _fail('not_found', 'Checkout not found.');
+            }
+            final captures = await PaymentCapture.db.find(
+              s,
+              where: (t) => t.checkoutId.equals(i.id!),
+              transaction: w.tx,
+            );
+            final order = i.orderId == null
+                ? null
+                : await PurchaseOrder.db.findById(
+                    s,
+                    i.orderId!,
+                    transaction: w.tx,
+                  );
+            return {
+              'checkoutId': i.id,
+              'state': i.state,
+              'amountMinor': i.amountMinor,
+              'currency': i.currency,
+              'minutesSinceCreated': _now().difference(i.createdAt).inMinutes,
+              'minutesSinceLastChange': _now()
+                  .difference(i.updatedAt)
+                  .inMinutes,
+              'hasPayPalOrder': i.providerOrderId != null,
+              'captures': [
+                for (final c in captures)
+                  {'amountMinor': c.amountMinor, 'state': c.state},
+              ],
+              if (order != null)
+                'order': {
+                  'number': OrderingModule.isWalkIn(order.customerId)
+                      ? 'counter sale'
+                      : 'order',
+                  'status': order.status,
+                  'paymentStatus': order.paymentStatus,
+                },
+              if (i.visitId != null) 'tableVisit': true,
+            };
+          },
         );
-        if (i == null || i.restaurantId != w.tenant) {
-          _fail('not_found', 'Checkout not found.');
-        }
-        final captures = await PaymentCapture.db.find(
-          s,
-          where: (t) => t.checkoutId.equals(i.id!),
-          transaction: w.tx,
-        );
-        final order = i.orderId == null
-            ? null
-            : await PurchaseOrder.db.findById(s, i.orderId!, transaction: w.tx);
-        return {
-          'checkoutId': i.id,
-          'state': i.state,
-          'amountMinor': i.amountMinor,
-          'currency': i.currency,
-          'minutesSinceCreated': _now().difference(i.createdAt).inMinutes,
-          'minutesSinceLastChange': _now().difference(i.updatedAt).inMinutes,
-          'hasPayPalOrder': i.providerOrderId != null,
-          'captures': [
-            for (final c in captures)
-              {'amountMinor': c.amountMinor, 'state': c.state},
-          ],
-          if (order != null)
-            'order': {
-              'number': OrderingModule.isWalkIn(order.customerId)
-                  ? 'counter sale'
-                  : 'order',
-              'status': order.status,
-              'paymentStatus': order.paymentStatus,
-            },
-          if (i.visitId != null) 'tableVisit': true,
-        };
-      },
-    );
 
     Future<Json> readPayPal() async {
       if (paypal != null) return paypal!;

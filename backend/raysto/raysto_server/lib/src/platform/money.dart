@@ -77,7 +77,10 @@ class MoneyModule {
         // An equal share chosen without the assistant binds to the same
         // frozen plan, and only that payer's exact remaining share is accepted.
         if (proposal != null || r.visitId == null || r.shares == null) {
-          _fail('invalid_input', 'An equal share pays exact shares of a visit.');
+          _fail(
+            'invalid_input',
+            'An equal share pays exact shares of a visit.',
+          );
         }
         final expected = [
           for (final v in await EqualShares.mine(w, r.splitPlanId!, r.visitId!))
@@ -513,8 +516,7 @@ class MoneyModule {
       );
       validateOrder(before, provider);
       final unit = _object((provider['purchase_units'] as List).single);
-      if (((unit['payments'] as Map?)?['captures'] as List? ?? [])
-          .isNotEmpty) {
+      if (((unit['payments'] as Map?)?['captures'] as List? ?? []).isNotEmpty) {
         return {...await reconcile(s, id), 'released': false};
       }
     }
@@ -534,6 +536,7 @@ class MoneyModule {
       return {...view(row), 'released': true};
     });
   }
+
   static Future<void> _release(Work w, CheckoutIntent i, String state) async {
     final allocations = await PaymentAllocation.db.find(
       w.s,
