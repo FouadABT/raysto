@@ -471,6 +471,7 @@ class MenuAgent {
       CatalogueModule.validateSections(sections);
       return (
         preview: <String, dynamic>{
+          'draftId': draft.id,
           'dishes': (jsonDecode(draft.itemsJson) as List).length,
           'sections': sections.length,
         },
