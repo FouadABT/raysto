@@ -43,6 +43,7 @@ import {
   OrdersSection,
   PaymentsSection,
   type Section,
+  AgentsSection,
 } from "./business-sections";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -633,6 +634,7 @@ export function OperationsWorkspace({
               ["overview", "Overview"],
               ["orders", "Orders"],
               ["payments", "Payments"],
+              ["agents", "Agents"],
               ["floor", "Floor"],
             ] as const
           ).map(([id, label]) => (
@@ -673,6 +675,8 @@ export function OperationsWorkspace({
               focus={focus}
               currencyCode={snapshot.currency}
             />
+          ) : section === "agents" ? (
+            <AgentsSection api={api} tenant={tenant} revision={snapshot.asOf} />
           ) : (
             <PaymentsSection
               key={focus ?? "payments"}

@@ -4,8 +4,12 @@ import { AgGridReact } from "ag-grid-react";
 import { themeQuartz, type ColDef } from "ag-grid-community";
 import { ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
+import { stepUp, usesPassword } from "@/lib/connected/step-up";
 import {
+  agentCost,
+  agentName,
   asRows,
+  evidenceChips,
   channelMix,
   channelOf,
   customerOf,
@@ -22,9 +26,11 @@ import {
   type RefundRow,
   type StatusGroup,
   type Summary,
+  type AgentActionRow,
+  type AgentTaskRow,
 } from "@/lib/connected/business";
 
-export type Section = "overview" | "orders" | "payments";
+export type Section = "overview" | "orders" | "payments" | "agents";
 
 const gridTheme = themeQuartz.withParams({
   accentColor: "#23493c",
@@ -82,7 +88,7 @@ export function BusinessOverview({
 }) {
   const { data, error } = useLoad(async () => {
     const today = dayRange(new Date());
-    const [summary, channels, collections, checkouts, orders] = await Promise.all([
+    const [summary, channels, collections, checkouts, orders, inbox] = await Promise.all([
       api.query<Summary>("report", { restaurantId: tenant, report: "summary", ...today }),
       api.query<{ channels: Record<string, { orders: number; salesMinor: number }> }>(
         "report",
@@ -91,9 +97,12 @@ export function BusinessOverview({
       api.query<Json>("report", { restaurantId: tenant, report: "collections", limit: 100, ...today }),
       api.query<Json>("checkouts", { restaurantId: tenant, staff: true, order: "desc", limit: 100 }),
       api.query<Json>("orders", { restaurantId: tenant, staff: true, order: "desc", limit: 100 }),
+      // Agents may be switched off on a deployment; the overview still loads.
+      api.query<Json>("agent.inbox", { restaurantId: tenant }).catch(() => ({ rows: [] })),
     ]);
     return {
       summary,
+      waiting: asRows<AgentActionRow>(inbox),
       mix: channelMix(channels.channels ?? {}),
       totals: collectionTotals(asRows<CollectionRow>(collections)),
       attention: unresolved(asRows<CheckoutRow>(checkouts), new Date()).length,
@@ -102,7 +111,7 @@ export function BusinessOverview({
   }, [api, tenant, revision]);
   const code = data?.summary.currency ?? currencyCode;
   if (!data) return <p className="ops-note">{error || "Gathering today's figures…"}</p>;
-  const { summary, mix, totals, attention, active } = data;
+  const { summary, mix, totals, attention, active, waiting } = data;
   const kpis: { label: string; value: string; note: string; to?: [Section | "floor", string?] }[] = [
     { label: "Orders today", value: String(summary.ordersCreated), note: `${summary.completedOrders} completed`, to: ["orders"] },
     { label: "Booked sales", value: currency(summary.bookedSalesMinor, code), note: "Placed and not cancelled", to: ["orders"] },
@@ -112,6 +121,12 @@ export function BusinessOverview({
     { label: "PayPal to resolve", value: String(attention + (totals.review ? 1 : 0)), note: totals.review ? `${currency(totals.review, code)} under review` : "Unfinished or uncertain attempts", to: ["payments", "attempts"] },
     { label: "In the kitchen", value: String(active.length), note: "New, preparing or ready", to: ["orders", "active"] },
     { label: "Service requests", value: String(openRequests), note: "Open at the tables", to: ["floor"] },
+    {
+      label: "Agents need you",
+      value: String(waiting.length),
+      note: waiting.length ? `${waiting.filter((a) => a.risk === "money").length} about money` : "AI coworkers are up to date",
+      to: ["agents"],
+    },
   ];
   return (
     <div className="ops-business">
@@ -476,5 +491,256 @@ export function PaymentsSection({
       </div>
       <small>PayPal and cash are kept apart. Amounts under review are PayPal captures found on a released checkout.</small>
     </div>
+  );
+}
+
+/**
+ * AI coworkers: what each agent prepared, with its evidence, waiting for a
+ * manager. Nothing changes until someone approves; money also needs the
+ * manager to confirm their identity first.
+ */
+export function AgentsSection({
+  api,
+  tenant,
+  revision,
+}: {
+  api: ConnectedApi;
+  tenant: number;
+  revision: string;
+}) {
+  const [tab, setTab] = useState<"inbox" | "activity">("inbox");
+  const [selected, setSelected] = useState<number>();
+  const { data, error, reload } = useLoad(async () => {
+    const [inbox, activity] = await Promise.all([
+      api.query<Json>("agent.inbox", { restaurantId: tenant }),
+      api.query<Json>("agent.activity", { restaurantId: tenant, limit: 50 }),
+    ]);
+    return {
+      inbox: asRows<AgentActionRow>(inbox),
+      activity: asRows<AgentTaskRow>(activity),
+    };
+  }, [api, tenant, revision]);
+  const today = new Date().toDateString();
+  const todays = (data?.activity ?? []).filter((t) => new Date(t.createdAt).toDateString() === today);
+  const action = data?.inbox.find((a) => a.id === selected);
+  const inboxColumns = useMemo<ColDef<AgentActionRow>[]>(
+    () => [
+      { headerName: "Agent", valueGetter: (p) => (p.data ? agentName(p.data.agent) : ""), minWidth: 140 },
+      { field: "title", headerName: "Suggestion", flex: 2, minWidth: 240 },
+      {
+        field: "risk",
+        headerName: "Kind",
+        valueFormatter: (p) => (p.value === "money" ? "Money · identity check" : p.value === "ops" ? "Service" : "Menu"),
+        minWidth: 150,
+      },
+      { headerName: "PayPal", valueGetter: (p) => String(p.data?.evidence?.paypalStatus ?? ""), minWidth: 130 },
+      { field: "createdAt", headerName: "Found", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
+    ],
+    [],
+  );
+  const activityColumns = useMemo<ColDef<AgentTaskRow>[]>(
+    () => [
+      { headerName: "Agent", valueGetter: (p) => (p.data ? agentName(p.data.agent) : ""), minWidth: 140 },
+      { field: "title", headerName: "Task", minWidth: 180 },
+      { field: "summary", headerName: "Outcome", flex: 2, minWidth: 260, tooltipField: "summary" },
+      { field: "status", valueFormatter: (p) => words(p.value), minWidth: 110 },
+      {
+        headerName: "Time",
+        valueGetter: (p) => Number(p.data?.state?.ms ?? 0) / 1000,
+        valueFormatter: (p) => (p.value ? `${Number(p.value).toFixed(1)} s` : ""),
+        minWidth: 100,
+      },
+      {
+        field: "chargedMicros",
+        headerName: "AI cost",
+        valueFormatter: (p) => agentCost(Number(p.value ?? 0)),
+        type: "rightAligned",
+        minWidth: 110,
+      },
+      { field: "createdAt", headerName: "When", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
+    ],
+    [],
+  );
+  if (!data) return <p className="ops-note">{error || "Loading the agents…"}</p>;
+  return (
+    <div className={`ops-business ${action ? "with-panel" : ""}`}>
+      <div>
+        <div className="ops-kpis compact">
+          <div className="ops-kpi"><span>Waiting for you</span><strong>{data.inbox.length}</strong></div>
+          <div className="ops-kpi"><span>Agent tasks today</span><strong>{todays.length}</strong></div>
+          <div className="ops-kpi"><span>Money suggestions</span><strong>{data.inbox.filter((a) => a.risk === "money").length}</strong></div>
+          <div className="ops-kpi"><span>AI cost today</span><strong>{agentCost(todays.reduce((n, t) => n + t.chargedMicros, 0))}</strong></div>
+        </div>
+        <div className="ops-chips" role="group" aria-label="Agents view">
+          <button aria-pressed={tab === "inbox"} onClick={() => setTab("inbox")}>Waiting for you</button>
+          <button aria-pressed={tab === "activity"} onClick={() => setTab("activity")}>What the agents did</button>
+        </div>
+        {error && <p className="ops-error" role="alert">{error}</p>}
+        <div className="ops-grid tall">
+          {tab === "inbox" ? (
+            <AgGridReact<AgentActionRow>
+              key="agents-inbox"
+              theme={gridTheme}
+              rowData={data.inbox}
+              columnDefs={inboxColumns}
+              defaultColDef={defaults}
+              getRowId={(p) => String(p.data.id)}
+              onRowClicked={(e) => e.data && setSelected(e.data.id)}
+              overlayNoRowsTemplate="Nothing is waiting. Agents ask here when something needs you."
+            />
+          ) : (
+            <AgGridReact<AgentTaskRow>
+              key="agents-activity"
+              theme={gridTheme}
+              rowData={data.activity}
+              columnDefs={activityColumns}
+              defaultColDef={defaults}
+              getRowId={(p) => String(p.data.id)}
+              tooltipShowDelay={300}
+            />
+          )}
+        </div>
+        <small className="ops-note">Agents prepare; people approve; PayPal moves the money.</small>
+      </div>
+      {action && (
+        <AgentPanel
+          key={`${action.id}-${action.version}`}
+          api={api}
+          tenant={tenant}
+          action={action}
+          onDone={() => {
+            setSelected(undefined);
+            reload();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function AgentPanel({
+  api,
+  tenant,
+  action,
+  onDone,
+}: {
+  api: ConnectedApi;
+  tenant: number;
+  action: AgentActionRow;
+  onDone: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+  const [needsCheck, setNeedsCheck] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordAccount, setPasswordAccount] = useState(true);
+  // One request key per decision: retrying after the identity check resumes
+  // the same approval instead of starting another.
+  const [keys] = useState(() => ({ approve: crypto.randomUUID(), reject: crypto.randomUUID() }));
+  const chips = evidenceChips(action.evidence ?? {}, action.preview ?? {}, (minor, code) => currency(minor, code));
+
+  async function decide(decision: "approve" | "reject") {
+    setBusy(true);
+    setNote("");
+    try {
+      const result = await api.command<Json>(
+        "agent.decide",
+        tenant,
+        { decision },
+        { id: action.id, version: action.version, key: keys[decision] },
+      );
+      if (result.needs) {
+        setPasswordAccount(await usesPassword());
+        setNeedsCheck(true);
+        setNote("Confirm it is you to approve this payment change.");
+        return;
+      }
+      const state = String(result.state);
+      setNote(
+        state === "executed"
+          ? "Done."
+          : state === "rejected"
+            ? "Dismissed."
+            : state === "stale"
+              ? "Things changed since the agent looked. It will check again."
+              : state === "failed"
+                ? String((result.result as Json | undefined)?.message ?? "It could not be completed.")
+                : words(state),
+      );
+      onDone();
+    } catch (e) {
+      setNote(String(e instanceof Error ? e.message : e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirm() {
+    setBusy(true);
+    try {
+      await stepUp(api, tenant, passwordAccount ? password : undefined);
+      setPassword("");
+      setNeedsCheck(false);
+      await decide("approve");
+    } catch (e) {
+      setNote(String(e instanceof Error ? e.message : e));
+      setBusy(false);
+    }
+  }
+
+  return (
+    <aside className="ops-side ops-order">
+      <span className="ops-eyebrow">
+        {agentName(action.agent)} · {action.risk === "money" ? "Money" : action.risk === "ops" ? "Service" : "Menu"}
+      </span>
+      <h2 style={{ fontSize: 24 }}>{action.title}</h2>
+      <p>{action.rationale}</p>
+      <h3>Evidence</h3>
+      <ul className="ops-payments">
+        {chips.map((c) => (
+          <li key={c}>
+            <code>{c}</code>
+          </li>
+        ))}
+      </ul>
+      {needsCheck ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void confirm();
+          }}
+        >
+          {passwordAccount ? (
+            <label>
+              Password
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </label>
+          ) : null}
+          <button className="ops-primary" disabled={busy} type="submit">
+            {passwordAccount ? "Confirm and approve" : "Confirm with Google and approve"}
+          </button>
+        </form>
+      ) : (
+        <>
+          <button className="ops-primary" disabled={busy} onClick={() => void decide("approve")}>
+            {action.risk === "money" ? "Approve (identity check)" : "Approve"}
+          </button>
+          <button disabled={busy} onClick={() => void decide("reject")} style={{ width: "100%", marginTop: 8 }}>
+            Not now
+          </button>
+        </>
+      )}
+      {note && (
+        <p className="ops-note" role="status">
+          {note}
+        </p>
+      )}
+    </aside>
   );
 }

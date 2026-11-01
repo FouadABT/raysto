@@ -11,6 +11,9 @@ export const consoleQueries = new Set([
   "report",
   "kitchen",
   "payment.exceptions",
+  "agent.inbox",
+  "agent.activity",
+  "agent.task",
   "room",
   "assistant.run",
 ]);
@@ -30,6 +33,7 @@ export const consoleCommands = new Set([
   "payment.refund",
   "payment.release",
   "identity.stepUp",
+  "agent.decide",
 ]);
 
 export function allowedPath(path: string): boolean {

@@ -5,6 +5,9 @@ import {
   channelOf,
   collectionTotals,
   customerOf,
+  evidenceChips,
+  agentName,
+  agentCost,
   dayRange,
   nextStep,
   statusGroup,
@@ -85,4 +88,19 @@ test("a counter sale without a name is a walk-in, not an app customer", () => {
   assert.equal(customerOf({ customerLabel: "Sam", visitId: null, origin: "counter" }), "Sam");
   assert.equal(customerOf({ customerLabel: null, visitId: 2, origin: "online" }), "Visit 2");
   assert.equal(customerOf({ customerLabel: null, visitId: null, origin: "online" }), "App customer");
+});
+
+test("agent evidence reads as facts: PayPal status, source, amount and the change", () => {
+  const format = (minor: number, code: string) => `${(minor / 100).toFixed(2)} ${code}`;
+  assert.deepEqual(
+    evidenceChips(
+      { paypalStatus: "APPROVED", paypalSource: "paypal_mcp", amountMinor: 1350, currency: "USD", ledgerState: "created" },
+      {},
+      format,
+    ),
+    ["PayPal: APPROVED", "Checked through PayPal MCP", "13.50 USD", "Raysto: created"],
+  );
+  assert.deepEqual(evidenceChips({}, { paused: { from: false, to: true } }, format), ["Online orders: open → paused"]);
+  assert.equal(agentName("payments"), "Payments agent");
+  assert.equal(agentCost(1800), "$0.002");
 });

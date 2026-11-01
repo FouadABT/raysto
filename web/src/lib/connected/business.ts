@@ -180,3 +180,70 @@ export function collectionTotals(rows: CollectionRow[]) {
 
 export const asRows = <T>(value: unknown): T[] =>
   Array.isArray((value as Json)?.rows) ? ((value as Json).rows as T[]) : [];
+
+/** An AI coworker's suggestion waiting in the inbox. */
+export interface AgentActionRow {
+  id: number;
+  taskId: number;
+  agent: string;
+  command: string;
+  title: string;
+  rationale: string;
+  risk: "catalogue" | "ops" | "money";
+  status: string;
+  version: number;
+  preview: Json;
+  evidence: Json;
+  createdAt: string;
+  expiresAt: string;
+  task?: AgentTaskRow;
+}
+
+export interface AgentTaskRow {
+  id: number;
+  agent: string;
+  trigger: string;
+  status: string;
+  title: string;
+  summary: string | null;
+  chargedMicros: number;
+  createdAt: string;
+  completedAt: string | null;
+  state: Json;
+}
+
+const agentNames: Record<string, string> = {
+  payments: "Payments agent",
+  menu: "Menu agent",
+  images: "Image studio",
+  orders: "Order agent",
+  counter: "Counter voice",
+  catering: "Catering agent",
+  copilot: "Copilot",
+  translator: "Translator",
+  marketing: "Marketing studio",
+  reviews: "Review replies",
+};
+export const agentName = (agent: string) => agentNames[agent] ?? agent;
+
+/** USD millionths, as the AI budget records them. */
+export const agentCost = (micros: number) => `$${(micros / 1_000_000).toFixed(3)}`;
+
+/** The facts behind a suggestion as short labels, never the model's words. */
+export function evidenceChips(evidence: Json, preview: Json, format: (minor: number, code: string) => string): string[] {
+  const chips: string[] = [];
+  if (evidence.paypalStatus) chips.push(`PayPal: ${evidence.paypalStatus}`);
+  if (evidence.paypalSource === "paypal_mcp") chips.push("Checked through PayPal MCP");
+  else if (evidence.paypalSource === "paypal_rest") chips.push("Checked through PayPal REST");
+  if (typeof evidence.amountMinor === "number") chips.push(format(evidence.amountMinor, String(evidence.currency ?? "")));
+  if (evidence.ledgerState) chips.push(`Raysto: ${evidence.ledgerState}`);
+  if (preview.item) chips.push(`${preview.item}: sold out`);
+  const labels: Record<string, string> = { paused: "Online orders", preparationMinutes: "Prep time", slotCapacity: "Orders per slot" };
+  for (const [key, value] of Object.entries(preview)) {
+    if (!value || typeof value !== "object" || !("to" in (value as Json))) continue;
+    const v = value as Json;
+    const show = (x: unknown) => (key === "paused" ? (x ? "paused" : "open") : key === "preparationMinutes" ? `${x} min` : String(x));
+    chips.push(`${labels[key] ?? key}: ${show(v.from)} → ${show(v.to)}`);
+  }
+  return chips;
+}
