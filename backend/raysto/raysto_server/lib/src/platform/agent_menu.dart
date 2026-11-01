@@ -15,6 +15,15 @@ class MenuAgent {
   static String normal(String name) =>
       name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9À-ɏ؀-ۿ]+'), ' ').trim();
 
+  /// Menus often print headings in capitals; show "BREAKFAST" as "Breakfast".
+  static String heading(String name) {
+    if (name != name.toUpperCase() || name == name.toLowerCase()) return name;
+    return name.toLowerCase().replaceAllMapped(
+      RegExp(r'(^|[\s\-/&(])(\p{L})', unicode: true),
+      (m) => '${m[1]}${m[2]!.toUpperCase()}',
+    );
+  }
+
   /// Starts reading 1–5 approved menu photos or PDFs.
   static Future<Json> snap(Session s, PlatformCommand c) => _mutate(
     s,
@@ -267,7 +276,7 @@ class MenuAgent {
     final sections = <Json>[];
     final seen = <String>{};
     for (final raw in _list(organized, 'sections', max: 12).map(_object)) {
-      final name = (raw['name'] as String? ?? '').trim();
+      final name = heading((raw['name'] as String? ?? '').trim());
       if (name.isEmpty || name.length > 80 || !seen.add(name.toLowerCase())) {
         continue;
       }
@@ -308,9 +317,9 @@ class MenuAgent {
         checkPrices.add(r['name'] as String);
       }
       final section = (o['section'] as String?)?.trim().isNotEmpty == true
-          ? (o['section'] as String).trim()
+          ? heading((o['section'] as String).trim())
           : (r['section'] as String?)?.trim().isNotEmpty == true
-          ? (r['section'] as String).trim()
+          ? heading((r['section'] as String).trim())
           : (old?['category'] as String? ?? 'Menu');
       final translations = _object(o['translations'] ?? {});
       final options = _list(r, 'options', max: 30)
