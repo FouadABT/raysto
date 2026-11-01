@@ -3,6 +3,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:raysto_server/src/generated/protocol.dart';
 import 'package:raysto_server/src/platform/platform.dart';
 import 'package:test/test.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'test_tools/serverpod_test_tools.dart';
 
 // Isolated Raysto test database only; the model is never called. These cover
@@ -112,48 +113,56 @@ void main() {
       await RestaurantPolicy.db.updateRow(s, policy);
       burger =
           (await CatalogueModule.saveItem(
-            owner.build(),
-            command({
-              'name': 'Burger',
-              'category': 'Mains',
-              'priceMinor': 900,
-            }, version: 1),
-          ))['id']
+                owner.build(),
+                command({
+                  'name': 'Burger',
+                  'category': 'Mains',
+                  'priceMinor': 900,
+                }, version: 1),
+              ))['id']
               as int;
     });
 
-    test('a customer may open a basket chat but not a manager thread', () async {
-      final started = await AssistantModule.start(
-        proven(customer),
-        command({'text': 'Something vegetarian under 15 euros', 'context': 'cart'}),
-      );
-      expect(started['status'], 'queued');
-      final row = (await AssistantRun.db.findById(
-        builder.build(),
-        started['runId'] as int,
-      ))!;
-      expect(AssistantModule.isCart(row), isTrue);
-      expect(row.roomId, isNull);
-      await expectLater(
-        AssistantModule.start(
+    test(
+      'a customer may open a basket chat but not a manager thread',
+      () async {
+        final started = await AssistantModule.start(
           proven(customer),
-          command({'text': 'How are sales today?'}),
-        ),
-        throwsA(isA<DomainError>().having((e) => e.code, 'code', 'forbidden')),
-      );
-      final s = builder.build();
-      restaurant.published = false;
-      await Restaurant.db.updateRow(s, restaurant);
-      await expectLater(
-        AssistantModule.start(
-          proven(customer),
-          command({'text': 'Anything?', 'context': 'cart'}),
-        ),
-        throwsA(
-          isA<DomainError>().having((e) => e.code, 'code', 'unavailable'),
-        ),
-      );
-    });
+          command({
+            'text': 'Something vegetarian under 15 euros',
+            'context': 'cart',
+          }),
+        );
+        expect(started['status'], 'queued');
+        final row = (await AssistantRun.db.findById(
+          builder.build(),
+          started['runId'] as int,
+        ))!;
+        expect(AssistantModule.isCart(row), isTrue);
+        expect(row.roomId, isNull);
+        await expectLater(
+          AssistantModule.start(
+            proven(customer),
+            command({'text': 'How are sales today?'}),
+          ),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'forbidden'),
+          ),
+        );
+        final s = builder.build();
+        restaurant.published = false;
+        await Restaurant.db.updateRow(s, restaurant);
+        await expectLater(
+          AssistantModule.start(
+            proven(customer),
+            command({'text': 'Anything?', 'context': 'cart'}),
+          ),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'unavailable'),
+          ),
+        );
+      },
+    );
 
     test('guests cannot spend the shared AI budget on basket chats', () async {
       final s = builder.build();
@@ -214,77 +223,143 @@ void main() {
       );
     });
 
-    test('a takeaway basket proposal is approved into a quote and ordered', () async {
-      final s = builder.build();
-      final now = DateTime.now().toUtc();
-      final input = {
-        'fulfillment': 'pickup',
-        'lines': [
-          {'productId': burger, 'quantity': 2, 'options': [], 'note': ''},
-        ],
-        'tipMinor': 0,
-      };
-      final r = await AssistantRun.db.insertRow(
-        s,
-        run('assistant-customer', input: {'context': 'cart', 'text': 'two'}),
-      );
-      final quote = await work(
-        'assistant-customer',
-        (w) => OrderingModule.price(w, input),
-      );
-      expect(quote['totalMinor'], 1800);
-      final hash = await work(
-        'assistant-customer',
-        (w) => AssistantModule.contextHash(w, null, 'basket'),
-      );
-      final proposal = await AssistantProposal.db.insertRow(
-        s,
-        AssistantProposal(
-          restaurantId: restaurant.id!,
-          runId: r.id!,
-          userId: 'assistant-customer',
-          kind: 'basket',
-          payloadJson: jsonEncode({
-            'proposalKind': 'basket',
-            'input': input,
-            'quote': quote,
-          }),
-          contextHash: hash,
-          status: 'review',
-          version: 1,
-          expiresAt: now.add(const Duration(minutes: 5)),
-          createdAt: now,
-        ),
-      );
-      await expectLater(
-        AssistantModule.approve(
-          other.build(),
+    test(
+      'a takeaway basket proposal is approved into a quote and ordered',
+      () async {
+        final s = builder.build();
+        final now = DateTime.now().toUtc();
+        final input = {
+          'fulfillment': 'pickup',
+          'lines': [
+            {'productId': burger, 'quantity': 2, 'options': [], 'note': ''},
+          ],
+          'tipMinor': 0,
+        };
+        final r = await AssistantRun.db.insertRow(
+          s,
+          run('assistant-customer', input: {'context': 'cart', 'text': 'two'}),
+        );
+        final quote = await work(
+          'assistant-customer',
+          (w) => OrderingModule.price(w, input),
+        );
+        expect(quote['totalMinor'], 1800);
+        final hash = await work(
+          'assistant-customer',
+          (w) => AssistantModule.contextHash(w, null, 'basket'),
+        );
+        final proposal = await AssistantProposal.db.insertRow(
+          s,
+          AssistantProposal(
+            restaurantId: restaurant.id!,
+            runId: r.id!,
+            userId: 'assistant-customer',
+            kind: 'basket',
+            payloadJson: jsonEncode({
+              'proposalKind': 'basket',
+              'input': input,
+              'quote': quote,
+            }),
+            contextHash: hash,
+            status: 'review',
+            version: 1,
+            expiresAt: now.add(const Duration(minutes: 5)),
+            createdAt: now,
+          ),
+        );
+        await expectLater(
+          AssistantModule.approve(
+            other.build(),
+            command({}, id: proposal.id, version: 1),
+          ),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'forbidden'),
+          ),
+        );
+        final approved = await AssistantModule.approve(
+          customer.build(),
           command({}, id: proposal.id, version: 1),
-        ),
-        throwsA(isA<DomainError>().having((e) => e.code, 'code', 'forbidden')),
-      );
-      final approved = await AssistantModule.approve(
-        customer.build(),
-        command({}, id: proposal.id, version: 1),
-      );
-      expect(approved['kind'], 'basket');
-      final placed = await OrderingModule.submit(
-        customer.build(),
-        SubmitOrder(
-          requestKey: key(),
-          restaurantId: restaurant.id!,
-          quoteId: approved['quoteId'] as int,
-        ),
-      );
-      expect(placed['status'], 'awaitingPayment');
-      expect(placed['number'], 1);
-      final ctx = (await OrderContext.db.findFirstRow(
-        s,
-        where: (t) => t.orderId.equals(placed['orderId'] as int),
-      ))!;
-      expect(ctx.visitId, isNull);
-      expect(ctx.pickupCode, matches(RegExp(r'^\d{4}$')));
-    });
+        );
+        expect(approved['kind'], 'basket');
+        final placed = await OrderingModule.submit(
+          customer.build(),
+          SubmitOrder(
+            requestKey: key(),
+            restaurantId: restaurant.id!,
+            quoteId: approved['quoteId'] as int,
+          ),
+        );
+        expect(placed['status'], 'awaitingPayment');
+        expect(placed['number'], 1);
+        final ctx = (await OrderContext.db.findFirstRow(
+          s,
+          where: (t) => t.orderId.equals(placed['orderId'] as int),
+        ))!;
+        expect(ctx.visitId, isNull);
+        expect(ctx.pickupCode, matches(RegExp(r'^\d{4}$')));
+      },
+    );
+
+    test(
+      '"pickup at 12:30" becomes the next such slot in the restaurant zone',
+      () async {
+        final zone = CatalogueModule.zone('Europe/Brussels');
+        String hhmm(tz.TZDateTime t) =>
+            '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+        final now = tz.TZDateTime.now(zone);
+        // The first quarter hour at least 90 minutes away.
+        var later = now.add(const Duration(minutes: 90));
+        later = tz.TZDateTime(
+          zone,
+          later.year,
+          later.month,
+          later.day,
+          later.hour,
+          later.minute,
+        ).add(Duration(minutes: (15 - later.minute % 15) % 15));
+        final slot = await work(
+          'assistant-customer',
+          (w) async => AssistantModule.pickupSlot(w, hhmm(later)),
+        );
+        expect(
+          DateTime.parse(slot).millisecondsSinceEpoch,
+          later.millisecondsSinceEpoch,
+        );
+        // A time that has already passed today means tomorrow.
+        final passed = now.subtract(const Duration(minutes: 5));
+        final tomorrow = DateTime.parse(
+          await work(
+            'assistant-customer',
+            (w) async => AssistantModule.pickupSlot(w, hhmm(passed)),
+          ),
+        );
+        expect(
+          tomorrow.difference(DateTime.now().toUtc()).inHours,
+          inInclusiveRange(23, 24),
+        );
+        await expectLater(
+          work(
+            'assistant-customer',
+            (w) async => AssistantModule.pickupSlot(w, '25:00'),
+          ),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'invalid_input'),
+          ),
+        );
+        final quote = await work(
+          'assistant-customer',
+          (w) => OrderingModule.price(w, {
+            'fulfillment': 'pickup',
+            'lines': [
+              {'productId': burger, 'quantity': 1, 'options': [], 'note': ''},
+            ],
+            'tipMinor': 0,
+            'slot': slot,
+          }),
+        );
+        expect(quote['slot'], slot);
+      },
+    );
 
     test('manager facts tools read real orders and payments', () async {
       final s = builder.build();
@@ -346,7 +421,10 @@ void main() {
       expect(load['ready']['oldestMinutes'], greaterThanOrEqualTo(7));
       expect(load['awaitingAcceptance']['count'], 0);
 
-      final pickups = await work('assistant-owner', AssistantModule.pickupReady);
+      final pickups = await work(
+        'assistant-owner',
+        AssistantModule.pickupReady,
+      );
       final waiting = (pickups['orders'] as List).single as Map;
       expect(waiting['number'], 1);
       // The pickup code is a handover secret and never goes to the model.
