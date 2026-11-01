@@ -20,6 +20,14 @@ The script that ran the sessions is `tool/live_session_qa.cjs` (kept out of git 
 | AI: unresolved payments and a PayPal check (run 22) | Manager asked: "Are any PayPal payments unresolved right now? Then check with PayPal whether the payment for checkout 5 really went through." | Tools: `unresolved_payments` (ledger, 12 ms), then `payment_status` (PayPal MCP over stdio, 5.1 s). Answer: "No PayPal payment needs attention… PayPal reports COMPLETED for checkout 5: USD 12.00. Source: PayPal MCP." |
 | AI: refund check (runs 23–24) | Manager asked whether the $5 refund on checkout 5 completed at PayPal | `payment_status` read the refund through PayPal MCP: COMPLETED, USD 5.00. On 0.12.2 (run 24) the answer reads "PayPal reports COMPLETED for refund 1 on checkout 5: USD 5.00. Source: PayPal MCP." |
 
+### 1 November: counter sale filmed on a tablet
+
+The Android build (0.12.1, emulator tablet, signed in as the QA owner) rang up three items for $33.00 and showed the PayPal QR code. Buyer 2 approved on a phone-sized browser. The counter showed "Payment received", ticket #3 and a pickup code, and the kitchen board took #3 to Ready.
+- Ledger: checkout 9 completed, order 5 (counter, #3) paid, capture `55W092765M630635H`.
+- AI check: the manager then asked Ask Raysto on the same tablet. The answer: "No PayPal payment needs attention… PayPal reports COMPLETED for checkout 9: USD 33.00. Source: PayPal MCP."
+
+Before filming, the three earlier orders were moved to completed through ordinary staff commands, so the boards started empty.
+
 ### Webhooks
 
 Every event in these sessions arrived at `https://api.rays.to/api/v2/webhooks/paypal-single-sandbox`, passed signature verification and was processed exactly once:

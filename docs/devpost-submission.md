@@ -70,7 +70,7 @@ The rules are enforced by the backend, not by the prompt:
   - 134 widget tests for the app;
   - 14 tests for the console.
 
-### Verified live in PayPal Sandbox (31 October 2026)
+### Verified live in PayPal Sandbox (31 October and 1 November 2026)
 
 | Journey | Result | PayPal ids |
 |---|---|---|
@@ -78,6 +78,7 @@ The rules are enforced by the backend, not by the prompt:
 | Counter sale paid by QR (buyer 2) | Captured, order accepted for the kitchen | capture `4C048952Y13801205` |
 | Table bill of $27.00 split equally (buyers 1 and 2) | Two $13.50 shares captured, bill fully settled | captures `4MG67343RS1841023`, `47E23175WJ603464A` |
 | Partial refund of $5.00 on the pickup order | Refund completed, order partially refunded | refund `2J851836BE9699524` |
+| Counter sale rung up in the Android app on a tablet, filmed for the video (1 November) | Captured, ticket #3 to the kitchen | capture `55W092765M630635H` |
 | Manager asks Raysto about PayPal | Ledger checked, then PayPal read through MCP (stdio) | tool trace in the evidence file |
 
 ### Challenges we ran into
