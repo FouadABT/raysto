@@ -184,6 +184,11 @@ class AssistantModule {
   });
 
   /// A takeaway basket chat: one customer, no table, no manager rights.
+  /// A run's whole time budget. Assistant runs have their own worker lane,
+  /// so a slow model turn delays no payment job; two turns with tools
+  /// regularly take 15–25 s.
+  static const runSeconds = 45;
+
   static bool isCart(AssistantRun run) =>
       run.roomId == null && _json(run.inputJson)['context'] == 'cart';
 
@@ -1306,7 +1311,7 @@ class AssistantModule {
                 'When a payment is unresolved, say what the manager should do next. $shared';
       var calls = 0;
       for (var round = 0; round < 4; round++) {
-        if (watch.elapsed.inSeconds >= 30) {
+        if (watch.elapsed.inSeconds >= runSeconds) {
           _fail('ai_timeout', 'The assistant took too long.');
         }
         final fresh = (await AssistantRun.db.findById(s, id))!;
@@ -1330,11 +1335,19 @@ class AssistantModule {
               contents,
               declarationsFor(run),
               deadline: Duration(
-                milliseconds: max(1, 30000 - watch.elapsedMilliseconds),
+                milliseconds: max(
+                  1,
+                  runSeconds * 1000 - watch.elapsedMilliseconds,
+                ),
               ),
               onStage: (stage) => phase = stage,
             ).timeout(
-              Duration(milliseconds: max(1, 30000 - watch.elapsedMilliseconds)),
+              Duration(
+                milliseconds: max(
+                  1,
+                  runSeconds * 1000 - watch.elapsedMilliseconds,
+                ),
+              ),
             );
         final cost = AiBudget.usageCost(response);
         if (cost != null) {
@@ -1363,7 +1376,7 @@ class AssistantModule {
         contents.add(content);
         final responses = <Json>[];
         for (final part in functions) {
-          if (++calls > 8 || watch.elapsed.inSeconds >= 30) {
+          if (++calls > 8 || watch.elapsed.inSeconds >= runSeconds) {
             _fail('ai_tool_limit', 'Assistant reached its request limit.');
           }
           final call = _object(part['functionCall']);
@@ -1376,7 +1389,10 @@ class AssistantModule {
             if (name == 'payment_status') {
               result = await paymentRead(s, run, args).timeout(
                 Duration(
-                  milliseconds: max(1, 30000 - watch.elapsedMilliseconds),
+                  milliseconds: max(
+                    1,
+                    runSeconds * 1000 - watch.elapsedMilliseconds,
+                  ),
                 ),
               );
             } else {
