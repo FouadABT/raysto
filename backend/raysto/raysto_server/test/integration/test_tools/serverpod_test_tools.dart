@@ -1482,4 +1482,17 @@ class _PlatformCallsFutureCall {
       await _localUniqueSession.close();
     }
   }
+
+  Future<void> dispatchAi(_ist.TestSessionBuilder sessionBuilder) async {
+    var _localUniqueSession =
+        (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild();
+    try {
+      await _iumpf3gz.PlatformCallsDispatchAiFutureCall().invoke(
+        _localUniqueSession,
+        null,
+      );
+    } finally {
+      await _localUniqueSession.close();
+    }
+  }
 }

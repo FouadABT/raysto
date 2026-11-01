@@ -27,6 +27,10 @@ class CatalogueModule {
     'taxBps': 0,
     'pricesIncludeTax': true,
     'coupons': [],
+    // Per agent: 'suggest' (default) or 'off'.
+    'agents': {},
+    // Ordered menu sections with optional translations.
+    'menuCategories': [],
   };
   static bool _tzInitialized = false;
   static tz.Location zone(String name) {
@@ -145,6 +149,26 @@ class CatalogueModule {
           z['radiusKm'] <= 0 ||
           z['radiusKm'] > 100) {
         _fail('invalid_input', 'Delivery radius must be 0–100 km.');
+      }
+    }
+    final agents = _object(merged['agents']);
+    for (final entry in agents.entries) {
+      if (!AgentModule.names.contains(entry.key) ||
+          !{'off', 'suggest'}.contains(entry.value)) {
+        _fail('invalid_input', 'Agents can be off or suggest changes.');
+      }
+    }
+    final sections = <String>{};
+    for (final raw in _list(merged, 'menuCategories', max: 40)) {
+      final c = _object(raw);
+      _keys(c, {'name', 'translations'});
+      if (!sections.add(_str(c, 'name', max: 80).toLowerCase())) {
+        _fail('invalid_input', 'Menu sections must have different names.');
+      }
+      final t = _object(c['translations'] ?? {});
+      _keys(t, {'en', 'fr', 'ar'});
+      for (final v in t.values) {
+        _str({'v': v}, 'v', max: 80);
       }
     }
     final codes = <String>{};
@@ -500,41 +524,46 @@ class CatalogueModule {
         await w.audit('menu.item_saved', 'product', id);
         return {'id': id, 'menuVersion': w.policy!.menuVersion};
       }, roles: _managers);
-  static Future<Json> availability(Session s, PlatformCommand c) =>
-      _mutate(s, c, 'menu.availability', (w, d) async {
-        _keys(d, {'available', 'stockRemaining'});
-        if (d['available'] is! bool) {
-          _fail('invalid_input', 'State whether the item is available.');
-        }
-        final product = await MenuProduct.db.findById(
-          s,
-          _id(c),
-          transaction: w.tx,
-        );
-        if (product == null || product.restaurantId != w.tenant) {
-          _fail('not_found', 'Item not found.');
-        }
-        _version(product.version, c.expectedVersion);
-        product.available = _bool(d, 'available');
-        product.version++;
-        await MenuProduct.db.updateRow(s, product, transaction: w.tx);
-        final def = await MenuDefinition.db.findFirstRow(
-          s,
-          where: (t) => t.productId.equals(product.id!),
-          transaction: w.tx,
-        );
-        if (def != null) {
-          def.stockRemaining = d['stockRemaining'] == null
-              ? def.stockRemaining
-              : _int(d, 'stockRemaining', max: 100000);
-          def.version = product.version;
-          await MenuDefinition.db.updateRow(s, def, transaction: w.tx);
-        }
-        // Availability is not a menu edit: order.submit re-prices every quote
-        // and refuses lines that became unavailable, so other quotes stay valid.
-        await w.audit('menu.availability', 'product', product.id);
-        return {'version': product.version};
-      }, roles: {'owner', 'manager', 'kitchen'});
+  static Future<Json> availability(Session s, PlatformCommand c) => _mutate(
+    s,
+    c,
+    'menu.availability',
+    (w, d) async {
+      _keys(d, {'available', 'stockRemaining'});
+      if (d['available'] is! bool) {
+        _fail('invalid_input', 'State whether the item is available.');
+      }
+      final product = await MenuProduct.db.findById(
+        s,
+        _id(c),
+        transaction: w.tx,
+      );
+      if (product == null || product.restaurantId != w.tenant) {
+        _fail('not_found', 'Item not found.');
+      }
+      _version(product.version, c.expectedVersion);
+      product.available = _bool(d, 'available');
+      product.version++;
+      await MenuProduct.db.updateRow(s, product, transaction: w.tx);
+      final def = await MenuDefinition.db.findFirstRow(
+        s,
+        where: (t) => t.productId.equals(product.id!),
+        transaction: w.tx,
+      );
+      if (def != null) {
+        def.stockRemaining = d['stockRemaining'] == null
+            ? def.stockRemaining
+            : _int(d, 'stockRemaining', max: 100000);
+        def.version = product.version;
+        await MenuDefinition.db.updateRow(s, def, transaction: w.tx);
+      }
+      // Availability is not a menu edit: order.submit re-prices every quote
+      // and refuses lines that became unavailable, so other quotes stay valid.
+      await w.audit('menu.availability', 'product', product.id);
+      return {'version': product.version};
+    },
+    roles: {'owner', 'manager', 'kitchen'},
+  );
   static Future<Json> draft(Session s, PlatformCommand c) =>
       _mutate(s, c, 'menu.draft', (w, d) async {
         _keys(d, {'items', 'discard'});

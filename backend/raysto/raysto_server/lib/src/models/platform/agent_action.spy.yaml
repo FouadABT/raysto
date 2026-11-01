@@ -1,0 +1,34 @@
+class: AgentAction
+table: raysto_agent_action
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  taskId: int, relation(parent=raysto_agent_task)
+  agent: String
+  ordinal: int
+  command: String
+  title: String
+  rationale: String
+  payloadJson: String
+  previewJson: String
+  evidenceJson: String
+  risk: String
+  contextHash: String
+  status: String
+  approverUserId: String?
+  executionKey: String?
+  resultJson: String?
+  errorCode: String?
+  version: int
+  expiresAt: DateTime
+  decidedAt: DateTime?
+  createdAt: DateTime
+indexes:
+  agent_action_task:
+    fields: taskId, ordinal
+    unique: true
+  agent_action_open:
+    fields: restaurantId, status, expiresAt
+  agent_action_execution:
+    fields: executionKey
+    unique: true

@@ -33,6 +33,8 @@ import 'payment_attempt.dart' as _i7qxa3yb;
 import 'payment_receipt.dart' as _iobklzq3;
 import 'platform/access_invitation.dart' as _iwre736y;
 import 'platform/actor_profile.dart' as _ilpq7xc9;
+import 'platform/agent_action.dart' as _ih92ugri;
+import 'platform/agent_task.dart' as _iksf3iss;
 import 'platform/ai_operation.dart' as _ilk7oan7;
 import 'platform/ai_spend_budget.dart' as _iirkjcah;
 import 'platform/ai_spend_entry.dart' as _ir6n0dh4;
@@ -107,6 +109,8 @@ export 'payment_attempt.dart';
 export 'payment_receipt.dart';
 export 'platform/access_invitation.dart';
 export 'platform/actor_profile.dart';
+export 'platform/agent_action.dart';
+export 'platform/agent_task.dart';
 export 'platform/ai_operation.dart';
 export 'platform/ai_spend_budget.dart';
 export 'platform/ai_spend_entry.dart';
@@ -374,6 +378,397 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'raysto_agent_action',
+      dartName: 'AgentAction',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'agent',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'ordinal',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'command',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'title',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'rationale',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'payloadJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'previewJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'evidenceJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'risk',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'contextHash',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'approverUserId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'executionKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'resultJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'errorCode',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'expiresAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'decidedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_agent_action_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_agent_action_fk_1',
+          columns: ['taskId'],
+          referenceTable: 'raysto_agent_task',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'agent_action_task',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'taskId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'ordinal',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'agent_action_open',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'status',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'expiresAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'agent_action_execution',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'executionKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_agent_task',
+      dartName: 'AgentTask',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'agent',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'trigger',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'triggerRef',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'requestedBy',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'dedupeKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'title',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'summary',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'inputJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'stateJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'traceJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'feature',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'reservedMicros',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'chargedMicros',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'completedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_agent_task_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'agent_task_dedupe',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'dedupeKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'agent_task_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'status',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'raysto_ai_operation',
       dartName: 'AiOperation',
       schema: 'public',
@@ -596,6 +991,18 @@ class Protocol extends _is.DatabaseSerializationManager {
           columnType: _isp.ColumnType.boolean,
           isNullable: false,
           dartType: 'bool',
+        ),
+        _isp.ColumnDefinition(
+          name: 'feature',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
         ),
         _isp.ColumnDefinition(
           name: 'createdAt',
@@ -6461,6 +6868,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _ilpq7xc9.ActorProfile) {
       return _ilpq7xc9.ActorProfile.fromJson(data) as T;
     }
+    if (t == _ih92ugri.AgentAction) {
+      return _ih92ugri.AgentAction.fromJson(data) as T;
+    }
+    if (t == _iksf3iss.AgentTask) {
+      return _iksf3iss.AgentTask.fromJson(data) as T;
+    }
     if (t == _ilk7oan7.AiOperation) {
       return _ilk7oan7.AiOperation.fromJson(data) as T;
     }
@@ -6686,6 +7099,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_ilpq7xc9.ActorProfile?>()) {
       return (data != null ? _ilpq7xc9.ActorProfile.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ih92ugri.AgentAction?>()) {
+      return (data != null ? _ih92ugri.AgentAction.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iksf3iss.AgentTask?>()) {
+      return (data != null ? _iksf3iss.AgentTask.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_ilk7oan7.AiOperation?>()) {
       return (data != null ? _ilk7oan7.AiOperation.fromJson(data) : null) as T;
@@ -6994,6 +7413,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iobklzq3.PaymentReceipt => 'PaymentReceipt',
       _iwre736y.AccessInvitation => 'AccessInvitation',
       _ilpq7xc9.ActorProfile => 'ActorProfile',
+      _ih92ugri.AgentAction => 'AgentAction',
+      _iksf3iss.AgentTask => 'AgentTask',
       _ilk7oan7.AiOperation => 'AiOperation',
       _iirkjcah.AiSpendBudget => 'AiSpendBudget',
       _ir6n0dh4.AiSpendEntry => 'AiSpendEntry',
@@ -7094,6 +7515,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'AccessInvitation';
       case _ilpq7xc9.ActorProfile():
         return 'ActorProfile';
+      case _ih92ugri.AgentAction():
+        return 'AgentAction';
+      case _iksf3iss.AgentTask():
+        return 'AgentTask';
       case _ilk7oan7.AiOperation():
         return 'AiOperation';
       case _iirkjcah.AiSpendBudget():
@@ -7279,6 +7704,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'ActorProfile') {
       return deserialize<_ilpq7xc9.ActorProfile>(data['data']);
+    }
+    if (dataClassName == 'AgentAction') {
+      return deserialize<_ih92ugri.AgentAction>(data['data']);
+    }
+    if (dataClassName == 'AgentTask') {
+      return deserialize<_iksf3iss.AgentTask>(data['data']);
     }
     if (dataClassName == 'AiOperation') {
       return deserialize<_ilk7oan7.AiOperation>(data['data']);
@@ -7523,6 +7954,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _iwre736y.AccessInvitation.t;
       case _ilpq7xc9.ActorProfile:
         return _ilpq7xc9.ActorProfile.t;
+      case _ih92ugri.AgentAction:
+        return _ih92ugri.AgentAction.t;
+      case _iksf3iss.AgentTask:
+        return _iksf3iss.AgentTask.t;
       case _ilk7oan7.AiOperation:
         return _ilk7oan7.AiOperation.t;
       case _iirkjcah.AiSpendBudget:

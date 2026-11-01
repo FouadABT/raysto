@@ -40,6 +40,7 @@ part 'ai_budget.dart';
 part 'assistant.dart';
 part 'workspace.dart';
 part 'shares.dart';
+part 'agents.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -255,6 +256,7 @@ class PlatformApi {
     'assistant.start': AssistantModule.start,
     'assistant.cancel': AssistantModule.cancel,
     'assistant.approve': AssistantModule.approve,
+    'agent.decide': AgentModule.decide,
     'operations.layout': WorkspaceModule.saveLayout,
     'room.open': ConversationModule.open,
     'room.message': ConversationModule.send,

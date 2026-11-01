@@ -1162,7 +1162,12 @@ class AssistantModule {
     Json? presentation;
     var phase = 'budget';
     try {
-      final reserve = await AiBudget.reserve(s, key);
+      final reserve = await AiBudget.reserve(
+        s,
+        key,
+        feature: 'chat',
+        restaurantId: run.restaurantId,
+      );
       run.reservedMicros = reserve;
       await AssistantRun.db.updateWhere(
         s,

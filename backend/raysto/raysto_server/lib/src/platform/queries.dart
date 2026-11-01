@@ -83,6 +83,12 @@ class PlatformQueries {
           return ConversationModule.eventPage(w, d);
         case 'assistant.run':
           return AssistantModule.query(w, d);
+        case 'agent.inbox':
+          return AgentModule.inbox(w, d);
+        case 'agent.activity':
+          return AgentModule.activity(w, d, limit, cursor);
+        case 'agent.task':
+          return AgentModule.task(w, d);
         case 'operations.snapshot':
           return WorkspaceModule.snapshot(w, d);
         case 'operations.threads':
@@ -484,8 +490,7 @@ class PlatformQueries {
           if (staff) staffMember = await w.role(_operators);
           // A waiter sees their tables; one running the counter sees the shop.
           final scoped =
-              staffMember?.role == 'waiter' &&
-              !_holds(staffMember!, 'counter');
+              staffMember?.role == 'waiter' && !_holds(staffMember!, 'counter');
           Set<int>? found;
           if (staff && d['q'] != null) {
             // Numbers and codes are per service day, like the tickets.
@@ -1617,8 +1622,7 @@ class PlatformQueries {
       'currency': w.restaurant!.currency,
       'from': from.toIso8601String(),
       'until': until.toIso8601String(),
-      for (var n = 0; n < labels.length; n++)
-        labels[n]: int.parse('${row[n]}'),
+      for (var n = 0; n < labels.length; n++) labels[n]: int.parse('${row[n]}'),
     };
   }
 

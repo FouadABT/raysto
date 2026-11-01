@@ -62,6 +62,7 @@ class FutureCalls extends _is.FutureCallDispatch<_FutureCallRef> {
       'NotificationCallsDispatchFutureCall':
           NotificationCallsDispatchFutureCall(),
       'PlatformCallsDispatchFutureCall': PlatformCallsDispatchFutureCall(),
+      'PlatformCallsDispatchAiFutureCall': PlatformCallsDispatchAiFutureCall(),
     };
     _futureCallManager = futureCallManager;
     _serverId = serverId;
@@ -215,6 +216,13 @@ class _PlatformCallsFutureCallDispatcher {
       null,
     );
   }
+
+  Future<void> dispatchAi() {
+    return _invokeFutureCall(
+      'PlatformCallsDispatchAiFutureCall',
+      null,
+    );
+  }
 }
 
 class NotificationCallsDispatchFutureCall extends _is.FutureCall
@@ -236,5 +244,17 @@ class PlatformCallsDispatchFutureCall extends _is.FutureCall
     _is.SerializableModel? object,
   ) async {
     await _is5mg49c.PlatformCalls().dispatch(session);
+  }
+}
+
+/// Model and agent jobs, in their own lane beside the core worker.
+class PlatformCallsDispatchAiFutureCall extends _is.FutureCall
+    implements _is.InvokableFutureCall {
+  @override
+  _ida.Future<void> invoke(
+    _is.Session session,
+    _is.SerializableModel? object,
+  ) async {
+    await _is5mg49c.PlatformCalls().dispatchAi(session);
   }
 }

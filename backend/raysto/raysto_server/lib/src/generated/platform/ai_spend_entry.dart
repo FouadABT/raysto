@@ -21,6 +21,8 @@ abstract class AiSpendEntry
     required this.reservedMicros,
     required this.chargedMicros,
     required this.settled,
+    this.feature,
+    this.restaurantId,
     required this.createdAt,
   });
 
@@ -31,6 +33,8 @@ abstract class AiSpendEntry
     required int reservedMicros,
     required int chargedMicros,
     required bool settled,
+    String? feature,
+    int? restaurantId,
     required DateTime createdAt,
   }) = _AiSpendEntryImpl;
 
@@ -42,6 +46,8 @@ abstract class AiSpendEntry
       reservedMicros: jsonSerialization['reservedMicros'] as int,
       chargedMicros: jsonSerialization['chargedMicros'] as int,
       settled: _is.BoolJsonExtension.fromJson(jsonSerialization['settled']),
+      feature: jsonSerialization['feature'] as String?,
+      restaurantId: jsonSerialization['restaurantId'] as int?,
       createdAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -65,6 +71,10 @@ abstract class AiSpendEntry
 
   bool settled;
 
+  String? feature;
+
+  int? restaurantId;
+
   DateTime createdAt;
 
   @override
@@ -80,6 +90,8 @@ abstract class AiSpendEntry
     int? reservedMicros,
     int? chargedMicros,
     bool? settled,
+    String? feature,
+    int? restaurantId,
     DateTime? createdAt,
   });
   @override
@@ -92,6 +104,8 @@ abstract class AiSpendEntry
       'reservedMicros': reservedMicros,
       'chargedMicros': chargedMicros,
       'settled': settled,
+      if (feature != null) 'feature': feature,
+      if (restaurantId != null) 'restaurantId': restaurantId,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -139,6 +153,8 @@ class _AiSpendEntryImpl extends AiSpendEntry {
     required int reservedMicros,
     required int chargedMicros,
     required bool settled,
+    String? feature,
+    int? restaurantId,
     required DateTime createdAt,
   }) : super._(
          id: id,
@@ -147,6 +163,8 @@ class _AiSpendEntryImpl extends AiSpendEntry {
          reservedMicros: reservedMicros,
          chargedMicros: chargedMicros,
          settled: settled,
+         feature: feature,
+         restaurantId: restaurantId,
          createdAt: createdAt,
        );
 
@@ -161,6 +179,8 @@ class _AiSpendEntryImpl extends AiSpendEntry {
     int? reservedMicros,
     int? chargedMicros,
     bool? settled,
+    Object? feature = _Undefined,
+    Object? restaurantId = _Undefined,
     DateTime? createdAt,
   }) {
     return AiSpendEntry(
@@ -170,6 +190,8 @@ class _AiSpendEntryImpl extends AiSpendEntry {
       reservedMicros: reservedMicros ?? this.reservedMicros,
       chargedMicros: chargedMicros ?? this.chargedMicros,
       settled: settled ?? this.settled,
+      feature: feature is String? ? feature : this.feature,
+      restaurantId: restaurantId is int? ? restaurantId : this.restaurantId,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -200,6 +222,16 @@ class AiSpendEntryUpdateTable extends _is.UpdateTable<AiSpendEntryTable> {
 
   _is.ColumnValue<bool, bool> settled(bool value) => _is.ColumnValue(
     table.settled,
+    value,
+  );
+
+  _is.ColumnValue<String, String> feature(String? value) => _is.ColumnValue(
+    table.feature,
+    value,
+  );
+
+  _is.ColumnValue<int, int> restaurantId(int? value) => _is.ColumnValue(
+    table.restaurantId,
     value,
   );
 
@@ -234,6 +266,14 @@ class AiSpendEntryTable extends _is.Table<int?> {
       'settled',
       this,
     );
+    feature = _is.ColumnString(
+      'feature',
+      this,
+    );
+    restaurantId = _is.ColumnInt(
+      'restaurantId',
+      this,
+    );
     createdAt = _is.ColumnDateTime(
       'createdAt',
       this,
@@ -252,6 +292,10 @@ class AiSpendEntryTable extends _is.Table<int?> {
 
   late final _is.ColumnBool settled;
 
+  late final _is.ColumnString feature;
+
+  late final _is.ColumnInt restaurantId;
+
   late final _is.ColumnDateTime createdAt;
 
   @override
@@ -262,6 +306,8 @@ class AiSpendEntryTable extends _is.Table<int?> {
     reservedMicros,
     chargedMicros,
     settled,
+    feature,
+    restaurantId,
     createdAt,
   ];
 }

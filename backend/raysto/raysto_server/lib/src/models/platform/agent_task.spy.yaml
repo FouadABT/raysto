@@ -1,0 +1,29 @@
+class: AgentTask
+table: raysto_agent_task
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  agent: String
+  trigger: String
+  triggerRef: String?
+  requestedBy: String?
+  dedupeKey: String
+  status: String
+  title: String
+  summary: String?
+  inputJson: String
+  stateJson: String
+  traceJson: String
+  feature: String
+  reservedMicros: int
+  chargedMicros: int
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+  completedAt: DateTime?
+indexes:
+  agent_task_dedupe:
+    fields: dedupeKey
+    unique: true
+  agent_task_tenant:
+    fields: restaurantId, status

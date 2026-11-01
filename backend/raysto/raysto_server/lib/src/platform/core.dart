@@ -37,6 +37,7 @@ class Work {
       transaction: tx,
     );
     await ConversationModule.businessEvent(this, kind, type, id);
+    await AgentModule.onAudit(this, kind, type, id, details);
   }
 
   Future<void> job(
@@ -167,7 +168,8 @@ Future<Membership> _role(
   if (actor == null ||
       actor.isGuest ||
       actor.disabled ||
-      actor.claimedBy != null) {
+      actor.claimedBy != null ||
+      AgentModule.isService(actor)) {
     _fail('forbidden', 'A current registered team account is required.');
   }
   final m = await Membership.db.findFirstRow(

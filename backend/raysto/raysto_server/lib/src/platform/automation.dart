@@ -422,7 +422,14 @@ class AiModule {
     // Share the application ceiling; an unknown outcome retains its reservation.
     final budgetKey = 'menu-import:$id';
     if (provider is GeminiAiProvider) {
-      await AiBudget.reserve(s, budgetKey, rounds: 1, output: 8192);
+      await AiBudget.reserve(
+        s,
+        budgetKey,
+        rounds: 1,
+        output: 8192,
+        feature: 'menu',
+        restaurantId: a.restaurantId,
+      );
     }
     Json response;
     try {
@@ -605,46 +612,70 @@ class PlatformWorker {
       s,
       where: (t) => t.expiresAt < _now().subtract(const Duration(days: 1)),
     );
+    await AgentModule.sweep(s);
     await RateWindow.db.deleteWhere(
       s,
       where: (t) =>
           (t.windowStart < _now().subtract(const Duration(days: 2))) &
-          t.bucket.notEquals('worker-slots'),
+          t.bucket.notInSet({'worker-slots', 'worker-slots-ai'}),
     );
   }
 
-  static Future<int> dispatch(Session s, {int limit = 10}) async {
-    await schedule(s);
+  /// Model calls take seconds to a minute, so AI work has its own lane:
+  /// a slow answer never delays payment capture, refunds, webhooks or pushes.
+  /// The core lane keeps exactly one running job, as payments rely on.
+  static const aiKinds = {
+    'assistant.run',
+    'ai.run',
+    'agent.run',
+    'agent.page',
+    'agent.image',
+  };
+
+  static Future<int> dispatch(
+    Session s, {
+    int limit = 10,
+    String lane = 'core',
+  }) async {
+    final ai = lane == 'ai';
+    if (!ai) await schedule(s);
+    final slot = ai ? 'worker-slots-ai' : 'worker-slots';
+    final running = ai ? 2 : 1;
+    Expression<dynamic> inLane(PlatformJobTable t) =>
+        ai ? t.kind.inSet(aiKinds) : t.kind.notInSet(aiKinds);
     var completed = 0;
     for (var n = 0; n < min(limit, 25); n++) {
       final job = await s.db.transaction((tx) async {
         final epoch = DateTime.utc(2020);
         await RateWindow.db.insert(
           s,
-          [RateWindow(bucket: 'worker-slots', windowStart: epoch, requests: 0)],
+          [RateWindow(bucket: slot, windowStart: epoch, requests: 0)],
           ignoreConflicts: true,
           transaction: tx,
         );
         await RateWindow.db.findFirstRow(
           s,
-          where: (t) =>
-              t.bucket.equals('worker-slots') & t.windowStart.equals(epoch),
+          where: (t) => t.bucket.equals(slot) & t.windowStart.equals(epoch),
           lockMode: LockMode.forUpdate,
           transaction: tx,
         );
         if (await PlatformJob.db.count(
               s,
-              where: (t) => t.state.equals('running') & (t.leaseUntil > _now()),
+              where: (t) =>
+                  t.state.equals('running') &
+                  (t.leaseUntil > _now()) &
+                  inLane(t),
               transaction: tx,
             ) >=
-            1) {
+            running) {
           return null;
         }
         final row = await PlatformJob.db.findFirstRow(
           s,
           where: (t) =>
-              (t.state.equals('pending') & (t.availableAt <= _now())) |
-              (t.state.equals('running') & (t.leaseUntil < _now())),
+              ((t.state.equals('pending') & (t.availableAt <= _now())) |
+                  (t.state.equals('running') & (t.leaseUntil < _now()))) &
+              inLane(t),
           orderBy: (t) => t.id,
           lockMode: LockMode.forUpdate,
           lockBehavior: LockBehavior.skipLocked,
@@ -721,6 +752,8 @@ class PlatformWorker {
     switch (j.kind) {
       case 'assistant.run':
         await AssistantModule.execute(s, _int(d, 'runId', min: 1));
+      case 'agent.run':
+        await AgentModule.run(s, _int(d, 'taskId', min: 1));
       case 'payment.reconcile':
         final attempt = await CheckoutIntent.db.findById(
           s,

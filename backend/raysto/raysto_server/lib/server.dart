@@ -38,6 +38,14 @@ void run(List<String> args) async {
         .every(const Duration(seconds: 15))
         .platformCalls
         .dispatch();
+    // AI work runs beside the core lane; production.yaml allows concurrent
+    // future calls (futureCall.concurrencyLimit) so neither waits on the other.
+    await pod.futureCalls.cancel('raysto-ai');
+    await pod.futureCalls
+        .callRecurring(identifier: 'raysto-ai')
+        .every(const Duration(seconds: 3))
+        .platformCalls
+        .dispatchAi();
   }
   if (Platform.environment['RAYSTO_NOTIFICATIONS_ENABLED'] == 'true') {
     // Enable this on exactly one scheduler instance in a multi-instance deployment.
