@@ -238,7 +238,7 @@ class OrderCard extends StatelessWidget {
                 children: [
                   Text(o.title, style: theme.textTheme.titleLarge),
                   AppPill(label: context.tr(o.channel)),
-                  AppPill(label: friendly(o.status)),
+                  AppPill(label: statusLabel(context, o.status)),
                   AppPill(
                     label: context.tr(o.paid ? 'Paid' : 'Unpaid'),
                     icon: o.paid ? Icons.check_circle_outline : Icons.schedule,
@@ -318,8 +318,8 @@ class OrderDetailPage extends StatelessWidget {
           children: [
             Text(o.title, style: theme.textTheme.headlineSmall),
             AppPill(label: c.tr(o.channel)),
-            AppPill(label: friendly(o.status)),
-            AppPill(label: friendly(o.paymentStatus)),
+            AppPill(label: statusLabel(c, o.status)),
+            AppPill(label: statusLabel(c, o.paymentStatus)),
             if (o.open) agePill(c, o.ageMinutes()),
           ],
         ),

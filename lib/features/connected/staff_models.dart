@@ -196,9 +196,31 @@ Widget staffChips(
   ],
 );
 
+/// An order status as staff read it: "Awaiting payment", not
+/// "awaitingPayment"; a submitted order is new to the team.
+String statusLabel(BuildContext c, String status) {
+  final words = friendly(status).toLowerCase();
+  return c.tr(switch (status) {
+    'submitted' => 'New',
+    _ => words.isEmpty ? words : words[0].toUpperCase() + words.substring(1),
+  });
+}
+
+/// "12 min", "2 h 5 min" or "3 d": minutes alone stop being readable.
+String ageLabel(BuildContext c, int minutes) {
+  if (minutes < 1) return c.tr('just now');
+  if (minutes < 60) return '$minutes ${c.tr('min')}';
+  if (minutes < 1440) {
+    final rest = minutes % 60;
+    return '${minutes ~/ 60} ${c.tr('h')}'
+        '${rest == 0 ? '' : ' $rest ${c.tr('min')}'}';
+  }
+  return '${minutes ~/ 1440} ${c.tr('d')}';
+}
+
 /// Age of an order as a pill; late orders stand out.
 Widget agePill(BuildContext c, int minutes) => AppPill(
-  label: minutes < 1 ? c.tr('just now') : '$minutes ${c.tr('min')}',
+  label: ageLabel(c, minutes),
   icon: Icons.schedule,
   color: minutes >= 15
       ? Theme.of(c).colorScheme.errorContainer

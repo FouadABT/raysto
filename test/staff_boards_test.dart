@@ -443,6 +443,28 @@ void main() {
     expect(optionNames({'options': const []}), '');
   });
 
+  testWidgets('statuses and ages read as words, not codes', (tester) async {
+    late BuildContext c;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            c = context;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    expect(statusLabel(c, 'submitted'), 'New');
+    expect(statusLabel(c, 'awaitingPayment'), 'Awaiting payment');
+    expect(statusLabel(c, 'partiallyRefunded'), 'Partially refunded');
+    expect(ageLabel(c, 0), 'just now');
+    expect(ageLabel(c, 12), '12 min');
+    expect(ageLabel(c, 120), '2 h');
+    expect(ageLabel(c, 162), '2 h 42 min');
+    expect(ageLabel(c, 7682), '5 d');
+  });
+
   testWidgets('orders board filters by channel in Arabic at 2x', (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
