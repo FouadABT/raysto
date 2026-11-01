@@ -83,6 +83,26 @@ class CatalogueModule {
     return value.toDouble();
   }
 
+  /// Ordered menu sections: unique names, optional en/fr/ar translations.
+  static void validateSections(List<dynamic> sections) {
+    if (sections.length > 40) {
+      _fail('invalid_input', 'At most 40 menu sections.');
+    }
+    final names = <String>{};
+    for (final raw in sections) {
+      final c = _object(raw);
+      _keys(c, {'name', 'translations'});
+      if (!names.add(_str(c, 'name', max: 80).toLowerCase())) {
+        _fail('invalid_input', 'Menu sections must have different names.');
+      }
+      final t = _object(c['translations'] ?? {});
+      _keys(t, {'en', 'fr', 'ar'});
+      for (final v in t.values) {
+        _str({'v': v}, 'v', max: 80);
+      }
+    }
+  }
+
   static Json validateSettings(Json d) {
     _keys(d, defaults.keys.toSet());
     final merged = <String, dynamic>{...defaults, ...d};
@@ -158,19 +178,7 @@ class CatalogueModule {
         _fail('invalid_input', 'Agents can be off or suggest changes.');
       }
     }
-    final sections = <String>{};
-    for (final raw in _list(merged, 'menuCategories', max: 40)) {
-      final c = _object(raw);
-      _keys(c, {'name', 'translations'});
-      if (!sections.add(_str(c, 'name', max: 80).toLowerCase())) {
-        _fail('invalid_input', 'Menu sections must have different names.');
-      }
-      final t = _object(c['translations'] ?? {});
-      _keys(t, {'en', 'fr', 'ar'});
-      for (final v in t.values) {
-        _str({'v': v}, 'v', max: 80);
-      }
-    }
+    validateSections(_list(merged, 'menuCategories', max: 40));
     final codes = <String>{};
     for (final raw in _list(merged, 'coupons', max: 100)) {
       final p = _object(raw);
@@ -287,6 +295,32 @@ class CatalogueModule {
     },
     roles: _managers,
     registered: true,
+  );
+
+  /// The order and translations of menu sections, on their own: changing
+  /// them needs no other setting to be complete.
+  static Future<Json> sections(Session s, PlatformCommand c) => _mutate(
+    s,
+    c,
+    'menu.sections',
+    (w, d) async {
+      _keys(d, {'sections'});
+      final p =
+          w.policy ??
+          _fail('upgrade_required', 'Initialize this restaurant first.');
+      final sections = _list(d, 'sections', max: 40);
+      validateSections(sections);
+      p.settingsJson = jsonEncode({
+        ..._json(p.settingsJson),
+        'menuCategories': sections,
+      });
+      p.version++;
+      p.updatedAt = _now();
+      await RestaurantPolicy.db.updateRow(s, p, transaction: w.tx);
+      await w.audit('menu.sections', 'restaurant', w.tenant);
+      return {'version': p.version};
+    },
+    roles: _managers,
   );
 
   static Future<Json> publish(Session s, PlatformCommand c) => _mutate(
@@ -607,10 +641,13 @@ class CatalogueModule {
     c,
     'menu.publishDraft',
     (w, d) async {
-      _keys(d, {'confirm'});
+      _keys(d, {'confirm', 'merge'});
       if (!_bool(d, 'confirm')) {
         _fail('confirmation_required', 'Confirm menu publication.');
       }
+      // Merge adds and updates the draft's dishes and keeps every other dish,
+      // so a draft from photos never archives the rest of the menu.
+      final merge = d['merge'] == true;
       final row = await MenuDraft.db.findById(s, _id(c), transaction: w.tx);
       if (row == null ||
           row.restaurantId != w.tenant ||
@@ -618,7 +655,7 @@ class CatalogueModule {
         _fail('not_found', 'Draft not found.');
       }
       _version(row.version, c.expectedVersion);
-      _version(w.policy!.menuVersion, row.baseMenuVersion);
+      if (!merge) _version(w.policy!.menuVersion, row.baseMenuVersion);
       final items = (jsonDecode(row.itemsJson) as List).cast<Json>();
       final names = <String>{};
       final productIds = <int>{};
@@ -640,8 +677,21 @@ class CatalogueModule {
             t.restaurantId.equals(w.tenant) & t.archived.equals(false),
         transaction: w.tx,
       );
+      if (merge) {
+        final products = await MenuProduct.db.find(
+          s,
+          where: (t) => t.id.inSet(old.map((d) => d.productId).toSet()),
+          transaction: w.tx,
+        );
+        for (final p in products) {
+          if (!productIds.contains(p.id) &&
+              names.contains(p.name.toLowerCase())) {
+            _fail('duplicate_item', '${p.name} is already on the menu.');
+          }
+        }
+      }
       for (final definition in old) {
-        if (productIds.contains(definition.productId)) continue;
+        if (merge || productIds.contains(definition.productId)) continue;
         definition.archived = true;
         definition.version++;
         definition.definitionJson = jsonEncode({

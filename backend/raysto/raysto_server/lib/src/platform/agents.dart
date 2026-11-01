@@ -90,6 +90,7 @@ class AgentModule {
   /// Agents register their handlers here as they are built.
   static final Map<String, AgentHandler> handlers = {
     PaymentAgent.agent: PaymentAgent.run,
+    MenuAgent.agent: MenuAgent.run,
   };
 
   /// Audit kinds that wake an agent, e.g. `payment.attention` → payments.
@@ -99,6 +100,7 @@ class AgentModule {
   };
 
   static final Map<String, AgentCommand> commands = {
+    'menu.publish': MenuAgent.publishCommand,
     'menu.soldOut': AgentCommand(
       roles: {'owner', 'manager', 'kitchen'},
       risk: 'catalogue',
@@ -154,7 +156,13 @@ class AgentModule {
         _keys(change, {'paused', 'preparationMinutes', 'slotCapacity'});
         if (change.isEmpty) _fail('invalid_input', 'Nothing to change.');
         final current = w.settings;
-        CatalogueModule.validateSettings({...current, ...change});
+        if (change.containsKey('paused')) _bool(change, 'paused');
+        if (change.containsKey('preparationMinutes')) {
+          _int(change, 'preparationMinutes', min: 1, max: 240);
+        }
+        if (change.containsKey('slotCapacity')) {
+          _int(change, 'slotCapacity', min: 1, max: 500);
+        }
         return (
           preview: <String, dynamic>{
             for (final k in change.keys)

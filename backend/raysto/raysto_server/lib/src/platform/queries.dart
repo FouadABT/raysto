@@ -225,11 +225,10 @@ class PlatformQueries {
           final files = await MediaAsset.db.find(
             s,
             where: (t) =>
-                t.userId.equals(w.user) &
-                (t.id > cursor) &
                 (tenant == null
-                    ? Constant.bool(true)
-                    : t.restaurantId.equals(tenant)),
+                    ? t.userId.equals(w.user)
+                    : t.restaurantId.equals(tenant)) &
+                (t.id > cursor),
             orderBy: (t) => t.id,
             limit: limit,
             transaction: tx,

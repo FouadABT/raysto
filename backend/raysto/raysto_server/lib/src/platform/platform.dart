@@ -42,6 +42,7 @@ part 'workspace.dart';
 part 'shares.dart';
 part 'agents.dart';
 part 'agent_payments.dart';
+part 'agent_menu.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -258,6 +259,8 @@ class PlatformApi {
     'assistant.cancel': AssistantModule.cancel,
     'assistant.approve': AssistantModule.approve,
     'agent.decide': AgentModule.decide,
+    'menu.snap': MenuAgent.snap,
+    'menu.sections': CatalogueModule.sections,
     'operations.layout': WorkspaceModule.saveLayout,
     'room.open': ConversationModule.open,
     'room.message': ConversationModule.send,

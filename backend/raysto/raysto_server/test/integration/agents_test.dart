@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -482,6 +483,253 @@ void main() {
         expect(evidence['paypalStatus'], 'NO_PAYPAL_ORDER');
         expect(evidence['ledgerState'], 'created');
         expect(evidence['amountMinor'], 1350);
+      },
+    );
+
+    test(
+      'a menu photo becomes a merged, categorised draft that publishes without archiving',
+      () async {
+        final s = builder.build();
+        final now = DateTime.now().toUtc();
+        final menuVersion = (await RestaurantPolicy.db.findFirstRow(
+          s,
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ))!.menuVersion;
+        await CatalogueModule.saveItem(
+          owner.build(),
+          command({
+            'name': 'Fries',
+            'category': 'Sides',
+            'priceMinor': 350,
+          }, version: menuVersion),
+        );
+        final policy = (await RestaurantPolicy.db.findFirstRow(
+          s,
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ))!;
+        policy.settingsJson = jsonEncode({
+          ...CatalogueModule.defaults,
+          ...jsonDecode(policy.settingsJson) as Map<String, dynamic>,
+          'languages': ['en', 'fr'],
+        });
+        await RestaurantPolicy.db.updateRow(s, policy);
+        final photo = await MediaAsset.db.insertRow(
+          s,
+          MediaAsset(
+            restaurantId: restaurant.id,
+            userId: 'agents-owner',
+            purpose: 'menuSource',
+            objectName: 'v2/sanitized/fixture/${key()}.jpg',
+            mime: 'image/jpeg',
+            byteLength: 3,
+            sha256: 'fixture',
+            status: 'approved',
+            public: false,
+            metadataJson: '{}',
+            createdAt: now,
+          ),
+        );
+        AgentModule.environment = () => {
+          ...Platform.environment,
+          'RAYSTO_AGENT_MENU_ENABLED': 'true',
+        };
+        ProviderClients.environment = () => {
+          ...Platform.environment,
+          'GEMINI_API_KEY': 'fixture-key',
+        };
+        MenuAgent.readFile = (_) async =>
+            Uint8List.fromList([0xff, 0xd8, 0xff]);
+        addTearDown(() => MenuAgent.readFile = ProviderClients.getFile);
+        String answer(Json json) =>
+            'data: ${jsonEncode({
+              'candidates': [
+                {
+                  'index': 0,
+                  'content': {
+                    'role': 'model',
+                    'parts': [
+                      {'text': jsonEncode(json)},
+                    ],
+                  },
+                  'finishReason': 'STOP',
+                },
+              ],
+              'usageMetadata': {'promptTokenCount': 1500, 'candidatesTokenCount': 400, 'totalTokenCount': 1900},
+            })}\r\n\r\n';
+        ProviderClients.httpClient = () => MockClient((r) async {
+          if (r.url.path.endsWith(':countTokens')) {
+            return http.Response('{"totalTokens": 1500}', 200);
+          }
+          final photoPage = r.body.contains('inlineData');
+          final body = photoPage
+              ? answer({
+                  'items': [
+                    {
+                      'name': 'Burger',
+                      'section': 'Burgers',
+                      'priceMinor': 950,
+                      'options': [],
+                      'dietary': [],
+                      'allergens': null,
+                      'ingredients': null,
+                      'priceConfidence': 'high',
+                    },
+                    {
+                      'name': 'Falafel wrap',
+                      'description': 'Chickpea falafel, tahini',
+                      'section': 'Wraps',
+                      'priceMinor': 750,
+                      'options': [
+                        {'name': 'Extra halloumi', 'priceMinor': 150},
+                      ],
+                      'dietary': ['vegetarian'],
+                      'allergens': null,
+                      'ingredients': null,
+                      'priceConfidence': 'high',
+                    },
+                    {
+                      'name': 'Lemonade',
+                      'section': 'Drinks',
+                      'priceMinor': null,
+                      'options': [],
+                      'dietary': [],
+                      'allergens': null,
+                      'ingredients': null,
+                      'priceConfidence': 'low',
+                    },
+                  ],
+                })
+              : answer({
+                  'sections': [
+                    {
+                      'name': 'Wraps',
+                      'translations': {'fr': 'Wraps'},
+                    },
+                    {
+                      'name': 'Burgers',
+                      'translations': {'fr': 'Burgers'},
+                    },
+                    {
+                      'name': 'Drinks',
+                      'translations': {'fr': 'Boissons'},
+                    },
+                  ],
+                  'items': [
+                    {
+                      'key': 0,
+                      'section': 'Burgers',
+                      'description': null,
+                      'dietary': [],
+                      'translations': {
+                        'fr': {'name': 'Burger', 'description': null},
+                      },
+                    },
+                    {
+                      'key': 1,
+                      'section': 'Wraps',
+                      'description': 'Chickpea falafel, tahini',
+                      'dietary': ['vegetarian'],
+                      'translations': {
+                        'fr': {
+                          'name': 'Wrap falafel',
+                          'description': 'Falafel de pois chiches, tahini',
+                        },
+                      },
+                    },
+                    {
+                      'key': 2,
+                      'section': 'Drinks',
+                      'description': null,
+                      'dietary': [],
+                      'translations': {
+                        'fr': {'name': 'Limonade', 'description': null},
+                      },
+                    },
+                  ],
+                });
+          return http.Response.bytes(
+            utf8.encode(body),
+            200,
+            headers: {'content-type': 'text/event-stream; charset=utf-8'},
+          );
+        });
+
+        final started = await MenuAgent.snap(
+          owner.build(),
+          command({
+            'mediaIds': [photo.id],
+          }),
+        );
+        await AgentModule.run(s, started['taskId'] as int);
+        final task = (await AgentTask.db.findById(
+          s,
+          started['taskId'] as int,
+        ))!;
+        expect(
+          task.status,
+          'done',
+          reason: '${task.summary} ${task.stateJson}',
+        );
+        expect(task.chargedMicros, greaterThan(0));
+        final actions = await AgentAction.db.find(
+        s,
+        where: (t) => t.taskId.equals(task.id!),
+      );
+      expect(actions, hasLength(1), reason: task.traceJson);
+      final action = actions.single;
+      expect(action.command, 'menu.publish');
+        final evidence = jsonDecode(action.evidenceJson) as Map;
+        expect(evidence['new'], 2);
+        expect(evidence['changed'], 1);
+        expect(evidence['checkPrices'], ['Lemonade']);
+        expect(evidence['sections'], ['Wraps', 'Burgers', 'Drinks']);
+
+        final done = await decide(owner, action);
+        expect(done['state'], 'executed', reason: '$done');
+        final products = {
+          for (final p in await MenuProduct.db.find(
+            s,
+            where: (t) => t.restaurantId.equals(restaurant.id!),
+          ))
+            p.name: p,
+        };
+        expect(products['Burger']!.priceMinor, 950);
+        expect(
+          products['Fries']!.available,
+          isTrue,
+          reason: 'merge keeps dishes not in the photo',
+        );
+        expect(products['Falafel wrap']!.available, isTrue);
+        expect(
+          products['Lemonade']!.available,
+          isFalse,
+          reason: 'no readable price',
+        );
+        final wrap = (await MenuDefinition.db.findFirstRow(
+          s,
+          where: (t) => t.productId.equals(products['Falafel wrap']!.id!),
+        ))!;
+        final definition = jsonDecode(wrap.definitionJson) as Map;
+        expect(definition['category'], 'Wraps');
+        expect(definition['translations']['fr']['name'], 'Wrap falafel');
+        expect(definition['dietary'], ['vegetarian']);
+        expect(definition['allergens'], isNull);
+        expect(
+          (definition['modifiers'] as List).single['options'][0]['name'],
+          'Extra halloumi',
+        );
+        final settings =
+            jsonDecode(
+                  (await RestaurantPolicy.db.findFirstRow(
+                    s,
+                    where: (t) => t.restaurantId.equals(restaurant.id!),
+                  ))!.settingsJson,
+                )
+                as Map;
+        expect(
+          [for (final c in settings['menuCategories']) c['name']],
+          ['Wraps', 'Burgers', 'Drinks'],
+        );
       },
     );
 
