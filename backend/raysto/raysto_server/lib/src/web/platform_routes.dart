@@ -237,6 +237,34 @@ class PlatformRoute extends Route {
           ),
         );
       }
+      if (path == 'voice/counter' && r.method == Method.post) {
+        final tenant = int.tryParse(
+          r.url.queryParameters['restaurantId'] ?? '',
+        );
+        if (tenant == null || tenant < 1) {
+          return jsonResponse(400, {
+            'error': {
+              'code': 'invalid_input',
+              'message': 'Choose a restaurant.',
+            },
+          });
+        }
+        final mime = (r.headers['content-type']?.first ?? '')
+            .split(';')
+            .first
+            .trim()
+            .toLowerCase();
+        await PlatformApi.guard(s);
+        return jsonResponse(200, {
+          'requestId': requestId,
+          'data': await VoiceModule.counter(
+            s,
+            tenant,
+            await bytes(r, VoiceModule.maxBytes),
+            mime,
+          ),
+        });
+      }
       if (!path.startsWith('commands/') || r.method != Method.post) {
         return jsonResponse(404, {'error': 'not_found'});
       }

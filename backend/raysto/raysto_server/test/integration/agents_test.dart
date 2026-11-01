@@ -672,12 +672,12 @@ void main() {
         );
         expect(task.chargedMicros, greaterThan(0));
         final actions = await AgentAction.db.find(
-        s,
-        where: (t) => t.taskId.equals(task.id!),
-      );
-      expect(actions, hasLength(1), reason: task.traceJson);
-      final action = actions.single;
-      expect(action.command, 'menu.publish');
+          s,
+          where: (t) => t.taskId.equals(task.id!),
+        );
+        expect(actions, hasLength(1), reason: task.traceJson);
+        final action = actions.single;
+        expect(action.command, 'menu.publish');
         final evidence = jsonDecode(action.evidenceJson) as Map;
         expect(evidence['new'], 2);
         expect(evidence['changed'], 1);
@@ -729,6 +729,92 @@ void main() {
         expect(
           [for (final c in settings['menuCategories']) c['name']],
           ['Wraps', 'Burgers', 'Drinks'],
+        );
+      },
+    );
+
+    test(
+      'the counter hears an order and keeps only real dishes and options',
+      () async {
+        AgentModule.environment = () => {
+          ...Platform.environment,
+          'RAYSTO_AGENT_COUNTER_ENABLED': 'true',
+        };
+        ProviderClients.environment = () => {
+          ...Platform.environment,
+          'GEMINI_API_KEY': 'fixture-key',
+        };
+        final seen = <Map>[];
+        ProviderClients.httpClient = () => MockClient((r) async {
+          if (r.url.path.endsWith(':countTokens')) {
+            return http.Response('{"totalTokens": 300}', 200);
+          }
+          seen.add(jsonDecode(r.body) as Map);
+          final text = jsonEncode({
+            'lines': [
+              {
+                'productId': burger,
+                'quantity': 2,
+                'options': ['bogus'],
+                'note': 'no onion',
+              },
+              {'productId': 999999, 'quantity': 1},
+            ],
+            'customerLabel': 'Sam',
+            'unmatched': ['lemonade'],
+          });
+          return http.Response.bytes(
+            utf8.encode(
+              'data: ${jsonEncode({
+                'candidates': [
+                  {
+                    'index': 0,
+                    'content': {
+                      'role': 'model',
+                      'parts': [
+                        {'text': text},
+                      ],
+                    },
+                    'finishReason': 'STOP',
+                  },
+                ],
+                'usageMetadata': {'promptTokenCount': 300, 'candidatesTokenCount': 60, 'totalTokenCount': 360},
+              })}\r\n\r\n',
+            ),
+            200,
+            headers: {'content-type': 'text/event-stream; charset=utf-8'},
+          );
+        });
+        final heard = await VoiceModule.counter(
+          owner.build(),
+          restaurant.id!,
+          Uint8List.fromList(List.filled(2000, 1)),
+          'audio/wav',
+        );
+        expect(heard['lines'], [
+          {
+            'productId': burger,
+            'quantity': 2,
+            'options': [],
+            'note': 'no onion',
+          },
+        ]);
+        expect(heard['customerLabel'], 'Sam');
+        expect(heard['unmatched'], ['lemonade']);
+        final request = seen.single;
+        final parts = (request['contents'] as List).single['parts'] as List;
+        expect(parts.last['inlineData']['mimeType'], 'audio/wav');
+        expect(request['generationConfig']['responseSchema'], isNotNull);
+        await expectLater(
+          VoiceModule.counter(
+            waiter.build(),
+            restaurant.id!,
+            Uint8List.fromList(List.filled(2000, 1)),
+            'audio/wav',
+          ),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'forbidden'),
+          ),
         );
       },
     );
