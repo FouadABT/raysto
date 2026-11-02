@@ -494,6 +494,105 @@ void main() {
     );
 
     test(
+      'a manager asks the payments agent to check a checkout now',
+      () async {
+        final s = builder.build();
+        final now = DateTime.now().toUtc();
+        final checkout = await CheckoutIntent.db.insertRow(
+          s,
+          CheckoutIntent(
+            restaurantId: restaurant.id!,
+            userId: 'agents-owner',
+            requestKey: key(),
+            requestHash: 'fixture',
+            providerRequestId: 'fixture-request-3',
+            merchantId: 'MERCHANT-FIXTURE',
+            state: 'created',
+            method: 'paypal',
+            currency: 'EUR',
+            amountMinor: 900,
+            commissionMinor: 0,
+            commissionBps: 0,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        AgentModule.environment = () => {
+          ...Platform.environment,
+          'RAYSTO_AGENT_PAYMENTS_ENABLED': 'true',
+        };
+        PlatformCommand ask(String reason) => command({
+          'reason': reason,
+        }, id: checkout.id);
+
+        await expectLater(
+          PaymentAgent.check(waiter.build(), ask('left')),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'forbidden'),
+          ),
+        );
+        await expectLater(
+          PaymentAgent.check(owner.build(), ask('paid')),
+          throwsA(
+            isA<DomainError>().having((e) => e.code, 'code', 'invalid_input'),
+          ),
+        );
+        final asked = await PaymentAgent.check(owner.build(), ask('left'));
+        final task = (await AgentTask.db.findById(s, asked['taskId'] as int))!;
+        expect(task.status, 'queued');
+        expect(task.trigger, 'user');
+        expect(task.requestedBy, 'agents-owner');
+        expect(jsonDecode(task.inputJson), {
+          'checkoutId': checkout.id,
+          'reason': 'left',
+        });
+        final job = await PlatformJob.db.findFirstRow(
+          s,
+          where: (t) => t.dedupeKey.equals('agent:${task.id}'),
+        );
+        expect(job?.kind, 'agent.run');
+        // Asking twice for the same reason does not queue a second check.
+        final again = await PaymentAgent.check(owner.build(), ask('left'));
+        expect(again['taskId'], task.id);
+
+        ProviderClients.environment = () => {
+          ...Platform.environment,
+          'GEMINI_API_KEY': 'fixture-key',
+        };
+        final prompts = <String>[];
+        ProviderClients.httpClient = () => MockClient((r) async {
+          if (r.url.path.endsWith(':countTokens')) {
+            return http.Response('{"totalTokens": 400}', 200);
+          }
+          prompts.add(r.body);
+          return http.Response.bytes(
+            utf8.encode(
+              'data: ${jsonEncode({
+                'candidates': [
+                  {
+                    'index': 0,
+                    'content': {
+                      'role': 'model',
+                      'parts': [
+                        {'text': 'Checked.'},
+                      ],
+                    },
+                    'finishReason': 'STOP',
+                  },
+                ],
+                'usageMetadata': {'promptTokenCount': 400, 'candidatesTokenCount': 5, 'totalTokenCount': 405},
+              })}\r\n\r\n',
+            ),
+            200,
+            headers: {'content-type': 'text/event-stream; charset=utf-8'},
+          );
+        });
+        await AgentModule.run(s, task.id!);
+        expect(prompts.first, contains('the diner left without finishing'));
+      },
+    );
+
+    test(
       'a menu photo becomes a merged, categorised draft that publishes without archiving',
       () async {
         final s = builder.build();

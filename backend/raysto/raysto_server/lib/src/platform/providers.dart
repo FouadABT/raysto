@@ -20,13 +20,14 @@ class ProviderClients {
     return _int(claims, 'auth_time', min: 1, max: 9007199254740991);
   }
 
+  /// Restaurants that take payments on the one Sandbox merchant.
+  /// RAYSTO_SANDBOX_RESTAURANT_ID holds one id or a comma-separated list.
   static bool singleRestaurant(int tenant) =>
       paypalEnvironment == 'sandbox' &&
       environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] == 'true' &&
-      int.tryParse(
-            environment()['RAYSTO_SANDBOX_RESTAURANT_ID'] ?? '',
-          ) ==
-          tenant;
+      (environment()['RAYSTO_SANDBOX_RESTAURANT_ID'] ?? '')
+          .split(',')
+          .any((id) => int.tryParse(id.trim()) == tenant);
 
   static Future<String> paypalReadToken() async {
     if (paypalEnvironment != 'sandbox' ||

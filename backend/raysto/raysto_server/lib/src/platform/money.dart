@@ -494,7 +494,12 @@ class MoneyModule {
       await w.audit('payment.release_requested', 'checkout', i.id);
       return {'checkoutId': i.id};
     }, roles: _managers);
-    final id = _id(c);
+    return releaseChecked(s, _id(c));
+  }
+
+  /// Frees a PayPal checkout once PayPal confirms nothing was captured; a
+  /// capture found there is reconciled instead.
+  static Future<Json> releaseChecked(Session s, int id) async {
     final before = (await CheckoutIntent.db.findById(s, id))!;
     if ({'completed', 'cancelled', 'failed'}.contains(before.state)) {
       return {...view(before), 'released': false};

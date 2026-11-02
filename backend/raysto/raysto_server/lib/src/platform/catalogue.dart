@@ -260,6 +260,16 @@ class CatalogueModule {
         ...prior,
         ..._object(d['settings']),
       });
+      // On the judges' café a manager changes only what the copilot proposes.
+      if (JudgeModule.venue(w.tenant) &&
+          (d['name'] != w.restaurant!.name ||
+              settings.keys.any(
+                (k) =>
+                    !{'preparationMinutes', 'slotCapacity'}.contains(k) &&
+                    jsonEncode(settings[k]) != jsonEncode(prior[k]),
+              ))) {
+        await JudgeModule.ownerOnly(w);
+      }
       if (settings['paymentTiming'] != prior['paymentTiming'] ||
           settings['taxBps'] != prior['taxBps'] ||
           settings['pricesIncludeTax'] != prior['pricesIncludeTax']) {
@@ -329,6 +339,7 @@ class CatalogueModule {
     'restaurant.publish',
     (w, d) async {
       _keys(d, {'published'});
+      await JudgeModule.ownerOnly(w);
       final published = _bool(d, 'published');
       if (published) {
         final settings = validateSettings(w.settings);
@@ -717,69 +728,79 @@ class CatalogueModule {
       }
       _version(row.version, c.expectedVersion);
       if (!merge) _version(w.policy!.menuVersion, row.baseMenuVersion);
-      final items = (jsonDecode(row.itemsJson) as List).cast<Json>();
-      final names = <String>{};
-      final productIds = <int>{};
-      if (items.isEmpty) _fail('invalid_input', 'Draft is empty.');
-      for (final item in items) {
-        if (item['productId'] != null &&
-            !productIds.add(_int(item, 'productId', min: 1))) {
-          _fail('duplicate_item', 'A draft cannot update one product twice.');
-        }
-        if (!names.add((item['name'] as String).toLowerCase())) {
-          _fail('duplicate_item', 'Resolve duplicate dish names.');
-        }
-      }
-      // A published draft is the complete current catalogue. Archive omitted
-      // entries in the same transaction, preserving historical product IDs.
-      final old = await MenuDefinition.db.find(
-        s,
-        where: (t) =>
-            t.restaurantId.equals(w.tenant) & t.archived.equals(false),
-        transaction: w.tx,
-      );
-      if (merge) {
-        final products = await MenuProduct.db.find(
-          s,
-          where: (t) => t.id.inSet(old.map((d) => d.productId).toSet()),
-          transaction: w.tx,
-        );
-        for (final p in products) {
-          if (!productIds.contains(p.id) &&
-              names.contains(p.name.toLowerCase())) {
-            _fail('duplicate_item', '${p.name} is already on the menu.');
-          }
-        }
-      }
-      for (final definition in old) {
-        if (merge || productIds.contains(definition.productId)) continue;
-        definition.archived = true;
-        definition.version++;
-        definition.definitionJson = jsonEncode({
-          ..._json(definition.definitionJson),
-          'archived': true,
-          'available': false,
-        });
-        await MenuDefinition.db.updateRow(s, definition, transaction: w.tx);
-        final product = (await MenuProduct.db.findById(
-          s,
-          definition.productId,
-          transaction: w.tx,
-        ))!;
-        product.available = false;
-        product.version++;
-        await MenuProduct.db.updateRow(s, product, transaction: w.tx);
-      }
-      for (final item in items) {
-        await _writeItem(w, item);
-      }
-      await _bumpMenu(w);
-      row.status = 'published';
-      row.version++;
-      await MenuDraft.db.updateRow(s, row, transaction: w.tx);
-      await w.audit('menu.published', 'menuDraft', row.id);
+      await applyDraft(w, row, merge: merge);
       return {'menuVersion': w.policy!.menuVersion};
     },
     roles: _managers,
   );
+
+  /// Puts a draft on the menu. A merge adds and updates its dishes; otherwise
+  /// the draft is the whole catalogue and dishes it omits are archived.
+  static Future<void> applyDraft(
+    Work w,
+    MenuDraft row, {
+    required bool merge,
+  }) async {
+    final s = w.s;
+    final items = (jsonDecode(row.itemsJson) as List).cast<Json>();
+    final names = <String>{};
+    final productIds = <int>{};
+    if (items.isEmpty) _fail('invalid_input', 'Draft is empty.');
+    for (final item in items) {
+      if (item['productId'] != null &&
+          !productIds.add(_int(item, 'productId', min: 1))) {
+        _fail('duplicate_item', 'A draft cannot update one product twice.');
+      }
+      if (!names.add((item['name'] as String).toLowerCase())) {
+        _fail('duplicate_item', 'Resolve duplicate dish names.');
+      }
+    }
+    // A published draft is the complete current catalogue. Archive omitted
+    // entries in the same transaction, preserving historical product IDs.
+    final old = await MenuDefinition.db.find(
+      s,
+      where: (t) => t.restaurantId.equals(w.tenant) & t.archived.equals(false),
+      transaction: w.tx,
+    );
+    if (merge) {
+      final products = await MenuProduct.db.find(
+        s,
+        where: (t) => t.id.inSet(old.map((d) => d.productId).toSet()),
+        transaction: w.tx,
+      );
+      for (final p in products) {
+        if (!productIds.contains(p.id) &&
+            names.contains(p.name.toLowerCase())) {
+          _fail('duplicate_item', '${p.name} is already on the menu.');
+        }
+      }
+    }
+    for (final definition in old) {
+      if (merge || productIds.contains(definition.productId)) continue;
+      definition.archived = true;
+      definition.version++;
+      definition.definitionJson = jsonEncode({
+        ..._json(definition.definitionJson),
+        'archived': true,
+        'available': false,
+      });
+      await MenuDefinition.db.updateRow(s, definition, transaction: w.tx);
+      final product = (await MenuProduct.db.findById(
+        s,
+        definition.productId,
+        transaction: w.tx,
+      ))!;
+      product.available = false;
+      product.version++;
+      await MenuProduct.db.updateRow(s, product, transaction: w.tx);
+    }
+    for (final item in items) {
+      await _writeItem(w, item);
+    }
+    await _bumpMenu(w);
+    row.status = 'published';
+    row.version++;
+    await MenuDraft.db.updateRow(s, row, transaction: w.tx);
+    await w.audit('menu.published', 'menuDraft', row.id);
+  }
 }

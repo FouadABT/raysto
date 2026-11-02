@@ -617,6 +617,7 @@ class PlatformWorker {
     await AgentModule.sweep(s);
     await PaymentAgent.sweep(s);
     await CopilotAgent.sweep(s);
+    await JudgeModule.schedule(s);
     await RateWindow.db.deleteWhere(
       s,
       where: (t) =>
@@ -832,6 +833,8 @@ class PlatformWorker {
           );
           await OperationsModule.syncSubscription(s, sub.id!);
         }
+      case 'judge.reset':
+        await JudgeModule.reset(s, _int(d, 'restaurantId', min: 1));
       case 'media.scan':
         await AiModule.scan(s, _int(d, 'mediaId', min: 1));
       case 'ai.run':

@@ -544,6 +544,7 @@ class IdentityModule {
     (w, d) async {
       _keys(d, {'email', 'role'});
       final member = await w.role(_managers);
+      await JudgeModule.ownerOnly(w);
       final role = _str(
         d,
         'role',
@@ -676,6 +677,7 @@ class IdentityModule {
     (w, d) async {
       _keys(d, {'userId', 'role', 'active', 'capabilities'});
       final caller = await w.role(_managers);
+      await JudgeModule.ownerOnly(w);
       final target = await Membership.db.findFirstRow(
         s,
         where: (t) =>

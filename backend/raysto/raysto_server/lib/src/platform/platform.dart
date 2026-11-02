@@ -47,6 +47,7 @@ part 'voice.dart';
 part 'agent_copilot.dart';
 part 'agent_images.dart';
 part 'media_ai.dart';
+part 'judge.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -332,6 +333,8 @@ class PlatformApi {
     'payment.capture': MoneyModule.capture,
     'payment.cancel': MoneyModule.cancel,
     'payment.release': MoneyModule.release,
+    'payment.check': PaymentAgent.check,
+    'judge.reset': JudgeModule.command,
     'merchant.connect': MoneyModule.connectMerchant,
     'merchant.refresh': MoneyModule.refreshMerchant,
     'billing.subscribe': OperationsModule.subscribe,
