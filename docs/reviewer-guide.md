@@ -1,49 +1,38 @@
 # Reviewer guide
 
-Raysto addresses a restaurant coordination problem: the people choosing food, preparing it and settling the bill need a consistent view of the same visit.
+Raysto is the till, kitchen board, ordering app and back office for a small restaurant. AI coworkers prepare changes with their evidence, a person approves them, and PayPal moves the money. Everything a reviewer can touch runs on PayPal Sandbox.
 
-The conversation candidate connects Flutter visit rooms and the hosted [AG Grid/Studio operations console](https://ops.rays.to/ops) to Serverpod/PostgreSQL, Firebase, Gemini tools and PayPal Sandbox. Start with the [Road to 10/10 report](road-to-10-10.md). [Current status](project-status.md) separates observed behavior from remaining approval/refund, MCP, device and pilot gates. The older preview paths below remain available.
+## The two-minute path (browser only)
 
-## Choose a path
+1. Open **[rays.to](https://rays.to)** and press **Try it now**. You are signed into the [owner console](https://ops.rays.to/ops?judge=1) as the manager of the demo café "Atelier Café · Judges".
+2. The console opens on **Try Raysto**: five cards, each with one button.
 
-| Path | Demonstrates | Does not demonstrate |
-| --- | --- | --- |
-| Offline mobile demo | Design and multi-role journeys using fictional local records; no credentials required. | Live AI/payment, cross-device synchronization or server authorization. |
-| Connected mobile + configured backend | Real identities, server-owned records and configured providers. | Automatically available reviewer accounts or complete buyer-to-refund acceptance. |
-| Connected `/ops` | Real authorized records, AG Grid, three AG Studio widgets, table room and server assistant. | Public staff credentials, completed buyer/refund acceptance or guaranteed trial access after December 10. |
+| Card | What happens | Where the AI or PayPal does real work |
+|---|---|---|
+| 1. Read a printed menu | The menu agent reads the sample menu photo; a table shows each dish, its section and price, with new dishes and changed prices marked. Approve publishes it | Gemini vision reads the page; a person approves the merge |
+| 2. Take an order by voice | Send the sample recording, or press **Say your own order**; the counter ticket appears with dishes, options, the customer's name and anything not on the menu | Gemini hears the audio against the café's menu; nothing is charged |
+| 3. Order lunch in one sentence | Ask Raysto proposes a basket within your budget and pickup time. **Order and pay with PayPal** places the order and opens PayPal Sandbox; approve with the Sandbox buyer login, and the card shows the capture id and kitchen ticket | Function calling (`read_menu`, `quote_basket`); PayPal Orders v2 capture after the buyer's approval |
+| 4. Chase an unfinished payment | A PayPal checkout is created and left unpaid; the payments agent reads the ledger and PayPal, then proposes the release. Approve asks for the password again (prefilled for the judge login) | PayPal MCP server read inside the agent; identity check before a money change |
+| 5. Draw a dish for the menu | Gemini draws the chosen dish; the scanned photo waits for approval and then appears on the menu labelled as an AI image | `gemini-3.1-flash-image`; file scan before anyone sees it |
 
-[Setup](getting-started.md) covers all three. The owner has the versioned APK/checksum in the [candidate handoff](release-candidate-2026-10-27.md); this snapshot has no public APK release attached, so public reviewers should build from source until the judging release is published. A hosted API URL alone is not a walkthrough or public admin credential.
+The other console sections show the same café through AG Grid: Overview, Orders (with PayPal capture ids), Payments, Agents (every proposal and what each agent did, with its AI cost) and Floor (AG Studio with three custom widgets).
 
-## Connected acceptance journey
+**Start the café fresh** on the Try page puts the starting menu back; it also resets every day at 09:00 UTC. The manager login cannot rename the café, change its team or take it offline.
 
-Use the configured QA restaurant with two admitted diners and its assigned waiter. The room shows its audience explicitly; the host alone confirms a group order. Ask Raysto for a bounded shared meal, review its authoritative quote, then follow the order in the kitchen and console. Each diner separately reviews a share and approves it on PayPal's real Sandbox page. A verified backend receipt and matching remaining balance establish settlement.
+## The Android app (optional)
 
-The [device checklist and pilot protocol](device-and-pilot-checklist.md) give the exact sequence, recovery/refund checks and observations. The [fixed AI evaluation](ai-evaluation.md) includes failures, privacy boundaries, multilingual requests and unknown dietary information. Private QA credentials are supplied separately; the public repository grants no restaurant permissions.
+Install the APK from the [releases page](https://github.com/FouadABT/raysto/releases). Sign in as the **diner** to order from the demo café with Ask Raysto and pay in PayPal Sandbox, or as the **manager** to see the staff tablet: the counter till with the PayPal QR and voice ordering, the kitchen board and the Agents inbox. Logins are in the [README](../README.md#try-it-in-two-minutes).
 
-Until live acceptance is recorded, treat this as a candidate workflow—not evidence that every step passed. The offline flow below remains useful for reviewing design without provider access.
+## Evidence
 
-## Interface walkthrough
+- [PayPal Sandbox acceptance](paypal-acceptance-2026-10-31.md): every journey with its PayPal ids, and the fixes live runs found.
+- [Live AI evaluation](ai-evaluation-results.md): 12 of 12 cases on production.
+- [Neutral audit](audits/raysto-hackathon-audit-2026-11-02.md) against the judging criteria.
 
-1. Run mobile and choose its explicit offline demo.
-2. Open a menu; inspect modifiers, basket totals and the assistant review step.
-3. Choose **Demo controls → Scenario → B · Dine-in with PayPal** for the fictional cross-role flow. Its PayPal result is a simulation.
-4. Switch to manager, kitchen and waiter to follow the same local order through service and bill closure.
-5. Try dark mode, larger text and reduced motion.
-
-The [offline guide](demo-guide.md) lists fictional accounts and scenarios. It is separate from provider acceptance.
+Limits, stated plainly: everything is Sandbox; no real restaurant has used Raysto; the evaluation inputs are rendered images and synthetic voices; iOS is not built.
 
 ## Technical review
 
-- [Architecture and maps](backend-v2/README.md)
-- [Capability-to-source index](backend-v2/capability-index.md)
-- [Integration examples](backend-v2/integration.md) and [OpenAPI](backend-v2/openapi.json)
-- [Permissions and transitions](backend-v2/security-and-states.md)
-- [Payment workflow](backend-v2/maps/payment-workflow.png)
-- [Acceptance scenarios](backend-v2/acceptance.md)
-- [Artwork, fonts and photography](assets.md)
-
-## Hackathon context
-
-The [official rules](https://paypalaihackathon.devpost.com/rules) require a public open-source repository and a functional project accessible through a demo or complete run instructions. This initial commit imports an existing working tree; it does not fabricate historical development evidence. Dated project records describe the earlier work.
-
-The final submission should link the verified build and video, explain actual PayPal/AI behavior and disclose limitations. Sponsor aspirations do not imply a completed integration or an award.
+- Agents: `backend/raysto/raysto_server/lib/src/platform/agents.dart` (approval layer), `agent_payments.dart`, `agent_menu.dart`, `voice.dart`, `agent_copilot.dart`, `agent_images.dart`; the judges' café is `judge.dart`.
+- [Architecture and maps](backend-v2/README.md) · [Integration examples](backend-v2/integration.md) · [OpenAPI](backend-v2/openapi.json) · [Permissions and transitions](backend-v2/security-and-states.md) · [PayPal MCP](paypal-mcp.md)
+- [Run it yourself](getting-started.md)

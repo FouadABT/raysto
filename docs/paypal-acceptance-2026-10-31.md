@@ -68,6 +68,25 @@ The console's Agents section loaded on 0.13.0 for the QA owner with no errors an
 - **Sessions past 100 sign-ins (0.13.5).** After 103 scripted sign-ins the QA owner's new sessions were refused as "revoked": the auth library's token listing returns only the first 100. Raysto now looks the current session up by its id.
 - **Assistant time limit (0.13.3).** Run 27 timed out at 30 s while Gemini composed the basket; earlier runs took 14–23 s. Assistant runs now have 45 s; they run in their own worker lane, so no payment job waits on them.
 
+## Session 4 — the judges' path (2 November, backend 0.13.7)
+
+The judges' café ("Atelier Café · Judges", restaurant 5, USD, New York time) was set up by `tool/judge_restaurant.cjs` with three verified accounts: a private owner, a published manager login and a published diner login. The Sandbox merchant now serves restaurants 3 and 5. The run below drove the five **Try Raysto** cards in a real browser (`tool/judge_path_qa.cjs`, kept out of git because it reads the buyer logins), through the console built from this commit and running locally, against the production API. Buyer 1 approved on PayPal's Sandbox page.
+
+| Card | What happened | Time |
+|---|---|---|
+| One click | `?judge=1` signed in as the manager and opened Try Raysto | 5–8 s |
+| 2. Voice | The 7.5 s sample (re-sampled to 8 kHz to fit the console's 128 KB request limit) became: 1× croque monsieur, 1× croque monsieur with fried egg, 1× cappuccino with oat milk, for "Sam"; "lemonade" not on the menu | 4.2 s (2.8 s on the server) |
+| 1. Menu | 14 dishes in 5 sections, 1 price change (cappuccino $3.00 → $3.20), soup held back without a price; approved and published | 25 s, $0.013 |
+| 4. Payment | An espresso order's PayPal checkout was left unpaid; the payments agent read the ledger, read PayPal through MCP (`PAYER_ACTION_REQUIRED`) and proposed the release; approved after the password step-up; checkout released | 22 s, $0.004 |
+| 5. Photo | Gemini (`gemini-3.1-flash-image`) drew the croque monsieur on an empty table; scanned, approved, on the menu | 52 s, $0.040 |
+| 3. Order | "Two vegetarian lunches under $25 for pickup at 12:30, please." → falafel wrap and mushroom risotto, $21.50, 12:30 café time; one tap, buyer 1 approved in PayPal | basket 9.7 s; capture `3PV01986C4166344M`, ticket #3, pickup code issued |
+
+### Fixes found by session 4
+
+- **Menu names (0.13.8).** The agent reads "Falafel wrap (vegan)" as the dish "Falafel wrap" marked vegan. The café's starting menu used the printed names, so approving the read added two duplicates. The starting menu now uses the names the agent reads, with the dietary marks.
+- **Payments agent wording (0.13.8).** Asked by a manager, the agent wrote "PayPal status shows that the diner left"; that was the manager's report, not a PayPal fact. It now says "you reported" for what a manager saw.
+- **Console.** The Agents section did not prefill the judge password at the identity check, so the browser refused the empty field; it now does on the judges' café.
+
 ## Owner console
 
 The console at `https://ops.rays.to/ops` (0.12.0, then 0.12.1) showed the same records to the QA owner:

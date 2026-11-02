@@ -1,6 +1,8 @@
 # Getting started
 
-Start with an offline mobile or web preview to inspect the interface. Connected behavior requires configured services; fictional demo accounts are not cloud credentials.
+**Judging Raysto?** You need nothing from this page: open [rays.to](https://rays.to) and follow the [reviewer guide](reviewer-guide.md). This page is for building Raysto from source and running your own backend, which needs your own Firebase project, PayPal Sandbox app and Gemini key.
+
+Start with the offline design preview to inspect the interface. Connected behavior requires configured services; the preview's fictional accounts are not cloud credentials.
 
 ## Toolchain
 
@@ -9,7 +11,7 @@ Start with an offline mobile or web preview to inspect the interface. Connected 
 | Mobile | Flutter 3.47.8 / Dart 3.13.7, Android SDK/API 36, Java 17 and emulator/device. Run `flutter doctor` to finish local setup. |
 | Backend | Dart 3.13.7; Serverpod 4.0.4 pinned in workspace/tooling manifests. |
 | Database | Dedicated PostgreSQL; Compose pins 18.6. Source retains compatibility with the original deployment's PostgreSQL 16 major version. |
-| Web | Node.js 22 LTS or compatible supported release, npm; exact packages in `web/package-lock.json`. |
+| Web | Node.js 24 (24.12 or later, as `web/package.json` requires), npm; exact packages in `web/package-lock.json`. |
 | Connected local origin | A reverse proxy such as Caddy combines native RPC and REST. |
 
 These versions describe this snapshot. Do not upgrade shared production tooling to match. `.tooling/` is not distributed; use executables on PATH.
@@ -79,10 +81,10 @@ Use a Firebase/Google Cloud project you control. Checked-in mobile configuration
 2. Enable intended Authentication providers. Registered backend access requires verified email. Configure MFA for sensitive operations.
 3. Replace Android `google-services.json`, iOS `GoogleService-Info.plist` and Dart options. The app imports `RaystoFirebaseOptions` from `lib/backend/firebase_options.dart`; preserve that class contract when replacing generated values. Update `.firebaserc`.
 4. Provision Storage/Firestore/Realtime Database as needed; review/deploy the supplied rules/indexes to your project. SQL remains the business authority.
-5. Supply server-only Google credentials through a secret store/ignored path, with the identity lookup/revocation and Storage/FCM/Vertex permissions required. Mobile app configuration is not an Admin credential.
+5. Supply server-only Google credentials through a secret store/ignored path, with the identity lookup/revocation and Storage/FCM permissions required. Mobile app configuration is not an Admin credential.
 6. Set `FIREBASE_PROJECT_ID`, `FIREBASE_PROJECT_NUMBER`, `FIREBASE_ALLOWED_APP_IDS`, `FIREBASE_STORAGE_BUCKET`, `GOOGLE_CLOUD_PROJECT` and `GOOGLE_APPLICATION_CREDENTIALS` in the server process. Use [environment reference](../backend/operations/platform-v2.env.example) and [operations guide](backend-v2/operations.md).
 7. Set `RAYSTO_FIREBASE_ENABLED=true` and `RAYSTO_PLATFORM_V2_ENABLED=true`. Start registered App Check in observation mode; guest creation always requires valid attestation. Register development debug tokens privately; leave guests disabled until configured.
-8. For file/AI jobs, configure ClamAV/current definitions, `pdfinfo`, approved Vertex access, quotas and spending controls, then enable one worker with `RAYSTO_PLATFORM_WORKER_ENABLED=true`. Leave unconfigured email/billing/payment services disabled.
+8. For file/AI jobs, configure ClamAV/current definitions, `pdfinfo`, a Gemini Developer API key in `GEMINI_API_KEY` (the path production uses; Vertex AI is the fallback when no key is set), the AI price and budget settings (`RAYSTO_AI_INPUT_USD_PER_MILLION`, `RAYSTO_AI_OUTPUT_USD_PER_MILLION`, `RAYSTO_AI_BUDGET_STAGE`), and switch on each agent with `RAYSTO_AGENT_<NAME>_ENABLED=true`, then enable one worker with `RAYSTO_PLATFORM_WORKER_ENABLED=true`. Leave unconfigured email/billing/payment services disabled.
 
 Environment examples are documentation: Dart does not load them automatically. Set variables in the launching shell or deployment's environment mechanism. `backend/.env` is only the Compose PostgreSQL configuration.
 

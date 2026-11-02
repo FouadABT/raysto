@@ -1,89 +1,119 @@
-<p align="center"><img src="assets/images/raysto-table-story.png" width="540" alt="Raysto's original forest-green and lime dining illustration"></p>
+<p align="center"><img src="assets/images/raysto-table-story.png" width="480" alt="Raysto's forest-green and lime dining illustration"></p>
 <h1 align="center">Raysto</h1>
-<p align="center"><strong>Good company. Thoughtful ordering. A clearer bill.</strong></p>
-<p align="center">Flutter mobile · Serverpod + PostgreSQL · Firebase · Gemini · PayPal Sandbox</p>
-<p align="center"><a href="docs/reviewer-guide.md">Reviewer guide</a> · <a href="docs/getting-started.md">Run locally</a> · <a href="docs/project-status.md">What works today</a> · <a href="docs/conversation-roadmap.md">What's next</a></p>
+<p align="center"><strong>AI coworkers prepare. You approve. PayPal moves the money.</strong></p>
+<p align="center">The till, kitchen board, ordering app and back office for a small restaurant, built for the <a href="https://paypalaihackathon.devpost.com/">PayPal AI Hackathon</a>.</p>
 
-Raysto brings restaurant discovery, ordering, table service and shared bills into one mobile experience. Diners review their choices; restaurant teams manage the same server-owned orders; AI suggests changes that people approve.
+## Try it in two minutes
 
-Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/). Native mobile and the [restaurant console](https://ops.rays.to/ops) share PostgreSQL records through one backend. Visit conversations connect diners and their assigned waiter. Gemini uses authorized tools to propose an order or a payer's exact share; people approve consequential actions. The offline demo remains explicitly isolated.
+**Open [rays.to](https://rays.to)** and press **Try it now**. You land in the owner console of a demo café, already signed in as its manager, on a page of five live demos. Nothing to install, no form to fill.
 
-## A place at the table
+| Demo | What you see | Time |
+|---|---|---|
+| 1. Read a printed menu | The menu agent reads 14 dishes and prices off a photo, shows what is new and what changed, and waits for your approval | about 20 s |
+| 2. Take an order by voice | A spoken counter order becomes ticket lines from the café's menu; record your own voice if you like | about 5 s |
+| 3. Order lunch in one sentence | Ask Raysto for "two vegetarian lunches under $25"; it proposes a basket, one tap places the order, you approve in PayPal Sandbox, the kitchen gets the ticket | about 20 s, then PayPal |
+| 4. Chase an unfinished payment | A diner walks away from PayPal; the payments agent asks PayPal itself through the PayPal MCP server and drafts the release | about 15 s |
+| 5. Draw a dish for the menu | Gemini draws a photo of a dish; it is scanned, waits for you, and diners see it labelled as an AI image | about 45 s |
 
-<p align="center">
-  <img src="docs/screenshots/story/discover.png" width="225" alt="Raysto mobile discovery screen">
-  <img src="docs/screenshots/story/menu.png" width="225" alt="Raysto mobile menu screen">
-  <img src="docs/screenshots/story/activity.png" width="225" alt="Raysto mobile activity screen">
-</p>
+**Logins** (everything is PayPal Sandbox, so these are public):
 
-Actual Flutter widget renders with illustrative fixtures. Screenshots demonstrate the interface, not a completed payment or live restaurant partnership. [Design and motion](docs/mobile-art-direction.md) · [Asset credits](docs/assets.md)
+| Where | Email | Password |
+|---|---|---|
+| [Owner console](https://ops.rays.to/ops?judge=1), manager of the demo café | `judge@rays.to` | `ginger-cocoa-latte-95` |
+| Android app, a diner | `diner@rays.to` | `vanilla-basil-brioche-18` |
+| PayPal Sandbox buyer (PayPal's own approval page) | in the Devpost testing instructions | |
 
-[Connected manager assistant and AG Studio](docs/screenshots/story/operations-assistant.png) · [Shared order and room](docs/screenshots/story/operations-connected.png). These hosted browser captures show explicitly labelled QA records; the bill is still unpaid.
+The demo café starts fresh every day at 09:00 UTC; its manager cannot rename it, change its team or take it offline. The Android app is on the [releases page](https://github.com/FouadABT/raysto/releases); the console alone is enough to judge Raysto.
 
-## Explore the project
+## What Raysto is
 
-| Experience | Current scope |
-| --- | --- |
-| **Diners** | Discovery, menus, baskets and quotes, dine-in visits, service requests, reservations, pickup/delivery, shared bills and history. |
-| **Restaurant teams** | Restaurant/menu management, tables, kitchen tickets, couriers, invitations, reports and support. Permissions come from PostgreSQL memberships. |
-| **Reviewed AI** | Gemini menu imports and conversation tools, shared preferences, authoritative basket quotes and exact payment proposals. Approval and execution are separate. |
-| **Payments** | Server-side PayPal Sandbox checkout, allocations, reconciliation and refund source. Complete buyer approval/capture/refund acceptance remains a separate gate. |
-| **Connected operations** | Firebase sign-in, table map, AG Grid, AG Studio custom widgets/harness, room history, shared attention filters and saved layouts. `/ops` uses the real backend. |
+A snack bar or small restaurant runs on a till, paper tickets and a card terminal that do not talk to each other. Raysto puts the counter, the kitchen board, pickup and table ordering, split bills and the owner's back office on one backend, takes every payment through PayPal, and adds AI coworkers that do the tedious parts: reading a menu into the system, taking a spoken order, chasing a payment that never finished, drawing dish photos, watching kitchen lateness.
 
-**Status: integration candidate.** Android `0.11.5+2014` is built. Rooms, real Gemini basket/share proposals, Sandbox approval handoffs and real order reads through official PayPal MCP have been observed. Grouped mobile activity, assistant error recovery and console selection recovery are implemented. Google is currently returning capacity errors; complete conversational MCP acceptance, buyer capture/refund, the pilot and physical-device acceptance remain release gates. [October 27 candidate](docs/release-candidate-2026-10-27.md) · [MCP evidence](docs/paypal-mcp.md) · [Evidence and limitations](docs/project-status.md).
+The one rule: **an AI coworker prepares a change with its evidence; a person approves it; only then does it run.** Money changes also need the person to confirm it is really them. The AI never captures, refunds or marks anything paid.
 
-## Run the mobile preview
+## The AI coworkers
 
-Use Flutter **3.47.8** / Dart **3.13.7**, an Android toolchain and an emulator or device. These are the recorded versions for this snapshot; dependency lockfiles are committed.
+| Coworker | What it does | Its tools | What a person approves | Recorded live |
+|---|---|---|---|---|
+| **Menu agent** | Reads photos of a printed menu into dishes, sections, prices and options; never guesses a price | Gemini vision, then an organising call | Publishing the merged menu | 14 of 14 dishes and prices, 18 s, $0.013 |
+| **Counter voice** | Hears a spoken order at the till and fills the ticket with real dishes and options | Gemini audio with the counter menu | The cashier checks the lines and takes payment as usual | 5 of 5 spoken orders in the evaluation |
+| **Takeaway assistant** (Ask Raysto) | Builds a priced pickup basket from one sentence, keeps to a budget and a pickup time | `read_menu`, `quote_basket`, `payment_status` | The basket, then the payment on PayPal's page | Sentence → order 7 → capture `9BY842216S6346205` |
+| **Payments agent** | Investigates stuck or abandoned PayPal checkouts, explains them, prepares the fix | `read_ledger`, `read_paypal` (PayPal MCP) | Releasing or recording a payment, with an identity check | Checkout 10 released after a PayPal MCP read |
+| **Copilot** | Notices a kitchen running late and proposes a longer promised time, then a shorter one when calm | `read_kitchen`, `propose_preparation_time` | The new preparation time | Ran live on 1 November; its first cards were false alarms from a scheduled order, fixed the same night |
+| **Image studio** | Draws a photo of a dish from its own description, with an empty background | Gemini `gemini-3.1-flash-image` (OpenAI `gpt-image-1` when a key is set) | Putting the photo on the menu, labelled as AI | Photo scanned and approved, 44 s, $0.04 |
 
-```sh
-git clone https://github.com/FouadABT/raysto.git
-cd raysto
-flutter pub get
-flutter run
-```
+AI spending has hard caps: a hackathon budget split by feature, and $5 per restaurant per day. Each agent has its own kill switch.
 
-Choose the explicit **offline demo** to explore fictional diners and restaurant roles without a server. Its AI, payments and staff accounts are simulated. Connected mode requires a configured backend, Firebase identity and an explicit API origin. The offline walkthrough is not proof of a PayPal transaction.
+## How PayPal is used
 
-[Complete setup](docs/getting-started.md) covers Android prerequisites, backend/database configuration, Firebase, provider credentials and the web preview. iOS source is included; an iOS build has not been validated. Flutter web is not a target.
+- **Orders v2** for every online payment: create, buyer approval on PayPal's page, then a single server-side capture. A capture lease means nothing is captured twice; the verified webhook, a reconciliation job and the buyer's return all lead to the same settle step.
+- **Verified webhooks** (`CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED`), each processed exactly once.
+- **Counter QR**: the customer pays the counter sale on their own phone; once paid the ticket goes to the kitchen.
+- **Exact split bills**: each diner pays their own share as its own PayPal order, tied to a frozen split plan, to the cent.
+- **Partial refunds** credited to the right order, behind a fresh identity check.
+- **PayPal MCP server** (`@paypal/mcp` over stdio) inside the payments agent and Ask Raysto: the AI reads PayPal's own record of a payment, and its answer names the source.
+- **Sandbox only** for the hackathon, on one Sandbox business account.
+
+## Tools used, and how
+
+| Tool | How Raysto uses it |
+|---|---|
+| PayPal Orders v2 and Webhooks | Checkout, capture, refunds, verified events (Sandbox) |
+| PayPal MCP server `@paypal/mcp` 1.8.1 | Read-only PayPal lookups by the payments agent and Ask Raysto, over stdio |
+| Google Gemini 3.6 Flash (Developer API) | Function calling for the agents and Ask Raysto; vision for menus; audio for counter orders |
+| Gemini `gemini-3.1-flash-image` | Dish photos in the image studio |
+| AG Grid and AG Studio | Owner console grids, and the Floor section's studio with three custom widgets |
+| Firebase Authentication | Google and email sign-in; the backend checks verified email |
+| Serverpod 4, PostgreSQL | Backend, roles, ledger, durable jobs, on AWS at `api.rays.to` |
+| Flutter | Android staff tablet (counter, kitchen, orders, agents) and diner app |
+| Next.js 16, React 19 | Owner console at `ops.rays.to` and this judges' page at `rays.to` |
+| Kokoro TTS, Remotion | Synthetic voices for the voice evaluation, and the demo video |
+
+## Evidence
+
+- **Live PayPal Sandbox runs**, 31 October to 2 November: pickup, counter QR, a two-buyer split bill, a partial refund, the one-sentence order, the payments agent's release. Six captures and a refund, with ids: [paypal-acceptance-2026-10-31.md](docs/paypal-acceptance-2026-10-31.md).
+- **Live AI evaluation, 12 of 12**: 3 menus, 5 spoken orders, 4 takeaway requests against production: [ai-evaluation-results.md](docs/ai-evaluation-results.md). Inputs were rendered images and synthetic voices.
+- **Tests**: backend 85 integration tests on an isolated database and 60 unit tests; console 21 unit tests; app 145 widget tests (3 older offline-demo layout tests fail and are listed in the audit).
+- **Neutral audit** against the judging criteria: [raysto-hackathon-audit-2026-11-02.md](docs/audits/raysto-hackathon-audit-2026-11-02.md).
+
+Not covered: a real restaurant, live (non-Sandbox) PayPal, iOS, and a person speaking at a real counter.
+
+## Built during the hackathon
+
+Raysto was started on 24 October 2026, inside the submission period. The first commit (26 October) holds its first two days of work; every change since is in the history. The PayPal checkout, split bills and refunds came first; the AI coworkers, voice ordering, the one-tap PayPal order, the image studio, the console and tablet redesign and this judges' path were added from 30 October on.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Mobile[Flutter mobile] --> API[Serverpod RPC + REST v2]
-    API --> SQL[(PostgreSQL)]
-    API --> Firebase[Firebase identity + private files]
-    SQL --> Jobs[Durable jobs + reconciliation]
-    Jobs --> PayPal[PayPal Sandbox]
-    Jobs --> AI[Gemini: reviewed proposals]
-    Jobs --> Notices[Inbox + configured notifications]
-    Web[Next.js + AG Grid + AG Studio] --> API
-    AI --> MCP[Official PayPal MCP: read-only stdio]
-    SQL --> Events[Authorized room events]
-    Events --> Mobile
-    Events --> Web
+    App[Flutter app: staff tablet and diner] --> API[Serverpod API]
+    Console[Next.js console + AG Grid / AG Studio] --> API
+    API --> SQL[(PostgreSQL: roles, orders, ledger)]
+    SQL --> Jobs[Durable jobs: core lane + AI lane]
+    Jobs --> PayPal[PayPal Orders v2 + Webhooks, Sandbox]
+    Jobs --> Agents[AI coworkers: Gemini]
+    Agents --> MCP[PayPal MCP server, read-only]
+    Agents --> Inbox[Proposals wait for a person]
+    Inbox --> API
 ```
 
-PostgreSQL owns permissions, prices, orders, occupancy and payment records. Firebase preferences and presence cannot grant business permissions. Provider redirects and chat messages cannot mark bills paid. [API contracts](docs/backend-v2/integration.md) · [OpenAPI](docs/backend-v2/openapi.json) · [Detailed system maps](docs/backend-v2/README.md)
+PostgreSQL owns permissions, prices, orders and payments. Agents act through a service identity that can read and propose, never run a command. [API contracts](docs/backend-v2/integration.md) · [System maps](docs/backend-v2/README.md)
+
+## Run it yourself
+
+The judges' path above needs nothing installed. To build from source (Flutter 3.47.8 / Dart 3.13.7, Node 24), see [getting-started.md](docs/getting-started.md); running your own backend needs your own Firebase project, PayPal Sandbox app and Gemini key.
 
 ## Repository map
 
 | Path | Contents |
-| --- | --- |
-| [`lib/`](lib/) | Native Flutter application, design system, connected client and separate offline demo. |
-| [`backend/raysto/`](backend/raysto/) | Serverpod server, generated Dart client and SQL migrations. |
-| [`backend/operations/`](backend/operations/) | Required SQL supplements and configuration examples. |
-| [`backend/sdk/typescript/`](backend/sdk/typescript/) | Generated contracts for connected web/API consumers. |
-| [`web/`](web/) | Connected operations console and a separate browser-local prototype. |
-| [`docs/`](docs/README.md) | Reviewer guide, setup, status, roadmap, contracts and design provenance. |
-| [`test/`](test/) | Mobile tests; backend and web tests live beside their applications. |
-| [`assets/`](assets/) · [`third_party/`](third_party/) | Artwork, fonts, fixtures and preserved third-party notices. |
+|---|---|
+| [`lib/`](lib/) | Flutter app: staff tablet, diner app, design system, and a separate offline design preview |
+| [`backend/raysto/`](backend/raysto/) | Serverpod server (agents in `lib/src/platform/agent_*.dart`), client and migrations |
+| [`web/`](web/) | Owner console (`/ops`) and judges' page (`/judges`) |
+| [`tool/`](tool/) | Live evaluation (`ai_eval.cjs`), the judges' café setup and review renders |
+| [`docs/`](docs/README.md) | Reviewer guide, Devpost text, evidence, audit, setup and contracts |
+| [`video/`](video/) | The demo video project (Remotion) |
 
-Generated bindings and migrations are checked in. SDK installations, build outputs, private QA records, server keys and host-specific provisioning scripts are excluded.
+## Licence and security
 
-## Contributing and security
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing domain rules or generated models. Report vulnerabilities through [private security reporting](https://github.com/FouadABT/raysto/security/advisories/new), following [SECURITY.md](SECURITY.md).
-
-Original project code is available under the [MIT License](LICENSE). Fonts, stock photographs and dependencies retain their own terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). No affiliation or endorsement by PayPal, Google or AG Grid is implied.
+MIT ([LICENSE](LICENSE)). Fonts, photographs and dependencies keep their own terms ([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). Report vulnerabilities through [private security reporting](https://github.com/FouadABT/raysto/security/advisories/new). No affiliation with or endorsement by PayPal, Google or AG Grid is implied.
