@@ -79,8 +79,10 @@ class ImageAgent {
         'Served as it would be in a small independent restaurant, on a '
         'plate, in a bowl, cup or glass as suits it, on a wooden or stone '
         'table, in soft natural light, seen from a 45-degree angle with a '
-        'shallow depth of field. Only the food and its tableware: no people, '
-        'no hands, no text, no menus, no logos, no watermarks.';
+        'shallow depth of field. The background is a plain, softly blurred '
+        'empty wall or table with nobody in it. Only the food and its '
+        'tableware: no people or diners anywhere in the frame, no hands, no '
+        'text, no menus, no logos, no watermarks.';
   }
 
   static Future<AgentOutcome> run(Session s, AgentTask task) async {
