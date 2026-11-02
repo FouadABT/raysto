@@ -5,6 +5,7 @@ import { themeQuartz, type ColDef } from "ag-grid-community";
 import { ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
 import { stepUp, usesPassword } from "@/lib/connected/step-up";
+import { isJudgeVenue, judge } from "@/lib/connected/judge";
 import { Icon, type IconName } from "./icons";
 import {
   agentCost,
@@ -694,6 +695,7 @@ export function AgentsSection({
           api={api}
           tenant={tenant}
           action={action}
+          knownPassword={isJudgeVenue(tenant) ? judge.password : ""}
           onDone={() => {
             setSelected(undefined);
             reload();
@@ -704,21 +706,27 @@ export function AgentsSection({
   );
 }
 
-function AgentPanel({
+export function AgentPanel({
   api,
   tenant,
   action,
   onDone,
+  inline = false,
+  knownPassword = "",
 }: {
   api: ConnectedApi;
   tenant: number;
   action: AgentActionRow;
-  onDone: () => void;
+  onDone: (state: string) => void;
+  /** Inside a card instead of the side column. */
+  inline?: boolean;
+  /** The published judge password, so the identity check is one tap. */
+  knownPassword?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [needsCheck, setNeedsCheck] = useState(false);
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(knownPassword);
   const [passwordAccount, setPasswordAccount] = useState(true);
   // One request key per decision: retrying after the identity check resumes
   // the same approval instead of starting another.
@@ -753,7 +761,7 @@ function AgentPanel({
                 ? String((result.result as Json | undefined)?.message ?? "It could not be completed.")
                 : words(state),
       );
-      onDone();
+      onDone(state);
     } catch (e) {
       setNote(String(e instanceof Error ? e.message : e));
     } finally {
@@ -765,7 +773,7 @@ function AgentPanel({
     setBusy(true);
     try {
       await stepUp(api, tenant, passwordAccount ? password : undefined);
-      setPassword("");
+      setPassword(knownPassword);
       setNeedsCheck(false);
       await decide("approve");
     } catch (e) {
@@ -774,21 +782,26 @@ function AgentPanel({
     }
   }
 
+  const Shell = inline ? "div" : "aside";
   return (
-    <aside className="ops-side ops-order">
+    <Shell className={inline ? "ops-try-approve" : "ops-side ops-order"}>
       <span className="ops-eyebrow">
         {agentName(action.agent)} · {action.risk === "money" ? "Money" : action.risk === "ops" ? "Service" : "Menu"}
       </span>
-      <h2 style={{ fontSize: 24 }}>{action.title}</h2>
+      <h2 style={{ fontSize: inline ? 19 : 24 }}>{action.title}</h2>
       <p>{action.rationale}</p>
-      <h3>Evidence</h3>
-      <ul className="ops-payments">
-        {chips.map((c) => (
-          <li key={c}>
-            <code>{c}</code>
-          </li>
-        ))}
-      </ul>
+      {chips.length > 0 && (
+        <>
+          <h3>Evidence</h3>
+          <ul className="ops-payments">
+            {chips.map((c) => (
+              <li key={c}>
+                <code>{c}</code>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       {needsCheck ? (
         <form
           onSubmit={(e) => {
@@ -827,6 +840,6 @@ function AgentPanel({
           {note}
         </p>
       )}
-    </aside>
+    </Shell>
   );
 }

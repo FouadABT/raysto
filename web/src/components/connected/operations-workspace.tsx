@@ -47,8 +47,13 @@ import {
   type Section,
   AgentsSection,
 } from "./business-sections";
+import { TrySection } from "./try-section";
+import { isJudgeVenue } from "@/lib/connected/judge";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
+// AG Studio can be switched off at build time (for example if its evaluation
+// licence lapses); the Floor then shows its three tiles as plain cards.
+const studioOn = process.env.NEXT_PUBLIC_RAYSTO_STUDIO !== "off";
 const license = process.env.NEXT_PUBLIC_AG_STUDIO_LICENSE;
 if (license) AgStudioLicenseManager.setLicenseKey(license);
 const gridTheme = themeQuartz.withParams({
@@ -234,7 +239,11 @@ export function OperationsWorkspace({
     [delivery, setDelivery] = useState("Connecting");
   const [tab, setTab] = useState("tables");
   // The whole business first; the table floor is one section among four.
-  const [section, setSection] = useState<Section | "floor">("overview");
+  // The judges' café opens on its five live demos.
+  const judges = isJudgeVenue(tenant);
+  const [section, setSection] = useState<Section | "floor" | "try">(
+    judges ? "try" : "overview",
+  );
   const [focus, setFocus] = useState<string>();
   const [layout, setLayout] = useState<AgReportState<Registry>>();
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -656,6 +665,7 @@ export function OperationsWorkspace({
             <nav className="ops-sections" aria-label="Console sections">
               {(
                 [
+                  ...(judges ? ([["try", "Try Raysto", "play"]] as const) : []),
                   ["overview", "Overview", "overview"],
                   ["orders", "Orders", "orders"],
                   ["payments", "Payments", "payments"],
@@ -680,7 +690,9 @@ export function OperationsWorkspace({
           );
           return navTarget ? createPortal(nav, navTarget) : nav;
         })()}
-        {section !== "floor" ? (
+        {section === "try" ? (
+          <TrySection api={api} tenant={tenant} />
+        ) : section !== "floor" ? (
           section === "overview" ? (
             <BusinessOverview
               api={api}
@@ -737,6 +749,7 @@ export function OperationsWorkspace({
           )}
           <small>Updated {new Date(snapshot.asOf).toLocaleTimeString()}</small>
         </div>
+        {studioOn ? (
         <div className="ops-studio">
           <AgStudio<Registry>
             modules={[AgStudioAiModule]}
@@ -775,6 +788,13 @@ export function OperationsWorkspace({
             style={{ height: "100%", width: "100%" }}
           />
         </div>
+        ) : (
+          <div className="ops-studio-off">
+            {(["raystoBalance", "raystoService", "raystoExceptions"] as const).map((id) => (
+              <AttentionTile key={id} widgetType={id} />
+            ))}
+          </div>
+        )}
         <div className="ops-floor-heading">
           <h2>Meet the room.</h2>
           <p>Select a table to join its service conversation.</p>

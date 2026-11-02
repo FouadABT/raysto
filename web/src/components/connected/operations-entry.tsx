@@ -12,6 +12,7 @@ import {
 import { connectedAuth } from "@/lib/connected/firebase";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Membership } from "@/lib/connected/contracts";
+import { judge, judgeLogin } from "@/lib/connected/judge";
 import { Icon } from "./icons";
 
 const Workspace = dynamic(
@@ -49,6 +50,10 @@ export function OperationsEntry() {
       .then((a) => {
         if (!active) return;
         setAuth(a);
+        // A link from the judges' page signs straight into the demo café.
+        let judgeLink =
+          judgeLogin() &&
+          new URLSearchParams(window.location.search).get("judge") === "1";
         unsubscribe = onAuthStateChanged(a, (user) => {
           current?.close();
           current = undefined;
@@ -56,6 +61,18 @@ export function OperationsEntry() {
           setMemberships([]);
           setSelected(undefined);
           setSignedIn(!!user);
+          if (!user && judgeLink) {
+            judgeLink = false;
+            void signInWithEmailAndPassword(a, judge.email, judge.password).catch(
+              (e) => {
+                if (active) {
+                  setError(String(e));
+                  setBusy(false);
+                }
+              },
+            );
+            return;
+          }
           if (!user) {
             setBusy(false);
             return;
@@ -95,12 +112,14 @@ export function OperationsEntry() {
       current?.close();
     };
   }, []);
-  async function login(google: boolean) {
+  async function login(google: boolean, asJudge = false) {
     if (!auth) return;
     setBusy(true);
     setError("");
     try {
       if (google) await signInWithPopup(auth, new GoogleAuthProvider());
+      else if (asJudge)
+        await signInWithEmailAndPassword(auth, judge.email, judge.password);
       else await signInWithEmailAndPassword(auth, email, password);
       setPassword("");
     } catch (e) {
@@ -242,6 +261,23 @@ export function OperationsEntry() {
               void login(false);
             }}
           >
+            {judgeLogin() && (
+              <div className="ops-judge-entry">
+                <span className="ops-eyebrow">HACKATHON JUDGES</span>
+                <p>
+                  One click into the demo café: five live demos, PayPal
+                  Sandbox only.
+                </p>
+                <button
+                  type="button"
+                  className="ops-primary"
+                  onClick={() => void login(false, true)}
+                >
+                  <Icon name="play" size={18} />
+                  Try Raysto as a judge
+                </button>
+              </div>
+            )}
             <h2>Welcome back.</h2>
             <p>Use your invited restaurant account.</p>
             <button

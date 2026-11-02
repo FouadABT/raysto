@@ -112,6 +112,55 @@ export class ConnectedApi {
       }),
     });
   }
+  /** Ordering and payment commands take their fields at the top level. */
+  typed<T>(name: string, restaurantId: number, data: Json, key?: string) {
+    return this.request<T>(`commands/${encodeURIComponent(name)}`, {
+      method: "POST",
+      body: JSON.stringify({
+        requestKey: key ?? crypto.randomUUID(),
+        restaurantId,
+        ...data,
+      }),
+    });
+  }
+  /** A spoken counter order: the recording is the request body. */
+  async listen<T>(restaurantId: number, audio: Blob): Promise<T> {
+    const headers = await this.credentials();
+    headers.set("Content-Type", audio.type || "audio/wav");
+    const response = await fetch(
+      `/api/raysto/voice/counter?restaurantId=${restaurantId}`,
+      {
+        method: "POST",
+        headers,
+        body: audio,
+        cache: "no-store",
+        signal: AbortSignal.timeout(60000),
+      },
+    );
+    this.current();
+    if (response.status === 413)
+      throw new ApiFailure("payload_too_large", "Keep the recording short.");
+    const payload = await response.json();
+    if (!response.ok)
+      throw new ApiFailure(
+        payload.error?.code ?? "request_failed",
+        payload.error?.message ?? "The order could not be heard.",
+      );
+    return payload.data as T;
+  }
+  /** A private file the signed-in manager may see, such as a proposed photo. */
+  async file(id: number): Promise<Blob> {
+    const headers = await this.credentials();
+    const response = await fetch(`/api/raysto/media/${id}`, {
+      headers,
+      cache: "no-store",
+      signal: AbortSignal.timeout(45000),
+    });
+    this.current();
+    if (!response.ok)
+      throw new ApiFailure("not_found", "The picture could not be loaded.");
+    return response.blob();
+  }
   async stream(
     path: string,
     signal: AbortSignal,

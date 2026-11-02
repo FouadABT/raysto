@@ -19,6 +19,11 @@ const paths = {
   bell: <><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" /><path d="M10 20.5h4" /></>,
   receipt: <><path d="M6 3.5h12v17l-3-2-3 2-3-2-3 2z" /><path d="M9 9h6M9 13h6" /></>,
   paypal: <><path d="M8 20.5 10.5 4H16a4 4 0 0 1 0 8h-3.5l-1.2 8.5z" /><path d="M6 17.5h3" /></>,
+  play: <><circle cx="12" cy="12" r="8.5" /><path d="M10.25 8.75v6.5L15.5 12z" /></>,
+  mic: <><rect x="9" y="3.5" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5" /></>,
+  image: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><circle cx="9" cy="9.5" r="1.75" /><path d="m20.5 16-4.5-4.5L7 20" /></>,
+  chat: <><path d="M4.5 5.5h15v10h-8l-4.5 3.5v-3.5H4.5z" /><path d="M8.5 9.5h7M8.5 12.5h4" /></>,
+  menu: <><path d="M6 3.5h12v17H6z" /><path d="M9 8h6M9 11.5h6M9 15h4" /></>,
 } as const;
 
 export type IconName = keyof typeof paths;

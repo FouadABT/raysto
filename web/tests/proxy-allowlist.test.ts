@@ -18,7 +18,7 @@ const names = (source: string, pattern: RegExp) =>
 
 test("every allowlisted command exists in the backend", () => {
   const commands = new Set([
-    ...names(read("platform/platform.dart"), /^\s+'([A-Za-z.]+)': \w+Module\./gm),
+    ...names(read("platform/platform.dart"), /^\s+'([A-Za-z.]+)': [A-Z]\w+\.\w+,/gm),
     ...names(read("web/platform_routes.dart"), /^\s+case '([A-Za-z.]+)':/gm),
   ]);
   for (const name of consoleCommands)
@@ -41,9 +41,17 @@ test("camel-case console commands pass and unlisted names do not", () => {
   assert.ok(allowedPath("queries/orders"));
   assert.ok(allowedPath("rooms/12/events"));
   assert.ok(allowedPath("events"));
+  assert.ok(allowedPath("voice/counter"));
+  assert.ok(allowedPath("media/13"));
+  assert.ok(allowedPath("commands/menu.snap"));
+  assert.ok(allowedPath("commands/payment.check"));
   assert.ok(!allowedPath("commands/admin.plan"));
   assert.ok(!allowedPath("commands/payment.refund/extra"));
   assert.ok(!allowedPath("queries/"));
   assert.ok(!allowedPath("rooms/0/events"));
   assert.ok(!allowedPath("webhooks/paypal-platform"));
+  assert.ok(!allowedPath("media/13/content"));
+  assert.ok(!allowedPath("media/0"));
+  assert.ok(!allowedPath("commands/media.upload"));
+  assert.ok(!allowedPath("voice/counter/extra"));
 });
