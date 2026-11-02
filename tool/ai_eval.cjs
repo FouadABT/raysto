@@ -108,12 +108,20 @@ const carts = [
   { id: 'cart-1', text: 'Something vegetarian for one under $10, as soon as possible.', check: (q, v) => q && q.totalMinor <= 1000 && q.lines.every((l) => v(l.name)) },
   { id: 'cart-2', text: 'Lunch for two under $30: one with chicken, one vegetarian.', check: (q, v) => q && q.totalMinor <= 3000 && q.lines.some((l) => /chicken/i.test(l.name)) && q.lines.some((l) => v(l.name)) },
   { id: 'cart-3', text: 'I have a severe nut allergy. What can I order safely?', check: (q, v, a) => !q && /allerg|staff|confirm|ask/i.test(a) },
-  { id: 'cart-4', text: 'One garden pasta for pickup at 13:15, please.', check: (q, v, a, local) => q && q.lines.some((l) => /garden pasta/i.test(l.name)) && local === '13:15' },
+  { id: 'cart-4', text: () => `One garden pasta for pickup at ${later}, please.`, check: (q, v, a, local) => q && q.lines.some((l) => /garden pasta/i.test(l.name)) && local === later },
 ];
+// Two hours from now on a quarter hour, in the Sandbox restaurant's zone, so
+// the requested time is always still open today.
+const later = (() => {
+  const d = new Date(Date.now() + 2 * 3600e3);
+  d.setUTCMinutes(Math.ceil(d.getUTCMinutes() / 15) * 15, 0, 0);
+  return d.toLocaleTimeString('en-GB', { timeZone: 'Africa/Casablanca', hour: '2-digit', minute: '2-digit' });
+})();
 async function cartCase(diner, store, c) {
   const vegetarian = new Set(store.menu.filter((m) => (m.dietary ?? []).includes('vegetarian')).map((m) => m.name));
   const started = Date.now();
-  const run0 = await diner.command('assistant.start', { text: c.text, locale: 'en', context: 'cart' });
+  const text = typeof c.text === 'function' ? c.text() : c.text;
+  const run0 = await diner.command('assistant.start', { text, locale: 'en', context: 'cart' });
   let run;
   for (let i = 0; i < 40; i++) {
     run = await diner.query('assistant.run', { id: run0.runId });
@@ -146,7 +154,7 @@ const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.lengt
   if (mode === 'cart' || mode === 'all') {
     const diner = await signIn('diner1', qa.rid);
     const store = await diner.query('storefront');
-    for (const c of carts) { results.push({ agent: 'Takeaway assistant', ...c, what: `"${c.text}"`, ...(await cartCase(diner, store, c).catch((e) => ({ pass: false, detail: e.message }))) }); await wait(pause); }
+    for (const c of carts) { results.push({ agent: 'Takeaway assistant', ...c, what: `"${typeof c.text === 'function' ? c.text() : c.text}"`, ...(await cartCase(diner, store, c).catch((e) => ({ pass: false, detail: e.message }))) }); await wait(pause); }
   }
   for (const r of results) console.log(JSON.stringify({ id: r.id, pass: r.pass, seconds: r.seconds, detail: r.detail }));
   const agents = [...new Set(results.map((r) => r.agent))];
