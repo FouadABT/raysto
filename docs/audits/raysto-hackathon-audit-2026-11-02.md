@@ -138,3 +138,19 @@ A second reviewer who had not seen sections 5–8 judged Raysto the way a Devpos
 | Presentation | 7.5 written / about 5 with the current video | The text is clear, honest and evidenced, but long, and has the claim and link problems above. No demo video exists. |
 
 **Average: 7.3 on the written submission; about 6.8 if the 60-second promo were submitted as the video.** Above 8 needs a strong demo video, the judge-path fixes above and one real-world proof point (a real venue's menu and voice).
+
+## 10. After the fixes, 2 November night
+
+Everything section 9 found on the judge's path was fixed and checked on production: backend 0.13.9, console 0.15.2, the Android build 0.14.1 served at `rays.to/raysto.apk`, and a 2 min 25 s film at `rays.to/demo.mp4`, cut from a recorded run of all five demos (capture `8DJ62510842222013`). The diner screens were restyled, the three old app test failures were fixed (154 pass), an hourly tidy keeps the judges' café clean (checked: stale demo orders closed), and a Raysto-only watch restarts the backend or console if either stops answering.
+
+This is the same reviewer's method applied by the author, so treat it as an estimate. A fresh cold read is the honest check.
+
+| Criterion | Section 9 | Now | Why |
+|---|---|---|---|
+| Technological implementation | 8.0 | 8.5 | All five demos ran end to end on production; slow photos are retried; 326 automated tests pass. Still one Sandbox merchant and synthetic inputs. |
+| Design | 7.5 | 8.0 | The Floor, grid labels and diner screens are fixed; one coherent look from rays.to to the tablet. No physical-device run yet. |
+| Potential impact | 6.5 | 6.5 | Unchanged: no real venue, Sandbox only. The path to each café connecting its own PayPal is now stated, but it needs PayPal's partner approval. |
+| Innovation | 7.0 | 7.0 | Unchanged. |
+| Presentation | ~5 with no film | 8.0 | A film of the real product with captions, under three minutes; screenshots and consistent numbers in the text. The voice is synthetic. |
+
+**Average: about 7.6.** What still separates it from 8+: one real venue (a phone photo of its menu, the owner's voice, a quote), a human voice on the film, and possibly an agentic-commerce piece where any AI assistant can order from the café and pay with PayPal.
