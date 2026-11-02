@@ -81,6 +81,8 @@ The judges' café ("Atelier Café · Judges", restaurant 5, USD, New York time) 
 | 5. Photo | Gemini (`gemini-3.1-flash-image`) drew the croque monsieur on an empty table; scanned, approved, on the menu | 52 s, $0.040 |
 | 3. Order | "Two vegetarian lunches under $25 for pickup at 12:30, please." → falafel wrap and mushroom risotto, $21.50, 12:30 café time; one tap, buyer 1 approved in PayPal | basket 9.7 s; capture `3PV01986C4166344M`, ticket #3, pickup code issued |
 
+**Hosted rerun** (console 0.15.0 at `ops.rays.to`, backend 0.13.8, same script): one click 5.9 s; voice 5.5 s; menu 18.9 s and published; the payments agent now wrote "You reported that the diner left…", read PayPal through MCP and released checkout 16 after the step-up (21.8 s); photo 51.9 s and approved; the one-sentence basket (falafel wrap and mushroom risotto, $21.50) in 9.6 s, paid by buyer 1 in PayPal Sandbox, capture `1FC985713C934991E`, ticket #6. No browser errors. The menu card counted 1 new dish instead of 3 because an interrupted earlier run had already merged the full menu; "Start the café fresh" restores the 11-dish starting menu (checked right after).
+
 ### Fixes found by session 4
 
 - **Menu names (0.13.8).** The agent reads "Falafel wrap (vegan)" as the dish "Falafel wrap" marked vegan. The café's starting menu used the printed names, so approving the read added two duplicates. The starting menu now uses the names the agent reads, with the dietary marks.

@@ -84,3 +84,16 @@ Replace placeholders in `config/production.yaml` through environment overrides. 
 - Keep Firebase storage private until explicit image publication/access policy is wired. Configure the real web origin and secure cookie/session strategy when the separate Node.js dashboard is implemented.
 
 These container/network notes are for a future ECS/RDS move. The current single-host deployment, domain certificates, database roles and initial migration are complete as described above; no autoscaling or RDS migration was performed.
+
+## The judges' path (2 November)
+
+- **rays.to** serves the console's `/judges` page. The Raysto-only `rays.to` site passes `/`, `/_next/`, `/judges/`, `/fonts/` and `/icon.svg` to the console process on `127.0.0.1:13100` and returns every other path to `rays.to/`, so rays.to is never a second console address. Changed by `nginx-landing-0150.py` (backup, `nginx -t`, graceful reload, Awhar check). `www.rays.to` still redirects to `rays.to`.
+- **Judges' café**: restaurant 5. Runtime settings `RAYSTO_JUDGE_RESTAURANT_ID=5` and `RAYSTO_SANDBOX_RESTAURANT_ID=3,5` (the Sandbox merchant serves both), changed with `settings-update.py`. The backend resets the café every day at 09:00 UTC; a manager can also start it fresh from the console.
+- **Console build settings** (in the git-ignored `web/.env.local`, written by `node tool/judge_restaurant.cjs console`): `NEXT_PUBLIC_RAYSTO_JUDGE_EMAIL`, `_PASSWORD`, `_RESTAURANT_ID`, `_DINER_EMAIL`, `_DINER_PASSWORD`. These logins are public by design; the owner login and the Sandbox buyer logins are never built in.
+- **AG Studio switch**: building the console with `NEXT_PUBLIC_RAYSTO_STUDIO=off` replaces the Floor section's AG Studio block with its three tiles as plain cards. Use it if the evaluation licence lapses before judging ends (15 December).
+
+### AG Studio licence: request to AG Grid (draft for Fouad)
+
+> Subject: AG Studio evaluation key for a PayPal AI Hackathon entry
+>
+> Hello, I built Raysto (https://github.com/FouadABT/raysto) for the PayPal AI Hackathon on Devpost, entered for the AG Grid prize. Its owner console uses AG Studio with three custom widgets and an AI harness, on an evaluation key that expires on 10 December. Judging runs from 1 to 15 December. Could you extend the key to 20 December so judges see the console without the trial watermark? The console is at https://ops.rays.to/ops (judges sign in from https://rays.to). Thank you, Fouad

@@ -21,4 +21,4 @@ The quickest way to judge Raysto needs no install: open **https://rays.to** and 
 
 The offline design preview (fictional data, simulated payment) sits behind **Design preview** on the first screen and is not part of the judged product.
 
-SHA-256: `<fill in from dist/ after the build>`
+SHA-256: `305b3168be60e0e189cbfa2408b541d1d6707b2feeb72178ed4a4ff4d0f916f8`

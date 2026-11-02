@@ -176,6 +176,7 @@ async function check() {
     voice: menu.voice,
     currency: menu.currency,
     menuPhoto: media.rows.find((m) => m.purpose === 'menuSource' && m.status === 'approved')?.id ?? null,
+    menu: menu.menu.map((d) => `${d.name} ${d.priceMinor}`),
   });
 }
 
@@ -200,6 +201,11 @@ const modes = {
   console: consoleEnv,
   check,
   repair,
+  orders: async () => {
+    const manager = await signIn('manager');
+    const page = await manager.query('orders', { limit: 20 });
+    for (const o of page.rows ?? []) report('Order', { id: o.id, status: o.status, payment: o.paymentStatus, total: o.totalMinor, created: o.createdAt });
+  },
   inbox: async () => {
     const manager = await signIn('manager');
     const activity = await manager.query('agent.activity', { limit: 8 });

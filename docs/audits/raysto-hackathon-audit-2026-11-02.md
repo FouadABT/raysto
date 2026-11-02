@@ -84,3 +84,25 @@ Caveats judges would notice: inputs are rendered images and synthetic voices, no
 3. Resolve AG Studio licensing before 10 December. (Compliance, AG Grid prize.)
 4. Run the app on a physical phone and tablet; add real photos and a real voice to the evaluation. (Implementation, Design.)
 5. Clean the demo restaurant (close test order 7, clear stale agent cards) and remove or clearly fence the simulated payment screen. (Design, Impact.)
+
+## 8. Update, 2 November evening: the judge path
+
+Same method, same neutrality. What changed since the morning, all checked live:
+
+| Item from section 7 | Status |
+|---|---|
+| 1. Write-up matches the product | Done. README leads with a two-minute path, lists every tool and how it is used, and states limits; Devpost text and reviewer guide rewritten; `tool/check_docs.cjs` refuses retired claims and broken links. |
+| 2. Judge path | Mostly done. [rays.to](https://rays.to) is a guided page; one click signs into the console as the manager of a dedicated Sandbox café (restaurant 5) and opens five live demos. All five ran end to end on the hosted console against production (session 4 in the acceptance notes, captures `3PV01986C4166344M` and `1FC985713C934991E`). Logins are public; the café's identity, team and opening stay with a private owner, and it resets daily. **Open:** the APK is built (0.14.0+2018, judge sign-in buttons, offline demo behind "Design preview"; 145 widget tests pass, the same 3 older offline-demo tests fail) but not yet uploaded as a GitHub release. |
+| 3. AG Studio licence | Fallback ready (`NEXT_PUBLIC_RAYSTO_STUDIO=off`); the extension request is still Fouad's. |
+| 4. Physical device, real photo and voice | Not done. Judges can now record their own voice in the console, but no human run is recorded yet. |
+| 5. Demo restaurant and simulated payment | Judges no longer touch restaurant 3. The simulated payment screen is behind "Design preview" in the judge build. |
+
+| Criterion | Morning | Now | Why |
+|---|---|---|---|
+| Technological implementation | 8.0 | 8.5 | Judges can run every AI coworker and the PayPal flows themselves, against production, in two minutes; four more defects found and fixed by the run. Still no device run and a small, synthetic evaluation. |
+| Design | 7.0 | 7.5 | One guided, coherent path from rays.to to a result on screen; the simulated payment is out of the judge's way. Customer screens in the app are still plain forms and the device run is missing. |
+| Potential impact | 7.0 | 7.5 | A judge experiences the problem being solved (menu entry, voice till, unfinished payment) rather than reading about it. Still Sandbox and no real venue. |
+| Innovation / idea | 8.0 | 8.0 | Unchanged. |
+| Presentation (written part) | ~4.5 | 8.0 | The text now describes the product that exists, with evidence and limits. The video is not assessed. |
+
+**Average of the five (video excluded): 7.9. As a judge would see it: about 7.9**, since the gap between the substance and what a judge can reach is closed. Reaching above 8 needs the remaining items: the APK release, a physical-device run, a real menu photo and a human voice in the evaluation, and a polish pass on the customer screens.
