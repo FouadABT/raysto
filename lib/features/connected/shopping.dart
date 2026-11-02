@@ -348,7 +348,9 @@ class _StorefrontPageState extends State<StorefrontPage> {
           subtitle: 'Suggestions you approve, then pay with PayPal.',
         ),
         if (records(d['reviews']).isNotEmpty)
+          // Its own storage key, apart from the list's saved scroll offset.
           ExpansionTile(
+            key: const PageStorageKey('customer-reviews'),
             title: const Text('Customer reviews'),
             children: [
               for (final review in records(d['reviews']))
@@ -498,12 +500,40 @@ class BasketPage extends StatelessWidget {
   final LiveContext live;
   final Json storefront;
   final int? visitId;
+
+  /// The menu item a basket line points at, if it is still on the menu.
+  Json? item(Json line) =>
+      records(storefront['menu'])
+          .where((i) => i['productId'] == line['productId'])
+          .firstOrNull;
+
+  /// The chosen options of a line, by the names on the menu.
+  List<Json> chosen(Json line) {
+    final picked = List<String>.from(line['options'] as List? ?? const []);
+    return [
+      for (final g in records(item(line)?['modifiers']))
+        for (final o in records(g['options']))
+          if (picked.contains('${g['id']}:${o['id']}')) o,
+    ];
+  }
+
+  /// The menu price of a line. The final price is the server's quote.
+  int? estimate(Json line) {
+    final it = item(line);
+    if (it == null) return null;
+    final unit = chosen(line).fold<num>(
+      it['priceMinor'] as num? ?? 0,
+      (n, o) => n + (o['priceMinor'] as num? ?? 0),
+    );
+    return (unit * (line['quantity'] as num? ?? 1)).toInt();
+  }
+
   @override
   Widget build(BuildContext context) => DataPage(
     title: 'Your basket',
     load: () => live.api.query('cart', live.params()),
     content: (c, d, refresh) => [
-      if (records(d['lines']).isNotEmpty)
+      if (records(d['lines']).isNotEmpty) ...[
         const RaystoStoryHeader(
           eyebrow: 'Made for your moment',
           title: 'A good choice.',
@@ -511,29 +541,54 @@ class BasketPage extends StatelessWidget {
           scene: RaystoScene.bag,
           compact: true,
         ),
-      for (final line in records(d['lines']))
-        ListTile(
-          title: Text(
-            '${records(storefront['menu']).where((i) => i['productId'] == line['productId']).firstOrNull?['name'] ?? 'Item'} × ${line['quantity']}',
-          ),
-          subtitle: Text('${line['note'] ?? ''}'),
-          trailing: IconButton(
-            tooltip: 'Remove item',
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () async {
-              final lines = records(d['lines']);
-              lines.removeWhere((l) => jsonEncode(l) == jsonEncode(line));
-              await live.action(
-                c,
-                'Remove item',
-                'cart.save',
-                version: d['version'],
-                fixed: {'lines': lines},
-              );
-              await refresh();
-            },
-          ),
+        AppSectionTitle(
+          title:
+              '${c.tr('Items')} · ${records(d['lines']).fold<num>(0, (n, l) => n + (l['quantity'] as num? ?? 0))}',
         ),
+        CustomerOrderCard(
+          lines: [
+            for (final line in records(d['lines']))
+              OrderLine(
+                quantity: line['quantity'],
+                name: '${item(line)?['name'] ?? 'Item'}',
+                details: [
+                  chosen(line).map((o) => '${o['name']}').join(', '),
+                  '${line['note'] ?? ''}',
+                ],
+                price: estimate(line) == null
+                    ? null
+                    : money(estimate(line), '${storefront['currency'] ?? ''}'),
+                trailing: IconButton(
+                  tooltip: 'Remove item',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () async {
+                    final lines = records(d['lines']);
+                    lines.removeWhere((l) => jsonEncode(l) == jsonEncode(line));
+                    await live.action(
+                      c,
+                      'Remove item',
+                      'cart.save',
+                      version: d['version'],
+                      fixed: {'lines': lines},
+                    );
+                    await refresh();
+                  },
+                ),
+              ),
+          ],
+          money: [
+            if (records(d['lines']).every((l) => estimate(l) != null))
+              MoneyRow(
+                c.tr('Subtotal'),
+                money(
+                  records(d['lines']).fold<int>(0, (n, l) => n + estimate(l)!),
+                  '${storefront['currency'] ?? ''}',
+                ),
+                total: true,
+              ),
+          ],
+        ),
+      ],
       if (records(d['lines']).isEmpty)
         const RaystoEmptyState(
           title: 'Your basket is empty',
@@ -614,31 +669,8 @@ class QuotePage extends StatelessWidget {
     title: 'Review your order',
     load: () async => quote,
     content: (c, d, refresh) => [
-      for (final line in records(d['lines']))
-        ListTile(
-          title: Text('${line['name']} × ${line['quantity']}'),
-          trailing: Text(
-            money(
-              (line['unitPriceMinor'] as num) * (line['quantity'] as num),
-              '${d['currency']}',
-            ),
-          ),
-        ),
-      RecordSummary({
-        for (final key in [
-          'fulfillment',
-          'subtotalMinor',
-          'discountMinor',
-          'taxMinor',
-          'deliveryFeeMinor',
-          'tipMinor',
-          'totalMinor',
-          'currency',
-          'paymentTiming',
-          'expiresAt',
-        ])
-          key: d[key],
-      }),
+      AppSectionTitle(title: c.tr('Your order')),
+      quoteCard(c, d),
       AppButton(
         label: 'Place order',
         onPressed: () => perform(c, () async {

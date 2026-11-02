@@ -75,43 +75,81 @@ class _OrdersBoardState extends State<OrdersBoard> {
             },
           ),
           // Three independent filters, each in its own tray.
-          Wrap(
-            spacing: 12,
-            runSpacing: 10,
-            children: [
-              for (final chips in [
-                staffChips(c, const [
-                  'Active',
-                  'New',
-                  'Preparing',
-                  'Ready',
-                  'Done',
-                  'All',
-                ], status, (v) => setState(() => status = v)),
-                staffChips(c, const [
-                  'All',
-                  'Counter',
-                  'Pickup',
-                  'Dine-in',
-                  'Delivery',
-                ], channel, (v) => setState(() => channel = v)),
-                staffChips(c, const [
-                  'All',
-                  'Unpaid',
-                  'Paid',
-                ], payment, (v) => setState(() => payment = v)),
-              ])
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Theme.of(c).colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(AppRadius.button + 4),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: chips,
-                  ),
+          LayoutBuilder(
+            builder: (c, box) {
+              final groups = [
+                (
+                  const ['Active', 'New', 'Preparing', 'Ready', 'Done', 'All'],
+                  status,
+                  (String v) => setState(() => status = v),
                 ),
-            ],
+                (
+                  const ['All', 'Counter', 'Pickup', 'Dine-in', 'Delivery'],
+                  channel,
+                  (String v) => setState(() => channel = v),
+                ),
+                (
+                  const ['All', 'Unpaid', 'Paid'],
+                  payment,
+                  (String v) => setState(() => payment = v),
+                ),
+              ];
+              final radius = BorderRadius.circular(AppRadius.button + 4);
+              final tray = BoxDecoration(
+                color: Theme.of(c).colorScheme.surfaceContainer,
+                borderRadius: radius,
+              );
+              if (box.maxWidth >= 600) {
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 10,
+                  children: [
+                    for (final (values, selected, onSelect) in groups)
+                      DecoratedBox(
+                        decoration: tray,
+                        child: Padding(
+                          padding: const EdgeInsets.all(5),
+                          child: staffChips(c, values, selected, onSelect),
+                        ),
+                      ),
+                  ],
+                );
+              }
+              // A phone keeps each filter on one line that scrolls sideways,
+              // instead of a stack of wrapped chips pushing the orders down.
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (i, (values, selected, onSelect))
+                      in groups.indexed)
+                    Padding(
+                      padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+                      child: DecoratedBox(
+                        decoration: tray,
+                        child: ClipRRect(
+                          borderRadius: radius,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.all(5),
+                            child: Row(
+                              children: [
+                                for (final (j, v) in values.indexed) ...[
+                                  if (j > 0) const SizedBox(width: 8),
+                                  AppChip(
+                                    label: c.tr(v),
+                                    selected: v == selected,
+                                    onSelected: () => onSelect(v),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
           if (orders.isEmpty)
             RaystoEmptyState(
@@ -308,12 +346,16 @@ class OrderCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 34,
-                        child: Text(
-                          '${line['quantity']}×',
-                          style: theme.textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.w700,
+                      // Grows with large text instead of breaking "2×".
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 34),
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 6),
+                          child: Text(
+                            '${line['quantity']}×',
+                            style: theme.textTheme.bodyLarge!.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),

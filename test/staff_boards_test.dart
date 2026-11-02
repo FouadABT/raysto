@@ -491,6 +491,59 @@ void main() {
     expect(ageLabel(c, 7682), '5 d');
   });
 
+  testWidgets('a phone keeps each order filter on one sideways line', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final live = LiveContext(Runtime(BoardApi()), restaurantId: 1, role: 'owner');
+    await tester.pumpWidget(host(OrdersBoard(live: live)));
+    await tester.pumpAndSettle();
+    double top(String label) =>
+        tester.getTopLeft(find.widgetWithText(AppChip, label).first).dy;
+    // Every status chip shares one line, even the ones scrolled out of view.
+    for (final label in ['New', 'Preparing', 'Ready', 'Done']) {
+      expect(top(label), top('Active'), reason: label);
+    }
+    expect(top('Delivery'), top('Counter'));
+    expect(top('Paid'), top('Unpaid'));
+    expect(top('Active'), lessThan(top('Counter')));
+    expect(top('Counter'), lessThan(top('Unpaid')));
+    final rows = find.byWidgetPredicate(
+      (w) => w is SingleChildScrollView && w.scrollDirection == Axis.horizontal,
+    );
+    expect(rows, findsNWidgets(3));
+    final chips = find.byType(AppChip);
+    for (var i = 0; i < chips.evaluate().length; i++) {
+      expect(tester.getSize(chips.at(i)).height, greaterThanOrEqualTo(48));
+    }
+    // A chip past the edge scrolls into view and still filters.
+    final delivery = find.widgetWithText(AppChip, 'Delivery');
+    await tester.ensureVisible(delivery);
+    await tester.pumpAndSettle();
+    await tester.tap(delivery);
+    await tester.pumpAndSettle();
+    expect(find.text('No matching orders'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a tablet keeps the order filters side by side', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final live = LiveContext(Runtime(BoardApi()), restaurantId: 1, role: 'owner');
+    await tester.pumpWidget(host(OrdersBoard(live: live), scale: 1));
+    await tester.pumpAndSettle();
+    // The trays still wrap side by side; nothing scrolls sideways.
+    expect(find.byType(AppChip), findsNWidgets(14));
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is SingleChildScrollView && w.scrollDirection == Axis.horizontal,
+      ),
+      findsNothing,
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('orders board filters by channel in Arabic at 2x', (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));

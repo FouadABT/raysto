@@ -28,6 +28,7 @@ import 'schemas.dart';
 import 'security.dart';
 import 'assistant_message_body.dart';
 part 'shopping.dart';
+part 'order_cards.dart';
 part 'operations.dart';
 part 'activity.dart';
 part 'administration.dart';

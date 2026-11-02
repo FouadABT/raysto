@@ -175,8 +175,7 @@ class ReviewApi extends PlatformApi {
           'agent': 'payments',
           'command': 'payment.release',
           'title': 'Release abandoned checkout 10',
-          'rationale':
-              'The customer opened PayPal 31 minutes ago and never approved the €12.00 pickup order. Releasing it frees the order for another payment.',
+          'rationale': 'The customer opened PayPal 31 minutes ago and never approved the €12.00 pickup order. Releasing it frees the order for another payment.',
           'risk': 'money',
           'status': 'pending',
           'version': 1,
@@ -193,9 +192,9 @@ class ReviewApi extends PlatformApi {
           'id': 3,
           'agent': 'copilot',
           'command': 'settings.patch',
-          'title': 'Promise 35 minutes instead of 20 while the kitchen catches up',
-          'rationale':
-              'Seven orders are open and the oldest is 14 minutes past its promise. 35 minutes is a time the kitchen can keep.',
+          'title':
+              'Promise 35 minutes instead of 20 while the kitchen catches up',
+          'rationale': 'Seven orders are open and the oldest is 14 minutes past its promise. 35 minutes is a time the kitchen can keep.',
           'risk': 'ops',
           'status': 'pending',
           'version': 1,
@@ -212,8 +211,7 @@ class ReviewApi extends PlatformApi {
           'id': 7,
           'agent': 'menu',
           'title': 'Read a menu photo',
-          'summary':
-              'Read your photo: 14 dishes in 5 sections. 1 price to check before they go on sale.',
+          'summary': 'Read your photo: 14 dishes in 5 sections. 1 price to check before they go on sale.',
           'status': 'done',
           'chargedMicros': 13309,
           'state': {'ms': 18200},
@@ -252,12 +250,21 @@ class Runtime implements LiveRuntime {
 Future<void> loadFonts() async {
   final jakarta = FontLoader('PlusJakartaSans');
   for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
-    jakarta.addFont(rootBundle.load('assets/fonts/PlusJakartaSans-$weight.ttf'));
+    jakarta.addFont(
+      rootBundle.load('assets/fonts/PlusJakartaSans-$weight.ttf'),
+    );
   }
   await jakarta.load();
-  final icons = File(
-    '.tooling/flutter/bin/cache/artifacts/material_fonts/materialicons-regular.otf',
-  );
+  await (FontLoader(
+    'NotoSansArabic',
+  )..addFont(rootBundle.load('assets/fonts/NotoSansArabic.ttf'))).load();
+  // A worktree without its own .tooling uses the SDK running the test.
+  const font = 'bin/cache/artifacts/material_fonts/materialicons-regular.otf';
+  final root = Platform.environment['FLUTTER_ROOT'];
+  final icons = [
+    File('.tooling/flutter/$font'),
+    if (root != null) File('$root/$font'),
+  ].firstWhere((f) => f.existsSync());
   await (FontLoader('MaterialIcons')
         ..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync()))))
       .load();
@@ -361,6 +368,56 @@ void main() {
       await capture('kitchen');
       await go('Agents');
       await capture('agents');
+    });
+  }
+
+  // The orders board's filters on the narrowest phone at double text size.
+  for (final locale in ['en', 'ar']) {
+    testWidgets('capture the orders board at 320 px and 2x in $locale', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 900);
+      addTearDown(tester.view.reset);
+      const boundary = Key('review-canvas');
+      final live = LiveContext(
+        Runtime(ReviewApi()),
+        restaurantId: 1,
+        role: 'owner',
+        name: 'Atelier Café',
+      );
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: boundary,
+          child: MotionScope(
+            reducedMotion: true,
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.light,
+              locale: Locale(locale),
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: const TextScaler.linear(2)),
+                child: child!,
+              ),
+              home: OrdersBoard(live: live),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byKey(boundary),
+        matchesGoldenFile('../build/staff-review/narrow-2x-$locale-orders.png'),
+      );
+      await tester.pumpWidget(const SizedBox());
     });
   }
 }

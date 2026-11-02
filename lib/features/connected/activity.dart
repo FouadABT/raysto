@@ -100,124 +100,146 @@ Widget orderPage(LiveContext live, int id) => DataPage(
   title: 'Order #$id',
   poll: true,
   load: () => live.api.query('order', live.params({'id': id})),
-  content: (c, d, refresh) => [
-    AppButton(
-      label: 'Open conversation',
-      icon: Icons.forum_outlined,
-      onPressed: () => push(c, TableRoomPage(live: live, orderId: id)),
-    ),
-    RecordSummary(d),
-    if (d['paymentStatus'] != 'paid' &&
-        !{'cancelled', 'rejected'}.contains(d['status']))
-      AppButton(
-        label: 'Pay outstanding balance',
-        onPressed: () => allocate(
-          c,
-          live,
-          orderId: d['visitId'] == null ? id : null,
-          visitId: d['visitId'],
-        ),
-      ),
-    if (d['visitId'] != null)
-      tile(
-        'Shared table bill',
-        Icons.groups_outlined,
-        () => push(c, visitPage(live, d['visitId'])),
-      ),
-    if (live.operator || live.role == 'kitchen')
-      AppButton(
-        label: 'Update order',
-        onPressed: () async {
-          await live.action(
+  content: (c, d, refresh) {
+    final due =
+        d['paymentStatus'] != 'paid' &&
+        !{'cancelled', 'rejected'}.contains(d['status']);
+    final staff = live.operator || live.role == 'kitchen';
+    // One primary action: paying first, then the staff's next step, then
+    // talking to the restaurant. The others stay available, quieter.
+    return [
+      AppSectionTitle(title: c.tr('Your order')),
+      orderCard(c, d),
+      if (due)
+        AppButton(
+          label: 'Pay outstanding balance',
+          icon: Icons.payments_outlined,
+          onPressed: () => allocate(
             c,
-            'Update order',
-            'order.transition',
-            id: id,
-            version: d['version'],
-            fields: [
-              InputSpec(
-                'status',
-                'Next status',
-                options: live.role == 'kitchen'
-                    ? ['preparing', 'ready']
-                    : [
-                        'accepted',
-                        'preparing',
-                        'ready',
-                        'served',
-                        'collected',
-                        'completed',
-                        'rejected',
-                      ],
-              ),
-              const InputSpec('reason', 'Reason', optional: true),
-            ],
-          );
-          await refresh();
-        },
-      ),
-    if (!{'completed', 'cancelled', 'rejected'}.contains(d['status']))
-      OutlinedButton(
-        onPressed: () async {
-          await live.action(
-            c,
-            'Cancel order',
-            'order.cancel',
-            id: id,
-            version: d['version'],
-            fields: [
-              const InputSpec('reason', 'Reason'),
-              if (live.manager)
-                const InputSpec(
-                  'approve',
-                  'Approve cancellation',
-                  kind: 'bool',
-                  value: true,
-                ),
-            ],
-          );
-          await refresh();
-        },
-        child: const Text('Request cancellation'),
-      ),
-    if (d['fulfillment'] == 'delivery')
-      tile(
-        'Delivery tracking',
-        Icons.delivery_dining,
-        () => push(
-          c,
-          DataPage(
-            title: 'Delivery',
-            poll: true,
-            load: () => live.api.query(
-              'delivery.tracking',
-              live.params({'orderId': id}),
-            ),
-            content: (_, state, _) => [RecordSummary(state)],
+            live,
+            orderId: d['visitId'] == null ? id : null,
+            visitId: d['visitId'],
           ),
         ),
-      ),
-    if (d['status'] == 'completed' && live.role == 'customer')
-      tile(
-        'Leave a review',
-        Icons.star_border,
-        () => live.action(
-          c,
-          'Review your meal',
-          'review.save',
-          id: id,
-          fields: const [
-            InputSpec('rating', 'Rating from 1 to 5', kind: 'int'),
-            InputSpec('text', 'Your review', kind: 'long'),
-          ],
+      if (staff)
+        AppButton(
+          label: 'Update order',
+          secondary: due,
+          onPressed: () async {
+            await live.action(
+              c,
+              'Update order',
+              'order.transition',
+              id: id,
+              version: d['version'],
+              fields: [
+                InputSpec(
+                  'status',
+                  'Next status',
+                  options: live.role == 'kitchen'
+                      ? ['preparing', 'ready']
+                      : [
+                          'accepted',
+                          'preparing',
+                          'ready',
+                          'served',
+                          'collected',
+                          'completed',
+                          'rejected',
+                        ],
+                ),
+                const InputSpec('reason', 'Reason', optional: true),
+              ],
+            );
+            await refresh();
+          },
         ),
+      AppButton(
+        label: 'Open conversation',
+        icon: Icons.forum_outlined,
+        secondary: due || staff,
+        onPressed: () => push(c, TableRoomPage(live: live, orderId: id)),
       ),
-    tile(
-      'Get help with this order',
-      Icons.help_outline,
-      () => openSupport(c, live, orderId: id),
-    ),
-  ],
+      if (d['visitId'] != null)
+        tile(
+          'Shared table bill',
+          Icons.groups_outlined,
+          () => push(c, visitPage(live, d['visitId'])),
+        ),
+      if (d['fulfillment'] == 'delivery')
+        tile(
+          'Delivery tracking',
+          Icons.delivery_dining,
+          () => push(
+            c,
+            DataPage(
+              title: 'Delivery',
+              poll: true,
+              load: () => live.api.query(
+                'delivery.tracking',
+                live.params({'orderId': id}),
+              ),
+              content: (_, state, _) => [RecordSummary(state)],
+            ),
+          ),
+        ),
+      if (d['status'] == 'completed' && live.role == 'customer')
+        tile(
+          'Leave a review',
+          Icons.star_border,
+          () => live.action(
+            c,
+            'Review your meal',
+            'review.save',
+            id: id,
+            fields: const [
+              InputSpec('rating', 'Rating from 1 to 5', kind: 'int'),
+              InputSpec('text', 'Your review', kind: 'long'),
+            ],
+          ),
+        ),
+      tile(
+        'Get help with this order',
+        Icons.help_outline,
+        () => openSupport(c, live, orderId: id),
+      ),
+      if (!{'completed', 'cancelled', 'rejected'}.contains(d['status']))
+        OutlinedButton(
+          onPressed: () async {
+            await live.action(
+              c,
+              'Cancel order',
+              'order.cancel',
+              id: id,
+              version: d['version'],
+              fields: [
+                const InputSpec('reason', 'Reason'),
+                if (live.manager)
+                  const InputSpec(
+                    'approve',
+                    'Approve cancellation',
+                    kind: 'bool',
+                    value: true,
+                  ),
+              ],
+            );
+            await refresh();
+          },
+          child: const Text('Request cancellation'),
+        ),
+      if (records(d['timeline']).isNotEmpty)
+        AppDisclosure(
+          title: c.tr('Timeline'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final e in records(d['timeline']))
+                Text('${friendly('${e['kind']}')} · ${e['at']}'),
+            ],
+          ),
+        ),
+    ];
+  },
 );
 
 Widget visitPage(LiveContext live, int id) => DataPage(
@@ -551,98 +573,116 @@ Widget checkoutPage(LiveContext live, int id) => DataPage(
   title: 'Payment #$id',
   poll: true,
   load: () => live.api.query('checkout', live.params({'id': id})),
-  content: (c, d, refresh) => [
-    AppNotice(
-      title: d['state'] == 'completed'
-          ? 'Payment confirmed'
-          : 'Payment ${friendly('${d['state']}')}',
-      message: d['state'] == 'completed'
-          ? 'The backend has recorded this payment.'
-          : 'PayPal approval and the confirmed receipt are separate steps. Refresh to recover a pending payment.',
-    ),
-    RecordSummary(d),
-    if (d['state'] == 'reserved')
-      AppButton(
-        label: 'Continue to PayPal',
-        onPressed: () => perform(c, () async {
-          final created = await live.action(
-            c,
-            'Open PayPal checkout',
-            'payment.checkout',
-            id: id,
-          );
-          if (created?['approvalUrl'] != null) {
-            await openProvider(created!['approvalUrl']);
-          }
-          await refresh();
-        }),
+  content: (c, d, refresh) {
+    final canOpen =
+        d['approvalUrl'] != null &&
+        {'created', 'approved'}.contains(d['state']);
+    final canConfirm = {
+      'created',
+      'approved',
+      'capturing',
+      'uncertain',
+    }.contains(d['state']);
+    // One primary step at a time: reach PayPal, approve there, then confirm.
+    // Once PayPal reports the approval, confirming is the step that matters.
+    final openFirst = canOpen && d['state'] == 'created';
+    final open = AppButton(
+      label: 'Open PayPal',
+      icon: Icons.open_in_new,
+      secondary: !openFirst,
+      onPressed: () => perform(c, () => openProvider(d['approvalUrl'])),
+    );
+    return [
+      AppSectionTitle(title: c.tr('Payment')),
+      checkoutCard(
+        c,
+        d,
+        d['state'] == 'completed'
+            ? 'Payment confirmed'
+            : 'Payment ${friendly('${d['state']}')}',
+        d['state'] == 'completed' ? 'The backend has recorded this payment.' : 'PayPal approval and the confirmed receipt are separate steps. Refresh to recover a pending payment.',
       ),
-    if (d['approvalUrl'] != null &&
-        {'created', 'approved'}.contains(d['state']))
-      AppButton(
-        label: 'Open PayPal',
-        onPressed: () => perform(c, () => openProvider(d['approvalUrl'])),
-      ),
-    if ({'created', 'approved', 'capturing', 'uncertain'}.contains(d['state']))
-      AppButton(
-        label: {'capturing', 'uncertain'}.contains(d['state'])
-            ? 'Check again with PayPal'
-            : 'I approved in PayPal · confirm payment',
-        onPressed: () async {
-          await live.action(
-            c,
-            'Confirm payment with PayPal',
-            'payment.capture',
-            id: id,
-          );
-          await refresh();
-        },
-      ),
-    if ({'reserved', 'created', 'approved'}.contains(d['state']))
-      TextButton(
-        onPressed: () async {
-          await live.action(
-            c,
-            'Cancel this checkout',
-            'payment.cancel',
-            id: id,
-          );
-          await refresh();
-        },
-        child: const Text('Cancel checkout'),
-      ),
-    if (live.manager && {'capturing', 'uncertain'}.contains(d['state']))
-      OutlinedButton(
-        onPressed: () async {
-          await live.action(
-            c,
-            'Release this checkout',
-            'payment.release',
-            id: id,
-          );
-          await refresh();
-        },
-        child: const Text('Release checkout (manager)'),
-      ),
-    if (live.manager && d['captureId'] != null)
-      OutlinedButton(
-        onPressed: () async {
-          await live.action(
-            c,
-            'Request refund',
-            'payment.refund',
-            typed: true,
-            fixed: {'captureId': d['captureId'], 'orderId': ?d['orderId']},
-            fields: const [
-              InputSpec('amountMinor', 'Amount to refund', kind: 'money'),
-              InputSpec('reason', 'Reason for refund'),
-            ],
-          );
-          await refresh();
-        },
-        child: const Text('Refund payment'),
-      ),
-  ],
+      if (d['state'] == 'reserved')
+        AppButton(
+          label: 'Continue to PayPal',
+          icon: Icons.lock_outline,
+          onPressed: () => perform(c, () async {
+            final created = await live.action(
+              c,
+              'Open PayPal checkout',
+              'payment.checkout',
+              id: id,
+            );
+            if (created?['approvalUrl'] != null) {
+              await openProvider(created!['approvalUrl']);
+            }
+            await refresh();
+          }),
+        ),
+      if (canOpen && openFirst) open,
+      if (canConfirm)
+        AppButton(
+          label: {'capturing', 'uncertain'}.contains(d['state'])
+              ? 'Check again with PayPal'
+              : 'I approved in PayPal · confirm payment',
+          secondary: openFirst,
+          onPressed: () async {
+            await live.action(
+              c,
+              'Confirm payment with PayPal',
+              'payment.capture',
+              id: id,
+            );
+            await refresh();
+          },
+        ),
+      if (canOpen && !openFirst) open,
+      if ({'reserved', 'created', 'approved'}.contains(d['state']))
+        TextButton(
+          onPressed: () async {
+            await live.action(
+              c,
+              'Cancel this checkout',
+              'payment.cancel',
+              id: id,
+            );
+            await refresh();
+          },
+          child: const Text('Cancel checkout'),
+        ),
+      if (live.manager && {'capturing', 'uncertain'}.contains(d['state']))
+        OutlinedButton(
+          onPressed: () async {
+            await live.action(
+              c,
+              'Release this checkout',
+              'payment.release',
+              id: id,
+            );
+            await refresh();
+          },
+          child: const Text('Release checkout (manager)'),
+        ),
+      if (live.manager && d['captureId'] != null)
+        OutlinedButton(
+          onPressed: () async {
+            await live.action(
+              c,
+              'Request refund',
+              'payment.refund',
+              typed: true,
+              fixed: {'captureId': d['captureId'], 'orderId': ?d['orderId']},
+              fields: const [
+                InputSpec('amountMinor', 'Amount to refund', kind: 'money'),
+                InputSpec('reason', 'Reason for refund'),
+              ],
+            );
+            await refresh();
+          },
+          child: const Text('Refund payment'),
+        ),
+    ];
+  },
 );
 
 Widget reservationsPage(LiveContext live, {bool staff = false}) => rowsPage(

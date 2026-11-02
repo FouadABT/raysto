@@ -83,7 +83,10 @@ class _MenuState extends State<_Menu> {
               subtitle: 'Your saved items are ready for review.',
               onTap: () => openOperation(context, s, 'menu-builder'),
             ),
+          // Its own storage key: without one it shares the list's page
+          // storage slot and reads the saved scroll offset as its state.
           ExpansionTile(
+            key: const PageStorageKey('menu-readiness'),
             title: Text(context.tr('Menu readiness')),
             leading: const Icon(Icons.fact_check_outlined),
             children: [

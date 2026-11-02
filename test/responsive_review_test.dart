@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:raysto/app/app.dart';
+import 'package:raysto/design_system/design_system.dart' show AppButton;
 import 'package:raysto/domain/domain.dart';
 import 'package:raysto/features/customer/customer_screens.dart';
 import 'package:raysto/l10n/app_localizations.dart';
@@ -127,9 +128,10 @@ void main() {
           openPage(shellContext(tester), RestaurantScreen(store: store));
           await tester.pumpAndSettle();
           final pageContext = tester.element(find.byType(RestaurantScreen));
+          // The cart bar is the design system's primary AppButton.
           final cartAction = find.ancestor(
             of: find.textContaining(pageContext.tr('View cart')),
-            matching: find.byWidgetPredicate((w) => w is FilledButton),
+            matching: find.byType(AppButton),
           );
           await reveal(tester, cartAction);
           final search = await reveal(
@@ -214,9 +216,10 @@ void main() {
           ),
           findsOneWidget,
         );
+        // At 2x the dock becomes one primary AppButton that opens a sheet.
         final navigation = find.ancestor(
           of: find.textContaining(context.tr('Navigate')),
-          matching: find.byWidgetPredicate((w) => w is FilledButton),
+          matching: find.byType(AppButton),
         );
         expect(navigation.hitTestable(), findsOneWidget);
         await tester.tap(navigation);
