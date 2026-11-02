@@ -225,7 +225,12 @@ void main() {
       host(CounterScreen(live: live), scale: 2, locale: 'ar'),
     );
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('قل الطلب'), 300);
+    // The page scrolls; the section chips scroll sideways on their own.
+    await tester.scrollUntilVisible(
+      find.text('قل الطلب'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('قل الطلب'));
     await tester.pump();
     await tester.tap(find.textContaining('تم · أضف إلى التذكرة'));

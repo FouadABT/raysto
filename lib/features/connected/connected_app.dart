@@ -255,8 +255,12 @@ class DataPage extends StatefulWidget {
     required this.content,
     this.poll = false,
     this.trigger,
+    this.large = false,
   });
   final String title;
+
+  /// A working board: a larger title and wider margins on a tablet.
+  final bool large;
   final Future<Json> Function() load;
   final List<Widget> Function(BuildContext, Json, Future<void> Function())
   content;
@@ -340,17 +344,36 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final wide = widget.large && MediaQuery.sizeOf(context).width >= 700;
+    return Scaffold(
     appBar: AppBar(
+      toolbarHeight: wide ? 84 : null,
+      titleSpacing: wide ? 28 : null,
       title: widget.title == 'Discover'
           ? const RaystoWordmark()
-          : Text(widget.title),
+          : Text(
+              widget.title,
+              style: widget.large
+                  ? AppType.style(wide ? 30 : 24, weight: FontWeight.w700)
+                  : null,
+            ),
       actions: [
-        IconButton(
-          tooltip: 'Refresh',
-          onPressed: busy ? null : refresh,
-          icon: const Icon(Icons.refresh),
-        ),
+        if (widget.large)
+          Padding(
+            padding: EdgeInsetsDirectional.only(end: wide ? 22 : 8),
+            child: IconButton.filledTonal(
+              tooltip: 'Refresh',
+              onPressed: busy ? null : refresh,
+              icon: const Icon(Icons.refresh),
+            ),
+          )
+        else
+          IconButton(
+            tooltip: 'Refresh',
+            onPressed: busy ? null : refresh,
+            icon: const Icon(Icons.refresh),
+          ),
       ],
     ),
     body: SafeArea(
@@ -358,7 +381,9 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
         onRefresh: refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          padding: wide
+              ? const EdgeInsets.fromLTRB(28, 4, 28, 28)
+              : const EdgeInsets.all(20),
           children: [
             if (busy)
               if (AppMotion.reduced(context))
@@ -390,6 +415,7 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
       ),
     ),
   );
+  }
 }
 
 Widget tile(

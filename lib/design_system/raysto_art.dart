@@ -97,6 +97,25 @@ class RaystoWordmark extends StatelessWidget {
   );
 }
 
+/// Raysto's rosette on its own, for places too narrow for the wordmark.
+class RaystoRosette extends StatelessWidget {
+  const RaystoRosette({super.key, this.size = 24, this.color});
+  final double size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'Raysto',
+    excludeSemantics: true,
+    child: CustomPaint(
+      size: Size.square(size),
+      painter: _RosettePainter(
+        color ?? Theme.of(context).colorScheme.primary,
+      ),
+    ),
+  );
+}
+
 /// Textured original art is bundled and decoded at a bounded size. The native
 /// motifs elsewhere use the same plate curves, olive leaves and print marks.
 class RaystoTableArt extends StatelessWidget {

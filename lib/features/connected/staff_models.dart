@@ -225,6 +225,24 @@ Widget agePill(BuildContext c, int minutes) => AppPill(
   color: minutes >= 15
       ? Theme.of(c).colorScheme.errorContainer
       : minutes >= 8
-      ? Theme.of(c).colorScheme.tertiaryContainer
+      ? Theme.of(c).extension<AppStatusColors>()?.warning
       : null,
 );
+
+/// The color an order's state is read by, before any word: new orders lime,
+/// cooking green, ready forest, waiting for payment amber.
+Color stateAccent(String status) => switch (status) {
+  'submitted' => AppColors.lime,
+  'accepted' || 'preparing' => const Color(0xFF7FB394),
+  'ready' => AppColors.forest,
+  'awaitingPayment' => const Color(0xFFE2B04A),
+  _ => AppColors.line,
+};
+
+/// How a channel looks at a glance on a ticket.
+IconData channelIcon(StaffOrder o) => switch (o.channel) {
+  'Counter' => Icons.storefront_outlined,
+  'Dine-in' => Icons.table_restaurant_outlined,
+  'Delivery' => Icons.delivery_dining_outlined,
+  _ => Icons.shopping_bag_outlined,
+};

@@ -22,6 +22,7 @@ String agentCost(Object? micros) =>
 /// waiting for a person. Nothing changes until someone approves; money also
 /// needs a fresh identity check.
 Widget agentsPage(LiveContext live) => DataPage(
+  large: true,
   title: 'AI coworkers',
   poll: true,
   load: () async {
@@ -157,6 +158,13 @@ class _AgentActionCardState extends State<AgentActionCard> {
     final money = a['risk'] == 'money';
     final theme = Theme.of(context);
     return AppPanel(
+      // Money in amber, service in green, menu in lime: read before the words.
+      accent: money
+          ? const Color(0xFFE2B04A)
+          : a['risk'] == 'ops'
+          ? const Color(0xFF7FB394)
+          : AppColors.lime,
+      padding: const EdgeInsetsDirectional.fromSTEB(26, 20, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -165,7 +173,16 @@ class _AgentActionCardState extends State<AgentActionCard> {
             runSpacing: 6,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(icon, size: 20),
+              DecoratedBox(
+                decoration: const BoxDecoration(
+                  color: AppColors.mint,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(7),
+                  child: Icon(icon, size: 18, color: AppColors.forest),
+                ),
+              ),
               Text(name, style: theme.textTheme.labelLarge),
               AppPill(
                 label: money
@@ -179,7 +196,10 @@ class _AgentActionCardState extends State<AgentActionCard> {
             ],
           ),
           const SizedBox(height: 10),
-          Text('${a['title']}', style: theme.textTheme.titleMedium),
+          Text(
+            '${a['title']}',
+            style: AppType.style(19, weight: FontWeight.w700, height: 1.3),
+          ),
           if (preview['mediaId'] is int) ...[
             const SizedBox(height: 10),
             MediaPhoto(

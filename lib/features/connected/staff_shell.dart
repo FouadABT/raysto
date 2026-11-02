@@ -109,26 +109,16 @@ class _StaffShellState extends State<StaffShell> {
 
   Widget wide(List<(DockDestination, Widget)> items, int i, Widget body) =>
       Scaffold(
-        body: SafeArea(
-          child: Row(
-            children: [
-              NavigationRail(
-                selectedIndex: i,
-                labelType: NavigationRailLabelType.all,
-                onDestinationSelected: (v) => setState(() => index = v),
-                destinations: [
-                  for (final b in items)
-                    NavigationRailDestination(
-                      icon: Icon(b.$1.icon),
-                      selectedIcon: Icon(b.$1.selectedIcon),
-                      label: Text(b.$1.label),
-                    ),
-                ],
-              ),
-              const VerticalDivider(width: 1),
-              Expanded(child: body),
-            ],
-          ),
+        body: Row(
+          children: [
+            StaffRail(
+              key: const ValueKey('staff-navigation'),
+              index: i,
+              destinations: [for (final b in items) b.$1],
+              onChanged: (v) => setState(() => index = v),
+            ),
+            Expanded(child: body),
+          ],
         ),
       );
 
@@ -196,3 +186,113 @@ Widget staffMore(
     ),
   ],
 );
+
+/// The tablet's side rail, in the phone dock's language: a forest column,
+/// a lime pill behind the current place, labels always visible.
+class StaffRail extends StatelessWidget {
+  const StaffRail({
+    super.key,
+    required this.index,
+    required this.destinations,
+    required this.onChanged,
+  });
+  final int index;
+  final List<DockDestination> destinations;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = AppMotion.reduced(context)
+        ? Duration.zero
+        : const Duration(milliseconds: 220);
+    return Material(
+      color: AppColors.forest,
+      child: SafeArea(
+        right: false,
+        child: SizedBox(
+          width: 108,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.lime,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const RaystoRosette(size: 30, color: AppColors.forest),
+              ),
+              const SizedBox(height: 22),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      for (final (i, d) in destinations.indexed)
+                        Semantics(
+                          button: true,
+                          selected: i == index,
+                          label: d.label,
+                          child: InkWell(
+                            onTap: () => onChanged(i),
+                            borderRadius: BorderRadius.circular(18),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 9),
+                              child: ExcludeSemantics(
+                                child: Column(
+                                  children: [
+                                    AnimatedContainer(
+                                      duration: duration,
+                                      curve: Curves.easeOutCubic,
+                                      width: 64,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: i == index
+                                            ? AppColors.lime
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(
+                                          AppRadius.pill,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        i == index ? d.selectedIcon : d.icon,
+                                        size: 24,
+                                        color: i == index
+                                            ? AppColors.forest
+                                            : const Color(0xFFCFDDD2),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      d.label,
+                                      textAlign: TextAlign.center,
+                                      style: AppType.style(
+                                        12.5,
+                                        weight: i == index
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                        color: i == index
+                                            ? AppColors.white
+                                            : const Color(0xFFCFDDD2),
+                                        height: 1.25,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

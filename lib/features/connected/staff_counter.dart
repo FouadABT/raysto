@@ -518,12 +518,23 @@ class _CounterScreenState extends State<CounterScreen> {
       canPop: !inProgress,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(context.tr('Counter')),
+          toolbarHeight: MediaQuery.sizeOf(context).width >= 700 ? 84 : null,
+          titleSpacing: MediaQuery.sizeOf(context).width >= 700 ? 28 : null,
+          title: Text(
+            context.tr('Counter'),
+            style: AppType.style(
+              MediaQuery.sizeOf(context).width >= 700 ? 30 : 24,
+              weight: FontWeight.w700,
+            ),
+          ),
           actions: [
-            IconButton(
-              tooltip: context.tr('Refresh menu'),
-              onPressed: load,
-              icon: const Icon(Icons.refresh),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 12),
+              child: IconButton.filledTonal(
+                tooltip: context.tr('Refresh menu'),
+                onPressed: load,
+                icon: const Icon(Icons.refresh),
+              ),
             ),
           ],
         ),
@@ -559,12 +570,20 @@ class _CounterScreenState extends State<CounterScreen> {
                     Expanded(child: menuGrid(context, columns: true)),
                     SizedBox(
                       width: box.maxWidth >= 1100 ? 420 : 360,
-                      child: Material(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerLow,
+                      // The till: white, set apart by a hairline, always in view.
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerLowest,
+                          border: BorderDirectional(
+                            start: BorderSide(
+                              color: Theme.of(context).colorScheme.outlineVariant,
+                            ),
+                          ),
+                        ),
                         child: ListView(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
                           children: ticketSide,
                         ),
                       ),
@@ -599,6 +618,11 @@ class _CounterScreenState extends State<CounterScreen> {
       spacing: 8,
       runSpacing: 8,
       children: [
+        AppChip(
+          label: context.tr('All'),
+          selected: category == null,
+          onSelected: () => setState(() => category = null),
+        ),
         for (final g in groups)
           AppChip(
             label: g,
@@ -612,7 +636,18 @@ class _CounterScreenState extends State<CounterScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chips,
+          // A phone keeps the sections on one scrolling line.
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final (i, chip) in chips.children.indexed) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  chip,
+                ],
+              ],
+            ),
+          ),
           const SizedBox(height: 8),
           for (final it in shown)
             ListTile(
@@ -630,52 +665,152 @@ class _CounterScreenState extends State<CounterScreen> {
       );
     }
     final theme = Theme.of(context);
+    // How many of each dish are already on this sale.
+    final inSale = <int, int>{};
+    for (final l in lines) {
+      final id = l['productId'] as int;
+      inSale[id] = (inSale[id] ?? 0) + (l['quantity'] as int);
+    }
+    // A quiet color per section, so the eye finds a section before a name.
+    const bands = [
+      Color(0xFFE6EDE2),
+      Color(0xFFF3E8DB),
+      Color(0xFFEAF6C9),
+      Color(0xFFDDEBE8),
+      Color(0xFFF1E4EA),
+      Color(0xFFE8E6F5),
+    ];
+    Color band(Json it) =>
+        bands[groups.indexOf('${it['category']}').clamp(0, 99) % bands.length];
     return CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 14),
           sliver: SliverToBoxAdapter(child: chips),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           sliver: SliverGrid.builder(
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 200,
-              mainAxisExtent: 112,
+              maxCrossAxisExtent: 210,
+              mainAxisExtent: 132,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),
             itemCount: shown.length,
             itemBuilder: (c, i) {
               final it = shown[i];
+              final count = inSale[it['productId'] as int] ?? 0;
               return Material(
                 color: theme.colorScheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(AppRadius.card),
                 clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.card - 4),
+                  side: count > 0
+                      ? const BorderSide(color: AppColors.forest, width: 2)
+                      : BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
                 child: InkWell(
                   onTap: locked ? null : () => add(it),
                   child: Semantics(
                     button: true,
-                    label: '${c.tr('Add')} ${it['name']}',
+                    label: count > 0
+                        ? '${c.tr('Add')} ${it['name']}, $count ${c.tr('in this sale')}'
+                        : '${c.tr('Add')} ${it['name']}',
                     excludeSemantics: true,
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${it['name']}',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ColoredBox(
+                          color: band(it),
+                          child: const SizedBox(height: 8),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '${it['name']}',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.titleMedium!
+                                            .copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.25,
+                                            ),
+                                      ),
+                                    ),
+                                    if (count > 0)
+                                      Container(
+                                        margin: const EdgeInsetsDirectional.only(
+                                          start: 6,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.lime,
+                                          borderRadius: BorderRadius.circular(
+                                            AppRadius.pill,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '×$count',
+                                          style: theme.textTheme.labelLarge!
+                                              .copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        money(it['priceMinor'], currency),
+                                        style: theme.textTheme.titleSmall!
+                                            .copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              fontFeatures: const [
+                                                FontFeature.tabularFigures(),
+                                              ],
+                                            ),
+                                      ),
+                                    ),
+                                    DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        color: locked
+                                            ? theme.colorScheme.surfaceContainer
+                                            : AppColors.forest,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(6),
+                                        child: Icon(
+                                          Icons.add,
+                                          size: 18,
+                                          color: locked
+                                              ? theme.colorScheme.onSurfaceVariant
+                                              : AppColors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          Text(
-                            money(it['priceMinor'], currency),
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

@@ -30,6 +30,7 @@ class _OrdersBoardState extends State<OrdersBoard> {
     final live = widget.live;
     return DataPage(
       title: context.tr('Orders'),
+      large: true,
       poll: true,
       trigger: feed,
       load: () => live.api.query(
@@ -73,26 +74,45 @@ class _OrdersBoardState extends State<OrdersBoard> {
               if (lookup != code) feed.ping();
             },
           ),
-          staffChips(c, const [
-            'Active',
-            'New',
-            'Preparing',
-            'Ready',
-            'Done',
-            'All',
-          ], status, (v) => setState(() => status = v)),
-          staffChips(c, const [
-            'All',
-            'Counter',
-            'Pickup',
-            'Dine-in',
-            'Delivery',
-          ], channel, (v) => setState(() => channel = v)),
-          staffChips(c, const [
-            'All',
-            'Unpaid',
-            'Paid',
-          ], payment, (v) => setState(() => payment = v)),
+          // Three independent filters, each in its own tray.
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              for (final chips in [
+                staffChips(c, const [
+                  'Active',
+                  'New',
+                  'Preparing',
+                  'Ready',
+                  'Done',
+                  'All',
+                ], status, (v) => setState(() => status = v)),
+                staffChips(c, const [
+                  'All',
+                  'Counter',
+                  'Pickup',
+                  'Dine-in',
+                  'Delivery',
+                ], channel, (v) => setState(() => channel = v)),
+                staffChips(c, const [
+                  'All',
+                  'Unpaid',
+                  'Paid',
+                ], payment, (v) => setState(() => payment = v)),
+              ])
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Theme.of(c).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.button + 4),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: chips,
+                  ),
+                ),
+            ],
+          ),
           if (orders.isEmpty)
             RaystoEmptyState(
               title: c.tr('No matching orders'),
@@ -222,52 +242,128 @@ class OrderCard extends StatelessWidget {
     final o = order;
     final next = o.next.where((n) => n != 'rejected').firstOrNull;
     final theme = Theme.of(context);
+    final status = theme.extension<AppStatusColors>();
+    final quiet = theme.colorScheme.onSurfaceVariant;
+    const shown = 4;
     return AppPanel(
       padding: EdgeInsets.zero,
+      accent: stateAccent(o.status),
       child: InkWell(
         onTap: () => push(context, OrderDetailPage(live: live, id: o.id)),
         child: Padding(
-          padding: const EdgeInsets.all(AppSpace.panel),
+          padding: const EdgeInsetsDirectional.fromSTEB(26, 18, 20, 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Number and state first; the timer moves under them when the
+              // card is narrow or the text is large.
               Wrap(
-                spacing: 8,
-                runSpacing: 6,
+                alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 6,
                 children: [
-                  Text(o.title, style: theme.textTheme.titleLarge),
-                  AppPill(label: context.tr(o.channel)),
-                  AppPill(label: statusLabel(context, o.status)),
-                  AppPill(
-                    label: context.tr(o.paid ? 'Paid' : 'Unpaid'),
-                    icon: o.paid ? Icons.check_circle_outline : Icons.schedule,
-                    color: o.paid
-                        ? theme.extension<AppStatusColors>()?.success
-                        : null,
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 10,
+                    children: [
+                      Text(
+                        o.title,
+                        style: AppType.style(
+                          26,
+                          weight: FontWeight.w700,
+                          height: 1.1,
+                        ),
+                      ),
+                      Text(
+                        statusLabel(context, o.status),
+                        style: theme.textTheme.labelLarge!.copyWith(
+                          color: quiet,
+                        ),
+                      ),
+                    ],
                   ),
                   if (o.open) agePill(context, o.ageMinutes()),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(o.summary, style: theme.textTheme.bodyMedium),
-              if (o.customerLabel != null) ...[
-                const SizedBox(height: 4),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  AppPill(label: context.tr(o.channel), icon: channelIcon(o)),
+                  AppPill(
+                    label: context.tr(o.paid ? 'Paid' : 'Unpaid'),
+                    icon: o.paid ? Icons.check_circle_outline : Icons.schedule,
+                    color: o.paid ? status?.success : status?.warning,
+                  ),
+                  if (o.customerLabel != null)
+                    AppPill(label: o.customerLabel!, icon: Icons.person_outline),
+                ],
+              ),
+              const SizedBox(height: 14),
+              for (final line in o.lines.take(shown))
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 34,
+                        child: Text(
+                          '${line['quantity']}×',
+                          style: theme.textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          '${line['name']}',
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (o.lines.length > shown)
                 Text(
-                  o.customerLabel!,
-                  style: theme.textTheme.bodyMedium!.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  '+${o.lines.length - shown} ${context.tr('more')}',
+                  style: theme.textTheme.bodyMedium!.copyWith(color: quiet),
+                ),
+              if (o.pickupCode != null && o.status == 'ready') ...[
+                const SizedBox(height: 10),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.lime,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.key_outlined, size: 18),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            '${context.tr('Pickup code')} ${o.pickupCode}',
+                            style: theme.textTheme.titleMedium!.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
-              if (o.pickupCode != null && o.status == 'ready') ...[
-                const SizedBox(height: 4),
-                Text(
-                  '${context.tr('Pickup code')} ${o.pickupCode}',
-                  style: theme.textTheme.titleMedium,
-                ),
-              ],
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
+              Divider(height: 1, color: theme.colorScheme.outlineVariant),
+              const SizedBox(height: 12),
               Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -276,7 +372,9 @@ class OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     money(o.totalMinor, o.currency),
-                    style: theme.textTheme.titleMedium,
+                    style: AppType.style(19, weight: FontWeight.w700).copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                   if (next != null && canAdvance(live, o, next))
                     AppButton(

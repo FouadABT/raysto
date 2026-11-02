@@ -337,6 +337,8 @@ const connectedTranslations = <String, (String, String)>{
     'تم · أضف إلى التذكرة',
   ),
   'Say the order': ('Dire la commande', 'قل الطلب'),
+  'more': ('de plus', 'أخرى'),
+  'in this sale': ('dans cette vente', 'في هذه البيعة'),
   'Drawn by': ('Dessinée par', 'رسمها'),
   'Photo': ('Photo', 'صورة'),
   'Photo unavailable': ('Photo indisponible', 'الصورة غير متاحة'),

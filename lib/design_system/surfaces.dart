@@ -6,22 +6,49 @@ import 'motion.dart';
 import 'tokens.dart';
 
 class AppPanel extends StatelessWidget {
-  const AppPanel({super.key, required this.child, this.color, this.padding});
+  const AppPanel({
+    super.key,
+    required this.child,
+    this.color,
+    this.padding,
+    this.accent,
+  });
 
   final Widget child;
   final Color? color;
   final EdgeInsetsGeometry? padding;
 
+  /// A state color along the leading edge, read before any label.
+  final Color? accent;
+
   @override
-  Widget build(BuildContext context) => Material(
-    color: color ?? Theme.of(context).colorScheme.surfaceContainerLowest,
-    borderRadius: BorderRadius.circular(AppRadius.card),
-    clipBehavior: Clip.antiAlias,
-    child: Padding(
+  Widget build(BuildContext context) {
+    final content = Padding(
       padding: padding ?? const EdgeInsets.all(AppSpace.panel),
       child: child,
-    ),
-  );
+    );
+    return Material(
+      color: color ?? Theme.of(context).colorScheme.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      clipBehavior: Clip.antiAlias,
+      child: accent == null
+          ? content
+          : Stack(
+              children: [
+                content,
+                PositionedDirectional(
+                  start: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: ColoredBox(
+                    color: accent!,
+                    child: const SizedBox(width: 6),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
 }
 
 class AppSectionTitle extends StatelessWidget {
