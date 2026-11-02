@@ -86,6 +86,7 @@ The rules are enforced by the backend, not by prompts:
 | Partial refund of $5.00 | Refund completed | refund `2J851836BE9699524` |
 | Counter sale on the Android tablet | Captured, ticket #3 to the kitchen | capture `55W092765M630635H` |
 | One sentence to Ask Raysto, one tap | 2× Garden pasta $24.00, order placed, approved in PayPal | capture `9BY842216S6346205` |
+| The judges' path, run three times on rays.to (the third filmed for the demo video) | Five live demos; each one-sentence order paid by a Sandbox buyer | captures `3PV01986C4166344M`, `1FC985713C934991E`, `8DJ62510842222013` |
 | Payments agent on an abandoned checkout | Read PayPal via MCP (`PAYER_ACTION_REQUIRED`), release approved after identity check | checkout 10 |
 | Live AI evaluation | 12 of 12: 3 menus, 5 spoken orders, 4 takeaway requests | [results](ai-evaluation-results.md) |
 

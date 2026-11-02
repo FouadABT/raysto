@@ -1,0 +1,14 @@
+[
+  {"id": "hook", "text": "Lunch at a small café. The till, the paper tickets and the card reader don't talk to each other, and the owner spends the evening fixing what they missed."},
+  {"id": "rule", "text": "Raysto puts it all on one system, and adds AI coworkers. They prepare the work. A person approves it. PayPal moves the money."},
+  {"id": "judges", "text": "You can try it yourself in one click, at rays dot to. You land in a demo café, already signed in."},
+  {"id": "voice", "text": "At the counter, the cashier just says the order. Gemini hears it, fills the ticket from the café's own menu, and flags what isn't on it."},
+  {"id": "menu", "text": "New menu? Snap the printed card. The menu agent reads every dish and price, shows what's new and what changed, and holds back what it can't read. Nothing is published until the owner approves."},
+  {"id": "order", "text": "A diner asks for two vegetarian lunches under twenty-five dollars. Raysto builds a priced basket from the real menu. One tap places the order, and PayPal's own page takes the approval."},
+  {"id": "paid", "text": "The payment is captured once, on the server, and the ticket goes straight to the kitchen."},
+  {"id": "payments", "text": "When a diner walks away from PayPal, the payments agent investigates. It asks PayPal itself, through PayPal's MCP server, shows that evidence, and drafts the fix. Releasing money needs the manager to confirm it's really them."},
+  {"id": "photo", "text": "The image studio draws a dish from its own description. The photo is scanned, waits for approval, and diners see it labelled as an AI image."},
+  {"id": "tablet", "text": "The same backend runs the staff tablet: the counter with its PayPal QR code, the kitchen board, and the agents inbox."},
+  {"id": "evidence", "text": "Everything here is PayPal Sandbox, recorded live: nine captures and a refund, twelve out of twelve live AI evaluation cases, and more than three hundred automated tests."},
+  {"id": "outro", "text": "AI coworkers prepare. You approve. PayPal moves the money. Try Raysto at rays dot to."}
+]

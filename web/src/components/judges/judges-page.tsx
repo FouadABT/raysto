@@ -105,7 +105,7 @@ function Hero() {
           </a>
           {judge.videoUrl && (
             <a className="jg-secondary" href={judge.videoUrl} target="_blank" rel="noopener noreferrer">
-              Watch the 3-minute video
+              Watch the {judge.videoLength || "short"} film
             </a>
           )}
         </div>
@@ -342,7 +342,7 @@ export function JudgesPage() {
               <span>live AI evaluation cases: 3 menus, 5 spoken orders, 4 takeaway requests</span>
             </a>
             <a href={doc("paypal-acceptance-2026-10-31.md")} className="jg-fact">
-              <strong>6</strong>
+              <strong>9</strong>
               <span>PayPal Sandbox captures recorded, plus a refund; two paid one split bill</span>
             </a>
             <a href={`${repo}#evidence`} className="jg-fact">

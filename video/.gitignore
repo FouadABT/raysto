@@ -10,3 +10,6 @@ out
 public/judges/licensed-score.m4a
 # Mixkit track copied for RaystoPromo60: not for redistribution with source
 public/promo/music.mp3
+
+# Screen recordings for RaystoDemo (large; recorded live, kept local).
+/public/demo/footage/

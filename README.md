@@ -3,6 +3,11 @@
 <p align="center"><strong>AI coworkers prepare. You approve. PayPal moves the money.</strong></p>
 <p align="center">The till, kitchen board, ordering app and back office for a small restaurant, built for the <a href="https://paypalaihackathon.devpost.com/">PayPal AI Hackathon</a>.</p>
 
+<p align="center"><img src="docs/media/try-payments.png" width="820" alt="The Try Raysto page on 2 November 2026: a one-sentence order paid in PayPal Sandbox with capture 8DJ62510842222013, and the payments agent's proposal with its PayPal MCP evidence waiting for an identity check"></p>
+<p align="center"><sub>The live console on 2 November: a one-sentence order paid in PayPal Sandbox (left), and the payments agent's proposal with PayPal's own status, read through the PayPal MCP server, waiting for approval (right).</sub></p>
+
+**Watch the film (2 min 25 s): [rays.to/demo.mp4](https://rays.to/demo.mp4)**, recorded on the live judges' path.
+
 ## Try it in two minutes
 
 **Open [rays.to](https://rays.to)** and press **Try it now**. You land in the owner console of a demo café, already signed in as its manager, on a page of five live demos. Nothing to install, no form to fill.
@@ -42,6 +47,13 @@ The one rule: **an AI coworker prepares a change with its evidence; a person app
 | **Copilot** | Notices a kitchen running late and proposes a longer promised time, then a shorter one when calm | `read_kitchen`, `propose_preparation_time` | The new preparation time | Ran live on 1 November; its first cards were false alarms from a scheduled order, fixed the same night |
 | **Image studio** | Draws a photo of a dish from its own description, with an empty background | Gemini `gemini-3.1-flash-image` (OpenAI `gpt-image-1` when a key is set) | Putting the photo on the menu, labelled as AI | Photo scanned and approved, 44 s, $0.04 |
 
+<p align="center">
+<img src="docs/media/try-voice.png" width="32%" alt="Counter voice: a spoken order became three ticket lines, with lemonade flagged as not on the menu">
+<img src="docs/media/try-menu.png" width="32%" alt="Menu agent: 14 dishes read from a photo, 3 new, 1 price change, the soup held back without a price">
+<img src="docs/media/try-photo.png" width="32%" alt="Image studio: Gemini's croque monsieur photo, scanned and waiting for approval">
+</p>
+<p align="center"><sub>Counter voice, the menu agent and the image studio on the live console, 2 November.</sub></p>
+
 AI spending has hard caps: a hackathon budget split by feature, and $5 per restaurant per day. Each agent has its own kill switch.
 
 ## How PayPal is used
@@ -72,7 +84,7 @@ AI spending has hard caps: a hackathon budget split by feature, and $5 per resta
 
 ## Evidence
 
-- **Live PayPal Sandbox runs**, 31 October to 2 November: pickup, counter QR, a two-buyer split bill, a partial refund, the one-sentence order, the payments agent's release. Six captures and a refund, with ids: [paypal-acceptance-2026-10-31.md](docs/paypal-acceptance-2026-10-31.md).
+- **Live PayPal Sandbox runs**, 31 October to 2 November: pickup, counter QR, a two-buyer split bill, a partial refund, the one-sentence order, the payments agent's release. Nine captures and a refund, with ids: [paypal-acceptance-2026-10-31.md](docs/paypal-acceptance-2026-10-31.md).
 - **Live AI evaluation, 12 of 12**: 3 menus, 5 spoken orders, 4 takeaway requests against production: [ai-evaluation-results.md](docs/ai-evaluation-results.md). Inputs were rendered images and synthetic voices.
 - **Tests**: backend 88 integration tests on an isolated database and 63 unit tests; console 21 unit tests; app 154 widget tests, all passing.
 - **Neutral audit** against the judging criteria: [raysto-hackathon-audit-2026-11-02.md](docs/audits/raysto-hackathon-audit-2026-11-02.md).

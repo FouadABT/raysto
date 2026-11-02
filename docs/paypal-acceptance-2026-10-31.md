@@ -89,6 +89,26 @@ The judges' café ("Atelier Café · Judges", restaurant 5, USD, New York time) 
 - **Payments agent wording (0.13.8).** Asked by a manager, the agent wrote "PayPal status shows that the diner left"; that was the manager's report, not a PayPal fact. It now says "you reported" for what a manager saw.
 - **Console.** The Agents section did not prefill the judge password at the identity check, so the browser refused the empty field; it now does on the judges' café.
 
+## Session 5 — a cold judge's pass and the filmed run (2 November evening, backend 0.13.9)
+
+A reviewer briefed only on the rules ran the judges' path on backend 0.13.8 (section 9 of the [audit](audits/raysto-hackathon-audit-2026-11-02.md)). Voice, menu and the payments agent worked; the photo card failed after about two minutes ("Gemini took too long"); the one-sentence order moved a 12:30 pickup to 2:15 PM without saying why; PayPal's page named the merchant "Test Store". Backend 0.13.9 and console 0.15.1 fixed each of these (see below), and the five cards were then run again on production while being filmed for the demo video, at a 1280×720 browser:
+
+| Card | Result | Time |
+|---|---|---|
+| 2. Voice | The synthetic order heard as ticket lines: a croque monsieur, a croque monsieur with fried egg (croque madame), a cappuccino with oat milk; lemonade flagged as not on the menu | 6 s |
+| 1. Menu | 14 dishes, 3 new, 1 price change (cappuccino $3.00 → $3.20), soup held back without a price; approved and published | 18 s, $0.011 |
+| 3. Order | "Two vegetarian lunches under $25, ready as soon as you can, please." → falafel wrap and mushroom risotto, $21.50; the model's own reply named the earliest pickup (16:15) and why; buyer 1 approved in PayPal Sandbox | basket 10 s; capture `8DJ62510842222013`, ticket #9 |
+| 4. Payment | Checkout 21 left unpaid; the agent read PayPal through MCP (`PAYER_ACTION_REQUIRED`), wrote "You reported…", and the release ran after the identity check | 17 s, $0.004 |
+| 5. Photo | Gemini drew the croque monsieur in one attempt; scanned, approved, on the menu | 47 s, $0.040 |
+
+### Fixes found by session 5
+
+- **PayPal's page (0.13.9).** Orders now carry the restaurant's name as `brand_name`.
+- **Photo timeouts (0.13.9).** A first attempt that passes 90 s is asked once more (each attempt reserved and charged on its own); the card says so while it waits.
+- **Basket replies (0.13.9).** When the model proposes without words of its own, the reply is built from the proposal: dishes, total, pickup time, and why a requested time was not kept. The Try card no longer suggests a fixed 12:30.
+- **Judges' café (0.13.9).** An hourly tidy closes finished demo orders, so the copilot stops reading them as a late kitchen; a single late order is now called late, not a rush.
+- **Console (0.15.1).** The Floor's AG Studio canvas, cut-off grid labels, the venue picker, one coworker count, and the APK served from `rays.to/raysto.apk`.
+
 ## Owner console
 
 The console at `https://ops.rays.to/ops` (0.12.0, then 0.12.1) showed the same records to the QA owner:

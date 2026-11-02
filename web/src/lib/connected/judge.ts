@@ -17,6 +17,7 @@ export const judge = {
   apkVersion: process.env.NEXT_PUBLIC_RAYSTO_APK_VERSION ?? "",
   apkSha256: process.env.NEXT_PUBLIC_RAYSTO_APK_SHA256 ?? "",
   videoUrl: process.env.NEXT_PUBLIC_RAYSTO_VIDEO_URL ?? "",
+  videoLength: process.env.NEXT_PUBLIC_RAYSTO_VIDEO_LENGTH ?? "",
 };
 
 export const judgeLogin = () => !!(judge.email && judge.password);
