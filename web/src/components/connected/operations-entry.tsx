@@ -12,10 +12,19 @@ import {
 import { connectedAuth } from "@/lib/connected/firebase";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Membership } from "@/lib/connected/contracts";
+import { Icon } from "./icons";
 
 const Workspace = dynamic(
   () => import("./operations-workspace").then((m) => m.OperationsWorkspace),
-  { ssr: false, loading: () => <p>Setting your table…</p> },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="ops-loading" role="status">
+        <span className="ops-spinner" aria-hidden="true" />
+        Setting your table…
+      </div>
+    ),
+  },
 );
 export function OperationsEntry() {
   const draft = useRef(false);
@@ -30,6 +39,8 @@ export function OperationsEntry() {
     [error, setError] = useState("");
   const [busy, setBusy] = useState(true),
     [signedIn, setSignedIn] = useState(false);
+  // The sidebar slot the workspace renders its sections into.
+  const [navTarget, setNavTarget] = useState<HTMLElement | null>(null);
   useEffect(() => {
     let active = true,
       unsubscribe = () => {},
@@ -97,26 +108,87 @@ export function OperationsEntry() {
       setBusy(false);
     }
   }
+  const signOutButton = (className: string) => (
+    <button
+      className={className}
+      onClick={() => {
+        if (auth && canLeave()) {
+          draft.current = false;
+          void signOut(auth);
+        }
+      }}
+    >
+      <Icon name="signOut" size={18} />
+      Sign out
+    </button>
+  );
+  const wordmark = (
+    <a className="ops-wordmark" href="/ops">
+      rays<span>to</span>
+      <i>✳</i>
+    </a>
+  );
+  // Signed in with a restaurant: the console shell, with the sections in a
+  // sidebar that the workspace fills.
+  if (signedIn && !busy && api && selected)
+    return (
+      <main className="ops-root with-shell">
+        <aside className="ops-shell-side">
+          <div className="ops-shell-brand">
+            {wordmark}
+            <span className="ops-tag">THE RESTAURANT ROOM</span>
+          </div>
+          <label className="ops-venue">
+            <span>Restaurant</span>
+            <select
+              value={selected}
+              onChange={(e) => {
+                if (canLeave()) {
+                  draft.current = false;
+                  setSelected(Number(e.target.value));
+                }
+              }}
+            >
+              {memberships.map((m) => (
+                <option key={m.restaurantId} value={m.restaurantId}>
+                  {m.name} · {m.role}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="ops-shell-nav" ref={setNavTarget} />
+          <div className="ops-shell-foot">
+            <span className="ops-sandbox">
+              <Icon name="paypal" size={16} />
+              PayPal Sandbox · no live payments
+            </span>
+            {signOutButton("ops-quiet")}
+          </div>
+        </aside>
+        <div className="ops-shell-main">
+          {error && (
+            <p className="ops-error" role="alert">
+              {error}
+            </p>
+          )}
+          <Workspace
+            key={selected}
+            api={api}
+            tenant={selected}
+            navTarget={navTarget}
+            onDirty={(dirty) => {
+              draft.current = dirty;
+            }}
+          />
+        </div>
+      </main>
+    );
   return (
     <main className="ops-root">
       <header className="ops-top">
-        <a className="ops-wordmark" href="/ops">
-          rays<span>to</span>
-          <i>✳</i>
-        </a>
+        {wordmark}
         <span className="ops-tag">THE RESTAURANT ROOM</span>
-        {signedIn && (
-          <button
-            onClick={() => {
-              if (auth && canLeave()) {
-                draft.current = false;
-                void signOut(auth);
-              }
-            }}
-          >
-            Sign out
-          </button>
-        )}
+        {signedIn && signOutButton("ops-quiet")}
       </header>
       {error && (
         <p className="ops-error" role="alert">
@@ -124,12 +196,13 @@ export function OperationsEntry() {
         </p>
       )}
       {busy ? (
-        <p className="ops-loading" role="status">
+        <div className="ops-loading" role="status">
+          <span className="ops-spinner" aria-hidden="true" />
           Connecting your restaurant…
-        </p>
+        </div>
       ) : !signedIn ? (
         <section className="ops-welcome">
-          <div>
+          <div className="ops-welcome-story">
             <span className="ops-eyebrow">A LITTLE MORE HOSPITALITY</span>
             <h1>
               A room full
@@ -140,6 +213,20 @@ export function OperationsEntry() {
               Your tables, team and guests. One shared view, with Raysto close
               at hand.
             </p>
+            <ul className="ops-welcome-points">
+              <li>
+                <Icon name="orders" size={18} /> Every order, from counter to
+                table
+              </li>
+              <li>
+                <Icon name="paypal" size={18} /> PayPal payments you can
+                trust, checked twice
+              </li>
+              <li>
+                <Icon name="agents" size={18} /> AI coworkers that prepare,
+                so you can decide
+              </li>
+            </ul>
             <div className="ops-table-art" aria-hidden="true">
               <span>✳</span>
               <i />
@@ -159,9 +246,15 @@ export function OperationsEntry() {
             <p>Use your invited restaurant account.</p>
             <button
               type="button"
-              className="ops-primary"
+              className="ops-secondary ops-google"
               onClick={() => void login(true)}
             >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z" />
+                <path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z" />
+                <path fill="#FBBC05" d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2z" />
+                <path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1z" />
+              </svg>
               Continue with Google
             </button>
             <span className="ops-or">or sign in with email</span>
@@ -185,47 +278,18 @@ export function OperationsEntry() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>
-            <button type="submit">Sign in</button>
+            <button type="submit" className="ops-primary">
+              Sign in
+            </button>
             <small>
               Connected accounts only. Restaurant access is granted by your
               team.
             </small>
           </form>
         </section>
-      ) : api && selected ? (
-        <>
-          <div className="ops-context">
-            <label>
-              Restaurant{" "}
-              <select
-                value={selected}
-                onChange={(e) => {
-                  if (canLeave()) {
-                    draft.current = false;
-                    setSelected(Number(e.target.value));
-                  }
-                }}
-              >
-                {memberships.map((m) => (
-                  <option key={m.restaurantId} value={m.restaurantId}>
-                    {m.name} · {m.role}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <span>PayPal Sandbox · no live payments</span>
-          </div>
-          <Workspace
-            key={selected}
-            api={api}
-            tenant={selected}
-            onDirty={(dirty) => {
-              draft.current = dirty;
-            }}
-          />
-        </>
       ) : (
         <section className="ops-empty">
+          <span className="ops-empty-mark" aria-hidden="true">✳</span>
           <h1>Your place is waiting.</h1>
           <p>
             This account has no active owner or manager membership. Ask your

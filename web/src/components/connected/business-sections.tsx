@@ -5,6 +5,7 @@ import { themeQuartz, type ColDef } from "ag-grid-community";
 import { ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
 import { stepUp, usesPassword } from "@/lib/connected/step-up";
+import { Icon, type IconName } from "./icons";
 import {
   agentCost,
   agentName,
@@ -33,12 +34,41 @@ import {
 export type Section = "overview" | "orders" | "payments" | "agents";
 
 const gridTheme = themeQuartz.withParams({
-  accentColor: "#23493c",
-  backgroundColor: "#fffdf7",
-  foregroundColor: "#193c30",
+  accentColor: "#173f35",
+  backgroundColor: "#ffffff",
+  foregroundColor: "#173e34",
+  borderColor: "#e3e8df",
+  chromeBackgroundColor: "#f8f9f4",
+  headerBackgroundColor: "#f8f9f4",
+  headerTextColor: "#5c6b62",
+  headerFontWeight: 600,
+  headerFontSize: 13,
   fontFamily: "var(--font-jakarta)",
-  rowHeight: 48,
+  fontSize: 14,
+  rowHeight: 52,
+  headerHeight: 44,
+  rowHoverColor: "#f2f6ee",
+  selectedRowBackgroundColor: "#eef7d6",
+  wrapperBorder: false,
+  wrapperBorderRadius: 0,
+  columnBorder: false,
+  cellHorizontalPadding: 18,
 });
+/** Status words read as small colored pills, so state is seen, not read. */
+const tones: Record<string, string> = {
+  submitted: "new", new: "new", awaitingpayment: "new", created: "new", pending: "new", reserved: "new", queued: "new", review: "warn",
+  accepted: "cook", preparing: "cook", approved: "cook", capturing: "cook", running: "cook",
+  ready: "ready", outfordelivery: "ready",
+  paid: "ok", completed: "ok", collected: "ok", done: "ok", executed: "ok", captured: "ok", applied: "ok",
+  partiallyrefunded: "warn", refunded: "warn", uncertain: "late", failed: "late", unpaid: "late",
+  cancelled: "off", rejected: "off", expired: "off", released: "off", voided: "off",
+};
+const pill = (p: { value?: unknown; valueFormatted?: string | null }) =>
+  p.value == null || p.value === "" ? null : (
+    <span className={`ops-pill ${tones[String(p.value).toLowerCase().replaceAll("_", "")] ?? "neutral"}`}>
+      {p.valueFormatted ?? words(p.value)}
+    </span>
+  );
 const time = (iso: unknown) =>
   iso ? new Date(String(iso)).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
 const words = (v: unknown) => {
@@ -110,67 +140,123 @@ export function BusinessOverview({
     };
   }, [api, tenant, revision]);
   const code = data?.summary.currency ?? currencyCode;
-  if (!data) return <p className="ops-note">{error || "Gathering today's figures…"}</p>;
+  if (!data)
+    return error ? (
+      <p className="ops-error" role="alert">{error}</p>
+    ) : (
+      <div className="ops-skeleton" role="status" aria-label="Gathering today's figures">
+        <span className="hero" />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+    );
   const { summary, mix, totals, attention, active, waiting } = data;
-  const kpis: { label: string; value: string; note: string; to?: [Section | "floor", string?] }[] = [
-    { label: "Orders today", value: String(summary.ordersCreated), note: `${summary.completedOrders} completed`, to: ["orders"] },
-    { label: "Booked sales", value: currency(summary.bookedSalesMinor, code), note: "Placed and not cancelled", to: ["orders"] },
-    { label: "PayPal collected", value: currency(totals.paypal, code), note: "Captured by PayPal today", to: ["payments", "captures"] },
-    { label: "Cash collected", value: currency(totals.cash, code), note: "Recorded at the counter or table", to: ["payments", "cash"] },
-    { label: "Refunded", value: currency(summary.refundsMinor, code), note: "Completed refunds today", to: ["payments", "refunds"] },
-    { label: "PayPal to resolve", value: String(attention + (totals.review ? 1 : 0)), note: totals.review ? `${currency(totals.review, code)} under review` : "Unfinished or uncertain attempts", to: ["payments", "attempts"] },
-    { label: "In the kitchen", value: String(active.length), note: "New, preparing or ready", to: ["orders", "active"] },
-    { label: "Service requests", value: String(openRequests), note: "Open at the tables", to: ["floor"] },
+  const go = (to: [Section | "floor", string?]) => open(to[0], to[1]);
+  const resolve = attention + (totals.review ? 1 : 0);
+  const aboutMoney = waiting.filter((a) => a.risk === "money").length;
+  const stats: [string, number, string, [Section | "floor", string?]][] = [
+    ["PayPal collected", totals.paypal, "Captured by PayPal today", ["payments", "captures"]],
+    ["Cash collected", totals.cash, "Recorded at the counter or table", ["payments", "cash"]],
+    ["Refunded", summary.refundsMinor, "Completed refunds today", ["payments", "refunds"]],
+  ];
+  // Calm when nothing waits; warm or hot only when someone should look.
+  const needs: { label: string; value: number; note: string; icon: IconName; tone: string; to: [Section | "floor", string?] }[] = [
+    {
+      label: "PayPal to resolve",
+      value: resolve,
+      note: totals.review ? `${currency(totals.review, code)} under review` : resolve ? "Unfinished or uncertain attempts" : "Every attempt is settled",
+      icon: "paypal",
+      tone: resolve ? "hot" : "calm",
+      to: ["payments", "attempts"],
+    },
     {
       label: "Agents need you",
-      value: String(waiting.length),
-      note: waiting.length ? `${waiting.filter((a) => a.risk === "money").length} about money` : "AI coworkers are up to date",
+      value: waiting.length,
+      note: waiting.length ? `${aboutMoney} about money` : "AI coworkers are up to date",
+      icon: "agents",
+      tone: waiting.length ? (aboutMoney ? "hot" : "warm") : "calm",
       to: ["agents"],
     },
+    {
+      label: "Service requests",
+      value: openRequests,
+      note: openRequests ? "Open at the tables" : "No table is waiting",
+      icon: "bell",
+      tone: openRequests ? "warm" : "calm",
+      to: ["floor"],
+    },
+    {
+      label: "In the kitchen",
+      value: active.length,
+      note: "New, preparing or ready",
+      icon: "kitchen",
+      tone: active.length ? "busy" : "calm",
+      to: ["orders", "active"],
+    },
   ];
+  const total = mix.reduce((n, x) => n + x.salesMinor, 0) || 1;
   return (
     <div className="ops-business">
       {error && <p className="ops-error" role="alert">{error}</p>}
-      <div className="ops-kpis">
-        {kpis.map((k) => (
-          <button
-            key={k.label}
-            className={`ops-kpi ${k.label === "PayPal to resolve" && k.value !== "0" ? "alert" : ""}`}
-            onClick={() => k.to && open(k.to[0], k.to[1])}
-            disabled={!k.to}
-          >
-            <span>{k.label}</span>
-            <strong>{k.value}</strong>
-            <small>{k.note}</small>
-          </button>
-        ))}
-      </div>
+      <section className="ops-hero" aria-label="Today">
+        <button className="ops-hero-main" onClick={() => go(["orders"])}>
+          <span className="ops-hero-label">Booked sales today</span>
+          <strong>{currency(summary.bookedSalesMinor, code)}</strong>
+          <span className="ops-hero-sub">
+            {summary.ordersCreated} {summary.ordersCreated === 1 ? "order" : "orders"} today · {summary.completedOrders} completed
+          </span>
+        </button>
+        <div className="ops-hero-split">
+          {stats.map(([label, value, note, to]) => (
+            <button key={label} className="ops-hero-stat" onClick={() => go(to)}>
+              <span>{label}</span>
+              <strong>{currency(value, code)}</strong>
+              <small>{note}</small>
+            </button>
+          ))}
+        </div>
+      </section>
+      <section aria-labelledby="ops-needs">
+        <h2 id="ops-needs" className="ops-section-title">Needs you</h2>
+        <div className="ops-attention">
+          {needs.map((n) => (
+            <button key={n.label} className={`ops-tile ${n.tone}`} onClick={() => go(n.to)}>
+              <span className="ops-tile-icon">
+                <Icon name={n.tone === "calm" ? "check" : n.icon} size={20} />
+              </span>
+              <span className="ops-tile-label">{n.label}</span>
+              <strong>{n.value}</strong>
+              <small>{n.note}</small>
+              <Icon className="ops-tile-go" name="arrow" size={18} />
+            </button>
+          ))}
+        </div>
+      </section>
       <section className="ops-panel">
         <h2>Today by channel</h2>
         {mix.length === 0 ? (
-          <p className="ops-note">No orders yet today.</p>
+          <p className="ops-quiet-note">No orders yet today. Channels appear here as orders come in.</p>
         ) : (
           <table className="ops-mix">
             <thead>
               <tr><th>Channel</th><th>Orders</th><th>Sales</th><th>Share</th></tr>
             </thead>
             <tbody>
-              {mix.map((m) => {
-                const total = mix.reduce((n, x) => n + x.salesMinor, 0) || 1;
-                return (
-                  <tr key={m.channel}>
-                    <td>{m.channel}</td>
-                    <td>{m.orders}</td>
-                    <td>{currency(m.salesMinor, code)}</td>
-                    <td>
-                      <span className="ops-share">
-                        <span className="ops-bar" style={{ width: `${Math.round((m.salesMinor / total) * 100)}%` }} />
-                      </span>{" "}
-                      {Math.round((m.salesMinor / total) * 100)}%
-                    </td>
-                  </tr>
-                );
-              })}
+              {mix.map((m) => (
+                <tr key={m.channel}>
+                  <td>{m.channel}</td>
+                  <td>{m.orders}</td>
+                  <td>{currency(m.salesMinor, code)}</td>
+                  <td>
+                    <span className="ops-share">
+                      <span className="ops-bar" style={{ width: `${Math.round((m.salesMinor / total) * 100)}%` }} />
+                    </span>{" "}
+                    {Math.round((m.salesMinor / total) * 100)}%
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
@@ -230,10 +316,10 @@ export function OrdersSection({
   );
   const columns = useMemo<ColDef<OrderRow>[]>(
     () => [
-      { headerName: "Ticket", valueGetter: (p) => (p.data?.number ? `#${p.data.number}` : `Order ${p.data?.id}`), minWidth: 100, flex: 0.7 },
+      { headerName: "Ticket", valueGetter: (p) => (p.data?.number ? `#${p.data.number}` : `Order ${p.data?.id}`), minWidth: 100, flex: 0.7, cellClass: "ops-cell-strong" },
       { headerName: "Channel", valueGetter: (p) => (p.data ? channelOf(p.data) : "") },
-      { field: "status", valueFormatter: (p) => words(p.value) },
-      { field: "paymentStatus", headerName: "Payment", valueFormatter: (p) => words(p.value) },
+      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 140 },
+      { field: "paymentStatus", headerName: "Payment", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 180 },
       { field: "totalMinor", headerName: "Total", type: "rightAligned", valueFormatter: money(currencyCode) },
       { headerName: "Customer / table", minWidth: 140, valueGetter: (p) => (p.data ? customerOf(p.data) : "") },
       { field: "createdAt", headerName: "Placed", minWidth: 160, valueFormatter: (p) => time(p.value), sort: "desc" },
@@ -451,7 +537,7 @@ export function PaymentsSection({
             columnDefs={[
               { field: "checkoutId", headerName: "Checkout", flex: 0.6 },
               { field: "method", valueFormatter: (p) => (p.value === "paypal" ? "PayPal" : "Cash") },
-              { field: "state", valueFormatter: (p) => words(p.value) },
+              { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill },
               { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
               { headerName: "For", valueGetter: (p) => (p.data?.orderId ? `Order ${p.data.orderId}` : `Visit ${p.data?.visitId}`) },
               { field: "createdAt", headerName: "Started", valueFormatter: (p) => time(p.value) },
@@ -466,7 +552,7 @@ export function PaymentsSection({
             columnDefs={[
               { field: "id", headerName: "Refund", flex: 0.5 },
               { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
-              { field: "state", valueFormatter: (p) => words(p.value) },
+              { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill },
               { field: "reason" },
               { field: "providerRefundId", headerName: "PayPal refund id" },
               { field: "createdAt", headerName: "Requested", valueFormatter: (p) => time(p.value) },
@@ -481,7 +567,7 @@ export function PaymentsSection({
             columnDefs={[
               { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
               { field: "refundedMinor", headerName: "Refunded", type: "rightAligned", valueFormatter: money(currencyCode) },
-              { field: "state", headerName: "Ledger", valueFormatter: (p) => (p.value === "review" ? "Under review" : words(p.value)) },
+              { field: "state", headerName: "Ledger", valueFormatter: (p) => (p.value === "review" ? "Under review" : words(p.value)), cellRenderer: pill },
               ...(tab === "captures" ? [{ field: "providerCaptureId" as const, headerName: "PayPal capture id", minWidth: 190 }] : []),
               { headerName: "For", valueGetter: (p) => (p.data?.orderId ? `Order ${p.data.orderId}` : p.data?.visitId ? `Visit ${p.data.visitId}` : "") },
               { field: "createdAt", headerName: "Collected", valueFormatter: (p) => time(p.value), sort: "desc" },
@@ -543,7 +629,7 @@ export function AgentsSection({
       { headerName: "Agent", valueGetter: (p) => (p.data ? agentName(p.data.agent) : ""), minWidth: 140 },
       { field: "title", headerName: "Task", minWidth: 180 },
       { field: "summary", headerName: "Outcome", flex: 2, minWidth: 260, tooltipField: "summary" },
-      { field: "status", valueFormatter: (p) => words(p.value), minWidth: 110 },
+      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 110 },
       {
         headerName: "Time",
         valueGetter: (p) => Number(p.data?.state?.ms ?? 0) / 1000,

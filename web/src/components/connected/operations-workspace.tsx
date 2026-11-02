@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { AgGridReact } from "ag-grid-react";
 import {
   AllCommunityModule,
@@ -38,6 +39,7 @@ import {
   type TableRow,
 } from "@/lib/connected/contracts";
 import { RoomPanel } from "./room-panel";
+import { Icon } from "./icons";
 import {
   BusinessOverview,
   OrdersSection,
@@ -50,16 +52,23 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const license = process.env.NEXT_PUBLIC_AG_STUDIO_LICENSE;
 if (license) AgStudioLicenseManager.setLicenseKey(license);
 const gridTheme = themeQuartz.withParams({
-  accentColor: "#23493c",
-  backgroundColor: "#fffdf7",
-  foregroundColor: "#193c30",
+  accentColor: "#173f35",
+  backgroundColor: "#ffffff",
+  foregroundColor: "#173e34",
+  borderColor: "#e3e8df",
+  headerBackgroundColor: "#f8f9f4",
+  headerTextColor: "#5c6b62",
+  headerFontWeight: 600,
   fontFamily: "var(--font-jakarta)",
   rowHeight: 52,
+  rowHoverColor: "#f2f6ee",
+  selectedRowBackgroundColor: "#eef7d6",
+  columnBorder: false,
 });
 const raystoTheme = studioTheme.withParams({
-  accentColor: "#23493c",
-  backgroundColor: "#fffdf7",
-  foregroundColor: "#193c30",
+  accentColor: "#173f35",
+  backgroundColor: "#ffffff",
+  foregroundColor: "#173e34",
   fontFamily: "var(--font-jakarta)",
   borderRadius: 12,
 });
@@ -207,10 +216,13 @@ export function OperationsWorkspace({
   api,
   tenant,
   onDirty,
+  navTarget,
 }: {
   api: ConnectedApi;
   tenant: number;
   onDirty?: (dirty: boolean) => void;
+  /** The console sidebar; the sections render there when it exists. */
+  navTarget?: HTMLElement | null;
 }) {
   const [snapshot, setSnapshot] = useState<OperationsSnapshot>();
   const [filter, setFilter] = useState<AttentionFilter>("all");
@@ -605,8 +617,12 @@ export function OperationsWorkspace({
   if (!snapshot || !layout)
     return (
       <section className="ops-empty">
+        {!error && <span className="ops-spinner" aria-hidden="true" />}
         <p role="status">{error || "Opening the restaurant…"}</p>
-        <button onClick={() => void refreshRef.current()}>Retry</button>
+        <button className="ops-secondary" onClick={() => void refreshRef.current()}>
+          <Icon name="refresh" size={18} />
+          Retry
+        </button>
       </section>
     );
   return (
@@ -617,9 +633,16 @@ export function OperationsWorkspace({
             <span className="ops-eyebrow">EVERY ORDER, EVERY TABLE, EVERY PAYMENT</span>
             <h1>{snapshot.name}</h1>
           </div>
-          <span className="ops-live">● {delivery}</span>
-          <button onClick={() => void refreshRef.current()}>Refresh</button>
-          <button onClick={() => void save()} disabled={saving}>
+          <span className={`ops-live ${delivery === "Live" ? "on" : ""}`}>
+            <i aria-hidden="true" />
+            {delivery}
+          </span>
+          <button className="ops-secondary" onClick={() => void refreshRef.current()}>
+            <Icon name="refresh" size={18} />
+            Refresh
+          </button>
+          <button className="ops-secondary" onClick={() => void save()} disabled={saving}>
+            <Icon name="save" size={18} />
             {saving ? "Saving…" : "Save workspace"}
           </button>
         </div>
@@ -628,28 +651,35 @@ export function OperationsWorkspace({
             {error}
           </p>
         )}
-        <nav className="ops-sections" aria-label="Console sections">
-          {(
-            [
-              ["overview", "Overview"],
-              ["orders", "Orders"],
-              ["payments", "Payments"],
-              ["agents", "Agents"],
-              ["floor", "Floor"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              aria-pressed={section === id}
-              onClick={() => {
-                setFocus(undefined);
-                setSection(id);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
+        {(() => {
+          const nav = (
+            <nav className="ops-sections" aria-label="Console sections">
+              {(
+                [
+                  ["overview", "Overview", "overview"],
+                  ["orders", "Orders", "orders"],
+                  ["payments", "Payments", "payments"],
+                  ["agents", "Agents", "agents"],
+                  ["floor", "Floor", "floor"],
+                ] as const
+              ).map(([id, label, icon]) => (
+                <button
+                  key={id}
+                  aria-pressed={section === id}
+                  aria-current={section === id ? "page" : undefined}
+                  onClick={() => {
+                    setFocus(undefined);
+                    setSection(id);
+                  }}
+                >
+                  <Icon name={icon} size={20} />
+                  {label}
+                </button>
+              ))}
+            </nav>
+          );
+          return navTarget ? createPortal(nav, navTarget) : nav;
+        })()}
         {section !== "floor" ? (
           section === "overview" ? (
             <BusinessOverview
