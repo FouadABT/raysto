@@ -142,15 +142,25 @@ function AttentionTile({ widgetType }: { widgetType: string }) {
     </button>
   );
 }
+// Thumbnails in AG Studio's widget menu, drawn like the console's icons.
+const tileIcon = (path: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#173d33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+const tileIcons: Record<TileId, string> = {
+  raystoBalance: tileIcon('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>'),
+  raystoService: tileIcon('<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>'),
+  raystoExceptions: tileIcon('<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>'),
+};
 function createTile<T extends TileId>(id: T): TileDefinition<T> {
   return {
     id,
+    // Short words: the widget menu's cells are narrow.
     label:
       id === "raystoBalance"
-        ? "Outstanding bills"
+        ? "Open bills"
         : id === "raystoService"
-          ? "Service attention"
-          : "Payment exceptions",
+          ? "Service"
+          : "Payment issues",
+    icon: tileIcons[id],
     comp: AttentionTile,
     defaultSize: { width: 320, height: 180 },
     minSize: { width: 220, height: 140 },
@@ -188,16 +198,19 @@ const defaultLayout: AgReportState<Registry> = {
         service: { type: "raystoService", dataMapping: {} },
         exceptions: { type: "raystoExceptions", dataMapping: {} },
       },
+      // Two across and one below, so all three fit beside the AI Assistant.
       widgetLayout: {
         balance: { xTrack: 0, yTrack: 0, xSpan: 8, ySpan: 8 },
         service: { xTrack: 8, yTrack: 0, xSpan: 8, ySpan: 8 },
-        exceptions: { xTrack: 16, yTrack: 0, xSpan: 8, ySpan: 8 },
+        exceptions: { xTrack: 0, yTrack: 8, xSpan: 8, ySpan: 8 },
       },
     },
   ],
   selectedPageId: "restaurant",
   panels: {
     ai: { collapsed: false },
+    // Compose opens by itself when a widget is selected.
+    edit: { collapsed: true },
     data: { collapsed: true },
     filters: { collapsed: true },
   },
@@ -403,10 +416,11 @@ export function OperationsWorkspace({
         setOrders(o.rows);
         setPayments(p.rows);
         setError("");
+        // Every judge starts from the same layout, whatever another saved.
         setLayout(
           (old) =>
             old ??
-            (next.layout?.pages
+            (next.layout?.pages && !judges
               ? (next.layout as unknown as AgReportState<Registry>)
               : defaultLayout),
         );
@@ -650,10 +664,12 @@ export function OperationsWorkspace({
             <Icon name="refresh" size={18} />
             Refresh
           </button>
-          <button className="ops-secondary" onClick={() => void save()} disabled={saving}>
-            <Icon name="save" size={18} />
-            {saving ? "Saving…" : "Save workspace"}
-          </button>
+          {!judges && (
+            <button className="ops-secondary" onClick={() => void save()} disabled={saving}>
+              <Icon name="save" size={18} />
+              {saving ? "Saving…" : "Save workspace"}
+            </button>
+          )}
         </div>
         {error && (
           <p className="ops-error" role="alert">

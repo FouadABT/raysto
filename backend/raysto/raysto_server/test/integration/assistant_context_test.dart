@@ -190,6 +190,34 @@ void main() {
       );
     });
 
+    test(
+      'the operations assistant lists only its own conversations',
+      () async {
+        final s = builder.build();
+        await AssistantRun.db.insertRow(
+          s,
+          run(
+            'assistant-owner',
+            input: {'text': 'Sales today?', 'threadKey': 'ops'},
+          ),
+        );
+        await AssistantRun.db.insertRow(
+          s,
+          run(
+            'assistant-owner',
+            input: {'context': 'cart', 'text': 'Lunch', 'threadKey': 'lunch'},
+          ),
+        );
+        final listed = await work(
+          'assistant-owner',
+          (w) => WorkspaceModule.threads(w, {}),
+        );
+        expect([for (final r in listed['runs'] as List) r['threadKey']], [
+          'ops',
+        ]);
+      },
+    );
+
     test('each conversation sees only its own tools', () {
       final cart = run('assistant-customer', input: {'context': 'cart'});
       expect(

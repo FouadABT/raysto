@@ -220,27 +220,37 @@ class JudgeModule {
     ),
   ];
 
-  static String? _queued;
+  static String? _queued, _tidied;
 
-  /// Queues the daily reset at 09:00 UTC, night across the Americas.
+  /// Queues the daily reset at 09:00 UTC, night across the Americas, and an
+  /// hourly tidy so finished demo orders do not stay open in the kitchen.
   static Future<void> schedule(Session s) async {
     final rid = restaurantId;
     final now = _now();
+    if (rid == null) return;
     final day = now.toIso8601String().substring(0, 10);
-    if (rid == null || now.hour < 9 || _queued == '$rid:$day') return;
+    final hour = now.toIso8601String().substring(0, 13);
+    final jobs = [
+      if (now.hour >= 9 && _queued != '$rid:$day')
+        ('judge.reset', 'judge-reset:$rid:$day'),
+      if (_tidied != '$rid:$hour') ('judge.tidy', 'judge-tidy:$rid:$hour'),
+    ];
+    if (jobs.isEmpty) return;
     await PlatformJob.db.insert(s, [
-      PlatformJob(
-        restaurantId: rid,
-        kind: 'judge.reset',
-        dedupeKey: 'judge-reset:$rid:$day',
-        payloadJson: jsonEncode({'restaurantId': rid}),
-        state: 'pending',
-        attempts: 0,
-        availableAt: now,
-        createdAt: now,
-      ),
+      for (final (kind, key) in jobs)
+        PlatformJob(
+          restaurantId: rid,
+          kind: kind,
+          dedupeKey: key,
+          payloadJson: jsonEncode({'restaurantId': rid}),
+          state: 'pending',
+          attempts: 0,
+          availableAt: now,
+          createdAt: now,
+        ),
     ], ignoreConflicts: true);
-    _queued = '$rid:$day';
+    if (now.hour >= 9) _queued = '$rid:$day';
+    _tidied = '$rid:$hour';
   }
 
   /// A manager of the judges' café starts it fresh. Work from the last ten
@@ -261,10 +271,12 @@ class JudgeModule {
   /// Returns the café to its starting menu and settings. Nothing is deleted:
   /// orders are completed or cancelled and checkouts released through the
   /// same steps staff use, and PayPal is read before any checkout is freed.
+  /// Without [full], only orders, checkouts and old proposals are closed.
   static Future<Json> reset(
     Session s,
     int rid, {
     Duration quiet = const Duration(hours: 1),
+    bool full = true,
   }) async {
     if (!venue(rid)) {
       _fail('forbidden', 'Only the judges’ café starts fresh.');
@@ -352,6 +364,18 @@ class JudgeModule {
         a.version++;
         await AgentAction.db.updateRow(s, a, transaction: w.tx);
         expired++;
+      }
+      if (!full) {
+        final result = {
+          'released': released,
+          'completed': completed,
+          'cancelled': cancelled,
+          'expired': expired,
+        };
+        if (result.values.any((n) => n > 0)) {
+          await w.audit('judge.tidy', 'restaurant', rid, result);
+        }
+        return result;
       }
 
       final policy = w.policy!;

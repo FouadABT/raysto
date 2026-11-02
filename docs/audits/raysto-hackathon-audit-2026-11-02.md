@@ -106,3 +106,35 @@ Same method, same neutrality. What changed since the morning, all checked live:
 | Presentation (written part) | ~4.5 | 8.0 | The text now describes the product that exists, with evidence and limits. The video is not assessed. |
 
 **Average of the five (video excluded): 7.9. As a judge would see it: about 7.9**, since the gap between the substance and what a judge can reach is closed. Reaching above 8 needs the remaining items: the APK release, a physical-device run, a real menu photo and a human voice in the evaluation, and a polish pass on the customer screens.
+
+## 9. Cold judge's pass, 2 November night
+
+A second reviewer who had not seen sections 5–8 judged Raysto the way a Devpost judge would: the README, the Devpost draft and about 15 minutes on rays.to. Its findings were checked against the code, the live console and screenshots before being recorded here. Section 8's 7.9 was too generous. It left the video out, and it gave impact and innovation credit that a cold reader does not give.
+
+**What a judge hit on the live path**
+
+| Finding | Checked |
+|---|---|
+| First AI result 9.5 s after opening rays.to (voice card); menu card 18 s, 14 dishes, 3 new, 1 price change | yes, screenshots |
+| Payments agent: PayPal MCP read shown as evidence, identity check, release ran, about 22 s | yes |
+| **Draw a dish failed** after about 2 minutes with "Gemini took too long to draw the photo" (the server's 120 s limit, `media_ai.dart:92`); earlier runs today took 44–48 s | yes |
+| **Order in one sentence moved pickup from 12:30 to 2:15 PM without saying why**. The suggested sentence fixes the time at 12:30 New York time, which has already passed for most of the judging day. The reply was the backend's generic line, not the model's. | yes, `assistant.dart` fallback |
+| PayPal's page names the merchant "Test Store" (no `brand_name` is sent) and follows the visitor's browser language | yes, no `experience_context` in the backend |
+| The README, rays.to and the Devpost text point to a GitHub release that does not exist yet | yes, 0 releases |
+| Counts disagree: rays.to says four AI coworkers, the README lists six, the Try page has five demos; "145" means backend tests on rays.to and app widget tests in the Devpost text | yes |
+| Floor at 1440 px: the AG Studio canvas is squeezed between two panels, the widget thumbnails are blank, "Outstanding bills" breaks mid-word, and the AI Assistant panel shows the takeaway order conversation | yes, screenshot |
+| Orders grid cuts off "Awaiting Payment" and the Customer column; the restaurant picker reads "Judges · mana" | yes |
+| The copilot raised "kitchen rush" proposals in the judges' café because paid demo orders never move on | reported by the reviewer, not rechecked |
+| No demo video under 3 minutes exists; the 60-second promo from 1 November shows none of the five demos | yes |
+
+**Scores as a judge would give them tonight**
+
+| Criterion | Score | Why |
+|---|---|---|
+| Technological implementation | 8.0 | Real agents, real PayPal Sandbox, MCP and a backed approval gate, all runnable by a judge. One of five demos failed in front of the judge. |
+| Design | 7.5 | The judges' page and the Try page are polished and clear. The Floor/AG Studio section, cut-off labels and plain customer screens in the app hold it back. |
+| Potential impact | 6.5 | The problem is real and specific. Sandbox only, a single shared merchant, no merchant onboarding and no real venue. |
+| Innovation | 7.0 | The approval model and the payments agent reading PayPal through MCP are fresh; menu reading and voice orders exist elsewhere. |
+| Presentation | 7.5 written / about 5 with the current video | The text is clear, honest and evidenced, but long, and has the claim and link problems above. No demo video exists. |
+
+**Average: 7.3 on the written submission; about 6.8 if the 60-second promo were submitted as the video.** Above 8 needs a strong demo video, the judge-path fixes above and one real-world proof point (a real venue's menu and voice).

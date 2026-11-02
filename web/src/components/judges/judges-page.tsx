@@ -94,8 +94,9 @@ function Hero() {
           <em>PayPal moves the money.</em>
         </h1>
         <p className="jg-lead">
-          Raysto is the till, kitchen board, ordering app and back office for a small restaurant. Four AI coworkers
-          read menus, hear orders, draw dishes and chase payments, and every change they prepare waits for a person.
+          Raysto is the till, kitchen board, ordering app and back office for a small restaurant. Six AI coworkers
+          read menus, hear orders, build baskets, chase payments, watch the kitchen and draw dishes, and every change
+          they prepare waits for a person.
         </p>
         <div className="jg-ctas">
           <a className="jg-primary" href={consoleUrl}>
@@ -345,8 +346,8 @@ export function JudgesPage() {
               <span>PayPal Sandbox captures recorded, plus a refund; two paid one split bill</span>
             </a>
             <a href={`${repo}#evidence`} className="jg-fact">
-              <strong>145</strong>
-              <span>backend tests (85 integration on an isolated database, 60 unit)</span>
+              <strong>151</strong>
+              <span>backend tests (88 integration on an isolated database, 63 unit)</span>
             </a>
             <a href={`${repo}#how-paypal-is-used`} className="jg-fact">
               <strong>MCP</strong>
@@ -365,9 +366,23 @@ export function JudgesPage() {
             </p>
           </Reveal>
           {judge.apkUrl ? (
-            <a className="jg-secondary" href={judge.apkUrl}>
-              Download the Android app (APK)
-            </a>
+            <div className="jg-download">
+              <a className="jg-secondary" href={judge.apkUrl}>
+                Download the Android app (APK{judge.apkVersion ? `, ${judge.apkVersion}` : ""})
+              </a>
+              <ol>
+                <li>Open the file on an Android phone or tablet (Android 7 or later, 64-bit) and allow the install.</li>
+                <li>
+                  Choose <strong>Use my Raysto account</strong>, then <strong>Sign in as a diner</strong> or{" "}
+                  <strong>Sign in as the café manager</strong>.
+                </li>
+              </ol>
+              {judge.apkSha256 && (
+                <p className="jg-sha">
+                  SHA-256 <code>{judge.apkSha256}</code>
+                </p>
+              )}
+            </div>
           ) : (
             <a className="jg-secondary" href={`${repo}/releases`}>
               Releases on GitHub

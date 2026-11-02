@@ -431,8 +431,11 @@ class RecordSummary extends StatelessWidget {
               'snapshot',
               'profile',
             }.contains(e.key))
+          // Each tile has its own storage key: without one it shares the
+          // list's page storage slot and reads a scroll offset as its state.
           if (e.value is Map)
             ExpansionTile(
+              key: PageStorageKey('record-${e.key}'),
               title: Text(friendly(e.key)),
               children: [
                 Padding(
@@ -445,6 +448,7 @@ class RecordSummary extends StatelessWidget {
             )
           else if (e.value is List)
             ExpansionTile(
+              key: PageStorageKey('record-${e.key}'),
               title: Text(friendly(e.key)),
               children: [
                 for (final value in e.value as List)

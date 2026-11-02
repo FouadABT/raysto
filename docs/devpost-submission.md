@@ -29,7 +29,7 @@ A snack bar or small restaurant runs on a till, paper tickets and a card termina
 
 **For diners** (Android app):
 - Order ahead for pickup and pay with PayPal; staff check a four-digit pickup code.
-- **Ask Raysto**: "Two vegetarian lunches under $25 for pickup at 12:30." Raysto reads the menu, keeps to the budget and the time, and proposes a priced basket. One tap places the order and opens PayPal; only the diner's approval on PayPal's own page pays.
+- **Ask Raysto**: "Two vegetarian lunches under $25, ready as soon as you can." Raysto reads the menu, keeps to the budget, picks a pickup time the kitchen can keep (and says so when it cannot keep the time you asked for), and proposes a priced basket. One tap places the order and opens PayPal; only the diner's approval on PayPal's own page pays.
 - Table service with a shared room and exact split bills: each diner pays their own share in PayPal.
 
 **For the owner** (console at [ops.rays.to](https://ops.rays.to/ops), AG Grid and AG Studio):
@@ -47,7 +47,7 @@ A snack bar or small restaurant runs on a till, paper tickets and a card termina
 - **Counter QR** for walk-in sales, **exact split bills** with one PayPal order per diner's share, and **partial refunds** behind a fresh identity check.
 - **PayPal MCP server** (`@paypal/mcp` over stdio) inside the payments agent and Ask Raysto: the AI reads PayPal's own record of a payment before it proposes anything, and says that PayPal was the source.
 - **Agentic checkout**: an AI-built basket becomes a real PayPal order in one tap, but only the buyer's approval in PayPal moves money.
-- Sandbox only, on one Sandbox business account.
+- Sandbox only, on one Sandbox business account. Each restaurant connecting its own PayPal account is built (Partner Referrals, the restaurant as payee); going live needs PayPal to approve Raysto as a platform partner.
 
 ### How AI is used
 
@@ -74,7 +74,7 @@ The rules are enforced by the backend, not by prompts:
 - **Backend**: Serverpod 4 and PostgreSQL on AWS ([api.rays.to](https://api.rays.to/ready)), with a durable job queue and a separate lane for AI work so a slow model never delays a payment.
 - **Console and judges' page**: Next.js 16, React 19, AG Grid, AG Studio.
 - **Services**: Firebase Authentication, Gemini Developer API, PayPal Orders v2, Webhooks and MCP.
-- **Tests**: backend 85 integration tests on an isolated database and 60 unit tests; console 21; app 145 widget tests.
+- **Tests**: backend 88 integration tests on an isolated database and 63 unit tests; console 21; app 154 widget tests, all passing.
 
 ### Verified live in PayPal Sandbox (31 October to 2 November 2026)
 
@@ -120,7 +120,7 @@ flutter, dart, serverpod, postgresql, aws, nginx, cloudflare, next.js, react, ty
 1. Open https://rays.to and press **Try it now**, or open https://ops.rays.to/ops and press **Try Raysto as a judge**.
 2. Run the five cards on the **Try Raysto** page in any order.
 3. For card 3, PayPal's Sandbox page asks for a buyer login: `<Sandbox buyer email>` / `<Sandbox buyer password>` (fill in from the private buyer file; never commit it).
-4. Android: install the APK from https://github.com/FouadABT/raysto/releases and sign in as the diner (logins in the README), or as the manager to see the staff tablet.
+4. Android: install the APK from https://rays.to/raysto.apk and sign in as the diner (logins in the README), or as the manager to see the staff tablet.
 5. The demo café starts fresh every day at 09:00 UTC. Everything is PayPal Sandbox.
 
 ## Links

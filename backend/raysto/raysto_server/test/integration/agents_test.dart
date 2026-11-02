@@ -1350,6 +1350,95 @@ void main() {
     );
 
     test(
+      'a photo that times out is asked once more, and both attempts are charged',
+      () async {
+        AgentModule.environment = () => {
+          ...Platform.environment,
+          'RAYSTO_AGENT_IMAGES_ENABLED': 'true',
+        };
+        ProviderClients.environment = () => {
+          ...Platform.environment,
+          'OPENAI_API_KEY': 'fixture-openai',
+          'RAYSTO_AI_IMAGE_USD_OPENAI': '0.05',
+        }..remove('GEMINI_API_KEY');
+        final store = ImageAgent.store, scan = ImageAgent.scan;
+        final limits = ImageAgent.attemptLimits;
+        addTearDown(() {
+          ImageAgent.store = store;
+          ImageAgent.scan = scan;
+          ImageAgent.attemptLimits = limits;
+        });
+        ImageAgent.attemptLimits = const [
+          Duration(milliseconds: 50),
+          Duration(seconds: 5),
+        ];
+        ImageAgent.store = (name, bytes, mime) async {};
+        ImageAgent.scan = (s, id) async {
+          final a = (await MediaAsset.db.findById(s, id))!;
+          await MediaAsset.db.updateRow(s, a..status = 'approved');
+        };
+        var calls = 0;
+        ProviderClients.httpClient = () => MockClient((r) async {
+          calls++;
+          // The first request is slower than its limit; the second answers.
+          if (calls == 1) {
+            await Future.delayed(const Duration(milliseconds: 400));
+          }
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {'b64_json': base64Encode(List.filled(4000, 7))},
+              ],
+            }),
+            200,
+          );
+        });
+        final started = await ImageAgent.photo(
+          owner.build(),
+          command({
+            'productIds': [burger],
+            'provider': 'openai',
+          }),
+        );
+        final taskId = (started['taskIds'] as List).single as int;
+        await AgentModule.run(builder.build(), taskId);
+        final task = (await AgentTask.db.findById(builder.build(), taskId))!;
+        expect(task.status, 'done', reason: '${task.summary}');
+        expect(calls, 2);
+        expect(task.summary, contains('second try'));
+        expect(task.chargedMicros, 100000);
+
+        // Two slow answers fail the task instead of asking a third time.
+        calls = 0;
+        ImageAgent.attemptLimits = const [
+          Duration(milliseconds: 50),
+          Duration(milliseconds: 50),
+        ];
+        ProviderClients.httpClient = () => MockClient((r) async {
+          calls++;
+          await Future.delayed(const Duration(milliseconds: 400));
+          return http.Response('{}', 200);
+        });
+        final again = await ImageAgent.photo(
+          owner.build(),
+          command({
+            'productIds': [burger],
+            'provider': 'openai',
+          }),
+        );
+        final failedId = (again['taskIds'] as List).single as int;
+        await AgentModule.run(builder.build(), failedId);
+        final failed = (await AgentTask.db.findById(
+          builder.build(),
+          failedId,
+        ))!;
+        expect(failed.status, 'failed');
+        expect(failed.summary, contains('took too long'));
+        expect(calls, 2);
+      },
+    );
+
+    test(
       'feature and restaurant ceilings stop spending before the total',
       () async {
         AiBudget.environment = () => {

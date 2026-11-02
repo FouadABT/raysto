@@ -21,7 +21,7 @@ The other console sections show the same café through AG Grid: Overview, Orders
 
 ## The Android app (optional)
 
-Install the APK from the [releases page](https://github.com/FouadABT/raysto/releases). Sign in as the **diner** to order from the demo café with Ask Raysto and pay in PayPal Sandbox, or as the **manager** to see the staff tablet: the counter till with the PayPal QR and voice ordering, the kitchen board and the Agents inbox. Logins are in the [README](../README.md#try-it-in-two-minutes).
+Install the APK from [rays.to/raysto.apk](https://rays.to/raysto.apk); its checksum and install steps are on [rays.to](https://rays.to). Sign in as the **diner** to order from the demo café with Ask Raysto and pay in PayPal Sandbox, or as the **manager** to see the staff tablet: the counter till with the PayPal QR and voice ordering, the kitchen board and the Agents inbox. Logins are in the [README](../README.md#try-it-in-two-minutes).
 
 ## Evidence
 

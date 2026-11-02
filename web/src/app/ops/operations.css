@@ -349,6 +349,12 @@
 .ops-root .ops-venue select option {
   color: var(--ink);
 }
+.ops-venue > small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9fb5a6;
+}
 .ops-shell-nav {
   flex: 1;
 }
@@ -1617,6 +1623,7 @@
   }
   .ops-shell-brand .ops-tag,
   .ops-venue > span,
+  .ops-venue > small,
   .ops-sandbox {
     display: none;
   }

@@ -485,7 +485,7 @@ function VoiceCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
 function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
   const pay = useDemo();
-  const [text, setText] = useState("Two vegetarian lunches under $25 for pickup at 12:30, please.");
+  const [text, setText] = useState("Two vegetarian lunches under $25, ready as soon as you can, please.");
   const [run, setRun] = useState<Json>();
   const [checkout, setCheckout] = useState<{ id: number; orderId: number; url: string }>();
   const [paid, setPaid] = useState<Json>();
@@ -777,7 +777,19 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
         productIds: [chosen],
         provider: "gemini",
       });
-      const done = await agentTask(api, tenant, asked.taskIds[0], signal, 180000);
+      // Gemini's image model is sometimes slow; the server asks it once more after 90 s.
+      const slow = setTimeout(
+        () => say("Taking longer than usual. If Gemini does not answer within 90 s, Raysto asks it once more by itself"),
+        60000,
+      );
+      let done: Json;
+      try {
+        done = await agentTask(api, tenant, asked.taskIds[0], signal, 300000);
+      } catch (e) {
+        throw new Error(`${message(e)} Image models are sometimes busy: try again in a minute.`);
+      } finally {
+        clearTimeout(slow);
+      }
       const pending = pendingOf(done);
       if (!pending) throw new Error(String(done.summary ?? "No photo came back."));
       say("Loading the scanned photo");
@@ -792,7 +804,7 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       icon="image"
       title="Draw a dish for the menu"
       time="about 45 s"
-      lead="The image studio asks Gemini for a photo of a dish from its own description. The picture is scanned, waits for you, and diners see it labelled as an AI image."
+      lead="The image studio asks Gemini for a photo of a dish from its own description. The picture is scanned, waits for you, and diners see it labelled as an AI image. If Gemini is slow, Raysto asks it once more by itself."
     >
       <label className="ops-try-input">
         <span>Dish</span>
@@ -819,7 +831,14 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
               </figcaption>
             </figure>
           )}
-          <Chips items={[`drawn in ${demo.took}`, `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`, "scanned before you see it"]} />
+          <Chips
+            items={[
+              `drawn in ${demo.took}`,
+              ...(String(task.summary ?? "").includes("second try") ? ["Gemini answered on the second try"] : []),
+              `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
+              "scanned before you see it",
+            ]}
+          />
           {outcome ? (
             <p className="ops-try-done" role="status">
               <Icon name="check" size={18} />

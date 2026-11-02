@@ -319,16 +319,17 @@ export function OrdersSection({
     () => [
       { headerName: "Ticket", valueGetter: (p) => (p.data?.number ? `#${p.data.number}` : `Order ${p.data?.id}`), minWidth: 100, flex: 0.7, cellClass: "ops-cell-strong" },
       { headerName: "Channel", valueGetter: (p) => (p.data ? channelOf(p.data) : "") },
-      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 140 },
+      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 185 },
       { field: "paymentStatus", headerName: "Payment", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 180 },
       { field: "totalMinor", headerName: "Total", type: "rightAligned", valueFormatter: money(currencyCode) },
-      { headerName: "Customer / table", minWidth: 140, valueGetter: (p) => (p.data ? customerOf(p.data) : "") },
+      { headerName: "Customer", minWidth: 140, valueGetter: (p) => (p.data ? customerOf(p.data) : "") },
       { field: "createdAt", headerName: "Placed", minWidth: 160, valueFormatter: (p) => time(p.value), sort: "desc" },
     ],
     [currencyCode],
   );
+  // The board takes the full width until an order is chosen.
   return (
-    <div className="ops-business with-panel">
+    <div className={`ops-business${selected ? " with-panel" : ""}`}>
       <div>
         <div className="ops-chips" role="group" aria-label="Channel">
           {(["All", "Counter", "Pickup", "Dine-in", "Delivery"] as const).map((c) => (
@@ -354,17 +355,18 @@ export function OrdersSection({
           />
         </div>
         <div className="ops-row">
-          <small>{shown.length} of {rows.length} loaded, newest first.</small>
+          <small>
+            {shown.length} of {rows.length} loaded, newest first.
+            {!selected && " Select an order to see its lines, its PayPal payments and its next step."}
+          </small>
           {cursor && <button onClick={() => void load(true)}>Load older orders</button>}
         </div>
       </div>
-      <aside className="ops-side">
-        {selected ? (
+      {selected && (
+        <aside className="ops-side">
           <OrderPanel key={selected} api={api} tenant={tenant} id={selected} revision={revision} onChanged={() => void load()} />
-        ) : (
-          <p className="ops-note">Select an order to see its lines, its PayPal payments and its next step.</p>
-        )}
-      </aside>
+        </aside>
+      )}
     </div>
   );
 }

@@ -835,6 +835,13 @@ class PlatformWorker {
         }
       case 'judge.reset':
         await JudgeModule.reset(s, _int(d, 'restaurantId', min: 1));
+      case 'judge.tidy':
+        await JudgeModule.reset(
+          s,
+          _int(d, 'restaurantId', min: 1),
+          quiet: const Duration(minutes: 30),
+          full: false,
+        );
       case 'media.scan':
         await AiModule.scan(s, _int(d, 'mediaId', min: 1));
       case 'ai.run':

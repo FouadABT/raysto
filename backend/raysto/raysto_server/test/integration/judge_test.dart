@@ -295,6 +295,79 @@ void main() {
       );
     });
 
+    test('the hourly tidy closes demo orders and keeps the menu', () async {
+      final s = builder.build();
+      await JudgeModule.reset(s, restaurant.id!);
+      final croque = (await menu())['Croque monsieur']!.productId;
+      final draft = await MenuDraft.db.insertRow(
+        s,
+        MenuDraft(
+          restaurantId: restaurant.id!,
+          userId: 'judge-manager',
+          itemsJson: jsonEncode([
+            {
+              'productId': croque,
+              'name': 'Croque monsieur',
+              'category': 'Sandwiches',
+              'priceMinor': 990,
+            },
+          ]),
+          baseMenuVersion: 0,
+          version: 1,
+          status: 'draft',
+          createdAt: now,
+        ),
+      );
+      await CatalogueModule.publishDraft(
+        manager.build(),
+        PlatformCommand(
+          requestKey: key(),
+          restaurantId: restaurant.id,
+          resourceId: draft.id,
+          expectedVersion: 1,
+          dataJson: '{"confirm":true,"merge":true}',
+        ),
+      );
+      final paid = await order('accepted', 'paid', at: old);
+      final current = await order('accepted', 'paid', at: now);
+
+      final result = await JudgeModule.reset(
+        s,
+        restaurant.id!,
+        quiet: const Duration(minutes: 30),
+        full: false,
+      );
+      expect(result, containsPair('completed', 1));
+      expect(result.containsKey('menuVersion'), isFalse);
+      expect(
+        (await PurchaseOrder.db.findById(s, paid.id!))!.status,
+        'completed',
+      );
+      expect(
+        (await PurchaseOrder.db.findById(s, current.id!))!.status,
+        'accepted',
+      );
+      expect(
+        (await MenuProduct.db.findById(s, croque))!.priceMinor,
+        990,
+        reason:
+            'The tidy leaves a judge’s approved menu until the daily reset.',
+      );
+
+      // The worker queues the tidy once an hour.
+      await JudgeModule.schedule(s);
+      await JudgeModule.schedule(s);
+      expect(
+        await PlatformJob.db.count(
+          s,
+          where: (t) =>
+              t.kind.equals('judge.tidy') &
+              t.restaurantId.equals(restaurant.id!),
+        ),
+        1,
+      );
+    });
+
     test('its manager runs demos but cannot change who it is', () async {
       final s = builder.build();
       await JudgeModule.reset(s, restaurant.id!);

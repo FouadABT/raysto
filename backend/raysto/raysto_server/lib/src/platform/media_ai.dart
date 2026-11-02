@@ -37,12 +37,13 @@ class ImageProviders {
     return ((usd ?? (provider == 'gemini' ? 0.04 : 0.05)) * 1000000).round();
   }
 
-  /// One photo for [prompt]. Never retried once sent: a second request
-  /// would be a second charge.
+  /// One photo for [prompt]. Never retried here once sent: a second request
+  /// is a second charge, so only the caller decides to ask again.
   static Future<({Uint8List bytes, String mime})> generate(
     String provider,
-    String prompt,
-  ) async {
+    String prompt, {
+    Duration timeout = const Duration(seconds: 120),
+  }) async {
     if (!configured(provider)) {
       _fail('unavailable', '${label(provider)} images are not set up yet.');
     }
@@ -87,9 +88,7 @@ class ImageProviders {
                   'output_format': 'jpeg',
                 },
         );
-      final response = await client
-          .send(request)
-          .timeout(const Duration(seconds: 120));
+      final response = await client.send(request).timeout(timeout);
       final body = await ProviderClients.bounded(response, maxBytes: maxBytes);
       if (response.statusCode == 429) {
         _fail(

@@ -85,6 +85,13 @@ class ImageAgent {
         'text, no menus, no logos, no watermarks.';
   }
 
+  /// How long each attempt may take; a timed-out attempt is followed by the
+  /// next one. Earlier photos took 44–48 s.
+  static List<Duration> attemptLimits = const [
+    Duration(seconds: 90),
+    Duration(seconds: 120),
+  ];
+
   static Future<AgentOutcome> run(Session s, AgentTask task) async {
     final input = _json(task.inputJson);
     final provider = _str(
@@ -116,26 +123,48 @@ class ImageAgent {
     final prompt = promptFor(dish);
     final model = ImageProviders.model(provider);
     final cost = ImageProviders.price(provider);
-    final key = 'agent:${task.id}';
-    await AiBudget.reserve(
-      s,
-      key,
-      feature: 'images',
-      restaurantId: task.restaurantId,
-      flatMicros: cost,
-    );
     final watch = Stopwatch()..start();
-    final ({Uint8List bytes, String mime}) image;
-    try {
-      image = await ImageProviders.generate(provider, prompt);
-    } catch (_) {
-      // Whether a failed call was charged is unknown: keep the reservation.
-      await AiBudget.settle(s, key);
-      rethrow;
+    // A slow answer is usually a busy moment at the provider, so a timed-out
+    // first attempt is asked once more. Each attempt has its own budget
+    // reservation, and a timed-out one stays charged.
+    ({Uint8List bytes, String mime})? image;
+    var attempts = 0;
+    var charged = 0;
+    while (image == null) {
+      attempts++;
+      final key = attempts == 1
+          ? 'agent:${task.id}'
+          : 'agent:${task.id}:$attempts';
+      await AiBudget.reserve(
+        s,
+        key,
+        feature: 'images',
+        restaurantId: task.restaurantId,
+        flatMicros: cost,
+      );
+      try {
+        image = await ImageProviders.generate(
+          provider,
+          prompt,
+          timeout: attemptLimits[attempts - 1],
+        );
+      } catch (e) {
+        // Whether a failed call was charged is unknown: keep the reservation.
+        await AiBudget.settle(s, key);
+        charged += cost;
+        if (e is DomainError &&
+            e.code == 'ai_timeout' &&
+            attempts < attemptLimits.length) {
+          continue;
+        }
+        rethrow;
+      }
+      await AiBudget.settle(s, key, actualMicros: cost);
+      charged += cost;
     }
-    await AiBudget.settle(s, key, actualMicros: cost);
+    final photo = image;
     final object = 'v2/quarantine/gen/${_uuid()}';
-    await store(object, image.bytes, image.mime);
+    await store(object, photo.bytes, photo.mime);
     final asset = await AgentModule.asAgent<MediaAsset>(
       s,
       task.restaurantId,
@@ -146,9 +175,9 @@ class ImageAgent {
           userId: w.user,
           purpose: 'menuImage',
           objectName: object,
-          mime: image.mime,
-          byteLength: image.bytes.length,
-          sha256: sha256.convert(image.bytes).toString(),
+          mime: photo.mime,
+          byteLength: photo.bytes.length,
+          sha256: sha256.convert(photo.bytes).toString(),
           status: 'quarantine',
           public: false,
           metadataJson: jsonEncode({
@@ -170,7 +199,8 @@ class ImageAgent {
     final label = ImageProviders.label(provider);
     final seconds = (watch.elapsedMilliseconds / 1000).toStringAsFixed(1);
     return AgentOutcome(
-      '$label drew a photo of ${dish['name']} in $seconds s.',
+      '$label drew a photo of ${dish['name']} in $seconds s'
+      '${attempts > 1 ? ', on the second try' : ''}.',
       drafts: [
         AgentDraft(
           'menu.image',
@@ -187,10 +217,11 @@ class ImageAgent {
           'source': provider,
           'model': model,
           'ms': watch.elapsedMilliseconds,
+          'attempts': attempts,
         },
         {'tool': 'file_check', 'mediaId': asset.id},
       ],
-      chargedMicros: cost,
+      chargedMicros: charged,
     );
   }
 

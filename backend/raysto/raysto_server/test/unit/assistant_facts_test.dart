@@ -86,4 +86,69 @@ void main() {
     expect(text, contains('Checkout 9: uncertain, USD 13.50'));
     expect(text, contains('Exception 1: captureAfterRelease, USD 5.00'));
   });
+
+  group('a basket proposed without words says its time', () {
+    const settings = {
+      'timezone': 'America/New_York',
+      'preparationMinutes': 15,
+    };
+    // 18:50 UTC is 13:50 in New York on 2 November 2026.
+    final now = DateTime.utc(2026, 11, 2, 18, 50);
+    Map<String, dynamic> basket(String? slot) => {
+      'proposalKind': 'basket',
+      'quote': {
+        'lines': [
+          {'quantity': 1, 'name': 'Mushroom risotto'},
+          {'quantity': 1, 'name': 'Falafel wrap'},
+        ],
+        'totalMinor': 2150,
+        'currency': 'USD',
+        'slot': slot,
+      },
+    };
+
+    test('a passed time is explained', () {
+      final text = AssistantModule.basketSummary(
+        basket('2026-11-02T19:15:00.000Z'),
+        settings,
+        'Two vegetarian lunches under \$25 for pickup at 12:30, please.',
+        now: now,
+      );
+      expect(text, contains('1× Mushroom risotto, 1× Falafel wrap, USD 21.50'));
+      expect(text, contains('pickup at 2:15 PM café time'));
+      expect(text, contains('You asked for 12:30 PM, which has passed'));
+    });
+
+    test('a kept time and no time say nothing more', () {
+      expect(
+        AssistantModule.basketSummary(
+          basket('2026-11-02T19:15:00.000Z'),
+          settings,
+          'Lunch at 2:15 pm',
+          now: now,
+        ),
+        isNot(contains('You asked')),
+      );
+      final soon = AssistantModule.basketSummary(
+        basket(null),
+        settings,
+        'Two lunches under \$25',
+        now: now,
+      );
+      expect(soon, contains('as soon as it is ready'));
+      expect(soon, isNot(contains('You asked')));
+    });
+
+    test('a later time it did not keep invites a change', () {
+      expect(
+        AssistantModule.basketSummary(
+          basket('2026-11-02T19:15:00.000Z'),
+          settings,
+          'pickup at 4pm',
+          now: now,
+        ),
+        contains('You asked for 4:00 PM; ask me to change the time'),
+      );
+    });
+  });
 }

@@ -390,6 +390,7 @@ void main() {
         command({}, id: checkout),
       );
       expect(created['state'], 'created');
+      expect(paypal.brand, 'Snack fixture');
       // The customer taps "I approved" before approving in PayPal.
       final checked = await MoneyModule.capture(
         cashier.build(),
@@ -899,6 +900,7 @@ class FakePayPal {
   bool captured = false;
   int checkoutId = 0;
   String merchant = '';
+  Object? brand;
   int amountMinor = 0;
   String currency = 'EUR';
   final calls = <String>[];
@@ -953,8 +955,10 @@ class FakePayPal {
       return http.Response(jsonEncode({'access_token': 'fixture-token'}), 200);
     }
     if (request.method == 'POST' && path == '/v2/checkout/orders') {
-      final unit = (jsonDecode(request.body)['purchase_units'] as List).single
-          as Map;
+      final body = jsonDecode(request.body) as Map;
+      final unit = (body['purchase_units'] as List).single as Map;
+      brand = ((body['payment_source'] as Map)['paypal']
+          as Map)['experience_context']['brand_name'];
       checkoutId = int.parse((unit['custom_id'] as String).split(':').last);
       merchant = (unit['payee'] as Map)['merchant_id'] as String;
       final amount = unit['amount'] as Map;

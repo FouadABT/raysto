@@ -191,68 +191,74 @@ class ProviderClients {
     return u;
   }
 
-  static Future<Json> createCheckout(CheckoutIntent i) => paypal(
-    'POST',
-    '/v2/checkout/orders',
-    merchant: i.merchantId,
-    singleMerchant: i.providerMode == 'singleMerchantSandbox',
-    requestId: 'new-${i.providerRequestId}',
-    body: {
-      'intent': 'CAPTURE',
-      'purchase_units': [
-        {
-          'reference_id': 'raysto-v2:${i.id}',
-          'custom_id': 'raysto-v2:${i.id}',
-          'payee': {'merchant_id': i.merchantId},
-          'amount': {
-            'currency_code': i.currency,
-            'value': PayPalGateway.money(i.amountMinor),
-          },
-          if (i.commissionMinor > 0)
-            'payment_instruction': {
-              'disbursement_mode': 'INSTANT',
-              'platform_fees': [
-                {
-                  'amount': {
-                    'currency_code': i.currency,
-                    'value': PayPalGateway.money(i.commissionMinor),
-                  },
-                  'payee': {
-                    'merchant_id': required('PAYPAL_PLATFORM_MERCHANT_ID'),
-                  },
+  // PayPal's page names the restaurant instead of the merchant account.
+  static Future<Json> createCheckout(CheckoutIntent i, {String? brand}) =>
+      paypal(
+        'POST',
+        '/v2/checkout/orders',
+        merchant: i.merchantId,
+        singleMerchant: i.providerMode == 'singleMerchantSandbox',
+        requestId: 'new-${i.providerRequestId}',
+        body: {
+          'intent': 'CAPTURE',
+          'purchase_units': [
+            {
+              'reference_id': 'raysto-v2:${i.id}',
+              'custom_id': 'raysto-v2:${i.id}',
+              'payee': {'merchant_id': i.merchantId},
+              'amount': {
+                'currency_code': i.currency,
+                'value': PayPalGateway.money(i.amountMinor),
+              },
+              if (i.commissionMinor > 0)
+                'payment_instruction': {
+                  'disbursement_mode': 'INSTANT',
+                  'platform_fees': [
+                    {
+                      'amount': {
+                        'currency_code': i.currency,
+                        'value': PayPalGateway.money(i.commissionMinor),
+                      },
+                      'payee': {
+                        'merchant_id': required('PAYPAL_PLATFORM_MERCHANT_ID'),
+                      },
+                    },
+                  ],
                 },
-              ],
             },
-        },
-      ],
-      'payment_source': {
-        'paypal': {
-          'experience_context': {
-            'return_url': callback('PAYPAL_V2_RETURN_URL')
-                .replace(
-                  queryParameters: {
-                    'v': '2',
-                    'checkoutId': '${i.id}',
-                    'restaurantId': '${i.restaurantId}',
-                  },
-                )
-                .toString(),
-            'cancel_url': callback('PAYPAL_V2_CANCEL_URL')
-                .replace(
-                  queryParameters: {
-                    'v': '2',
-                    'checkoutId': '${i.id}',
-                    'restaurantId': '${i.restaurantId}',
-                  },
-                )
-                .toString(),
-            'user_action': 'PAY_NOW',
-            'shipping_preference': 'NO_SHIPPING',
+          ],
+          'payment_source': {
+            'paypal': {
+              'experience_context': {
+                'return_url': callback('PAYPAL_V2_RETURN_URL')
+                    .replace(
+                      queryParameters: {
+                        'v': '2',
+                        'checkoutId': '${i.id}',
+                        'restaurantId': '${i.restaurantId}',
+                      },
+                    )
+                    .toString(),
+                'cancel_url': callback('PAYPAL_V2_CANCEL_URL')
+                    .replace(
+                      queryParameters: {
+                        'v': '2',
+                        'checkoutId': '${i.id}',
+                        'restaurantId': '${i.restaurantId}',
+                      },
+                    )
+                    .toString(),
+                'user_action': 'PAY_NOW',
+                'shipping_preference': 'NO_SHIPPING',
+                if (brand != null && brand.trim().isNotEmpty)
+                  'brand_name': brand.trim().length > 127
+                      ? brand.trim().substring(0, 127)
+                      : brand.trim(),
+              },
+            },
           },
         },
-      },
-    },
-  );
+      );
   static String? approval(Json r, {String rel = 'payer-action'}) {
     final links = r['links'] as List? ?? [];
     for (final l in links) {

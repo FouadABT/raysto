@@ -14,6 +14,8 @@ export const judge = {
   dinerEmail: process.env.NEXT_PUBLIC_RAYSTO_JUDGE_DINER_EMAIL ?? "",
   dinerPassword: process.env.NEXT_PUBLIC_RAYSTO_JUDGE_DINER_PASSWORD ?? "",
   apkUrl: process.env.NEXT_PUBLIC_RAYSTO_APK_URL ?? "",
+  apkVersion: process.env.NEXT_PUBLIC_RAYSTO_APK_VERSION ?? "",
+  apkSha256: process.env.NEXT_PUBLIC_RAYSTO_APK_SHA256 ?? "",
   videoUrl: process.env.NEXT_PUBLIC_RAYSTO_VIDEO_URL ?? "",
 };
 

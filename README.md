@@ -23,7 +23,7 @@
 | Android app, a diner | `diner@rays.to` | `vanilla-basil-brioche-18` |
 | PayPal Sandbox buyer (PayPal's own approval page) | in the Devpost testing instructions | |
 
-The demo café starts fresh every day at 09:00 UTC; its manager cannot rename it, change its team or take it offline. The Android app is on the [releases page](https://github.com/FouadABT/raysto/releases); the console alone is enough to judge Raysto.
+The demo café starts fresh every day at 09:00 UTC and tidies finished demo orders every hour; its manager cannot rename it, change its team or take it offline. The console alone is enough to judge Raysto; the Android app is a direct download at **[rays.to/raysto.apk](https://rays.to/raysto.apk)** (its checksum and install steps are on [rays.to](https://rays.to)).
 
 ## What Raysto is
 
@@ -52,7 +52,8 @@ AI spending has hard caps: a hackathon budget split by feature, and $5 per resta
 - **Exact split bills**: each diner pays their own share as its own PayPal order, tied to a frozen split plan, to the cent.
 - **Partial refunds** credited to the right order, behind a fresh identity check.
 - **PayPal MCP server** (`@paypal/mcp` over stdio) inside the payments agent and Ask Raysto: the AI reads PayPal's own record of a payment, and its answer names the source.
-- **Sandbox only** for the hackathon, on one Sandbox business account.
+- **PayPal's page names the restaurant** (`brand_name`), with no shipping step and a "Pay now" button.
+- **Sandbox only** for the hackathon, on one Sandbox business account. Each restaurant connecting its own PayPal account is built (`merchant.connect`, PayPal Partner Referrals, the restaurant as payee); going live needs PayPal to approve Raysto as a platform partner.
 
 ## Tools used, and how
 
@@ -73,7 +74,7 @@ AI spending has hard caps: a hackathon budget split by feature, and $5 per resta
 
 - **Live PayPal Sandbox runs**, 31 October to 2 November: pickup, counter QR, a two-buyer split bill, a partial refund, the one-sentence order, the payments agent's release. Six captures and a refund, with ids: [paypal-acceptance-2026-10-31.md](docs/paypal-acceptance-2026-10-31.md).
 - **Live AI evaluation, 12 of 12**: 3 menus, 5 spoken orders, 4 takeaway requests against production: [ai-evaluation-results.md](docs/ai-evaluation-results.md). Inputs were rendered images and synthetic voices.
-- **Tests**: backend 85 integration tests on an isolated database and 60 unit tests; console 21 unit tests; app 145 widget tests (3 older offline-demo layout tests fail and are listed in the audit).
+- **Tests**: backend 88 integration tests on an isolated database and 63 unit tests; console 21 unit tests; app 154 widget tests, all passing.
 - **Neutral audit** against the judging criteria: [raysto-hackathon-audit-2026-11-02.md](docs/audits/raysto-hackathon-audit-2026-11-02.md).
 
 Not covered: a real restaurant, live (non-Sandbox) PayPal, iOS, and a person speaking at a real counter.

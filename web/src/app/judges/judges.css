@@ -140,6 +140,21 @@
 .jg-secondary:hover {
   background: color-mix(in srgb, currentColor 8%, transparent);
 }
+.jg-download ol {
+  margin: 20px 0 0;
+  padding-left: 1.3em;
+  max-width: 62ch;
+  line-height: 1.6;
+}
+.jg-download li + li {
+  margin-top: 6px;
+}
+.jg-sha {
+  margin: 14px 0 0;
+  font-size: 13px;
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+}
 .jg-sandbox {
   display: inline-flex;
   align-items: center;

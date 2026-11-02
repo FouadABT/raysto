@@ -68,6 +68,68 @@ class AssistantModule {
     return null;
   }
 
+  /// A basket's reply when the model proposed it without words of its own:
+  /// the dishes, the total and the pickup time, and why a time the customer
+  /// asked for in [asked] was not kept.
+  static String basketSummary(
+    Json proposed,
+    Json settings,
+    String asked, {
+    DateTime? now,
+  }) {
+    final quote = _object(proposed['quote']);
+    final items = [
+      for (final l in (quote['lines'] as List? ?? const []))
+        '${_object(l)['quantity']}× ${_object(l)['name']}',
+    ].join(', ');
+    final total =
+        '${quote['currency']} ${PayPalGateway.money(quote['totalMinor'] as int)}';
+    final zone = CatalogueModule.zone(settings['timezone'] as String);
+    final local = tz.TZDateTime.from(now ?? _now(), zone);
+    String clock(tz.TZDateTime t) =>
+        '${t.hour % 12 == 0 ? 12 : t.hour % 12}:'
+        '${t.minute.toString().padLeft(2, '0')} ${t.hour < 12 ? 'AM' : 'PM'}';
+    final slot = quote['slot'] == null
+        ? null
+        : tz.TZDateTime.from(DateTime.parse(quote['slot'] as String), zone);
+    final when = slot == null
+        ? 'for pickup as soon as it is ready'
+        : 'for pickup at ${clock(slot)}'
+              '${slot.day != local.day ? ' tomorrow' : ''} café time';
+    var text =
+        'Here is a basket: $items, $total, $when. Nothing is ordered or '
+        'charged until you confirm and approve the payment in PayPal.';
+    final m = RegExp(
+      r'\b(\d{1,2}):(\d{2})\s*([ap]\.?m\.?)?|\b(\d{1,2})\s*([ap]\.?m\.?)',
+      caseSensitive: false,
+    ).firstMatch(asked);
+    if (m == null || slot == null) return text;
+    var hour = int.parse(m.group(1) ?? m.group(4)!);
+    final minute = int.parse(m.group(2) ?? '0');
+    final half = (m.group(3) ?? m.group(5))?.toLowerCase();
+    if (half == null && hour >= 1 && hour <= 6) hour += 12;
+    if (half != null && half.startsWith('p') && hour < 12) hour += 12;
+    if (half != null && half.startsWith('a') && hour == 12) hour = 0;
+    if (hour > 23 || minute > 59) return text;
+    final wanted = tz.TZDateTime(
+      zone,
+      local.year,
+      local.month,
+      local.day,
+      hour,
+      minute,
+    );
+    if (wanted.hour == slot.hour &&
+        wanted.minute == slot.minute &&
+        slot.day == local.day) {
+      return text;
+    }
+    final ready = local.add(
+      Duration(minutes: settings['preparationMinutes'] as int? ?? 0),
+    );
+    return '$text ${wanted.isBefore(ready) ? 'You asked for ${clock(wanted)}, which has passed or is too soon for the kitchen today, so this is a later time.' : 'You asked for ${clock(wanted)}; ask me to change the time if this one does not suit you.'}';
+  }
+
   static Future<void> verifyWorkerIdentity(Session s, AssistantRun run) async {
     final actor = await ActorProfile.db.findFirstRow(
       s,
@@ -1302,7 +1364,8 @@ class AssistantModule {
                 'When they state an allergy, leave out dishes whose allergens are unknown or include it, and say so. '
                 'Propose a priced pickup basket with quote_basket, with budgetMinor when they give a budget. '
                 'It is $clock at the restaurant; food is ready ${settings['preparationMinutes']} minutes after ordering at the earliest, '
-                'on ${settings['slotMinutes']}-minute slots. For a requested time pass pickupTime as HH:MM; if it is too early, offer the next slot. '
+                'on ${settings['slotMinutes']}-minute slots. For a requested time pass pickupTime as HH:MM; if it has passed today or is too soon, use the next slot instead. '
+                'After proposing, always reply in one or two sentences with the total and the pickup time, and when you did not keep the time they asked for, say why. '
                 'You never place the order or take payment: they tap one button to order and approve the payment in PayPal themselves. $shared'
           : 'You are Raysto, the operations assistant for the managers of $place. Respond in ${input['locale']}. '
                 'Use sales_summary, kitchen_load, pickup_ready, unresolved_payments and operations_summary for every figure; never estimate. '
@@ -1468,6 +1531,8 @@ class AssistantModule {
       if (finalText.isEmpty) {
         finalText = proposed == null
             ? 'I could not finish this request. Try a more specific question; no action was taken.'
+            : isCart(run) && proposed!['proposalKind'] == 'basket'
+            ? basketSummary(proposed!, settings, '${input['text'] ?? ''}')
             : 'Review this proposal. Nothing is ordered or charged until you explicitly confirm.';
       }
       await MoneyModule.locked(s, run.restaurantId, run.userId, (w) async {

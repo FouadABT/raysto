@@ -170,10 +170,13 @@ export function OperationsEntry() {
             >
               {memberships.map((m) => (
                 <option key={m.restaurantId} value={m.restaurantId}>
-                  {m.name} · {m.role}
+                  {m.name}
                 </option>
               ))}
             </select>
+            <small>
+              You are its {memberships.find((m) => m.restaurantId === selected)?.role ?? "manager"}
+            </small>
           </label>
           <div className="ops-shell-nav" ref={setNavTarget} />
           <div className="ops-shell-foot">

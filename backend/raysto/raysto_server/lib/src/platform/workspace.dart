@@ -38,8 +38,9 @@ class WorkspaceModule {
       limit: 200,
       transaction: w.tx,
     );
+    // A manager's own takeaway orders stay out of the operations assistant.
     return {
-      'runs': rows.reversed.map((r) {
+      'runs': rows.reversed.where((r) => !AssistantModule.isCart(r)).map((r) {
         final input = _json(r.inputJson);
         return {
           'id': r.id,

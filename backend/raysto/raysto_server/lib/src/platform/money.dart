@@ -763,7 +763,10 @@ class MoneyModule {
     try {
       Json provider;
       if (doCreate) {
-        provider = await ProviderClients.createCheckout(i);
+        provider = await ProviderClients.createCheckout(
+          i,
+          brand: (await Restaurant.db.findById(s, i.restaurantId))?.name,
+        );
       } else if (i.providerOrderId != null) {
         provider = await ProviderClients.paypal(
           'GET',
