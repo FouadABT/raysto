@@ -344,12 +344,25 @@ const connectedTranslations = <String, (String, String)>{
   'Photo unavailable': ('Photo indisponible', 'الصورة غير متاحة'),
   'Photo with AI': ('Photo par IA', 'صورة بالذكاء الاصطناعي'),
   'Photos with AI': ('Photos par IA', 'صور بالذكاء الاصطناعي'),
-  'New photo with AI': ('Nouvelle photo par IA', 'صورة جديدة بالذكاء الاصطناعي'),
-  'Fill missing photos with AI': ('Compléter les photos manquantes par IA', 'أكمل الصور الناقصة بالذكاء الاصطناعي'),
-  'Drawn from the dish’s name, description and ingredients. Each photo waits in Agents for your approval, and customers see it marked as an AI image.': ('Dessinée d’après le nom, la description et les ingrédients du plat. Chaque photo attend votre accord dans Agents, et les clients la voient marquée comme image IA.', 'تُرسم من اسم الطبق ووصفه ومكوّناته. تنتظر كل صورة موافقتك في الوكلاء، ويراها الزبائن موسومة كصورة ذكاء اصطناعي.'),
+  'New photo with AI': (
+    'Nouvelle photo par IA',
+    'صورة جديدة بالذكاء الاصطناعي',
+  ),
+  'Fill missing photos with AI': (
+    'Compléter les photos manquantes par IA',
+    'أكمل الصور الناقصة بالذكاء الاصطناعي',
+  ),
+  'Drawn from the dish’s name, description and ingredients. Each photo waits in Agents for your approval, and customers see it marked as an AI image.':
+      (
+        'Dessinée d’après le nom, la description et les ingrédients du plat. Chaque photo attend votre accord dans Agents, et les clients la voient marquée comme image IA.',
+        'تُرسم من اسم الطبق ووصفه ومكوّناته. تنتظر كل صورة موافقتك في الوكلاء، ويراها الزبائن موسومة كصورة ذكاء اصطناعي.',
+      ),
   'Draw with Gemini': ('Dessiner avec Gemini', 'ارسم باستخدام Gemini'),
   'Draw with OpenAI': ('Dessiner avec OpenAI', 'ارسم باستخدام OpenAI'),
-  'The image studio is drawing. Photos wait in Agents for your approval.': ('Le studio photo dessine. Les photos attendent votre accord dans Agents.', 'استوديو الصور يرسم الآن. تنتظر الصور موافقتك في الوكلاء.'),
+  'The image studio is drawing. Photos wait in Agents for your approval.': (
+    'Le studio photo dessine. Les photos attendent votre accord dans Agents.',
+    'استوديو الصور يرسم الآن. تنتظر الصور موافقتك في الوكلاء.',
+  ),
   'AI image': ('Image IA', 'صورة بالذكاء الاصطناعي'),
   'Orders open': ('Commandes en cours', 'طلبات مفتوحة'),
   'Oldest order': ('Commande la plus ancienne', 'أقدم طلب'),
@@ -497,4 +510,19 @@ const connectedTranslations = <String, (String, String)>{
     "الرمز على هاتف العميل",
   ),
   'Hand over': ('Remettre', 'تسليم'),
+  'Hackathon judges': ('Jury du hackathon', 'لجنة تحكيم الهاكاثون'),
+  'One tap into the demo café. Everything is PayPal Sandbox.': (
+    'Un geste pour entrer dans le café de démonstration. Tout passe par PayPal Sandbox.',
+    'لمسة واحدة لدخول مقهى العرض. كل شيء عبر PayPal Sandbox.',
+  ),
+  'Sign in as a diner': ('Se connecter comme client', 'تسجيل الدخول كزبون'),
+  'Sign in as the café manager': (
+    'Se connecter comme gérant du café',
+    'تسجيل الدخول كمدير المقهى',
+  ),
+  'Design preview': ('Aperçu du design', 'معاينة التصميم'),
+  'Fictional data and a simulated payment, on this device only.': (
+    'Données fictives et paiement simulé, sur cet appareil seulement.',
+    'بيانات خيالية ودفع محاكى، على هذا الجهاز فقط.',
+  ),
 };

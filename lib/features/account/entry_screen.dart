@@ -6,6 +6,7 @@ import '../../design_system/design_system.dart';
 import '../../domain/domain.dart';
 import '../../l10n/app_localizations.dart';
 import '../../mobile/shared.dart';
+import '../../backend/judge_build.dart';
 import '../operations/operations.dart' show openOperation;
 
 String roleTitle(DemoRole role) => switch (role) {
@@ -34,6 +35,9 @@ class EntryScreen extends StatefulWidget {
 
 class _EntryScreenState extends State<EntryScreen> {
   bool _onboarding = false;
+  // The judges' build opens on the real account; the offline demo waits
+  // behind "Design preview" so its simulated payment is never mistaken.
+  bool _preview = !JudgeBuild.enabled;
   @override
   void initState() {
     super.initState();
@@ -106,66 +110,81 @@ class _EntryScreenState extends State<EntryScreen> {
               ),
               const SizedBox(height: 10),
             ],
-            AppButton(
-              label: context.tr('Explore demo accounts'),
-              secondary: widget.onlineAccountBuilder != null,
-              icon: Icons.people_outline,
-              onPressed: _accounts,
-            ),
-            const SizedBox(height: 10),
-            AppButton(
-              label: context.tr('Continue as guest'),
-              secondary: true,
-              onPressed: () {
-                widget.store.switchAccount('guest');
-                widget.onComplete?.call();
-              },
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              children: [
-                TextButton(
-                  onPressed: () async {
-                    final result = await openPage<bool>(
-                      context,
-                      DemoAuthScreen(store: widget.store),
-                    );
-                    if (result == true && mounted) _entered();
-                  },
-                  child: Text(
-                    context.tr(
-                      widget.onlineAccountBuilder == null
-                          ? 'Sign in'
-                          : 'Practice sign-in',
+            if (!_preview && widget.onlineAccountBuilder != null) ...[
+              TextButton(
+                key: const ValueKey('design-preview'),
+                onPressed: () => setState(() => _preview = true),
+                child: Text(context.tr('Design preview')),
+              ),
+              Text(
+                context.tr(
+                  'Fictional data and a simulated payment, on this device only.',
+                ),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ] else ...[
+              AppButton(
+                label: context.tr('Explore demo accounts'),
+                secondary: widget.onlineAccountBuilder != null,
+                icon: Icons.people_outline,
+                onPressed: _accounts,
+              ),
+              const SizedBox(height: 10),
+              AppButton(
+                label: context.tr('Continue as guest'),
+                secondary: true,
+                onPressed: () {
+                  widget.store.switchAccount('guest');
+                  widget.onComplete?.call();
+                },
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      final result = await openPage<bool>(
+                        context,
+                        DemoAuthScreen(store: widget.store),
+                      );
+                      if (result == true && mounted) _entered();
+                    },
+                    child: Text(
+                      context.tr(
+                        widget.onlineAccountBuilder == null
+                            ? 'Sign in'
+                            : 'Practice sign-in',
+                      ),
                     ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () => _accounts(business: true),
-                  child: Text(
-                    context.tr(
-                      widget.onlineAccountBuilder == null
-                          ? 'For restaurants'
-                          : 'Practice restaurant roles',
+                  TextButton(
+                    onPressed: () => _accounts(business: true),
+                    child: Text(
+                      context.tr(
+                        widget.onlineAccountBuilder == null
+                            ? 'For restaurants'
+                            : 'Practice restaurant roles',
+                      ),
                     ),
                   ),
+                ],
+              ),
+              AppNotice(
+                title: context.tr(
+                  widget.onlineAccountBuilder == null
+                      ? 'Local demo only'
+                      : 'About the demo',
                 ),
-              ],
-            ),
-            AppNotice(
-              title: context.tr(
-                widget.onlineAccountBuilder == null
-                    ? 'Local demo only'
-                    : 'About the demo',
+                message: context.tr(
+                  widget.onlineAccountBuilder == null
+                      ? 'No real account, email, or payment is created.'
+                      : 'Demo accounts and guest exploration use sample data stored on this device.',
+                ),
               ),
-              message: context.tr(
-                widget.onlineAccountBuilder == null
-                    ? 'No real account, email, or payment is created.'
-                    : 'Demo accounts and guest exploration use sample data stored on this device.',
-              ),
-            ),
+            ],
           ],
         ),
       ),

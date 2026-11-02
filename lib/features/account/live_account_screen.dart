@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:raysto_client/raysto_client.dart' as api;
 
 import '../../backend/auth/session_controller.dart';
+import '../../backend/judge_build.dart';
 import '../../backend/live_runtime.dart';
 import '../../design_system/design_system.dart';
 import '../../l10n/app_localizations.dart';
@@ -63,6 +64,12 @@ class _LiveAccountScreenState extends State<LiveAccountScreen> {
       await _session.signIn(_email.text, _password.text);
     }
     if (mounted) _password.clear();
+  }
+
+  /// One tap for a hackathon judge: the published Sandbox login.
+  Future<void> _signInAsJudge(String email, String password) async {
+    _email.text = email;
+    await _session.signIn(email, password);
   }
 
   Future<void> _signOut() async {
@@ -164,6 +171,46 @@ class _LiveAccountScreenState extends State<LiveAccountScreen> {
               tableArt: true,
               compact: true,
             ),
+            if (JudgeBuild.enabled && !_creating)
+              AppPanel(
+                key: const ValueKey('judge-sign-in'),
+                accent: AppColors.lime,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 10,
+                  children: [
+                    Text(
+                      context.tr('Hackathon judges'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      context.tr(
+                        'One tap into the demo café. Everything is PayPal Sandbox.',
+                      ),
+                    ),
+                    AppButton(
+                      label: context.tr('Sign in as a diner'),
+                      icon: Icons.restaurant_menu,
+                      busy: _session.busy,
+                      onPressed: () => _signInAsJudge(
+                        JudgeBuild.dinerEmail,
+                        JudgeBuild.dinerPassword,
+                      ),
+                    ),
+                    AppButton(
+                      label: context.tr('Sign in as the café manager'),
+                      icon: Icons.storefront_outlined,
+                      secondary: true,
+                      onPressed: _session.busy
+                          ? null
+                          : () => _signInAsJudge(
+                              JudgeBuild.managerEmail,
+                              JudgeBuild.managerPassword,
+                            ),
+                    ),
+                  ],
+                ),
+              ),
             OutlinedButton.icon(
               onPressed: _session.busy ? null : _session.signInWithGoogle,
               icon: const Icon(Icons.account_circle_outlined),
@@ -241,7 +288,11 @@ class _LiveAccountScreenState extends State<LiveAccountScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pushNamed('/demo'),
-              child: const Text('Explore the offline demo'),
+              child: Text(
+                JudgeBuild.enabled
+                    ? context.tr('Design preview')
+                    : 'Explore the offline demo',
+              ),
             ),
             if (_session.phase == SessionPhase.failure &&
                 widget.runtime.firebase.currentUser != null)
