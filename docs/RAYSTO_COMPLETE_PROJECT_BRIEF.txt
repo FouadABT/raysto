@@ -1,0 +1,1343 @@
+RAYSTO — COMPLETE PROJECT AND HACKATHON BRIEF
+Snapshot: 27 October 2026
+Language: English
+Working title: Raysto — AI at the table, PayPal at checkout
+Public repository: https://github.com/FouadABT/raysto
+API: https://api.rays.to/
+Restaurant console: https://ops.rays.to/ops
+Main domain: rays.to — reserved for the landing page
+
+Raysto coordinates a restaurant visit across diners, restaurant staff and AI.
+Its central experience is an authorized table conversation connected to real
+menus, reviewed orders, service requests, individual payment shares and a
+restaurant workspace. PostgreSQL owns the business records. Gemini proposes
+actions through authorized tools. People approve orders and their own payments.
+PayPal provides the Sandbox checkout and payment infrastructure.
+
+This brief separates three things: the approved product scope, implemented
+source, and observed acceptance evidence. The current release is an integration
+candidate. It is not a commercially activated marketplace or a completed
+end-to-end payment release. A feature being present in source does not mean
+every device, provider and recovery scenario has passed.
+
+No private keys, access tokens, buyer passwords or server credentials belong in
+this brief. Public resource identifiers and product endpoints are included where
+they help explain the system. Current repository status documents take precedence
+over older plans; some historical documents still describe superseded phases.
+
+CONTENTS
+
+A. Project identity and positioning
+B. Problem, audience and value
+C. Users, roles and permissions
+D. Product principles and boundaries
+E. The complete restaurant visit
+F. Customer mobile experience
+G. Conversations, rooms and live updates
+H. Restaurant onboarding, menus and management
+I. Kitchen, reservations, pickup and delivery
+J. AI orchestration, menu import and spending
+K. PayPal payments, shared bills and MCP
+L. Subscriptions, commissions and financial reporting
+M. Connected restaurant console and AG Studio
+N. Architecture and deployment
+O. Data ownership and entity relationships
+P. APIs, commands and client contracts
+Q. Firebase and Google Cloud
+R. Security, privacy and consent
+S. Reliability, concurrency and recovery
+T. Visual identity, motion and accessibility
+U. Business model, impact and pilot
+V. Hackathon positioning and competition requirements
+W. What is implemented, observed and still unverified
+X. Remaining work and dependencies
+Y. Ready-to-use project description and demonstration story
+Z. Repository guide, references and glossary
+Appendix 1. Current command and query inventory
+Appendix 2. Current platform model and transport inventory
+
+
+A. PROJECT IDENTITY AND POSITIONING
+
+Name: Raysto.
+Brand domain: rays.to.
+Native package identity: com.gmrt.raysto.
+Primary product: native Flutter mobile application for diners and restaurant
+teams, supported by a connected Next.js restaurant console.
+Backend: Serverpod with PostgreSQL, hosted on AWS.
+Identity and supporting cloud services: Firebase and Google Cloud.
+AI: server-side Gemini, with human approval for consequential actions.
+Payments: PayPal Sandbox; live-money operation remains disabled.
+Additional focused sponsor integration: AG Grid and AG Studio.
+
+Short positioning:
+“Raysto turns a shared restaurant visit into a coordinated conversation, from
+choosing food together to paying individual shares through PayPal.”
+
+Judge-facing positioning:
+“An AI-assisted restaurant coordination system in which grounded recommendations
+become reviewed orders, exact bill allocations and user-approved PayPal checkout,
+with staff working from the same authoritative records.”
+
+The distinctive unit is the visit: a temporary group, its staff audience, menu
+context, preferences, purchases and financial obligations. A table can host many
+visits over time. Each party receives its own private operational context.
+
+The phrase “Road to 10/10” describes a quality target. It is not a predicted
+judging score, a completion percentage or a guarantee of winning.
+
+
+B. PROBLEM, AUDIENCE AND VALUE
+
+The product hypothesis is that group dining creates several connected
+coordination problems. People have different preferences and budgets; menu
+availability changes; a waiter must translate conversation into actionable
+service; kitchen progress has to reach the correct party; and a shared bill
+eventually becomes several people's financial responsibility.
+
+Raysto is intended to reduce repeated clarification and make the current state
+understandable to everyone authorized to see it. Its value comes from carrying
+context across these steps. A recommendation references menu records, an order
+freezes the purchased details, a bill is derived from those records, and a
+payment is reconciled against the exact amounts reserved for that payer.
+
+For diners, the intended benefits are easier group decisions, visible service
+progress, understandable shares and independent payment approval. For staff,
+they are clearer requests, less duplicate communication and a shared operational
+view. For owners, they are coordinated service, menu management and financial
+visibility across restaurants.
+
+These are hypotheses to validate with restaurant participants. Raysto currently
+has no measured revenue uplift, time-saving percentage, customer adoption figure
+or completed restaurant pilot to report.
+
+
+C. USERS, ROLES AND PERMISSIONS
+
+Guest: uses an authorized anonymous session for personal shopping and admitted
+visits. Guests do not obtain staff roles. Claiming guest records after registration
+requires proof of both sessions and a guarded ownership transfer.
+
+Registered diner: manages personal records, preferences, carts, orders, favorites,
+reservations, reviews and authorized room participation. Firebase identity is
+checked separately from business authorization.
+
+Table host: a visit participant with authority to confirm a reviewed group order.
+The first admitted diner is the default host unless staff appoint another.
+Host transfer is explicit and version checked. Being host does not authorize
+another participant's PayPal payment or expose their unrelated records.
+
+Owner: configures the restaurant, team, business settings, ownership and billing.
+An owner can manage more than one restaurant. Sensitive ownership and payment
+changes require stronger authentication.
+
+Manager: manages menu and service operations, reports, operational invitations
+and permitted refunds. A manager cannot freely elevate other users to owner or
+manager. Refund authority includes recent-authentication checks.
+
+Waiter: works with assigned tables and visits, responds to service requests,
+assists with orders and records cash where authorized. Assignment matters in
+addition to the general waiter role.
+
+Kitchen: sees the ticket details needed for preparation and can perform permitted
+availability/progress actions. This role does not need customer payment details
+or unrelated delivery addresses.
+
+Courier: sees assigned active deliveries, necessary delivery details and allowed
+status changes. Consented location sharing is limited to the active assignment.
+
+Platform administrator: handles explicitly authorized platform operations,
+suspensions, financial exceptions, failed jobs and audit review. Administrator
+access is not accepted from a client-supplied role or a preference document.
+
+Every protected command must resolve the requesting actor and verify the
+restaurant, target record, current role, assignment and allowed action. Hiding a
+button is not the authorization mechanism.
+
+
+D. PRODUCT PRINCIPLES AND BOUNDARIES
+
+1. PostgreSQL is authoritative for permissions, prices, orders, table occupancy
+   and financial records.
+2. AI produces grounded suggestions and explicit proposals. It does not decide
+   that an order is authorized or a payment has succeeded.
+3. The host confirms the reviewed group order. Every payer approves their own
+   exact payment independently.
+4. Money uses integer minor units. A dollar amount of 13.50 is stored as 1,350
+   minor units, avoiding binary floating-point money calculations.
+5. Purchased names, choices, prices, fees and tax amounts are historical snapshots.
+6. Unknown allergens and dietary facts stay unknown until supported by real data.
+7. Shared-room audiences are visible; private help has a separate context.
+8. The explicit offline demo is separate from connected identities and SQL data.
+9. A browser return, animation, chat message or AI answer cannot settle a bill.
+10. Source completion, verified functionality and deployment are separate claims.
+
+The product covers dine-in, pickup and restaurant-managed delivery. It does not
+currently include an independent delivery fleet, payroll, ingredient purchasing,
+foreign-exchange conversion, voice calls or a social messaging network.
+
+Flutter web is not a target. The web product uses React/Next.js. AWS is the chosen
+host; Render is excluded. APIMatic and other sponsor integrations are deferred
+to preserve focus on the core AI, PayPal and AG Studio journey.
+
+
+E. THE COMPLETE RESTAURANT VISIT
+
+The following is the intended complete journey. Selected steps already have
+connected evidence; payment completion and the physical multi-person journey
+still require acceptance.
+
+1. A diner discovers a published restaurant, checks its services and menu, and
+   chooses dine-in, pickup or delivery.
+2. At the restaurant, staff seats the party or the diner uses the restaurant's
+   permitted admission flow. Scanning the printed QR identifies the table.
+   It does not reveal an occupied party's room or bill.
+3. Admitted diners enter a visit-specific room with the assigned waiter. The
+   interface clearly names the audience. Menu, Order and Bill remain pinned.
+4. Participants share preferences voluntarily. Someone invokes the assistant:
+   “Two vegetarian diners, food under $30, and something to share.”
+5. Gemini reads authorized menu and preference facts, then requests a
+   server-calculated quote. It returns an editable proposal with reasons,
+   references, totals and any unknown dietary information.
+6. Diners adjust the proposal. An unavailable item or changed price invalidates
+   the relevant stale proposal; a new reviewed quote is needed.
+7. The host approves the exact current revision. The backend rechecks the
+   business conditions and creates the order. Kitchen staff receive structured
+   tickets rather than the party's whole chat history.
+8. The waiter acknowledges requests and the kitchen progresses the order.
+   Relevant events appear in the room and authorized operational workspace.
+9. Another round creates new charges. It does not rewrite a previously frozen
+   checkout or equal-split plan.
+10. A diner asks for the bill or a split. AI explains a proposal; deterministic
+    backend code calculates the exact allocations and rounding.
+11. The current payer reviews their amount and opens actual PayPal Sandbox
+    approval. The backend captures only through the guarded payment path.
+12. Verified provider processing updates the payment records and remaining
+    balance. Other diners and staff receive authorized updates.
+13. The next payer settles their previously frozen share. A failed or uncertain
+    attempt is reconciled before its allocation can be reused.
+14. Once orders, requests, attempts and balance are resolved, staff closes the
+    visit and explicitly resets the table for a new party.
+
+Observed QA example: the assistant produced a $27 vegetarian basket, the host
+submitted it, and two $13.50 shares were proposed. An actual Sandbox approval
+handoff was created. The latest documented QA ledger still has $27 outstanding,
+zero settled and zero captures. This is not a completed payment example.
+
+
+F. CUSTOMER MOBILE EXPERIENCE
+
+The connected Flutter product covers discovery, restaurant details, menus,
+modifiers, persistent baskets, authoritative quotes and order history. It also
+provides table QR entry, visits, service requests, bills, reservations, waitlist,
+private help and account-related operations.
+
+Discovery uses published restaurant/menu records and bounded search. Service
+mode, availability and location eligibility can constrain a purchase. Favorites
+and verified-order reviews belong to the user; review moderation is separate
+from the restaurant's ability to respond.
+
+The basket validates required and optional choices, quantities, availability,
+discounts, fees, configured taxes and tips. A quote is an authoritative snapshot
+with a revision/expiry context. The client cannot submit a price of its own.
+
+During an active dine-in visit, the conversation becomes the main workspace.
+Before a visit, discovery remains useful. This keeps the conversation model
+focused on an actual service context rather than turning the entire product
+into a general-purpose messenger.
+
+The app offers Google and email/password sign-in through Firebase. It obtains
+a separate Serverpod session and stores backend credentials securely. Logout
+clears coordinated session state; late responses cannot restore a logged-out
+identity. Registered-account proof is refreshed for protected v2 operations.
+
+The explicit offline mode contains illustrative restaurants, users and local
+role simulations. It is useful for interface exploration. Its simulated AI,
+staff permissions and payment outcomes do not establish connected functionality.
+
+Android candidate: 0.11.5+2014, ARM64, minimum Android SDK 24, target SDK 36,
+development signed for direct testing. It is not a Play Store release. iOS source
+exists; a validated iOS binary and App Store release remain separate work.
+
+
+G. CONVERSATIONS, ROOMS AND LIVE UPDATES
+
+A table room belongs to a visit, not permanently to the physical table. Its
+default audience is admitted diners plus the assigned waiter. A later party
+receives another room. Moving tables preserves the visit and conversation.
+
+The room includes human messages and structured operational cards: shared
+preferences, basket proposals, item changes, service requests, order progress,
+payment shares and receipts when backed by actual settlement. Adjacent updates
+for the same record can be grouped without deleting the underlying history.
+
+Message capabilities include replies, unread cursors, retries, delivery state,
+encrypted local drafts and stable client message IDs. Repeating the same message
+request must produce one persisted message. Persisted delivery does not imply
+that a waiter has acknowledged or completed a request.
+
+Membership controls history and future access. Leaving or deactivation removes
+future access according to the role and room rules; it does not erase financial
+obligations. Staff replacement is announced. A closed room is read-only for
+authorized historical access.
+
+Private help uses a separate authorized conversation. Its contents are not
+included in a shared-room AI answer. Kitchen staff receive tickets, and couriers
+receive delivery context, instead of unrestricted table conversations.
+
+PostgreSQL stores rooms, members, messages, read cursors and ordered events.
+Authenticated HTTP event streaming supports connected clients. Streams recheck
+membership and account validity; reconnect uses cursors and authorized snapshots.
+Polling is a fallback, not evidence that real streaming is functioning.
+
+Observed QA included two diners and one waiter reading the same persisted
+message, outsider denial, deduplicated retries and active-stream revocation.
+One revocation observation ended access in 2.074 seconds. Two first-frame
+measurements were 1.469 and 1.642 seconds. These are individual measurements,
+not performance guarantees or load-test results.
+
+
+H. RESTAURANT ONBOARDING, MENUS AND MANAGEMENT
+
+The owner creates a draft restaurant and configures contact details, address,
+timezone, currency, languages and services. Publication checks operational
+readiness. Pauses and suspensions affect permitted new activity while preserving
+access required to resolve existing obligations.
+
+Service configuration covers weekly hours, special dates, temporary pauses,
+preparation times, ordering cutoffs, pickup capacity, delivery areas, minimum
+orders and fees. The server repeats critical availability checks when an order
+is submitted; an earlier availability response is advisory.
+
+The catalogue covers categories, items, descriptions, translations, photos,
+prices, required/optional modifier groups, availability and optional sellable
+quantity limits. Required modifier groups represent variant choices. Allergen
+fields distinguish unknown information from known absence.
+
+Menu editing supports drafts and version checks. Publication replaces the
+current catalogue atomically and archives omitted entries while retaining
+historical references. Existing purchases keep their frozen names and prices.
+The initial bounded catalogue default is 200 current items per restaurant.
+
+Floor plans include zones, stable table IDs, labels, capacities, shapes,
+positions and rotation. Layout drafts carry versions to detect conflicting
+changes. Printed QR identifiers resolve tables without granting party access.
+
+Team administration includes invitations, acceptance, role activation,
+deactivation, operational assignments, ownership transfer and audit history.
+Until transactional email is configured, an authorized invitation can be
+accepted through its manual code flow.
+
+
+I. KITCHEN, RESERVATIONS, PICKUP AND DELIVERY
+
+Order progression is guarded:
+awaiting payment -> submitted -> accepted -> preparing -> ready ->
+served / collected / delivered -> completed.
+
+Rejection, cancellation and issues have explicit branches. Customers can cancel
+before acceptance; later cancellation becomes a reviewed operational request.
+Kitchen readiness is independent of financial status.
+
+Pay-before orders become actionable only after verified payment. Pay-at-end
+dine-in orders can be prepared while their bill remains unpaid. Item-level
+kitchen progress and ticket projections provide the information required to
+prepare and hand off the purchased food.
+
+Reservations include availability, temporary holds, confirmation, modification,
+cancellation, arrival, no-show and seating. Capacity and table conflicts are
+checked atomically. Restaurant timezones are explicit; stored instants use UTC.
+Waitlist offers have expiry and transition rules. Seating creates a fresh visit.
+
+Pickup uses preparation estimates, scheduled capacity where configured and
+collection confirmation. Delivery uses restaurant-managed couriers, eligibility
+and fee rules, assignment, pickup handoff, completion and issue resolution.
+
+An assigned courier can share consented location during active work. Location is
+advisory and time limited; the security contract documents five-minute expiry.
+Presence or location never grants assignment authority. Live phone GPS and
+delivery-device behavior still need physical acceptance.
+
+
+J. AI ORCHESTRATION, MENU IMPORT AND SPENDING
+
+The current application configuration pins gemini-3.8-flash in Google's EU
+multi-region. This is the recorded project configuration, not a claim that a
+different model is currently inferior or that the chosen model is always
+available. The latest documented provider blocker is HTTP 429 RESOURCE_EXHAUSTED.
+
+The conversational assistant runs on the backend. It receives only the context
+authorized for the requesting actor and room. Its bounded loop can call typed
+tools to retrieve menu/preferences, obtain prices, inspect operational state,
+read bills, prepare reviewed actions or investigate a permitted payment.
+
+Core controls:
+- Maximum four model rounds, eight tool calls and a 30-second run deadline.
+- Tool authorization is repeated independently of the model's text or IDs.
+- Streamed responses must be complete before any tool call is released.
+- Proposals contain revision, actor, audience, relevant record versions,
+  expiry and the exact proposed action.
+- Approval is an explicit UI command bound to that proposal; a chat “yes” does
+  not authorize payment, order publication or another person's share.
+- Cancelled or stale runs cannot later publish an action.
+- A retryable error can restore a question for review, without automatic paid
+  retry or overwriting unfinished text.
+- Validated read-only facts may be rendered directly without paying for another
+  model paraphrase.
+
+Example group request: “Four of us, two vegetarian, under $60, something shared.”
+The intended response identifies supported menu items and modifiers, checks the
+budget with the pricing service, explains tradeoffs and flags unknown facts.
+Conflicting preferences or an impossible budget require correction or
+clarification. The model cannot invent a price to make the constraint pass.
+
+For unavailable items before submission, the proposal becomes stale and can be
+revised. For accepted orders, staff must use the proper adjustment/cancellation
+rules. AI does not silently substitute purchased food.
+
+Bill questions can produce exact allocation proposals or explain the remaining
+balance. Payment investigation is read-only. The assistant can report the actual
+MCP or REST source used; it cannot declare success without provider evidence.
+
+Contextual suggestions are restrained and deduplicated. Their approved scope is
+unavailable items, explicit bill requests and unresolved payment outcomes.
+Ordinary status updates do not need a model call. Participants can mute help.
+
+Menu import supports text and uploaded image/PDF sources through a separate
+pipeline: upload intent -> private quarantine -> validation/scanning ->
+extraction -> structured draft -> human correction -> explicit publication.
+JPEG, PNG, WebP and PDF inputs have byte/pixel/page limits. Initial defaults
+include 8 MiB uploads, 20-page PDFs and 20-megapixel images. Missing prices,
+ingredients and allergens remain unresolved fields, not guessed facts.
+
+AI has no arbitrary SQL, unrestricted URL fetching, payment secrets, autonomous
+capture/refund tool or direct publish authority. Document text is untrusted input.
+Private-help and foreign-restaurant context remain outside shared-room runs.
+
+Spending authorization is $50 total: $35 development/pilot and $15 reviewer
+reserve. Atomic reservations occur before calls; usage reconciliation records
+cost by run and capability. Unknown usage keeps a conservative reservation.
+Insufficient remaining allowance stops new AI work while manual ordering and
+payment remain available. Increasing this allowance requires owner approval.
+The latest recorded development ledger was $2.850219; this is historical
+application accounting, not the provider invoice or a freshly checked balance.
+
+The fixed evaluation includes normal and impossible budgets, conflicting
+preferences, unknown allergens, stale availability, French/Arabic requests,
+privacy attacks, payment questions, odd-cent splits, truncated responses,
+cancellation and exhausted budgets. The complete evaluation is still pending.
+
+
+K. PAYPAL PAYMENTS, SHARED BILLS AND MCP
+
+Raysto maintains separate configurations for restaurant payments, future
+marketplace operation, platform subscription billing and the standalone Sandbox
+test facility. One explicitly configured test restaurant can use the current
+single-merchant Sandbox mode with zero commission. This does not simulate a
+completed seller-onboarding approval.
+
+Shared-bill options cover the whole outstanding bill, selected purchased units,
+a custom amount and explicit per-charge amounts. AI can help describe the
+selection, but deterministic code validates the payable balances and rounding.
+
+Equal splits freeze every participant's original share. For a $27 two-person
+split, each owes $13.50. After the first pays, the second still owes $13.50,
+not half of the now-reduced balance. Odd cents are assigned deterministically
+so that the sum of shares equals the original bill.
+
+The financial sequence is:
+1. Authorize the actor and target visit/order.
+2. Lock the payable balance and reserve exact charges.
+3. Persist the checkout and immutable allocation snapshot.
+4. Contact PayPal outside the database transaction with stable request IDs.
+5. Return the approval URL for the payer's explicit approval.
+6. On completion, verify provider identity, merchant, currency, amount and
+   Raysto reference before applying the result.
+7. Persist captures/allocations and durable events once.
+8. Use verified webhooks and reconciliation to recover missing or delayed state.
+
+Only one unresolved checkout per visit is allowed. Other diners see the active
+payment state and wait until settlement or safe reconciliation. New rounds stay
+outside a frozen attempt. A timeout means the outcome may be unknown; it does
+not automatically mean no charge occurred.
+
+Cash collection uses the same locking and allocation rules and requires
+authorized staff. Refunds cannot exceed captured, unrefunded allocations.
+Credits adjust obligation; refunds adjust collected money. Cancelling an order
+and returning money must not recreate cancelled debt. Disputes and reversals
+require verified evidence and audited handling.
+
+PayPal MCP has a specific operational purpose: investigating an authorized
+order or refund. It is not the write path for checkout, capture or refunds.
+
+Actual current MCP implementation:
+- Official @paypal/mcp 1.8.1, pinned with @paypal/agent-toolkit 1.11.0.
+- A private stdio subprocess in the Raysto backend, with isolated environment
+  and no public MCP listener.
+- MCP initialization, schema discovery and tool calls are actually performed.
+- Only get_order(id) and get_refund(refund_id) are allowed.
+- Provider IDs are resolved from authorized Raysto records, not arbitrary
+  model-supplied PayPal identifiers.
+- Response identity, amount, currency and merchant are validated.
+- A 15-second deadline, bounded output and process cleanup constrain the reader.
+- A failure may use an authorized REST read with the actual fallback labelled.
+
+The planned hosted https://mcp.sandbox.paypal.com/http connection remains
+blocked by access/protocol responses. The deployed alternative is official
+self-hosted stdio. It must not be described as a repaired hosted connection.
+
+A fresh unapproved $1 Sandbox order was read successfully through the deployed
+Dart MCP implementation in 2.737 seconds, with no REST fallback or financial
+mutation. The test checkout was then cancelled. A prior $13.50 direct read also
+passed. Complete Gemini-to-MCP conversational acceptance and refund-detail
+acceptance remain open.
+
+The upstream MCP dependency audit is not clean: the October 27 report lists
+13 affected package entries, including transitive advisories, with 12 high and
+one moderate. That is not a count of 13 demonstrated reachable exploits, but
+it remains a dependency-review task before widening use.
+
+Live marketplace use additionally requires appropriate PayPal platform approval,
+eligible countries/products, verified merchant connections and correct partner
+configuration. Existing Sandbox success does not establish those capabilities.
+
+
+L. SUBSCRIPTIONS, COMMISSIONS AND FINANCIAL REPORTING
+
+The approved business model combines a subscription per restaurant with
+configurable transaction commission. An owner operating several restaurants
+has a separate subscription for each restaurant.
+
+Restaurants choose EUR, USD or GBP. There is no automatic currency conversion.
+The current implementation locks currency once an order exists; historical
+financial values must not be reinterpreted through later settings changes.
+
+Commission initially uses the food subtotal after discounts, excluding taxes,
+delivery fees and tips. Rates are versioned and must be configured. Cash
+collection is recorded, but automatic commission collection on cash is disabled.
+No commercial commission rate or subscription price has been chosen in this brief.
+
+Subscription source covers checkout, provider confirmation, renewal, failure,
+cancellation, grace periods, entitlements and history. The default renewal-failure
+grace period is seven days. Current provider-plan support is one indefinite
+monthly cycle with an explicitly configured final price, not an invented free
+trial, setup fee or tax configuration.
+
+Expiration can block new paid-service activity while preserving the access needed
+to finish existing operations, settle/refund payments and export records.
+Raysto's own subscription sales require a separate billing-merchant configuration
+from the marketplace/commission arrangement. Commercial activation remains pending.
+
+Reporting separates booked sales, collected money, refunds, outstanding balances,
+commission and subscription revenue. Totals are grouped by currency rather than
+silently added across EUR, USD and GBP. A paid amount, a fulfilled order and a
+booked sale are different measures.
+
+Tax rates and policies require explicit commercial configuration. Delivery fees
+currently use a configured final amount without a separate delivery-tax component;
+this needs review against the applicable tax policy before commercial rollout.
+
+
+M. CONNECTED RESTAURANT CONSOLE AND AG STUDIO
+
+The connected console is a separate Next.js application at ops.rays.to/ops.
+It reads the same authorized backend records used by native mobile. An earlier
+browser-local prototype also exists and must remain explicitly distinguished.
+
+The workspace combines an interactive floor/table view, AG Grid operational
+records, a selected room/timeline, and three AG Studio custom widgets focused
+on outstanding bills, service attention and payment exceptions.
+
+Shared filters connect these panels. Saved layout/selection state is validated
+by the backend. A restored selection must still belong to the authorized
+restaurant; browser storage cannot authorize a foreign table.
+
+Firebase web authentication uses tab-scoped persistence. Serverpod credentials
+remain in memory and are re-exchanged after reload. A same-origin API proxy
+forwards the backend bearer credential and current Firebase proof. SQL membership
+remains authoritative.
+
+AG Studio uses a custom harness connected to Raysto's server-side assistant and
+persisted conversations. Typed widget schemas and allowlisted presentation tools
+can change filters/layouts. Operational and financial changes still use their
+own authorized commands and explicit approval.
+
+An observed manager query asked for tables that had requested the bill and still
+owed money. The console selected the matching QA table and explained its unpaid
+$27 balance. Saved attention filter, table, Payments tab and room recovered after
+reload in the documented check.
+
+The AG Studio evaluation key currently expires December 10, 2026. An extension
+through December 15 remains pending. The evaluation license is not commercial
+production permission. The sponsor focus is custom widgets, theming, layout and
+agent-framework integration; adding an ordinary data grid alone is not the
+intended Raysto showcase. Sponsor brief: https://paypalaihackathon.devpost.com/details/aggrid
+
+
+N. ARCHITECTURE AND DEPLOYMENT
+
+Raysto uses a modular monolith: one backend with clearly separated business
+modules and bounded workers. This keeps a shared transaction boundary while
+leaving future separation possible when measured demand justifies it.
+
+Logical flow:
+
+Flutter mobile / Next.js operations console
+             |
+     Cloudflare + HTTPS + Raysto Nginx site
+             |
+     Serverpod RPC + REST v2 + authorized event streams
+             |
+     Identity, permissions, validation and domain services
+             |
+     PostgreSQL authoritative records + durable jobs/events
+             |
+     Gemini / PayPal REST / official PayPal MCP / Firebase / configured SES
+
+Recorded project toolchain: Flutter 3.47.8, Dart 3.13.7 and Serverpod 4.0.4.
+These are recorded versions, not an assertion that they are the latest available
+today. Dependency lockfiles and reproducible configuration define the project.
+
+The existing AWS host is shared with Awhar production. Raysto has separate
+systemd services/users, database/roles, Nginx sites, release directories and ports
+18080–18082. Raysto work must not restart or alter Awhar, its database or global
+SDKs. The shared PostgreSQL major version is preserved.
+
+The isolated local development container is documented as PostgreSQL 18.6. That
+must not be mistaken for proof of the AWS database's major version. Local test
+databases are isolated; unrelated databases must never be reset for Raysto tests.
+
+Backend and console 0.11.6 are documented as deployed. The Android candidate is
+0.11.5+2014. The release record includes readiness and authenticated-read checks,
+retained previous releases and a Raysto database backup. No fresh production
+probe was needed to prepare this brief.
+
+Domains have distinct jobs: api.rays.to serves the backend, ops.rays.to serves
+the operations console, and rays.to is reserved for a landing page. Public web
+ordering is a later connected milestone, not a Flutter web deployment.
+
+
+O. DATA OWNERSHIP AND ENTITY RELATIONSHIPS
+
+PostgreSQL: actors, teams, permissions, restaurant configuration, menus, carts,
+quotes, tables, visits, rooms, orders, reservations, delivery, payments,
+subscriptions, audit records, jobs, support and business notifications.
+
+Firebase Authentication: registered identity and account recovery.
+Firebase Storage: private files and approved published assets, with business
+ownership and publication metadata recorded in PostgreSQL.
+Firestore: private personal display preferences.
+Realtime Database: advisory presence only.
+PayPal: external payment evidence reconciled into Raysto's ledger.
+Gemini: proposed explanations, structured drafts and reviewed actions.
+
+Core relationships:
+- A restaurant owns memberships, menus, tables, reservations and orders.
+- A table hosts successive visits; only one active visit is permitted.
+- A visit has admitted participants, a host, staff assignment, orders and a room.
+- A room has authorized members, messages and read/event cursors.
+- An order contains immutable purchased lines and may have kitchen/delivery work.
+- Purchased units create charges; allocations reserve payable parts of charges.
+- A checkout references its frozen allocations and verified provider records.
+- Captures, refunds and commission entries remain distinct financial records.
+- Assistant proposals reference a run, context, actor, versions and expiry.
+
+The generated v2 inventory records 59 platform model/transport types, 80 commands
+and 46 queries. These counts exclude some legacy/shared Serverpod entities and
+are not a claim that 59 separate business tables exist. The complete inventory
+is in the appendices; field definitions remain in data-dictionary.md.
+
+
+P. APIS, COMMANDS AND CLIENT CONTRACTS
+
+The backend supports generated Dart RPC alongside REST v2, generated TypeScript
+contracts and OpenAPI. Shared domain services enforce the same rules. Existing
+compatible IDs and provider references are preserved through additive evolution.
+
+Business writes use explicit operations such as CreateQuote, SubmitOrder,
+StartVisit, AllocatePayment and RequestRefund. Generic record editing cannot
+bypass their business transitions. Commands include idempotency keys where
+repetition can cause effects; concurrent edits carry expected versions.
+
+Common response behavior includes stable error codes, field errors, request IDs,
+conflict details and appropriate retry guidance. Lists are bounded. Reports
+accept fixed names, permitted date ranges and allowlisted filters. Raw AG Grid
+expressions or SQL from a caller are never executed as database instructions.
+
+Representative resource routes:
+POST /api/v2/rooms/open
+GET  /api/v2/rooms/{id}
+POST /api/v2/rooms/{id}/messages
+POST /api/v2/rooms/{id}/read
+POST /api/v2/rooms/{id}/preferences
+POST /api/v2/assistant/runs
+GET  /api/v2/assistant/runs/{id}
+POST /api/v2/assistant/runs/{id}/cancel
+POST /api/v2/assistant/proposals/{id}/approve
+GET  /api/v2/operations/snapshot
+POST /api/v2/operations/layout
+PUT  /api/v2/media/{id}/content
+
+The generic command surface remains /api/v2/commands/{operation}. Route aliases
+reuse the same authorization handlers. Room message requests include a stable
+client message ID; replies must reference a permitted message in the same room.
+
+Queries generally use limits from 1 to 100 and monotonic cursor IDs. Documented
+report ranges are bounded to 93 days. Streaming carries event IDs/versions;
+clients reconnect or refresh a snapshot instead of treating a stream as a ledger.
+
+Legacy mutation/payment routes reject v2 records when a compatibility adapter
+cannot safely preserve the new ledger rules. This is preferable to silently
+reinterpreting an old client's order or payment behavior.
+
+
+Q. FIREBASE AND GOOGLE CLOUD
+
+Selected project: raysto-38505.
+Native identifier: com.gmrt.raysto.
+Google and email/password authentication are configured. Android/iOS Firebase
+configuration files are present. Their app configuration is distinct from
+private server service-account credentials.
+
+Provisioned supporting resources:
+- Firestore named database: raysto-mobile, Enterprise Native configuration.
+- Storage bucket: raysto-38505.firebasestorage.app.
+- Realtime Database: raysto-38505-default-rtdb.
+- Region for these three resources: europe-west1, Belgium.
+
+Firestore preferences use the user's verified identity and validated personal
+fields. Storage avatar access is private and bounded. Presence is scoped to a
+user/connection, closed on logout/lifecycle changes, and cannot grant a staff role.
+The named Firestore database must not silently become an unconfigured default
+database during setup or deployment.
+
+Server-side FCM validation and private Storage upload/read/delete have recorded
+evidence. Physical-device reception/display is still a distinct acceptance gate.
+The notification system combines a persistent in-app inbox, FCM and configured
+transactional email; SES sending identity/access remains a prerequisite.
+
+The server has scoped Firebase access, including the approved narrow identity
+permissions for checking disabled/revoked users and fulfilling account deletion.
+Server credentials stay outside source and app builds. The longer-term option
+of Google Workload Identity Federation must not alter Awhar's shared AWS identity.
+
+Remaining native checks include real Google account selection/return, relevant
+email-action inbox/link completion, physical push display, guest App Check
+admission and iOS signing/APNs. Earlier provisioning evidence is not a substitute
+for those user-facing checks.
+
+
+R. SECURITY, PRIVACY AND CONSENT
+
+The implemented security design combines actor authentication, current account
+validity, tenant membership, record ownership, operational assignment, field
+restrictions, expected versions and explicit business transitions. These layers
+apply to RPC, REST, exports, streams, jobs and AI tools.
+
+Restaurant roles live in SQL. A Firebase UID, preference document, UI role picker
+or model-generated instruction cannot create a staff permission. Guest claiming
+transfers personal records only, with proof of both sessions.
+
+Sensitive operations require recent authentication; ownership/payment-setting
+and platform-administration actions require an additional factor. Account
+revocation must affect independent Serverpod sessions and active streams.
+
+App Check is an additional abuse signal. It does not replace identity or record
+authorization. Token-consumption/replay protection is not claimed for the current
+Dart implementation.
+
+Files use upload intent, exact byte count and digest, private quarantine,
+content validation, fixed scanner execution and constrained decoding. Sanitized
+menu images can be published; original PDFs remain private. Missing scanner or
+invalid processing fails closed. File metadata alone is not proof of safe content.
+
+The HTTP contract includes bounded commands/webhooks/uploads and pagination.
+Rate limits consider actor, tenant and guest creation; matching edge limits are
+part of deployment configuration. Secrets and unnecessary personal data are
+excluded from operational/audit output.
+
+Privacy workflows include profile export/deletion requests, expiring private
+exports, retention policies and anonymized financial actor references where
+records must be retained. Large histories can enter an explicit operator hold.
+Financial/legal retention periods still need policy configuration before launch.
+
+Shared dietary preferences are voluntary. Private support context is segregated.
+Only assigned active deliveries expose necessary addresses/location. Pilot
+recordings and quotations require participants' permission.
+
+Source controls and selected tests do not establish a comprehensive security
+certification, regulatory compliance or suitability for live money. Current
+provider, dependency and device gaps are listed later in this brief.
+
+
+S. RELIABILITY, CONCURRENCY AND RECOVERY
+
+Critical changes use transactions, locks, unique constraints and version checks.
+The initial implementation serializes important mutations with a restaurant
+lock, favoring consistency over high write concurrency. Load limits must be
+measured before scaling claims are made.
+
+Business changes and durable events are stored together. Workers claim jobs
+with leases, perform external work outside long database locks, and record
+success or bounded retry. Dead letters and operator replay are auditable.
+
+Idempotency protects retries. A user retry, connection loss or duplicate webhook
+must not create duplicate orders, messages or settlement. Provider request IDs
+supplement Raysto's own persisted request/response state.
+
+Uncertain payment attempts retain their allocations. A provider timeout, missing
+redirect or app restart triggers a state read/reconciliation path. It does not
+authorize a replacement payment or pretend that the user was never charged.
+
+Stock, capacity, seating, table movement and reservation overlap are checked
+under the relevant transaction. One active visit per table and one unresolved
+checkout per visit are separate invariants.
+
+Deployment uses Raysto-specific releases, readiness checks, backups and rollback
+targets. The remaining operations work includes an encrypted off-host backup
+destination, restore rehearsal, alert routing and measured load behavior.
+
+Useful operational signals include API latency/errors, database contention,
+aged uncertain payments, failed webhook processing, overdue jobs, notification
+failures and AI cost/capacity failures. Business records must survive replay and
+rollback without deleting financial history.
+
+
+T. VISUAL IDENTITY, MOTION AND ACCESSIBILITY
+
+The canonical app design is Material 3 with a warm printed-menu character:
+forest ink, paper surfaces, lime accents, muted greens and supporting peach.
+
+Selected tokens:
+Paper #F6F7F2; ink #173E34; forest #173F35; lime #D7F978;
+mint #E6EDE2; peach #F3E8DB; line #DCE2D9;
+accessible supporting text #59675E.
+
+Typography uses bundled Plus Jakarta Sans weights. Material icons and native
+controls remain consistent across screens. Dark mode uses semantic tokens.
+Decorative illustrations do not replace dish photography or operational facts.
+
+Raysto's artwork includes an original dining illustration and native vector
+scenes for table setting, menu, takeaway, kitchen, receipt and an olive sprout.
+Gingham details, scalloped shapes and paper-like composition provide identity.
+
+Motion explains navigation, changing state and hierarchy. It uses interruptible
+transitions and restrained spring behavior. Reduced motion respects the device
+or app setting. Outgoing branches must stop receiving taps, focus and semantics.
+
+The design preserves 48-pixel touch targets, meaningful labels, keyboard/safe
+area handling, RTL and large text without a global scaling cap. A focused
+320-pixel, 2x-text, open-keyboard room check passed. TalkBack/VoiceOver and
+physical-device timing remain separate acceptance requirements.
+
+The current 38-second judge-facing video is an explanatory motion segment for
+00:10–00:48 after the founder's own introduction. It uses original collage art,
+actual historical QA interface captures and an Android emulator recording.
+The revised soundtrack uses licensed Mixkit music and recorded paper effects.
+Its visuals do not prove a completed capture. Later demonstration footage must
+show the working journey itself; the full submission video is still unfinished.
+
+
+U. BUSINESS MODEL, IMPACT AND PILOT
+
+The initial commercial customer is the restaurant. The intended revenue comes
+from recurring restaurant subscriptions and configured transaction commissions.
+Diners are participants in the restaurant experience; this brief does not invent
+a consumer subscription or a new advertising business.
+
+Operational differentiation comes from a shared visit context that connects
+conversation, grounded assistance, deterministic prices, human approvals and
+settlement. A manager sees the corresponding service and financial records.
+This is a product thesis, not evidence that no competing product has similar
+features.
+
+The first complete acceptance scenario deliberately uses one Sandbox restaurant.
+The architecture and permission model remain multi-restaurant. Broader merchant
+rollout follows provider eligibility, commercial configuration and acceptance.
+
+The approved pilot is three short sessions with recruited diners and restaurant
+staff. Compare manual and AI-assisted completion where practical. Record:
+- Time to agree on an order.
+- Number and nature of corrections.
+- Staff clarification requests.
+- Completion of each participant's settlement.
+- Whether participants understood the room audience.
+- Whether each payer understood what they were approving.
+
+Report the sample size, setting, method, failures and limitations. Obtain consent
+for quotations/recordings. The pilot-results sheet currently contains no
+completed findings; do not claim improvements before measuring them.
+
+Future growth can be evaluated after this journey works: onboarding more
+restaurants, connecting the public web experience, improving operations and
+making subscription plans commercially usable. Voice, a separate diners-only
+social room and an independent courier network are outside the current milestone.
+
+
+V. HACKATHON POSITIONING AND COMPETITION REQUIREMENTS
+
+The official rules require a functional application combining PayPal Sandbox
+with AI. Native mobile is eligible; both mobile and web are not mandatory.
+Submission needs an English description, public open-source repository,
+reproducible reviewer access and a public YouTube demonstration under three
+minutes showing the intended platform. New projects or significant in-period
+updates qualify subject to the rules. Deadline: November 12, 2026, 12:00 p.m.
+PST. Judging runs December 1–15; access must remain available through judging.
+Source: https://paypalaihackathon.devpost.com/rules
+
+The published criteria are technological implementation, design, potential
+impact, innovation/idea and presentation. First place is listed at $12,000.
+Relevant category awards include Best Use of PayPal + AI and Best Use of Agentic
+Commerce ($5,000 each), plus AG Grid first place ($5,000). These are potential
+targets, not promised awards or a claim that prizes can be combined.
+Source: https://paypalaihackathon.devpost.com/
+
+Raysto's proposed evidence against those criteria:
+
+Technological implementation: show the actual menu/quote tool trace, guarded
+host approval, each payer's real Sandbox approval, verified capture, direct
+MCP payment investigation, reconciled ledger and shared operational records.
+
+Design: demonstrate a coherent visit journey, explicit audiences, a readable
+proposal, clear approval boundaries, meaningful errors and consistent Raysto
+visual language across native mobile and the console.
+
+Potential impact: use observed participant results from a modest, disclosed
+pilot. Explain the specific coordination problem and show the mechanism that
+addresses it. Avoid invented market statistics or projected savings presented
+as measured outcomes.
+
+Innovation: focus on the combination of group context, grounded assistance,
+reviewed actions, exact settlement and staff coordination. Show what happens
+when conditions change, rather than relying only on a happy-path chatbot answer.
+
+Presentation: tell one understandable story and show real evidence. A short
+motion introduction can explain the system; the main recording must establish
+that people can use it and that provider outcomes reach the correct records.
+
+AG Studio is the focused additional sponsor entry. Its role is a coordinated
+operational workspace with custom widgets, theming, saved layouts and a custom
+assistant harness. The sponsor asks for that broader integration, not just a grid.
+Source: https://paypalaihackathon.devpost.com/details/aggrid
+
+The best proposed moment for the judges is a sequence: a group expresses its
+constraints; Gemini uses actual tools; the host reviews the priced proposal;
+the kitchen receives the resulting order; separate diners approve exact PayPal
+shares; the waiter and manager see the resulting balance; and the assistant
+can explain the payment using an authorized provider read. The final financial
+steps must be recorded only after acceptance passes.
+
+
+W. WHAT IS IMPLEMENTED, OBSERVED AND STILL UNVERIFIED
+
+Current release labels:
+- Android: 0.11.5+2014, development signed, ARM64 test candidate.
+- Backend/console: 0.11.6, documented deployed on isolated Raysto services.
+- Product status: connected integration candidate.
+
+Implemented source coverage includes identity/guests, tenant/team rules,
+restaurant configuration, catalogue and pricing, dining/reservations, kitchen
+and fulfillment, generalized allocations, captures/refunds/reconciliation,
+subscription/commission logic, support/privacy, media/AI, conversations and the
+connected operational console. Coverage is broader than completed acceptance.
+
+Observed connected evidence:
+- Two diners and a waiter shared persisted room state; outsiders were denied.
+- Message retry deduplicated; active membership revocation stopped stream access.
+- Real Gemini tools produced a $27 vegetarian basket under $30 and warned about
+  unknown allergens; the host submitted the reviewed order.
+- Two frozen $13.50 shares were produced.
+- Actual PayPal Sandbox approval handoffs were created, but remained unapproved.
+- The deployed official stdio MCP path read a fresh $1 provider order without
+  REST fallback or ledger mutation.
+- A manager query selected the requested-bill/unpaid QA table and explained $27.
+- Saved console filter, table, tab and room recovered after reload.
+- Firebase server Storage CRUD and FCM validation-only requests have evidence.
+- Backend/console deployment and readiness/authenticated-read checks passed.
+
+The October 27 change set passed 20 distinct selected checks: seven Gemini
+transport, three assistant-fact, eight isolated conversation/domain and two
+Flutter room checks. Changed-source analysis, TypeScript, Linux release builds
+and the Android candidate build passed. Earlier test totals are not added to
+this as if they were one full-suite run.
+
+Unfinished acceptance:
+- Complete Gemini -> MCP -> conversational answer under current Google capacity.
+- Two buyers approving and completing real Sandbox captures.
+- Matching payment ledger/webhook evidence, partial refund and refund MCP read.
+- Interrupted-return/restart recovery on the actual payment journey.
+- Physical-device Google sign-in, camera, guest admission and push delivery.
+- The coordinated multi-person phone journey and fixed AI evaluation.
+- Three pilot sessions and honest impact findings.
+- Off-host restore rehearsal, alert routing and clean-checkout reproduction.
+- Final reviewer accounts, release tag and published exact APK/checksum.
+
+The current Google HTTP 429 responses and MCP dependency advisories are material
+gaps. Direct MCP success does not erase failed conversational runs. There is no
+completed capture, live marketplace approval, commercial subscription activation,
+pilot impact percentage or validated iOS release to claim.
+
+
+X. REMAINING WORK AND DEPENDENCIES
+
+Priority 1: complete the central provider journey. Restore acceptable Gemini
+responses or resolve the capacity issue within the approved spending limits.
+Run the bounded assistant evaluation and complete the conversational MCP case.
+Do not hide failures or silently switch provider configurations to create a
+misleading success record.
+
+Priority 2: execute the two-buyer Sandbox journey. Two Personal Sandbox accounts
+have been created. The owner must either provide their credentials through a
+local file outside the repository or personally approve checkout. Do not paste
+passwords into public documentation. Capture, second-payer settlement, webhook
+matching, partial refund and interrupted-return recovery need recorded evidence.
+
+Priority 3: use the actual Android candidate on a phone with two diners and a
+waiter. Check Google selection/return, admitted room membership, readable
+proposals, QR permissions, push reception, app restart and shared state.
+
+Priority 4: review upstream MCP dependency repairs and keep the runtime restricted
+to the two authorized read tools. Complete operational backup/restore and alert
+preparation. Resolve commercial credentials separately from Sandbox testing.
+
+Priority 5: obtain the AG Studio trial extension through December 15. Its current
+December 10 expiry leaves a judging-period gap.
+
+Priority 6: run the three small pilot sessions, record findings with consent and
+prepare the final evidence. Maintain realistic claims and known limitations.
+
+Priority 7: reproduce the project from clean source, package the exact Android
+candidate, publish its checksum/release tag, provide isolated reviewer access
+through judging instructions, and finish the English Devpost description and
+public YouTube demonstration.
+
+Later commercial milestones: marketplace approval/merchant eligibility,
+subscription merchant/plans and commercial pricing, SES setup, signed store
+releases, iOS/APNs validation, broader load/security review, connected public
+web ordering and the rays.to landing page.
+
+Engineering target: freeze on November 10 and submit on November 11 to leave a
+buffer. These are internal targets; the official deadline is in section V.
+
+
+Y. READY-TO-USE PROJECT DESCRIPTION AND DEMONSTRATION STORY
+
+One sentence:
+
+Raysto connects diners, staff and AI in one restaurant visit, turning shared
+preferences into reviewed orders and exact PayPal payment shares.
+
+Short pitch:
+
+Group dining is a coordination problem: people choose together, staff need clear
+requests, and one bill eventually becomes several payments. Raysto gives each
+visit an authorized conversation with the diners and assigned waiter. Gemini
+uses real menu and pricing tools to propose an order; the host reviews it before
+submission. The same backend tracks service, calculates individual shares and
+hands each payer to PayPal Sandbox for approval. A connected AG Studio workspace
+shows the restaurant the same operational records. People remain in control of
+orders and money while AI helps them understand and coordinate the next step.
+
+Longer project description, safe for the current candidate:
+
+Raysto is a native mobile restaurant platform built around the shared visit.
+Customers can discover a restaurant, explore its menu and enter an authorized
+table room with their party and assigned waiter. Menu, Order and Bill stay close
+to the conversation, so a suggestion or service request has an operational
+context rather than becoming another disconnected message.
+
+The assistant is connected to server-side tools. It can retrieve permitted menu
+facts, use voluntarily shared preferences, request authoritative prices and
+prepare an editable basket. Proposals carry versions and expiry. The table host
+must approve the reviewed order, and the backend checks it again before it
+becomes kitchen work. Unknown allergens stay unknown, and a stale proposal
+cannot silently purchase a replacement item.
+
+At settlement, deterministic backend logic calculates exact shares. Each diner
+reviews their own amount and approves through PayPal Sandbox. The financial
+design uses allocation reservations, idempotency, provider verification and
+reconciliation so that retries and interrupted responses cannot simply create
+another payment. PayPal's official MCP server adds restricted order/refund
+investigation, while financial writes remain in the guarded payment service.
+
+Restaurant teams work from the same PostgreSQL records. The connected Next.js
+console combines a table map, AG Grid, AG Studio custom widgets and a server-side
+assistant. Managers can ask which tables requested the bill and still have an
+outstanding balance, then inspect the corresponding room and records.
+
+The current integration candidate has demonstrated shared rooms, real Gemini
+basket/share proposals, reviewed order submission, actual Sandbox approval
+handoffs, direct official MCP order reads and connected manager queries. Full
+buyer capture/refund acceptance, physical-device coordination and the restaurant
+pilot remain open. The project repository documents both evidence and gaps.
+
+Proposed final demonstration structure, after the missing acceptance passes:
+
+00:00–00:10  Founder introduction: who is building Raysto and the coordination
+             problem being addressed.
+00:10–00:48  Existing 38-second motion explanation: the visit, grounded AI,
+             reviewed order, exact shares and connected operations.
+00:48–01:25  Actual phone journey: enter the room, ask a constrained group
+             question, inspect the real tool result, review and submit.
+01:25–02:05  Actual payer approval/capture evidence, remaining balance and
+             second payer, edited without fabricating provider outcomes.
+02:05–02:30  Waiter/manager view and the AG Studio query using the same records.
+02:30–02:45  One recovery or changing-condition case and the resulting safe state.
+02:45–02:55  Verified takeaway, repository/reviewer access and concise close.
+
+This is an editorial proposal, not completed footage. The current motion export
+is 1920x1080, 30 fps, 38 seconds. Its new music is licensed for the video; audio
+credits are in video/AUDIO-LICENSES.md. Maintain clear labels for historical QA,
+illustrations, local demo and actual provider evidence during final assembly.
+
+
+Z. REPOSITORY GUIDE, REFERENCES AND GLOSSARY
+
+Repository navigation:
+lib/ — Flutter app, connected workspace, design system and explicit offline demo.
+backend/raysto/raysto_server/ — Serverpod domain, provider services and migrations.
+backend/raysto/raysto_client/ — generated Dart client.
+backend/operations/ — SQL constraint supplements and operational examples.
+backend/sdk/typescript/ — generated web/API contracts.
+web/ — connected Next.js operations console and separate local prototype.
+assets/ and third_party/ — artwork/fonts/assets and third-party notices.
+test/ — mobile checks; backend/web checks live near their respective code.
+docs/ — status, setup, contracts, diagrams, validation and product design.
+video/ — Remotion compositions, narrative/research, asset/audio provenance.
+
+Core source navigation:
+platform/core.dart and platform/platform.dart — shared authorization and commands.
+platform/identity.dart — actors, guest claiming, teams and sensitive access.
+platform/catalogue.dart — restaurant/menu settings and publication.
+platform/dining.dart — tables, visits, service, reservations and waitlist.
+platform/ordering.dart — pricing, snapshots, stock, orders, kitchen and delivery.
+platform/money.dart and settlement.dart — allocations and payment recovery.
+platform/operations.dart — billing, reports, support and administration.
+platform/conversations.dart — rooms, messages, membership and events.
+platform/assistant.dart — contextual tools and reviewed proposals.
+platform/ai_budget.dart — spending reservation and accounting.
+platform/shares.dart — frozen shared-bill allocations.
+platform/workspace.dart — manager snapshots and presentation state.
+services/paypal_mcp_client.dart — official MCP transports and read validation.
+paypal_mcp_runtime/ — pinned private official MCP runtime and contract check.
+lib/features/connected/room.dart — native room and approval UI.
+web/src/components/connected/ — connected operations components.
+
+Internal source references (relative to this brief in docs/):
+- project-status.md — current evidence and release gaps.
+- release-candidate-2026-10-27.md — current build and deployment evidence.
+- road-to-10-10.md — integration journey and historical observations.
+- paypal-mcp.md — actual transport, checks and remaining limitations.
+- ai-evaluation.md — fixed assistant evaluation cases.
+- backend-v2/README.md — business defaults and provider prerequisites.
+- backend-v2/traceability.md — business-to-API/model mapping.
+- backend-v2/capability-index.md — complete command/query catalogue.
+- backend-v2/data-dictionary.md — field-level platform schema reference.
+- backend-v2/openapi.json — machine-readable REST contracts.
+- backend-v2/integration.md — client envelopes, routes and examples.
+- backend-v2/security-and-states.md — permissions, state rules and invariants.
+- backend-v2/operations.md — operational and recovery runbook.
+- backend-v2/maps/ — editable Mermaid plus SVG/PNG system maps.
+- firebase-services.md and firebase-server-verification.md — cloud evidence.
+- mobile-backend-integration.md — connected mobile breadth and prerequisites.
+- mobile-art-direction.md — Raysto artwork and motion.
+- MOBILE_APP_DESIGN_SYSTEM_GUIDELINES.md — canonical design handoff.
+- device-and-pilot-checklist.md and pilot-results.csv — remaining human acceptance.
+- reviewer-guide.md and getting-started.md — reviewer/developer entry points.
+
+Public sources checked for this brief:
+- Hackathon: https://paypalaihackathon.devpost.com/
+- Official rules: https://paypalaihackathon.devpost.com/rules
+- AG Grid sponsor brief: https://paypalaihackathon.devpost.com/details/aggrid
+- Repository: https://github.com/FouadABT/raysto
+
+Provider reference links retained by the project:
+- PayPal MCP: https://developer.paypal.com/ai-tools/mcp-server/
+- Official MCP source: https://github.com/paypal/paypal-mcp-server
+- PayPal Orders: https://developer.paypal.com/api/orders/v2/
+- PayPal idempotency: https://developer.paypal.com/api/rest/reference/idempotency/
+- PayPal platforms: https://developer.paypal.com/platforms/get-started
+- Serverpod: https://docs.serverpod.dev/
+- Firebase: https://firebase.google.com/docs
+- AG Studio: https://www.ag-grid.com/studio/react/quick-start/
+
+Glossary:
+Visit — one party's operational dining session, independent of the table's life.
+Room — the authorized conversation associated with a visit, order or support case.
+Host — the visit participant allowed to confirm the reviewed group order.
+Quote — a server-calculated, versioned price snapshot.
+Proposal — a reviewable AI action bound to context, versions and expiry.
+Charge — an immutable component of the customer's financial obligation.
+Allocation — the amount of a charge reserved for a particular checkout.
+Capture — verified provider collection of approved funds.
+Credit — an adjustment to what is owed.
+Refund — return of previously collected funds, tracked separately from a credit.
+Reconciliation — recovery of authoritative provider state after missing/late results.
+Idempotency — processing repeated requests without repeating their business effect.
+MCP — protocol used here to call PayPal's restricted read tools.
+Outbox/job — durable work persisted with business changes for later processing.
+Tenant — an individual restaurant's protected business scope.
+Connected mode — authenticated use of the deployed backend and provider services.
+Offline demo — isolated illustrative local state, without real provider outcomes.
+
+
+APPENDIX 1. CURRENT COMMAND AND QUERY INVENTORY
+
+The following index is copied from the generated capability reference. It is
+source coverage, not a declaration that every operation has live acceptance.
+
+Commands (80):
+
+admin.paymentException -> /api/v2/commands/admin.paymentException
+admin.plan -> /api/v2/commands/admin.plan
+admin.reconcileRefund -> /api/v2/commands/admin.reconcileRefund
+admin.replayJob -> /api/v2/commands/admin.replayJob
+admin.suspend -> /api/v2/commands/admin.suspend
+ai.approve -> /api/v2/commands/ai.approve
+ai.cancel -> /api/v2/commands/ai.cancel
+ai.start -> /api/v2/commands/ai.start
+assistant.approve -> /api/v2/commands/assistant.approve
+assistant.cancel -> /api/v2/commands/assistant.cancel
+assistant.start -> /api/v2/commands/assistant.start
+billing.cancel -> /api/v2/commands/billing.cancel
+billing.refresh -> /api/v2/commands/billing.refresh
+billing.subscribe -> /api/v2/commands/billing.subscribe
+cart.save -> /api/v2/commands/cart.save
+delivery.assign -> /api/v2/commands/delivery.assign
+delivery.location -> /api/v2/commands/delivery.location
+delivery.transition -> /api/v2/commands/delivery.transition
+favorite.set -> /api/v2/commands/favorite.set
+floor.save -> /api/v2/commands/floor.save
+identity.claim -> /api/v2/commands/identity.claim
+identity.claimTicket -> /api/v2/commands/identity.claimTicket
+identity.privacy -> /api/v2/commands/identity.privacy
+identity.profile -> /api/v2/commands/identity.profile
+identity.revokeSessions -> /api/v2/commands/identity.revokeSessions
+identity.stepUp -> /api/v2/commands/identity.stepUp
+kitchen.progress -> /api/v2/commands/kitchen.progress
+media.publish -> /api/v2/commands/media.publish
+media.upload -> /api/v2/commands/media.upload
+menu.availability -> /api/v2/commands/menu.availability
+menu.draft -> /api/v2/commands/menu.draft
+menu.publishDraft -> /api/v2/commands/menu.publishDraft
+menu.save -> /api/v2/commands/menu.save
+merchant.connect -> /api/v2/commands/merchant.connect
+merchant.refresh -> /api/v2/commands/merchant.refresh
+notification.update -> /api/v2/commands/notification.update
+operations.archiveThread -> /api/v2/commands/operations.archiveThread
+operations.layout -> /api/v2/commands/operations.layout
+order.cancel -> /api/v2/commands/order.cancel
+order.transition -> /api/v2/commands/order.transition
+payment.cancel -> /api/v2/commands/payment.cancel
+payment.capture -> /api/v2/commands/payment.capture
+payment.checkout -> /api/v2/commands/payment.checkout
+reservation.create -> /api/v2/commands/reservation.create
+reservation.transition -> /api/v2/commands/reservation.transition
+restaurant.configure -> /api/v2/commands/restaurant.configure
+restaurant.create -> /api/v2/commands/restaurant.create
+restaurant.publish -> /api/v2/commands/restaurant.publish
+review.moderate -> /api/v2/commands/review.moderate
+review.save -> /api/v2/commands/review.save
+room.host -> /api/v2/commands/room.host
+room.message -> /api/v2/commands/room.message
+room.open -> /api/v2/commands/room.open
+room.preferences -> /api/v2/commands/room.preferences
+room.read -> /api/v2/commands/room.read
+room.report -> /api/v2/commands/room.report
+room.split.reset -> /api/v2/commands/room.split.reset
+service.create -> /api/v2/commands/service.create
+service.transition -> /api/v2/commands/service.transition
+support.message -> /api/v2/commands/support.message
+support.open -> /api/v2/commands/support.open
+support.transition -> /api/v2/commands/support.transition
+table.reset -> /api/v2/commands/table.reset
+table.save -> /api/v2/commands/table.save
+team.accept -> /api/v2/commands/team.accept
+team.invite -> /api/v2/commands/team.invite
+team.membership -> /api/v2/commands/team.membership
+team.transfer -> /api/v2/commands/team.transfer
+visit.close -> /api/v2/commands/visit.close
+visit.invite -> /api/v2/commands/visit.invite
+visit.join -> /api/v2/commands/visit.join
+visit.leave -> /api/v2/commands/visit.leave
+visit.move -> /api/v2/commands/visit.move
+waitlist.join -> /api/v2/commands/waitlist.join
+waitlist.transition -> /api/v2/commands/waitlist.transition
+quote.create -> /api/v2/commands/quote.create
+order.submit -> /api/v2/commands/order.submit
+visit.start -> /api/v2/commands/visit.start
+payment.allocate -> /api/v2/commands/payment.allocate
+payment.refund -> /api/v2/commands/payment.refund
+
+Read queries (46):
+
+admin.financialCases, admin.jobs, admin.paymentExceptions, admin.revenue, admin.reviews, ai, ai.jobs, assistant.run, availability, billing, billing.history, cart, checkout, checkouts, deliveries, delivery.tracking, discovery, exports, favorites, floor, kitchen, me, media, menu.drafts, menu.manage, notifications, operations.snapshot, operations.threads, order, orders, payment.exceptions, report, reservations, restaurant.manage, reviews.manage, room, room.events, services, storefront, support, support.inbox, table.resolve, team, visit, visits, waitlist.
+
+
+APPENDIX 2. CURRENT PLATFORM MODEL AND TRANSPORT INVENTORY
+
+Types (59). See data-dictionary.md for fields, types and relations.
+
+AccessInvitation
+ActorProfile
+AiOperation
+AiSpendBudget
+AiSpendEntry
+AllocatePayment
+AssistantProposal
+AssistantRun
+AuditRecord
+BillCharge
+BillSplitPlan
+BillingHistory
+ChargeShare
+CheckoutIntent
+CommissionEntry
+ConversationRoom
+CreateQuote
+CustomerCart
+CustomerFavorite
+CustomerReview
+DeliveryAssignment
+DiningReservation
+DiningTable
+DiningVisit
+DiningWaitlist
+FloorLayout
+KitchenProgress
+MediaAsset
+MenuDefinition
+MenuDraft
+MerchantConnection
+MutationReceipt
+OperationsLayout
+OrderContext
+PaymentAllocation
+PaymentCapture
+PaymentException
+PaymentRefund
+PlatformCommand
+PlatformEvent
+PlatformJob
+PlatformResponse
+PriceQuote
+ProviderInbox
+RateWindow
+RequestRefund
+RestaurantPlan
+RestaurantPolicy
+RestaurantSubscription
+RoomMember
+RoomMessage
+SecurityGrant
+StartVisit
+SubmitOrder
+SupportConversation
+SupportMessage
+UserNotification
+VisitParticipant
+VisitRequest
+
+End of Raysto complete project and hackathon brief.
+
+

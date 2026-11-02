@@ -1,0 +1,24 @@
+RAYSTO — 38-second judge-facing segment
+Insert immediately after the founder's 10-second introduction.
+English narration guide; the exported MP4 has original music and effects, no voice-over.
+78 words. Record naturally, with pauses at the scene boundaries.
+
+00:00–00:05
+Raysto coordinates restaurant commerce between diners, staff, and AI.
+
+00:05–00:12
+Gemini uses menu and pricing tools to turn a group request into a real, server-priced proposal.
+
+00:12–00:18.5
+The host approves. One order reaches the kitchen, with permissions and shared state enforced by the backend.
+
+00:18.5–00:27
+Raysto calculates exact shares. Each diner approves through PayPal. MCP provides a separate, read-only payment-status check.
+
+00:27–00:34
+Staff see that same visit in the connected AG Grid and AG Studio workspace.
+
+00:34–00:38
+Now, let's watch the system work.
+
+Recording note: This explains the implementation and recorded QA evidence. Do not describe a successful buyer capture until it has been demonstrated. The on-screen Sandbox qualifier preserves that boundary.

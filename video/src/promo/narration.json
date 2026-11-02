@@ -1,0 +1,10 @@
+[
+  {"id": "intro", "text": "This is Raysto: one system for the counter, the kitchen, and the table."},
+  {"id": "counter", "text": "A snack bar at lunch. Staff tap the order on a tablet, and show a PayPal QR code."},
+  {"id": "pay", "text": "The customer pays on their own phone, with PayPal."},
+  {"id": "kitchen", "text": "Payment captured. Ticket three goes straight to the kitchen board, live."},
+  {"id": "table", "text": "At the table, guests share one room. Gemini builds the order from the real menu, and Raysto splits the bill to the cent. Everyone approves their own share in PayPal."},
+  {"id": "web", "text": "On the web, owners see every channel, every PayPal capture, refunds, and cash, kept apart."},
+  {"id": "ai", "text": "Ask Raysto what needs attention. It checks the ledger, then asks PayPal itself, through M C P."},
+  {"id": "outro", "text": "AI helps. People approve. PayPal moves the money. Raysto."}
+]
