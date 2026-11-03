@@ -233,6 +233,16 @@ const modes = {
       report('Task', { id: task.id, agent: task.agent, status: task.status, actions: (task.actions ?? []).map((a) => ({ id: a.id, command: a.command, status: a.status, error: a.errorCode, result: a.result })) });
     }
   },
+  task: async () => {
+    const manager = await signIn('manager');
+    const task = await manager.query('agent.task', { id: Number(process.argv[3]) });
+    report('Task', { id: task.id, agent: task.agent, status: task.status, summary: task.summary, trace: task.trace, actions: (task.actions ?? []).map((a) => ({ command: a.command, status: a.status, rationale: a.rationale, error: a.errorCode })) });
+  },
+  query: async () => {
+    const manager = await signIn('manager');
+    const data = await manager.query(process.argv[3], JSON.parse(process.argv[4] ?? '{}'));
+    console.log(JSON.stringify(data).slice(0, 4000));
+  },
   logins: () => {
     for (const role of ['manager', 'diner']) console.log(`${role}: ${state.users[role].email} / ${state.users[role].password}`);
     console.log(`restaurantId: ${state.restaurantId}`);

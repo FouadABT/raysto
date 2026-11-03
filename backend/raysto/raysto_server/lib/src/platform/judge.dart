@@ -449,6 +449,13 @@ class JudgeModule {
           ),
           transaction: w.tx,
         );
+        // The agent reads it at once, as a diner's own complaint would be.
+        final seeded = await Complaint.db.findFirstRow(
+          s,
+          where: (t) => t.orderId.equals(o.id!) & t.status.equals('open'),
+          transaction: w.tx,
+        );
+        if (seeded != null) await ComplaintAgent.enqueueFor(w, seeded);
         complaint = 1;
         break;
       }

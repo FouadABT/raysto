@@ -39,6 +39,7 @@ class ComplaintAgent {
     final place = restaurant?.name ?? 'this café';
     Json? ticket, payment;
     AgentDraft? draft;
+    String? declined;
     Json? auto;
 
     Future<Json> readComplaint() async => ticket ??= await AgentModule.asAgent<Json>(
@@ -214,6 +215,7 @@ class ComplaintAgent {
             final pay = await readPayment();
             final refundable = pay['refundableMinor'] as int;
             if (kind == 'none') {
+              declined = rationale;
               await AgentModule.asAgent(s, task.restaurantId, (w) async {
                 final c = await _complaint(w, complaintId);
                 c
@@ -276,7 +278,9 @@ class ComplaintAgent {
               '${auto!['currency']} within your limit; PayPal refund '
               '${auto!['refundId']} is on its way.'
         : draft?.rationale ??
-              (result.text.isNotEmpty
+              (declined != null
+                  ? 'No refund proposed: $declined'
+                  : result.text.isNotEmpty
                   ? result.text
                   : 'Read complaint $complaintId; no refund is proposed.');
     return AgentOutcome(

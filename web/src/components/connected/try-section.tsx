@@ -656,8 +656,11 @@ function ComplaintCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
         if (!paid)
           throw new Error("No paid order without a complaint yet: pay for one with card 6 first, then come back.");
         say(`A diner writes about ticket #${String(paid.number ?? paid.id)}`);
+        // The diner names a dish that order really has, so the agent can check it.
+        const first = ((paid.lines as Json[] | undefined) ?? [])[0];
+        const dish = first ? String(first.name ?? "order").toLowerCase() : "order";
         try {
-          await api.command("complaint.open", tenant, { text: "My croissant was missing from the bag." }, { id: Number(paid.id) });
+          await api.command("complaint.open", tenant, { text: `My ${dish} was missing from the bag.` }, { id: Number(paid.id) });
         } catch (e) {
           throw unavailable(e, "Complaints");
         }
