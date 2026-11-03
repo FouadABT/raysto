@@ -738,7 +738,8 @@ export function AgentPanel({
   api: ConnectedApi;
   tenant: number;
   action: AgentActionRow;
-  onDone: (state: string) => void;
+  /** The decided state, and the action's result (its error code and message when it failed). */
+  onDone: (state: string, result?: Json) => void;
   /** Inside a card instead of the side column. */
   inline?: boolean;
   /** The published judge password, so the identity check is one tap. */
@@ -782,7 +783,7 @@ export function AgentPanel({
                 ? String((result.result as Json | undefined)?.message ?? "It could not be completed.")
                 : words(state),
       );
-      onDone(state);
+      onDone(state, result.result as Json | undefined);
     } catch (e) {
       setNote(String(e instanceof Error ? e.message : e));
     } finally {

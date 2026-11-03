@@ -200,7 +200,7 @@ function Approve({
   api: ConnectedApi;
   tenant: number;
   action: AgentActionRow;
-  done: (state: string) => void;
+  done: (state: string, result?: Json) => void;
 }) {
   return (
     <AgentPanel
@@ -214,12 +214,16 @@ function Approve({
   );
 }
 
-const decided = (state: string, executed: string) =>
+const decided = (state: string, executed: string, result?: Json) =>
   state === "executed"
     ? executed
     : state === "rejected"
       ? "Turned down. Nothing changed."
-      : "It did not go through; run it again.";
+      : result?.error === "provider_feature_disabled"
+        ? "PayPal refused it: this feature is not enabled on the Sandbox app yet. Nothing was sent or charged."
+        : typeof result?.message === "string" && result.message
+          ? `It did not go through: ${result.message}`
+          : "It did not go through; run it again.";
 
 /** A command that the backend does not offer yet reads as that, never as a result. */
 const unavailable = (e: unknown, what: string) => {
@@ -303,8 +307,8 @@ function MoneyOutcome({
           api={api}
           tenant={tenant}
           action={action}
-          done={(state) => {
-            setOutcome(decided(state, executed));
+          done={(state, result) => {
+            setOutcome(decided(state, executed, result));
             if (state === "executed") void refresh().then((t) => setIds(paypalIds(t))).catch(() => {});
           }}
         />
