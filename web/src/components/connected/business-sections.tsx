@@ -1,11 +1,15 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
-import { themeQuartz, type ColDef } from "ag-grid-community";
+import type { ColDef } from "ag-grid-community";
 import { ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
 import { stepUp, usesPassword } from "@/lib/connected/step-up";
 import { isJudgeVenue, judge } from "@/lib/connected/judge";
+import { m3GridTheme } from "@/lib/connected/grid-theme";
+import { advanceOrder, type OrderApi } from "@/lib/connected/pending-moves";
+import { ContainerCard, ContainerDialog, CountUp, Reveal, useSnackbar, type SnackbarOptions } from "./m3";
+import { OrdersBoard, PickupCodeDialog, type BoardOrder } from "./orders-board";
 import { Icon, type IconName } from "./icons";
 import {
   agentCost,
@@ -34,27 +38,17 @@ import {
 
 export type Section = "overview" | "orders" | "payments" | "agents" | "money" | "team";
 
-export const gridTheme = themeQuartz.withParams({
-  accentColor: "#173f35",
-  backgroundColor: "#ffffff",
-  foregroundColor: "#173e34",
-  borderColor: "#e3e8df",
-  chromeBackgroundColor: "#f8f9f4",
-  headerBackgroundColor: "#f8f9f4",
-  headerTextColor: "#5c6b62",
-  headerFontWeight: 600,
-  headerFontSize: 13,
-  fontFamily: "var(--font-jakarta)",
-  fontSize: 14,
-  rowHeight: 52,
-  headerHeight: 44,
-  rowHoverColor: "#f2f6ee",
-  selectedRowBackgroundColor: "#eef7d6",
-  wrapperBorder: false,
-  wrapperBorderRadius: 0,
-  columnBorder: false,
-  cellHorizontalPadding: 18,
-});
+/** The console's one grid theme, on the Material tokens (grid-theme.ts). */
+export const gridTheme = m3GridTheme;
+
+/** Snackbars come from the console's SnackbarProvider; without one a message is simply not shown. */
+function useOptionalSnackbar(): { show: (o: SnackbarOptions) => number } | null {
+  try {
+    return useSnackbar();
+  } catch {
+    return null;
+  }
+}
 /** Status words read as small colored pills, so state is seen, not read. */
 const tones: Record<string, string> = {
   submitted: "new", new: "new", awaitingpayment: "new", created: "new", pending: "new", reserved: "new", queued: "new", review: "warn",
@@ -288,7 +282,7 @@ export function OrdersSection({
   focus?: string;
   currencyCode: string;
 }) {
-  const [rows, setRows] = useState<OrderRow[]>([]);
+  const [rows, setRows] = useState<BoardOrder[]>([]);
   // Until the first page arrives the grid shows loading, not "no rows".
   const [loaded, setLoaded] = useState(false);
   const [cursor, setCursor] = useState<number | null>(null);
@@ -296,10 +290,19 @@ export function OrdersSection({
   const [group, setGroup] = useState<StatusGroup | "Active" | "All">(focus === "active" ? "Active" : "All");
   const [selected, setSelected] = useState<number>();
   const [error, setError] = useState("");
+  const [view, setView] = useState<"board" | "list">(readView);
+  const choose = (v: "board" | "list") => {
+    setView(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* Private mode: the choice lasts for this visit. */
+    }
+  };
   const load = useCallback(
     async (more = false) => {
       try {
-        const page = await api.query<{ rows: OrderRow[]; nextCursor: number | null }>("orders", {
+        const page = await api.query<{ rows: BoardOrder[]; nextCursor: number | null }>("orders", {
           restaurantId: tenant,
           staff: true,
           order: "desc",
@@ -318,11 +321,11 @@ export function OrdersSection({
   );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => void load(), [api, tenant, revision]);
-  const shown = rows.filter(
+  const byChannel = rows.filter((o) => channel === "All" || channelOf(o) === channel);
+  const shown = byChannel.filter(
     (o) =>
-      (channel === "All" || channelOf(o) === channel) &&
-      (group === "All" ||
-        (group === "Active" ? statusGroup(o.status) !== "Done" : statusGroup(o.status) === group)),
+      group === "All" ||
+      (group === "Active" ? statusGroup(o.status) !== "Done" : statusGroup(o.status) === group),
   );
   const columns = useMemo<ColDef<OrderRow>[]>(
     () => [
@@ -336,15 +339,47 @@ export function OrdersSection({
     ],
     [currencyCode],
   );
-  // The board takes the full width until an order is chosen.
+  const toolbar = (
+    <div className="m3-orders-bar">
+      <div className="m3-segmented" role="group" aria-label="Orders view">
+        <button type="button" aria-pressed={view === "board"} onClick={() => choose("board")}>
+          Board
+        </button>
+        <button type="button" aria-pressed={view === "list"} onClick={() => choose("list")}>
+          List
+        </button>
+      </div>
+      <div className="ops-chips" role="group" aria-label="Channel">
+        {(["All", "Counter", "Pickup", "Dine-in", "Delivery"] as const).map((c) => (
+          <button key={c} aria-pressed={channel === c} onClick={() => setChannel(c)}>{c}</button>
+        ))}
+      </div>
+    </div>
+  );
+  if (view === "board")
+    return (
+      <div className="ops-business">
+        {toolbar}
+        {error && <p className="ops-error" role="alert">{error}</p>}
+        {!loaded && !error ? (
+          <p className="ops-note" role="status">Loading the orders…</p>
+        ) : (
+          <OrdersBoard api={api} tenant={tenant} rows={byChannel} revision={revision} reload={() => void load()} />
+        )}
+        <div className="ops-row">
+          <small>
+            Drag a card to the next column, or use its button; a move waits five seconds for Undo. The newest {rows.length} orders are
+            loaded.
+          </small>
+          {cursor && <button onClick={() => void load(true)}>Load older orders</button>}
+        </div>
+      </div>
+    );
+  // The list takes the full width until an order is chosen.
   return (
     <div className={`ops-business${selected ? " with-panel" : ""}`}>
       <div>
-        <div className="ops-chips" role="group" aria-label="Channel">
-          {(["All", "Counter", "Pickup", "Dine-in", "Delivery"] as const).map((c) => (
-            <button key={c} aria-pressed={channel === c} onClick={() => setChannel(c)}>{c}</button>
-          ))}
-        </div>
+        {toolbar}
         <div className="ops-chips" role="group" aria-label="Status">
           {(["All", "Active", "New", "Preparing", "Ready", "Done"] as const).map((g) => (
             <button key={g} aria-pressed={group === g} onClick={() => setGroup(g)}>{g}</button>
@@ -380,14 +415,23 @@ export function OrdersSection({
   );
 }
 
-function OrderPanel({
+const VIEW_KEY = "raysto.ordersView";
+function readView(): "board" | "list" {
+  try {
+    return globalThis.localStorage?.getItem(VIEW_KEY) === "list" ? "list" : "board";
+  } catch {
+    return "board";
+  }
+}
+
+export function OrderPanel({
   api,
   tenant,
   id,
   revision,
   onChanged,
 }: {
-  api: ConnectedApi;
+  api: OrderApi;
   tenant: number;
   id: number;
   revision: string;
@@ -399,29 +443,17 @@ function OrderPanel({
   );
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  const [asking, setAsking] = useState(false);
   if (!order) return <p className="ops-note">{error || "Loading the order…"}</p>;
   const step = nextStep(order);
-  async function advance() {
+  // The same path as a move on the board: ticks open lines before ready,
+  // then the transition with the version this panel holds.
+  async function advance(code?: string) {
     if (!order || !step) return;
     setBusy(true);
     setNote("");
     try {
-      let code: string | undefined;
-      if (step === "collected" && order.origin !== "counter" && order.pickupCode) {
-        code = window.prompt("Pickup code on the customer's phone (managers may leave it empty)") ?? undefined;
-        if (code === undefined) return;
-        if (code === "") code = undefined;
-      }
-      if (step === "ready") {
-        // Tick any lines the kitchen left open, then mark the order ready.
-        const kitchen = await api.query<{ rows: Json[] }>("kitchen", { restaurantId: tenant, limit: 100 });
-        const tickets = (kitchen.rows.find((r) => r.id === order.id)?.tickets ?? []) as Json[];
-        for (const t of tickets) {
-          if (Number(t.completedQuantity) >= Number(t.quantity)) continue;
-          await api.command("kitchen.progress", tenant, { lineKey: t.lineKey, completedQuantity: t.quantity }, { id: order.id, version: Number(t.version) });
-        }
-      }
-      await api.command("order.transition", tenant, { status: step, ...(code ? { code } : {}) }, { id: order.id, version: order.version });
+      await advanceOrder(api, tenant, order, step, code);
       reload();
       onChanged();
     } catch (e) {
@@ -430,6 +462,7 @@ function OrderPanel({
       setBusy(false);
     }
   }
+  const needsCode = step === "collected" && order.origin !== "counter" && !!order.pickupCode;
   const payments = (order.payments ?? []) as Json[];
   const lines = (order.lines ?? []) as Json[];
   return (
@@ -469,12 +502,22 @@ function OrderPanel({
         </ul>
       )}
       {step && (
-        <button className="ops-primary" disabled={busy} onClick={() => void advance()}>
+        <button className="ops-primary" disabled={busy} onClick={() => (needsCode ? setAsking(true) : void advance())}>
           {busy ? "Working…" : { accepted: "Accept", preparing: "Start cooking", ready: "Mark ready", served: "Served", collected: "Hand over", completed: "Complete" }[step]}
         </button>
       )}
       {note && <p className="ops-error" role="alert">{note}</p>}
       <p className="ops-note">Refunds need a fresh identity check and are made in the Raysto app.</p>
+      <PickupCodeDialog
+        open={asking}
+        ticket={order.number ? `#${order.number}` : `Order ${order.id}`}
+        optional
+        onCancel={() => setAsking(false)}
+        onConfirm={(code) => {
+          setAsking(false);
+          void advance(code);
+        }}
+      />
     </div>
   );
 }
@@ -533,10 +576,21 @@ export function PaymentsSection({
   return (
     <div className="ops-business">
       <div className="ops-kpis compact">
-        <div className="ops-kpi"><span>PayPal · 7 days</span><strong>{currency(totals.paypal, currencyCode)}</strong></div>
-        <div className="ops-kpi"><span>Cash · 7 days</span><strong>{currency(totals.cash, currencyCode)}</strong></div>
-        <div className="ops-kpi"><span>Refunded</span><strong>{currency(totals.refunded, currencyCode)}</strong></div>
-        <div className={`ops-kpi ${totals.review ? "alert" : ""}`}><span>Under review</span><strong>{currency(totals.review, currencyCode)}</strong></div>
+        {(
+          [
+            ["PayPal · 7 days", totals.paypal, ""],
+            ["Cash · 7 days", totals.cash, ""],
+            ["Refunded", totals.refunded, ""],
+            ["Under review", totals.review, totals.review ? "alert" : ""],
+          ] as const
+        ).map(([label, value, tone], i) => (
+          <Reveal key={label} index={i} visitKey="payments-kpis" className={`ops-kpi ${tone}`}>
+            <span>{label}</span>
+            <strong>
+              <CountUp value={value} format={(n) => currency(n, currencyCode)} />
+            </strong>
+          </Reveal>
+        ))}
       </div>
       <div className="ops-chips" role="tablist" aria-label="Payment records">
         {tabs.map(([t, label]) => (
@@ -618,6 +672,9 @@ export function AgentsSection({
 }) {
   const [tab, setTab] = useState<"inbox" | "activity">("inbox");
   const [selected, setSelected] = useState<number>();
+  // The dialog keeps the action it opened with while it shrinks back.
+  const [shown, setShown] = useState<AgentActionRow>();
+  const snackbar = useOptionalSnackbar();
   const { data, error, reload } = useLoad(async () => {
     const [inbox, activity] = await Promise.all([
       api.query<Json>("agent.inbox", { restaurantId: tenant }),
@@ -630,22 +687,26 @@ export function AgentsSection({
   }, [api, tenant, revision]);
   const today = new Date().toDateString();
   const todays = (data?.activity ?? []).filter((t) => new Date(t.createdAt).toDateString() === today);
-  const action = data?.inbox.find((a) => a.id === selected);
-  const inboxColumns = useMemo<ColDef<AgentActionRow>[]>(
-    () => [
-      { headerName: "Agent", valueGetter: (p) => (p.data ? agentName(p.data.agent) : ""), minWidth: 140 },
-      { field: "title", headerName: "Suggestion", flex: 2, minWidth: 240 },
-      {
-        field: "risk",
-        headerName: "Kind",
-        valueFormatter: (p) => (p.value === "money" ? "Money · identity check" : p.value === "ops" ? "Service" : "Menu"),
-        minWidth: 150,
-      },
-      { headerName: "PayPal", valueGetter: (p) => String(p.data?.evidence?.paypalStatus ?? ""), minWidth: 130 },
-      { field: "createdAt", headerName: "Found", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
-    ],
-    [],
-  );
+  const open = (a: AgentActionRow) => {
+    setShown(a);
+    setSelected(a.id);
+  };
+  const decided = (action: AgentActionRow, state: string, result?: Json) => {
+    setSelected(undefined);
+    reload();
+    // Money cannot be taken back, so these messages never offer Undo.
+    const id = paypalIdOf(result);
+    snackbar?.show({
+      message:
+        state === "executed"
+          ? `${action.title}: done${id ? ` · PayPal ${id}` : ""}`
+          : state === "rejected"
+            ? `${action.title}: dismissed`
+            : state === "stale"
+              ? "Things changed since the agent looked. It will check again."
+              : String(result?.message ?? "It could not be completed."),
+    });
+  };
   const activityColumns = useMemo<ColDef<AgentTaskRow>[]>(
     () => [
       { headerName: "Agent", valueGetter: (p) => (p.data ? agentName(p.data.agent) : ""), minWidth: 140 },
@@ -670,61 +731,107 @@ export function AgentsSection({
     [],
   );
   if (!data) return <p className="ops-note">{error || "Loading the agents…"}</p>;
+  const kpis: [string, number, (n: number) => string][] = [
+    ["Waiting for you", data.inbox.length, (n) => String(Math.round(n))],
+    ["Agent tasks today", todays.length, (n) => String(Math.round(n))],
+    ["Money suggestions", data.inbox.filter((a) => a.risk === "money").length, (n) => String(Math.round(n))],
+    ["AI cost today", todays.reduce((n, t) => n + t.chargedMicros, 0), (n) => agentCost(Math.round(n))],
+  ];
   return (
-    <div className={`ops-business ${action ? "with-panel" : ""}`}>
-      <div>
-        <div className="ops-kpis compact">
-          <div className="ops-kpi"><span>Waiting for you</span><strong>{data.inbox.length}</strong></div>
-          <div className="ops-kpi"><span>Agent tasks today</span><strong>{todays.length}</strong></div>
-          <div className="ops-kpi"><span>Money suggestions</span><strong>{data.inbox.filter((a) => a.risk === "money").length}</strong></div>
-          <div className="ops-kpi"><span>AI cost today</span><strong>{agentCost(todays.reduce((n, t) => n + t.chargedMicros, 0))}</strong></div>
-        </div>
-        <div className="ops-chips" role="group" aria-label="Agents view">
-          <button aria-pressed={tab === "inbox"} onClick={() => setTab("inbox")}>Waiting for you</button>
-          <button aria-pressed={tab === "activity"} onClick={() => setTab("activity")}>What the agents did</button>
-        </div>
-        {error && <p className="ops-error" role="alert">{error}</p>}
-        <div className="ops-grid tall">
-          {tab === "inbox" ? (
-            <AgGridReact<AgentActionRow>
-              key="agents-inbox"
-              theme={gridTheme}
-              rowData={data.inbox}
-              columnDefs={inboxColumns}
-              defaultColDef={defaults}
-              getRowId={(p) => String(p.data.id)}
-              onRowClicked={(e) => e.data && setSelected(e.data.id)}
-              overlayNoRowsTemplate="Nothing is waiting. Agents ask here when something needs you."
-            />
-          ) : (
-            <AgGridReact<AgentTaskRow>
-              key="agents-activity"
-              theme={gridTheme}
-              rowData={data.activity}
-              columnDefs={activityColumns}
-              defaultColDef={defaults}
-              getRowId={(p) => String(p.data.id)}
-              tooltipShowDelay={300}
-            />
-          )}
-        </div>
-        <small className="ops-note">Agents prepare; people approve; PayPal moves the money.</small>
+    <div className="ops-business">
+      <div className="ops-kpis compact">
+        {kpis.map(([label, value, format], i) => (
+          <Reveal key={label} index={i} visitKey="agents-kpis" className="ops-kpi">
+            <span>{label}</span>
+            <strong>
+              <CountUp value={value} format={format} />
+            </strong>
+          </Reveal>
+        ))}
       </div>
-      {action && (
-        <AgentPanel
-          key={`${action.id}-${action.version}`}
-          api={api}
-          tenant={tenant}
-          action={action}
-          knownPassword={isJudgeVenue(tenant) ? judge.password : ""}
-          onDone={() => {
-            setSelected(undefined);
-            reload();
-          }}
-        />
+      <div className="ops-chips" role="group" aria-label="Agents view">
+        <button aria-pressed={tab === "inbox"} onClick={() => setTab("inbox")}>Waiting for you</button>
+        <button aria-pressed={tab === "activity"} onClick={() => setTab("activity")}>What the agents did</button>
+      </div>
+      {error && <p className="ops-error" role="alert">{error}</p>}
+      {tab === "inbox" ? (
+        data.inbox.length === 0 ? (
+          <p className="ops-quiet-note">Nothing is waiting. Agents ask here when something needs you.</p>
+        ) : (
+          <ul className="m3-proposals" aria-label="Waiting for you">
+            {data.inbox.map((a, i) => {
+              const chips = evidenceChips(a.evidence ?? {}, a.preview ?? {}, (minor, code) => currency(minor, code)).slice(0, 3);
+              return (
+                <Reveal key={a.id} as="li" index={i} visitKey="agents-inbox">
+                  <ContainerCard layoutId={`agent-${a.id}`} as="article" className={`m3-proposal ${a.risk}`}>
+                    <span className="ops-eyebrow">
+                      {agentName(a.agent)} · {a.risk === "money" ? "Money · identity check" : a.risk === "ops" ? "Service" : "Menu"}
+                    </span>
+                    <h3>{a.title}</h3>
+                    <p className="m3-proposal-why">{a.rationale}</p>
+                    {chips.length > 0 && (
+                      <ul className="m3-proposal-chips">
+                        {chips.map((c) => (
+                          <li key={c}>{c}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="m3-proposal-foot">
+                      <small>{time(a.createdAt)}</small>
+                      <button type="button" className="ops-primary" onClick={() => open(a)} aria-label={`Review: ${a.title}`}>
+                        Review
+                      </button>
+                    </div>
+                  </ContainerCard>
+                </Reveal>
+              );
+            })}
+          </ul>
+        )
+      ) : (
+        <div className="ops-grid tall">
+          <AgGridReact<AgentTaskRow>
+            key="agents-activity"
+            theme={gridTheme}
+            rowData={data.activity}
+            columnDefs={activityColumns}
+            defaultColDef={defaults}
+            getRowId={(p) => String(p.data.id)}
+            tooltipShowDelay={300}
+          />
+        </div>
       )}
+      <small className="ops-note">Agents prepare; people approve; PayPal moves the money.</small>
+      <ContainerDialog
+        layoutId={`agent-${shown?.id ?? 0}`}
+        open={selected !== undefined}
+        onClose={() => setSelected(undefined)}
+        title={shown?.title ?? "Proposal"}
+      >
+        {shown && (
+          <AgentPanel
+            key={`${shown.id}-${shown.version}`}
+            api={api}
+            tenant={tenant}
+            action={shown}
+            variant="dialog"
+            knownPassword={isJudgeVenue(tenant) ? judge.password : ""}
+            onDone={(state, result) => decided(shown, state, result)}
+          />
+        )}
+      </ContainerDialog>
     </div>
   );
+}
+
+/** The PayPal id a decided action reports, for the confirmation message. */
+export function paypalIdOf(result?: Json): string | undefined {
+  if (!result) return undefined;
+  for (const key of ["providerBatchId", "providerRefundId", "providerCaptureId", "invoiceNumber", "providerInvoiceId"]) {
+    const v = result[key];
+    if (typeof v === "string" && v) return v;
+  }
+  return undefined;
 }
 
 export function AgentPanel({
@@ -733,6 +840,7 @@ export function AgentPanel({
   action,
   onDone,
   inline = false,
+  variant,
   knownPassword = "",
 }: {
   api: ConnectedApi;
@@ -742,6 +850,8 @@ export function AgentPanel({
   onDone: (state: string, result?: Json) => void;
   /** Inside a card instead of the side column. */
   inline?: boolean;
+  /** Where it sits: the side column (default), a card (`inline`) or a container-transform dialog. */
+  variant?: "side" | "inline" | "dialog";
   /** The published judge password, so the identity check is one tap. */
   knownPassword?: string;
 }) {
@@ -804,13 +914,14 @@ export function AgentPanel({
     }
   }
 
-  const Shell = inline ? "div" : "aside";
+  const place = variant ?? (inline ? "inline" : "side");
+  const Shell = place === "side" ? "aside" : "div";
   return (
-    <Shell className={inline ? "ops-try-approve" : "ops-side ops-order"}>
+    <Shell className={place === "inline" ? "ops-try-approve" : place === "dialog" ? "ops-order m3-agent-dialog" : "ops-side ops-order"}>
       <span className="ops-eyebrow">
         {agentName(action.agent)} · {action.risk === "money" ? "Money" : action.risk === "ops" ? "Service" : "Menu"}
       </span>
-      <h2 style={{ fontSize: inline ? 19 : 24 }}>{action.title}</h2>
+      <h2 style={{ fontSize: place === "inline" ? 19 : place === "dialog" ? 22 : 24 }}>{action.title}</h2>
       <p>{action.rationale}</p>
       {chips.length > 0 && (
         <>

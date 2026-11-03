@@ -12,6 +12,9 @@ abstract final class AppColors {
   // maintains readable supporting copy on paper, mint and peach surfaces.
   static const secondaryText = Color(0xFF59675E);
   static const lime = Color(0xFFD7F978);
+
+  /// Text and icons on lime: deeper than ink, so small text stays readable.
+  static const limeInk = Color(0xFF2B3D06);
   static const mint = Color(0xFFE6EDE2);
   static const peach = Color(0xFFF3E8DB);
   static const line = Color(0xFFDCE2D9);
@@ -53,8 +56,48 @@ abstract final class AppRadius {
   static const pill = 999.0;
 }
 
+/// Material 3 corner scale. Cards keep the approved 24 (`AppRadius.card`),
+/// a deliberate step between large and extra-large.
+abstract final class AppShape {
+  static const none = 0.0;
+  static const extraSmall = 4.0;
+  static const small = 8.0;
+  static const medium = 12.0;
+  static const large = 16.0;
+  static const card = AppRadius.card;
+  static const extraLarge = 28.0;
+  static const full = AppRadius.pill;
+}
+
+/// Material 3 state-layer opacities, laid over a surface in its "on" colour.
+abstract final class AppStateLayer {
+  static const hover = 0.08;
+  static const focus = 0.10;
+  static const pressed = 0.10;
+  static const dragged = 0.16;
+}
+
 abstract final class AppType {
   static const family = 'PlusJakartaSans';
+
+  /// Display emphasis only: the italic serif of a greeting's name. Arabic
+  /// falls back to Noto Sans Arabic.
+  static const displayItalic = 'FrauncesItalic';
+
+  static TextStyle emphasis(
+    double size, {
+    Color color = AppColors.ink,
+    double height = 1.15,
+  }) => TextStyle(
+    fontFamily: displayItalic,
+    fontFamilyFallback: const ['NotoSansArabic'],
+    fontStyle: FontStyle.italic,
+    fontSize: size,
+    fontWeight: FontWeight.w500,
+    color: color,
+    height: height,
+    letterSpacing: size >= 28 ? -0.6 : 0,
+  );
 
   static TextStyle style(
     double size, {
@@ -138,5 +181,100 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
           onWarning: Color.lerp(onWarning, other.onWarning, t)!,
           information: Color.lerp(information, other.information, t)!,
           onInformation: Color.lerp(onInformation, other.onInformation, t)!,
+        );
+}
+
+/// Chart colours. Series colours reach 3:1 against their surface, as
+/// graphical objects must; a series is also always named, never colour alone.
+@immutable
+class RaystoChartColors extends ThemeExtension<RaystoChartColors> {
+  const RaystoChartColors({
+    required this.series,
+    required this.line,
+    required this.area,
+    required this.grid,
+    required this.sample,
+    required this.track,
+  });
+
+  /// Categorical series, in order (channels, lanes, segments).
+  final List<Color> series;
+
+  /// The main line, its area fill (drawn with fading opacity), the grid,
+  /// the dashed sample outline and a ring's empty track.
+  final Color line, area, grid, sample, track;
+
+  static const _light = RaystoChartColors(
+    series: [
+      Color(0xFF173F35), // forest: the real series
+      Color(0xFF6A8F1F), // olive: lime's readable partner on white
+      Color(0xFFB27A14), // mustard, darkened to 3:1 on white
+      Color(0xFFB5543A), // burnt orange
+      Color(0xFF5C7A8A), // slate
+    ],
+    line: Color(0xFF173F35),
+    area: Color(0xFFD7F978),
+    grid: Color(0xFFDCE2D9),
+    sample: Color(0xFF68756C),
+    track: Color(0xFFE6EDE2),
+  );
+
+  static const _dark = RaystoChartColors(
+    series: [
+      Color(0xFFB7DDA6),
+      Color(0xFFD7F978),
+      Color(0xFFF2A585),
+      Color(0xFFF0C27A),
+      Color(0xFFBDCABD),
+    ],
+    line: Color(0xFFD7F978),
+    area: Color(0xFFD7F978),
+    grid: Color(0xFF435647),
+    sample: Color(0xFF8E9D8F),
+    track: Color(0xFF2B3C31),
+  );
+
+  factory RaystoChartColors.forBrightness(Brightness brightness) =>
+      brightness == Brightness.dark ? _dark : _light;
+
+  static RaystoChartColors of(BuildContext context) =>
+      Theme.of(context).extension<RaystoChartColors>() ??
+      RaystoChartColors.forBrightness(Theme.of(context).brightness);
+
+  @override
+  RaystoChartColors copyWith({
+    List<Color>? series,
+    Color? line,
+    Color? area,
+    Color? grid,
+    Color? sample,
+    Color? track,
+  }) => RaystoChartColors(
+    series: series ?? this.series,
+    line: line ?? this.line,
+    area: area ?? this.area,
+    grid: grid ?? this.grid,
+    sample: sample ?? this.sample,
+    track: track ?? this.track,
+  );
+
+  @override
+  RaystoChartColors lerp(covariant RaystoChartColors? other, double t) =>
+      other == null
+      ? this
+      : RaystoChartColors(
+          series: [
+            for (var i = 0; i < series.length; i++)
+              Color.lerp(
+                series[i],
+                other.series[i % other.series.length],
+                t,
+              )!,
+          ],
+          line: Color.lerp(line, other.line, t)!,
+          area: Color.lerp(area, other.area, t)!,
+          grid: Color.lerp(grid, other.grid, t)!,
+          sample: Color.lerp(sample, other.sample, t)!,
+          track: Color.lerp(track, other.track, t)!,
         );
 }

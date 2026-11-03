@@ -1,0 +1,93 @@
+/* Raysto's Material 3 system tokens for the console, written by hand from
+   docs/design-tokens.json (web/tests/tokens.test.ts keeps them in step).
+   Only new names are defined here, so the guest app's own tokens.css is
+   unaffected; the console's older names alias these at the top of
+   operations.css. Light only. */
+:root {
+  /* Colour roles */
+  --md-sys-color-primary: #173f35;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #e6ede2;
+  --md-sys-color-on-primary-container: #173e34;
+  --md-sys-color-secondary: #173f35;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #d7f978;
+  --md-sys-color-on-secondary-container: #2b3d06;
+  --md-sys-color-tertiary-container: #f3e8db;
+  --md-sys-color-on-tertiary-container: #173e34;
+  --md-sys-color-surface: #f6f7f2;
+  --md-sys-color-on-surface: #173e34;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f6f7f2;
+  --md-sys-color-surface-container: #e6ede2;
+  --md-sys-color-on-surface-variant: #59675e;
+  --md-sys-color-outline: #68756c;
+  --md-sys-color-outline-variant: #dce2d9;
+  --md-sys-color-error: #a32d32;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #fbe4dc;
+  --md-sys-color-on-error-container: #9a3a25;
+  --md-sys-color-inverse-surface: #173f35;
+  --md-sys-color-inverse-on-surface: #f6f7f2;
+  --md-sys-color-inverse-primary: #d7f978;
+  --md-sys-color-scrim: #000000;
+  --md-sys-scrim-opacity: 0.32;
+
+  /* Shape */
+  --md-sys-shape-corner-none: 0px;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* Motion */
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+  --md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  --md-sys-motion-duration-short1: 50ms;
+  --md-sys-motion-duration-short2: 100ms;
+  --md-sys-motion-duration-short3: 150ms;
+  --md-sys-motion-duration-short4: 200ms;
+  --md-sys-motion-duration-medium1: 250ms;
+  --md-sys-motion-duration-medium2: 300ms;
+  --md-sys-motion-duration-medium3: 350ms;
+  --md-sys-motion-duration-medium4: 400ms;
+  --md-sys-motion-duration-long1: 450ms;
+  --md-sys-motion-duration-long2: 500ms;
+  --md-sys-motion-duration-long3: 550ms;
+  --md-sys-motion-duration-long4: 600ms;
+
+  /* State layers (opacity of the content colour over a surface) */
+  --md-sys-state-hover: 0.08;
+  --md-sys-state-focus: 0.1;
+  --md-sys-state-pressed: 0.1;
+  --md-sys-state-dragged: 0.16;
+
+  /* Elevation */
+  --md-sys-elevation-level1: 0 1px 2px rgb(23 62 52 / 6%), 0 1px 1px rgb(23 62 52 / 4%);
+  --md-sys-elevation-level2: 0 14px 32px -18px rgb(23 62 52 / 30%), 0 2px 6px rgb(23 62 52 / 6%);
+  --md-sys-elevation-level3: 0 22px 44px -20px rgb(23 62 52 / 38%), 0 4px 10px rgb(23 62 52 / 8%);
+
+  /* Raysto extensions */
+  --raysto-sys-color-success: #1d6b45;
+  --raysto-sys-color-success-container: #e3f1e6;
+  --raysto-sys-color-warning: #7c5000;
+  --raysto-sys-color-warning-container: #fbefd2;
+  --raysto-sys-color-info: #1d4a5b;
+  --raysto-sys-color-info-container: #dcecf3;
+  --raysto-sys-color-outline-soft: #e8ece5;
+  --raysto-sys-color-primary-strong: #1f5244;
+  --raysto-chart-1: #173f35;
+  --raysto-chart-2: #6a8f1f;
+  --raysto-chart-3: #b27a14;
+  --raysto-chart-4: #b5543a;
+  --raysto-chart-5: #5c7a8a;
+  --raysto-chart-fill: #d7f978;
+  --raysto-chart-sample: #68756c;
+  --raysto-shape-card: 24px;
+}

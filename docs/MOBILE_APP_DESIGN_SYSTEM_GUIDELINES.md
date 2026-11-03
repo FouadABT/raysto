@@ -353,27 +353,30 @@ Support valid deep links and a useful missing-route recovery. A direct detail li
 
 ### Shared tokens
 
-| Token | Normal duration | Default purpose |
-| --- | --- | --- |
-| `feedback` | 140 ms | Press/release and small control feedback |
-| `selection` | 240 ms | Choice changes, short crossfades, expansions |
-| `branch` | 400 ms | Main destination transition |
-| `sheet` | 360 ms opening | Modal sheet entrance |
-| Sheet reverse | 240 ms | Modal dismissal |
-| `milestone` | 440 ms | Progress and completion emphasis |
-| Dock spring | About 460 ms | Travelling selection indicator |
-| Initial reveal | Up to 650 ms | Restrained first entrance of a short content group |
+Since 3 November 2026 these are Material 3 motion tokens. The values are in [design-tokens.json](design-tokens.json) (`flutter.motion` and `md.sys.motion`) and `test/design_tokens_test.dart` checks `AppMotion` against them; the console uses the same file.
+
+| Token | Normal duration | Material step | Default purpose |
+| --- | --- | --- | --- |
+| `feedback` | 150 ms | short3 | Press/release and small control feedback |
+| `selection` | 250 ms | medium1 | Choice changes, short crossfades, expansions, the rail indicator |
+| `branch` | 400 ms | medium4 | Main destination transition (fade-through) |
+| `sheet` | 350 ms opening | medium3 | Modal sheet entrance |
+| `sheetReverse` | 250 ms | medium1 | Modal dismissal |
+| `milestone` | 450 ms | long1 | Progress and completion emphasis |
+| `dock` | About 450 ms | long1 | Travelling selection indicator (spring) |
+| `reveal` | Up to 600 ms | long4 | Restrained first entrance of a short content group; charts drawing; numbers rolling to their value |
 
 Default curves:
 
 ```text
-Spatial movement: easeOutCubic
-Coordinated destination transition: easeInOutCubicEmphasized
-Opacity / effects: easeInOut
+Arriving (spatial): Material emphasized decelerate  (0.05, 0.7, 0.1, 1)
+Leaving (exit):     Material emphasized accelerate  (0.3, 0, 0.8, 0.15)
+Effects (opacity, colour, small state): Material standard (0.2, 0, 0, 1)
+Coordinated movement on screen: easeInOutCubicEmphasized
 Dock selection: interruptible spring
 ```
 
-These are application tokens inspired by Material motion principles, not a claim that every value is a mandated Material specification.
+State layers over a surface, in its "on" colour: hover 8%, focus and pressed 10%, dragged 16% (`AppStateLayer`). Shapes follow Material's corner scale 4/8/12/16/28 (`AppShape`); cards keep the approved 24.
 
 ### Interaction matrix
 
@@ -384,7 +387,7 @@ These are application tokens inspired by Material motion principles, not a claim
 | Choice | Surface/border/check transition; clear selected state | Immediate selected state |
 | Chip | Native selection feedback using shared duration | Immediate selection |
 | Dock selection | Travelling spring indicator, icon change and coordinated page transition | Immediate active destination |
-| Main branch | Directional shared axis with brief outgoing/incoming coordination | Immediate destination |
+| Main branch | Material fade-through: the outgoing branch fades over the first 35%, the incoming one fades in while growing from 0.92 | Immediate destination |
 | Detail route | Native platform transition; meaningful shared element if applicable | Suppress passive movement while retaining back gesture behavior |
 | Sheet | Native modal entrance/dismissal with shared durations | Immediate presentation/dismissal |
 | Expansion | Animate content size; rotate/change the disclosure icon | Replace content directly |

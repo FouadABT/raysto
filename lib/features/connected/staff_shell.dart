@@ -22,7 +22,20 @@ class _StaffShellState extends State<StaffShell> {
 
   List<(DockDestination, Widget)> branches(BuildContext context) {
     final l = live;
+    // A phone dock holds six places at most before labels break: there a
+    // manager reaches the kitchen board from More (Today shows its counts).
+    final phone = MediaQuery.sizeOf(context).width < 840;
     return [
+      // Owners and managers start on the day: sales, kitchen, team.
+      if (l.manager)
+        (
+          DockDestination(
+            context.tr('Today'),
+            Icons.insights_outlined,
+            Icons.insights,
+          ),
+          todayPage(l),
+        ),
       if (l.role == 'kitchen')
         (
           DockDestination(
@@ -50,7 +63,7 @@ class _StaffShellState extends State<StaffShell> {
           ),
           CounterScreen(live: l),
         ),
-      if (l.manager)
+      if (l.manager && !phone)
         (
           DockDestination(
             context.tr('Kitchen'),
@@ -172,6 +185,13 @@ Widget staffMore(
             ),
         ],
       ),
+    if (live.manager && MediaQuery.sizeOf(c).width < 840)
+      tile(
+        c.tr('Kitchen'),
+        Icons.restaurant_outlined,
+        () => push(c, KitchenBoard(live: live)),
+        subtitle: c.tr('New, cooking and ready tickets, oldest first.'),
+      ),
     if (live.manager)
       tile(
         c.tr('Snap your menu'),
@@ -211,9 +231,7 @@ class StaffRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration = AppMotion.reduced(context)
-        ? Duration.zero
-        : const Duration(milliseconds: 220);
+    final duration = AppMotion.duration(context, AppMotion.selection);
     return Material(
       color: AppColors.forest,
       child: SafeArea(
@@ -252,25 +270,42 @@ class StaffRail extends StatelessWidget {
                               child: ExcludeSemantics(
                                 child: Column(
                                   children: [
-                                    AnimatedContainer(
-                                      duration: duration,
-                                      curve: Curves.easeOutCubic,
+                                    // Material's rail indicator: the
+                                    // lime pill grows out from the icon's
+                                    // centre when its place is chosen.
+                                    SizedBox(
                                       width: 64,
                                       height: 40,
-                                      decoration: BoxDecoration(
-                                        color: i == index
-                                            ? AppColors.lime
-                                            : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(
-                                          AppRadius.pill,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        i == index ? d.selectedIcon : d.icon,
-                                        size: 24,
-                                        color: i == index
-                                            ? AppColors.forest
-                                            : const Color(0xFFCFDDD2),
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          AnimatedContainer(
+                                            duration: duration,
+                                            curve: AppMotion.effects,
+                                            width: i == index ? 64 : 28,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: i == index
+                                                  ? AppColors.lime
+                                                  : AppColors.lime.withValues(
+                                                      alpha: 0,
+                                                    ),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    AppRadius.pill,
+                                                  ),
+                                            ),
+                                          ),
+                                          Icon(
+                                            i == index
+                                                ? d.selectedIcon
+                                                : d.icon,
+                                            size: 24,
+                                            color: i == index
+                                                ? AppColors.forest
+                                                : const Color(0xFFCFDDD2),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(height: 6),

@@ -1,0 +1,220 @@
+{
+  "range": "7d",
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "from": "2026-10-28T04:00:00.000Z",
+  "to": "2026-11-04T05:00:00.000Z",
+  "granularity": "day",
+  "basis": "paidOrdersByCreatedAt",
+  "points": [
+    {
+      "start": "2026-10-28T04:00:00.000Z",
+      "label": "Wed",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-10-29T04:00:00.000Z",
+      "label": "Thu",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-10-30T04:00:00.000Z",
+      "label": "Fri",
+      "salesMinor": 1350,
+      "orders": 1
+    },
+    {
+      "start": "2026-10-31T04:00:00.000Z",
+      "label": "Sat",
+      "salesMinor": 4280,
+      "orders": 3
+    },
+    {
+      "start": "2026-11-01T04:00:00.000Z",
+      "label": "Sun",
+      "salesMinor": 3150,
+      "orders": 2
+    },
+    {
+      "start": "2026-11-02T05:00:00.000Z",
+      "label": "Mon",
+      "salesMinor": 8600,
+      "orders": 4
+    },
+    {
+      "start": "2026-11-03T05:00:00.000Z",
+      "label": "Tue",
+      "salesMinor": 2150,
+      "orders": 1
+    }
+  ],
+  "kpis": {
+    "sales": {
+      "value": 19530,
+      "previous": 6200,
+      "series": [
+        0,
+        0,
+        1350,
+        4280,
+        3150,
+        8600,
+        2150
+      ]
+    },
+    "orders": {
+      "value": 11,
+      "previous": 4,
+      "series": [
+        0,
+        0,
+        1,
+        3,
+        2,
+        4,
+        1
+      ]
+    },
+    "averageTicket": {
+      "value": 1775,
+      "previous": 1550,
+      "series": [
+        0,
+        0,
+        1350,
+        1427,
+        1575,
+        2150,
+        2150
+      ]
+    },
+    "tips": {
+      "value": 300,
+      "previous": 0,
+      "series": [
+        0,
+        0,
+        0,
+        100,
+        0,
+        200,
+        0
+      ]
+    }
+  },
+  "channels": [
+    {
+      "channel": "pickup",
+      "salesMinor": 15100,
+      "orders": 8
+    },
+    {
+      "channel": "counter",
+      "salesMinor": 3080,
+      "orders": 2
+    },
+    {
+      "channel": "table",
+      "salesMinor": 1350,
+      "orders": 1
+    }
+  ],
+  "kitchen": {
+    "submitted": 1,
+    "accepted": 0,
+    "preparing": 2,
+    "ready": 1,
+    "oldestMinutes": 12
+  },
+  "latest": [
+    {
+      "id": 27,
+      "number": 14,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "fulfillment": "pickup",
+      "origin": "online",
+      "totalMinor": 2150,
+      "currency": "USD",
+      "createdAt": "2026-11-03T15:51:02.000Z",
+      "customerLabel": null
+    },
+    {
+      "id": 26,
+      "number": 13,
+      "status": "ready",
+      "paymentStatus": "paid",
+      "fulfillment": "pickup",
+      "origin": "counter",
+      "totalMinor": 1540,
+      "currency": "USD",
+      "createdAt": "2026-11-03T15:20:41.000Z",
+      "customerLabel": "Sam"
+    }
+  ],
+  "staff": [
+    {
+      "name": "Nadia",
+      "ordersMoved": 9,
+      "hours": 16
+    },
+    {
+      "name": "Omar",
+      "ordersMoved": 6,
+      "hours": 8
+    }
+  ],
+  "target": {
+    "dailyTargetMinor": 30000,
+    "todayMinor": 2150
+  },
+  "sample": {
+    "label": "Sample history · illustrative, not sales",
+    "points": [
+      {
+        "start": "2026-10-28T04:00:00.000Z",
+        "label": "Wed",
+        "salesMinor": 18000,
+        "orders": 12
+      },
+      {
+        "start": "2026-10-29T04:00:00.000Z",
+        "label": "Thu",
+        "salesMinor": 20250,
+        "orders": 14
+      },
+      {
+        "start": "2026-10-30T04:00:00.000Z",
+        "label": "Fri",
+        "salesMinor": 24000,
+        "orders": 16
+      },
+      {
+        "start": "2026-10-31T04:00:00.000Z",
+        "label": "Sat",
+        "salesMinor": 27000,
+        "orders": 18
+      },
+      {
+        "start": "2026-11-01T04:00:00.000Z",
+        "label": "Sun",
+        "salesMinor": 21000,
+        "orders": 14
+      },
+      {
+        "start": "2026-11-02T05:00:00.000Z",
+        "label": "Mon",
+        "salesMinor": 13500,
+        "orders": 9
+      },
+      {
+        "start": "2026-11-03T05:00:00.000Z",
+        "label": "Tue",
+        "salesMinor": 15000,
+        "orders": 10
+      }
+    ]
+  }
+}

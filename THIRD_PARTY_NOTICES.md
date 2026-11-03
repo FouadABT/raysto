@@ -7,6 +7,7 @@ The root MIT license covers original Raysto code and documentation. It does not 
 | Plus Jakarta Sans | SIL OFL 1.1; [notice](assets/fonts/OFL.txt). |
 | Noto Sans Arabic | SIL OFL 1.1; [notice](assets/licenses/NotoSansArabic-OFL.txt). |
 | Fraunces (web) | SIL OFL 1.1; [notice](web/public/licenses/Fraunces-OFL.txt). |
+| Fraunces Italic (app) | SIL OFL 1.1; [notice](assets/licenses/Fraunces-OFL.txt). |
 | Phosphor Flutter compatibility subset | MIT; [notice](third_party/phosphor_flutter/LICENSE) and [local modifications](third_party/phosphor_flutter/README.md). |
 | Three dish photographs | Unsplash License; photographers and source URLs in [asset provenance](docs/assets.md). Illustrative fixtures. |
 | Native table illustration and web editorial scenes | AI-generated for Raysto; provenance in [mobile art direction](docs/mobile-art-direction.md) and [web creative direction](docs/web-creative-direction.md). Not verified restaurant partners. |

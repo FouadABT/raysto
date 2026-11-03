@@ -558,7 +558,7 @@ Widget pickupCodeStrip(BuildContext c, String code) {
     child: DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.lime,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppShape.medium),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

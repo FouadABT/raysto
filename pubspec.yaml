@@ -1,7 +1,7 @@
 name: raysto
 description: Raysto mobile restaurant platform with connected accounts and an isolated offline demo.
 publish_to: 'none'
-version: 0.14.2+2020
+version: 0.15.0+2100
 
 environment:
   sdk: ^3.13.0
@@ -37,6 +37,7 @@ dependencies:
   file_picker: ^13.2.0
   image_picker: ^1.2.4
   geolocator: ^14.0.1
+  animations: 2.2.0
   flutter_markdown_plus: 1.0.12
   record: 7.1.2
 
@@ -53,6 +54,10 @@ flutter:
     - assets/fonts/OFL.txt
     - assets/licenses/
   fonts:
+    - family: FrauncesItalic
+      fonts:
+        - asset: assets/fonts/Fraunces-Italic.ttf
+          style: italic
     - family: NotoSansArabic
       fonts:
         - asset: assets/fonts/NotoSansArabic.ttf

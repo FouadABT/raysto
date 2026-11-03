@@ -38,6 +38,8 @@ class CatalogueModule {
     'autonomy': {'refundsMaxMinor': 0, 'refundsPerDay': 0, 'remindersAuto': false},
     // How the payroll agent splits the week's tips: by hours worked, or equally.
     'tipPolicy': 'hours',
+    // The day's paid-sales goal the dashboard rings against; 0 means none.
+    'dailyTargetMinor': 0,
   };
   static bool _tzInitialized = false;
   static tz.Location zone(String name) {
@@ -189,6 +191,7 @@ class CatalogueModule {
     _int(merged, 'closeAt', max: 1439);
     validateAutonomy(_object(merged['autonomy']));
     _str(merged, 'tipPolicy', choices: {'hours', 'equal'});
+    _int(merged, 'dailyTargetMinor', max: 10000000);
     final codes = <String>{};
     for (final raw in _list(merged, 'coupons', max: 100)) {
       final p = _object(raw);
@@ -227,14 +230,15 @@ class CatalogueModule {
     };
   }
 
-  /// The owner's limits for the money agents. Only these keys change; the
-  /// rest of the settings keep their saved values.
+  /// The owner's limits for the money agents, the close time and the daily
+  /// sales target. Only these keys change; the rest of the settings keep
+  /// their saved values.
   static Future<Json> autonomy(Session s, PlatformCommand c) => _mutate(
     s,
     c,
     'autonomy.set',
     (w, d) async {
-      _keys(d, {'autonomy', 'closeAt'});
+      _keys(d, {'autonomy', 'closeAt', 'dailyTargetMinor'});
       final p =
           w.policy ??
           _fail('upgrade_required', 'Initialize this restaurant first.');
@@ -245,6 +249,8 @@ class CatalogueModule {
         if (d.containsKey('autonomy'))
           'autonomy': validateAutonomy(_object(d['autonomy'])),
         if (d.containsKey('closeAt')) 'closeAt': _int(d, 'closeAt', max: 1439),
+        if (d.containsKey('dailyTargetMinor'))
+          'dailyTargetMinor': _int(d, 'dailyTargetMinor', max: 10000000),
       };
       await JudgeModule.ownerOnly(w);
       p.settingsJson = jsonEncode(validateSettings(next));
@@ -253,8 +259,14 @@ class CatalogueModule {
       await w.audit('autonomy.set', 'restaurant', w.tenant, {
         'autonomy': next['autonomy'],
         'closeAt': next['closeAt'],
+        'dailyTargetMinor': next['dailyTargetMinor'],
       });
-      return {'version': p.version, 'autonomy': next['autonomy'], 'closeAt': next['closeAt']};
+      return {
+        'version': p.version,
+        'autonomy': next['autonomy'],
+        'closeAt': next['closeAt'],
+        'dailyTargetMinor': next['dailyTargetMinor'],
+      };
     },
     roles: _managers,
   );

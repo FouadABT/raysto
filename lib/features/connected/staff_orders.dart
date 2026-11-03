@@ -94,7 +94,7 @@ class _OrdersBoardState extends State<OrdersBoard> {
                   (String v) => setState(() => payment = v),
                 ),
               ];
-              final radius = BorderRadius.circular(AppRadius.button + 4);
+              final radius = BorderRadius.circular(AppShape.extraLarge);
               final tray = BoxDecoration(
                 color: Theme.of(c).colorScheme.surfaceContainer,
                 borderRadius: radius,
@@ -282,12 +282,41 @@ class OrderCard extends StatelessWidget {
     final theme = Theme.of(context);
     final status = theme.extension<AppStatusColors>();
     final quiet = theme.colorScheme.onSurfaceVariant;
+    final reduced = AppMotion.reduced(context);
+    // The card grows into the full order (Material's container transform);
+    // under reduced motion the order simply replaces it.
+    return OpenContainer(
+      tappable: false,
+      transitionType: ContainerTransitionType.fadeThrough,
+      transitionDuration: reduced ? Duration.zero : AppMotion.milestone,
+      closedElevation: 0,
+      openElevation: 0,
+      closedColor: theme.colorScheme.surfaceContainerLowest,
+      openColor: theme.scaffoldBackgroundColor,
+      middleColor: theme.scaffoldBackgroundColor,
+      closedShape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppShape.card)),
+      ),
+      openBuilder: (c, _) => OrderDetailPage(live: live, id: o.id),
+      closedBuilder: (c, open) => _closed(context, open, next, quiet, status),
+    );
+  }
+
+  Widget _closed(
+    BuildContext context,
+    VoidCallback open,
+    String? next,
+    Color quiet,
+    AppStatusColors? status,
+  ) {
+    final o = order;
+    final theme = Theme.of(context);
     const shown = 4;
     return AppPanel(
       padding: EdgeInsets.zero,
       accent: stateAccent(o.status),
       child: InkWell(
-        onTap: () => push(context, OrderDetailPage(live: live, id: o.id)),
+        onTap: open,
         child: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(26, 18, 20, 18),
           child: Column(
@@ -378,7 +407,7 @@ class OrderCard extends StatelessWidget {
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.lime,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppShape.medium),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

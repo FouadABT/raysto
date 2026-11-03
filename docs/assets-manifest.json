@@ -10,6 +10,11 @@
     "sha256": "4bbf2eac1da7583a792dbab3968001c02be4bdb56fe139b60df7a5445e538c97"
   },
   {
+    "file": "assets/fonts/Fraunces-Italic.ttf",
+    "bytes": 414904,
+    "sha256": "b24448c43702fac4ee856781d461a0dfba8d8e594b6e8e190234b75fed2c0e01"
+  },
+  {
     "file": "assets/fonts/NotoSansArabic.ttf",
     "bytes": 844676,
     "sha256": "63111b5b2e074dd48cc67692e0a2726d86ee94c1c37fe8598257b7b4e87e869e"
@@ -53,6 +58,11 @@
     "file": "assets/images/wood_fired_pizza.jpg",
     "bytes": 609572,
     "sha256": "4d4ee482ab6a3948e68e4b66b8c03a897070c16c4c100d847585738956ee78c5"
+  },
+  {
+    "file": "assets/licenses/Fraunces-OFL.txt",
+    "bytes": 4391,
+    "sha256": "bdf4c22802eaf804f998195871c6b8938aac2ac14b2d78a8bd66a6f1eced833b"
   },
   {
     "file": "assets/licenses/NotoSansArabic-OFL.txt",

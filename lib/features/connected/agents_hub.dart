@@ -63,7 +63,7 @@ Widget agentsPage(LiveContext live) => DataPage(
         scene: RaystoScene.receipt,
       ),
     for (final a in records(d['inbox']))
-      AgentActionCard(
+      AgentActionTile(
         key: ValueKey('agent-action-${a['id']}-${a['version']}'),
         live: live,
         action: a,
@@ -78,8 +78,10 @@ Widget agentsPage(LiveContext live) => DataPage(
   ],
 );
 
-class AgentActionCard extends StatefulWidget {
-  const AgentActionCard({
+/// A suggestion in the inbox. The card grows into its own page (Material's
+/// container transform) for a closer look; it can be decided from either.
+class AgentActionTile extends StatelessWidget {
+  const AgentActionTile({
     super.key,
     required this.live,
     required this.action,
@@ -88,6 +90,83 @@ class AgentActionCard extends StatefulWidget {
   final LiveContext live;
   final Json action;
   final Future<void> Function() onDone;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return OpenContainer(
+      tappable: false,
+      transitionType: ContainerTransitionType.fadeThrough,
+      transitionDuration: AppMotion.reduced(context)
+          ? Duration.zero
+          : AppMotion.milestone,
+      closedElevation: 0,
+      openElevation: 0,
+      closedColor: theme.colorScheme.surfaceContainerLowest,
+      openColor: theme.scaffoldBackgroundColor,
+      middleColor: theme.scaffoldBackgroundColor,
+      closedShape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppShape.card)),
+      ),
+      closedBuilder: (c, open) => AgentActionCard(
+        live: live,
+        action: action,
+        onDone: onDone,
+        onOpen: open,
+      ),
+      openBuilder: (c, close) => Scaffold(
+        appBar: AppBar(title: Text(agentFace(c, '${action['agent']}').$1)),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              AgentActionCard(
+                live: live,
+                action: action,
+                onDone: () async {
+                  close();
+                  await onDone();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// What PayPal returned for an approved money action: a batch, a refund, an
+/// invoice or a capture id, when the result carries one.
+String? paypalIdOf(Json result) {
+  final r = obj(result['result']);
+  for (final key in const [
+    'providerBatchId',
+    'providerRefundId',
+    'invoiceNumber',
+    'providerInvoiceId',
+    'providerCaptureId',
+  ]) {
+    final v = r[key];
+    if (v is String && v.isNotEmpty) return v;
+  }
+  return null;
+}
+
+class AgentActionCard extends StatefulWidget {
+  const AgentActionCard({
+    super.key,
+    required this.live,
+    required this.action,
+    required this.onDone,
+    this.onOpen,
+  });
+  final LiveContext live;
+  final Json action;
+  final Future<void> Function() onDone;
+
+  /// Opens the suggestion on its own page, when the card is in a list.
+  final VoidCallback? onOpen;
   @override
   State<AgentActionCard> createState() => _AgentActionCardState();
 }
@@ -141,7 +220,12 @@ class _AgentActionCardState extends State<AgentActionCard> {
         'failed' => '${obj(result['result'])['message'] ?? context.tr('It could not be completed.')}',
         _ => context.tr('Approved.'),
       };
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      // Money cannot be undone, so no Undo: the PayPal id is the receipt.
+      final id = result['state'] == 'executed' ? paypalIdOf(result) : null;
+      showRaystoSnackBar(
+        context,
+        id == null ? message : '$message ${context.tr('PayPal')} $id',
+      );
       await widget.onDone();
     } on PlatformFailure catch (e) {
       if (mounted) setState(() => note = e.message);
@@ -242,6 +326,12 @@ class _AgentActionCardState extends State<AgentActionCard> {
                 expanded: false,
                 onPressed: busy ? null : () => decide('reject'),
               ),
+              if (widget.onOpen != null)
+                TextButton.icon(
+                  onPressed: widget.onOpen,
+                  icon: const Icon(Icons.open_in_full, size: 18),
+                  label: Text(context.tr('Details')),
+                ),
             ],
           ),
         ],

@@ -2,6 +2,7 @@
 // with bundled fonts and a fixed fake restaurant. Not part of the test suite.
 // flutter test tool/render_staff_test.dart --update-goldens
 // Writes build/staff-review/*.png.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -227,7 +228,16 @@ class ReviewApi extends PlatformApi {
         },
       ],
     },
-    'me' => {'userId': 'owner'},
+    'me' => {
+      'userId': 'owner',
+      'profile': {'displayName': 'Fouad Abt'},
+    },
+    // The owner's day, from the frozen contract fixtures.
+    'dashboard' => jsonDecode(
+      File(
+        'docs/fixtures/dashboard-${params['range'] == 'today' ? 'today' : '7d'}.json',
+      ).readAsStringSync(),
+    ) as Map<String, dynamic>,
     _ => {'rows': const []},
   };
 
@@ -258,6 +268,9 @@ Future<void> loadFonts() async {
   await (FontLoader(
     'NotoSansArabic',
   )..addFont(rootBundle.load('assets/fonts/NotoSansArabic.ttf'))).load();
+  await (FontLoader(
+    'FrauncesItalic',
+  )..addFont(rootBundle.load('assets/fonts/Fraunces-Italic.ttf'))).load();
   // A worktree without its own .tooling uses the SDK running the test.
   const font = 'bin/cache/artifacts/material_fonts/materialicons-regular.otf';
   final root = Platform.environment['FLUTTER_ROOT'];
@@ -337,6 +350,7 @@ void main() {
         } else {
           // The phone dock may label only the current tab; tap its icon.
           final icon = switch (label) {
+            'Today' => Icons.insights_outlined,
             'Counter' => Icons.storefront_outlined,
             'Kitchen' => Icons.restaurant_outlined,
             'Agents' => Icons.auto_awesome_outlined,
@@ -354,6 +368,20 @@ void main() {
         await tester.pumpAndSettle();
       }
 
+      // Owners start on the day: one figure on a phone, the whole day on a
+      // tablet, and the week with its labelled sample outline.
+      await capture('today');
+      final week = find.text('7 days');
+      await tester.ensureVisible(week);
+      await tester.tap(week);
+      await tester.pumpAndSettle();
+      if (name == 'phone') {
+        // A phone keeps the trends below the fold; show them.
+        await tester.ensureVisible(find.text('Trends'));
+        await tester.pumpAndSettle();
+      }
+      await capture('today-7d');
+      await go('Orders');
       await capture('orders');
       await go('Counter');
       await capture('counter');
@@ -364,8 +392,11 @@ void main() {
         await tester.pumpAndSettle();
       }
       await capture('counter-sale');
-      await go('Kitchen');
-      await capture('kitchen');
+      // A manager's phone reaches the kitchen board from More.
+      if (name == 'tablet') {
+        await go('Kitchen');
+        await capture('kitchen');
+      }
       await go('Agents');
       await capture('agents');
     });

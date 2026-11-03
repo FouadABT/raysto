@@ -2,28 +2,29 @@
    ink and actions, lime for selection, mint and peach for quiet support.
    Fraunces carries the display headings; Plus Jakarta Sans everything else. */
 .ops-root {
-  --paper: #f6f7f2;
-  --surface: #ffffff;
-  --ink: #173e34;
-  --forest: #173f35;
-  --forest-2: #1f5244;
-  --muted: #5f6e65;
-  --lime: #d7f978;
-  --lime-ink: #2b3d06;
-  --mint: #e6ede2;
-  --peach: #f3e8db;
-  --line: #dce2d9;
-  --line-soft: #e8ece5;
-  --ok: #1d6b45;
-  --ok-bg: #e3f1e6;
-  --warn: #7c5000;
-  --warn-bg: #fbefd2;
-  --late: #9a3a25;
-  --late-bg: #fbe4dc;
-  --shadow-1: 0 1px 2px rgb(23 62 52 / 6%), 0 1px 1px rgb(23 62 52 / 4%);
-  --shadow-2: 0 14px 32px -18px rgb(23 62 52 / 30%), 0 2px 6px rgb(23 62 52 / 6%);
-  --radius: 22px;
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* The console's working names, now aliases of the Material 3 roles in
+     md-sys.css (docs/design-tokens.json is the source). */
+  --paper: var(--md-sys-color-surface);
+  --surface: var(--md-sys-color-surface-container-lowest);
+  --ink: var(--md-sys-color-on-surface);
+  --forest: var(--md-sys-color-primary);
+  --forest-2: var(--raysto-sys-color-primary-strong);
+  --muted: var(--md-sys-color-on-surface-variant);
+  --lime: var(--md-sys-color-secondary-container);
+  --lime-ink: var(--md-sys-color-on-secondary-container);
+  --mint: var(--md-sys-color-primary-container);
+  --peach: var(--md-sys-color-tertiary-container);
+  --line: var(--md-sys-color-outline-variant);
+  --line-soft: var(--raysto-sys-color-outline-soft);
+  --ok: var(--raysto-sys-color-success);
+  --ok-bg: var(--raysto-sys-color-success-container);
+  --warn: var(--raysto-sys-color-warning);
+  --warn-bg: var(--raysto-sys-color-warning-container);
+  --late: var(--md-sys-color-on-error-container);
+  --late-bg: var(--md-sys-color-error-container);
+  --shadow-1: var(--md-sys-elevation-level1);
+  --shadow-2: var(--md-sys-elevation-level2);
+  --radius: var(--raysto-shape-card);
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
@@ -72,7 +73,7 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-1);
-  transition: background-color 160ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 120ms var(--ease), color 160ms var(--ease);
+  transition: background-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard), border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard), box-shadow var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard), transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard), color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
 }
 .ops-root button:not(.ops-studio *, .ag-root-wrapper *):hover {
   border-color: color-mix(in srgb, var(--forest) 28%, var(--line));
@@ -113,7 +114,7 @@
   border-radius: 14px;
   background: var(--surface);
   color: var(--ink);
-  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition: border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard), box-shadow var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
 }
 .ops-root :is(input, textarea):not(.ops-studio *, .ag-root-wrapper *):focus {
   border-color: var(--forest);
@@ -530,7 +531,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 22px;
-  animation: ops-arrive 260ms var(--ease);
+  animation: ops-arrive var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized-decelerate);
 }
 .ops-business.with-panel {
   grid-template-columns: minmax(0, 1fr) 340px;
@@ -669,7 +670,7 @@
   color: var(--muted);
   opacity: 0;
   transform: translateX(-4px);
-  transition: opacity 160ms var(--ease), transform 160ms var(--ease);
+  transition: opacity var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard), transform var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
 }
 .ops-root button.ops-tile:hover {
   transform: translateY(-2px);
@@ -821,7 +822,7 @@
 .ops-side {
   position: sticky;
   top: 20px;
-  animation: ops-arrive 240ms var(--ease);
+  animation: ops-arrive var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized-decelerate);
 }
 .ops-side > .ops-note:only-child {
   display: grid;
@@ -1228,7 +1229,7 @@
   to { background-position: 0 0; }
 }
 .ops-room-panel {
-  animation: ops-arrive 0.3s var(--ease);
+  animation: ops-arrive var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized-decelerate);
 }
 @keyframes ops-arrive {
   from { opacity: 0; transform: translateY(6px); }
@@ -1311,7 +1312,7 @@
   background: var(--surface);
   border: 1px solid var(--line-soft);
   box-shadow: var(--shadow-1);
-  animation: ops-arrive 240ms var(--ease);
+  animation: ops-arrive var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized-decelerate);
 }
 .ops-try-card header {
   display: flex;
@@ -1399,9 +1400,9 @@
   height: 12px;
   border-radius: 50%;
   background: var(--late);
-  animation: ops-pulse 1s var(--ease) infinite alternate;
+  animation: ops-blink 1s var(--md-sys-motion-easing-standard) infinite alternate;
 }
-@keyframes ops-pulse {
+@keyframes ops-blink {
   to { opacity: 0.35; }
 }
 .ops-try-result {
@@ -1409,7 +1410,7 @@
   gap: 14px;
   padding-top: 16px;
   border-top: 1px solid var(--line-soft);
-  animation: ops-arrive 240ms var(--ease);
+  animation: ops-arrive var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized-decelerate);
 }
 .ops-try-chips {
   display: flex;

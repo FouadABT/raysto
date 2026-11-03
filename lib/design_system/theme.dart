@@ -23,7 +23,7 @@ abstract final class AppTheme {
           secondary: AppColors.forest,
           onSecondary: AppColors.white,
           secondaryContainer: AppColors.lime,
-          onSecondaryContainer: AppColors.ink,
+          onSecondaryContainer: AppColors.limeInk,
           tertiaryContainer: AppColors.peach,
           onTertiaryContainer: AppColors.ink,
           surface: AppColors.paper,
@@ -36,6 +36,13 @@ abstract final class AppTheme {
           outlineVariant: AppColors.line,
           error: AppColors.error,
           onError: AppColors.onError,
+          errorContainer: const Color(0xFFFBE4DC),
+          onErrorContainer: const Color(0xFF9A3A25),
+          // The "live" card and snackbars sit on the inverse surface.
+          inverseSurface: AppColors.forest,
+          onInverseSurface: AppColors.paper,
+          inversePrimary: AppColors.lime,
+          scrim: Colors.black,
         );
     final scheme = dark
         ? ColorScheme.fromSeed(
@@ -64,6 +71,10 @@ abstract final class AppTheme {
             outlineVariant: const Color(0xFF435647),
             error: const Color(0xFFFFB4AB),
             onError: const Color(0xFF690005),
+            inverseSurface: const Color(0xFFE3ECE2),
+            onInverseSurface: AppColors.forest,
+            inversePrimary: AppColors.forest,
+            scrim: Colors.black,
           )
         : lightScheme;
     return ThemeData(
@@ -72,7 +83,10 @@ abstract final class AppTheme {
       colorScheme: scheme,
       fontFamily: AppType.family,
       fontFamilyFallback: const ['NotoSansArabic'],
-      extensions: [AppStatusColors.forBrightness(brightness)],
+      extensions: [
+        AppStatusColors.forBrightness(brightness),
+        RaystoChartColors.forBrightness(brightness),
+      ],
       scaffoldBackgroundColor: scheme.surface,
       cardTheme: CardThemeData(
         color: scheme.surfaceContainerLowest,
@@ -182,12 +196,17 @@ abstract final class AppTheme {
         selectionColor: scheme.secondaryContainer,
         selectionHandleColor: scheme.primary,
       ),
+      // Material 3 snackbar: inverse surface, the action in inverse primary.
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.forest,
-        contentTextStyle: AppType.style(14, color: AppColors.white),
-        actionTextColor: AppColors.lime,
+        backgroundColor: scheme.inverseSurface,
+        contentTextStyle: AppType.style(14, color: scheme.onInverseSurface),
+        actionTextColor: scheme.inversePrimary,
+        closeIconColor: scheme.onInverseSurface,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppShape.medium),
+        ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(

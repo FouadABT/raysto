@@ -48,6 +48,8 @@ class JudgeModule {
     'taxConfigured': true,
     'taxBps': 0,
     'pricesIncludeTax': true,
+    // The day's goal the dashboard's ring shows; a setting, not a result.
+    'dailyTargetMinor': 30000,
     'agents': {},
     'menuCategories': [
       {
@@ -276,6 +278,13 @@ class JudgeModule {
       menuOnly: menuOnly,
     );
   }
+
+  /// Whether the dashboard may draw its labelled sample history for this
+  /// restaurant: only the judges' café, and only when
+  /// `RAYSTO_JUDGE_SAMPLE_HISTORY` is on. The sample is never stored.
+  static bool sampleHistory(int? tenant) =>
+      venue(tenant) &&
+      ProviderClients.environment()['RAYSTO_JUDGE_SAMPLE_HISTORY'] == 'true';
 
   /// The Sandbox buyer accounts standing in as the team's PayPal emails,
   /// from `RAYSTO_JUDGE_PAYOUT_EMAILS` (comma-separated). Never hardcoded.

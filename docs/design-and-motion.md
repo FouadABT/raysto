@@ -10,6 +10,17 @@ The approved paper (`#F6F7F2`), forest (`#173F35`), lime (`#D7F978`), mint and p
 
 The established Phosphor foundation remains available. New product screens use the Flutter Material outlined icon family; legacy design-studio examples retain Phosphor icons. The studio’s explicit canonical-palette swatches intentionally show the original palette in either theme; its surrounding controls and surfaces follow the selected theme.
 
+## Shared Material 3 tokens (app and console)
+
+Since 3 November 2026 the app and the owner console (ops.rays.to) share one set of Material 3 tokens, kept in [`design-tokens.json`](design-tokens.json): colour roles, shape, motion easing and durations, state-layer opacities, elevation, and Raysto's extensions (success, warning and information pairs, five chart colours, the lime chart fill, the dashed sample-history colour, and the 24 px card radius). Neither side is generated: the console's `web/src/app/md-sys.css` and `web/src/lib/connected/motion.ts`, and the app's `lib/design_system/`, are written by hand, and a test on each side (`web/tests/tokens.test.ts`, `test/design_tokens_test.dart`) fails when either drifts from the file.
+
+- **Colour roles** are the app's light scheme: primary forest, primary container mint, secondary container lime (text on it `#2B3D06`), tertiary container peach, surface paper, on-surface-variant `#59675E` (4.5:1 on paper), outline-variant `#DCE2D9`, and an inverse surface in forest with paper text and a lime inverse primary for the live card and snackbars. The scrim is black at 32%.
+- **Shape** follows Material's scale (4, 8, 12, 16, 28, full). Cards keep the approved 24 px, a deliberate step between Material's large and extra-large.
+- **State layers** are 8% on hover, 10% on focus and press, 16% while dragging.
+- **Charts** draw the real series in forest with a lime fill under it; lime is never a line or text colour on white. A sample history, where one is shown, is a dashed grey outline, never filled, always labelled "Sample · not real sales".
+
+The console's older working names (`--forest`, `--line`, `--muted`, `--radius` and the rest) are aliases of these tokens, so its existing styles follow them. Its one-off easing curve was replaced by the Material curves: entrances on emphasized-decelerate, exits on emphasized-accelerate, state changes on standard.
+
 ## Typography, localization and layout
 
 Real Plus Jakarta Sans files are bundled at weights 400, 500, 600 and 700. Noto Sans Arabic is bundled as the Arabic fallback, including its OFL license. Semantic `TextTheme` roles carry type size, weight, line height and tracking rather than each feature defining another scale. See [asset provenance](assets.md).
@@ -22,17 +33,19 @@ System text scaling is never capped. An optional additional app factor multiplie
 
 ## Motion mapping
 
-The app retains the foundation’s shared motion tokens instead of introducing a second set of feature-specific curves.
+The app retains the foundation’s shared motion tokens instead of introducing a second set of feature-specific curves. Since 3 November they sit on Material 3's steps and curves, the same ones the console uses (`design-tokens.json`): spatial movement on emphasized-decelerate `(0.05, 0.7, 0.1, 1)`, effects on standard `(0.2, 0, 0, 1)`, exits on emphasized-accelerate `(0.3, 0, 0.8, 0.15)`.
 
-| Purpose | Shared token | Normal duration |
-| --- | --- | --- |
-| Press and small feedback | `feedback` | 140 ms |
-| Selection, result or badge update | `selection` | 240 ms |
-| Retained branch/content change | `branch` | 400 ms |
-| Sheet entry / return | `sheet` / `sheetReverse` | 360 / 240 ms |
-| Progress or completion | `milestone` | 440 ms |
-| Existing foundation dock | `dock` | 460 ms |
-| Brief welcome story reveal | `reveal` | 650 ms |
+| Purpose | Shared token | Normal duration | Material step |
+| --- | --- | --- | --- |
+| Press and small feedback | `feedback` | 150 ms | short3 |
+| Selection, result or badge update | `selection` | 250 ms | medium1 |
+| Retained branch/content change | `branch` | 400 ms | medium4 |
+| Sheet entry / return | `sheet` / `sheetReverse` | 350 / 250 ms | medium3 / medium1 |
+| Progress or completion | `milestone` | 450 ms | long1 |
+| Existing foundation dock | `dock` | 450 ms | long1 |
+| Brief welcome story reveal | `reveal` | 600 ms | long4 |
+
+The console's motion kit (`web/src/components/connected/m3/`, on the `motion` library) uses the same values: entrances fade with a 6 px rise and stagger 0.09 s apart up to 0.36 s, once per section per session; numbers count to their real value and assistive technology reads only the final one; charts draw once when they come into view; sections change with Material's fade through; a card grows into its detail with the container transform; snackbars carry at most one action. Every component renders its final state directly when the device or the console's own switch asks for reduced motion.
 
 Native Material route, dialog, sheet and navigation transitions remain authoritative. Android uses the installed predictive-back transition builder and iOS uses the Cupertino transition builder. The reduced-motion wrapper preserves native gesture detectors instead of deleting the route wrapper. Platform gesture quality still requires native-device verification.
 

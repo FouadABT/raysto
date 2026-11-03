@@ -55,6 +55,7 @@ part 'agent_complaints.dart';
 part 'agent_disputes.dart';
 part 'judge.dart';
 part 'backoffice.dart';
+part 'dashboard.dart';
 part 'agent_close.dart';
 part 'agent_payroll.dart';
 

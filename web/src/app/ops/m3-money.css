@@ -1,0 +1,222 @@
+/*
+ * Money, Team, Customers and the Try page on the Material 3 kit: person
+ * cards, the PAID stamp's place, chart cards and count-ups inside the older
+ * tiles. Tokens only (md-sys.css); imported after m3.css.
+ */
+
+/* Count-ups inside tiles and lists keep the figure's own type, not the label's. */
+.ops-kpi .m3-count span,
+.ops-payments .m3-count span,
+.ops-bo-spend .m3-count span,
+.ops-try-ticket .m3-count span {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+/* ---------- Stamps ---------- */
+.ops-bo-stamped {
+  position: relative;
+}
+.ops-bo-stamped:has(> .ops-bo-stamp) > .ops-eyebrow,
+.ops-bo-stamped:has(> .ops-bo-stamp) > h2 {
+  padding-right: 104px;
+}
+.ops-bo-stamp {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  pointer-events: none;
+}
+.ops-bo-latest {
+  margin-top: 18px;
+}
+.ops-try-paidline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ops-try-paidline > .ops-try-done {
+  flex: 1 1 260px;
+}
+
+/* ---------- Layout helpers ---------- */
+.ops-bo-stack {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+.ops-bo-switch {
+  margin: 4px 0;
+}
+.ops-bo-chartcard {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.ops-bo-chartcard h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.ops-bo-split + .ops-bo-chartcard,
+.ops-bo-chartcard + .ops-bo-split {
+  margin-top: 18px;
+}
+
+/* ---------- People: staff and customers ---------- */
+.ops-bo-people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.ops-bo-people > * {
+  display: grid;
+  min-width: 0;
+}
+.ops-bo-person {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+  padding: 20px;
+  border-radius: var(--raysto-shape-card);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface);
+}
+.ops-bo-person > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.ops-bo-person > header > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.ops-bo-person h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.ops-bo-person small {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+}
+.ops-bo-person > button {
+  justify-self: start;
+}
+.ops-bo-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-weight: 700;
+  font-size: 15px;
+}
+.ops-bo-person-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.ops-bo-person-figures > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.ops-bo-person-figures dt {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12px;
+}
+.ops-bo-person-figures dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.ops-bo-person-line {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-bo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A customer's spend, with a bar against the biggest spender. */
+.ops-bo-spend {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.ops-bo-spend > span:first-child {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+}
+.ops-bo-spend > strong {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  justify-self: end;
+}
+.ops-bo-spend-track {
+  grid-column: 1 / -1;
+  display: block;
+  height: 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container);
+  overflow: hidden;
+}
+.ops-bo-spend-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--raysto-chart-1);
+  transition: width var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-emphasized-decelerate);
+}
+
+/* ---------- Dialog content ---------- */
+.ops-bo-dialog {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.ops-bo-dialog h2 {
+  margin: 0;
+  font-family: "Fraunces Variable", serif;
+  font-weight: 460;
+  font-size: 26px;
+}
+
+/* ---------- Try page ---------- */
+/* The cards' entrance is motion's now (once per visit); the CSS one would play again on every return. */
+.ops-try-card {
+  animation: none;
+}
+
+@media (max-width: 560px) {
+  .ops-bo-stamped:has(> .ops-bo-stamp) > .ops-eyebrow,
+  .ops-bo-stamped:has(> .ops-bo-stamp) > h2 {
+    padding-right: 88px;
+  }
+  .ops-bo-stamp {
+    top: 14px;
+    right: 14px;
+  }
+  .ops-bo-people {
+    gap: 12px;
+  }
+}

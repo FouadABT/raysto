@@ -1,18 +1,35 @@
 import 'package:flutter/material.dart';
 
+/// Material 3 motion tokens (see docs/design-tokens.json). Durations sit on
+/// Material's steps: short 50–200, medium 250–400, long 450–600 ms.
 abstract final class AppMotion {
-  static const feedback = Duration(milliseconds: 140);
-  static const selection = Duration(milliseconds: 240);
-  static const branch = Duration(milliseconds: 400);
-  static const sheet = Duration(milliseconds: 360);
-  static const sheetReverse = Duration(milliseconds: 240);
-  static const milestone = Duration(milliseconds: 440);
-  static const dock = Duration(milliseconds: 460);
-  static const reveal = Duration(milliseconds: 650);
+  static const feedback = Duration(milliseconds: 150); // short3
+  static const selection = Duration(milliseconds: 250); // medium1
+  static const branch = Duration(milliseconds: 400); // medium4
+  static const sheet = Duration(milliseconds: 350); // medium3
+  static const sheetReverse = Duration(milliseconds: 250); // medium1
+  static const milestone = Duration(milliseconds: 450); // long1
+  static const dock = Duration(milliseconds: 450); // long1
+  static const reveal = Duration(milliseconds: 600); // long4
 
-  static const spatial = Curves.easeOutCubic;
+  /// Things arriving: emphasized decelerate.
+  static const spatial = Easing.emphasizedDecelerate;
+
+  /// Things moving from one place to another, start and end on screen.
   static const coordinated = Curves.easeInOutCubicEmphasized;
-  static const effects = Curves.easeInOut;
+
+  /// Colour, opacity and small state changes: standard.
+  static const effects = Easing.standard;
+
+  /// Things leaving: emphasized accelerate.
+  static const exit = Easing.emphasizedAccelerate;
+
+  /// The entrance stagger of the guidelines: `min(order × 0.09, 0.36)` of
+  /// [reveal], so the twentieth card does not wait for the first nineteen.
+  static Duration stagger(int order) => Duration(
+    milliseconds: (reveal.inMilliseconds * (order * 0.09).clamp(0.0, 0.36))
+        .round(),
+  );
 
   /// App preferences can add reduced motion, never override device preferences.
   static bool reduced(BuildContext context) {

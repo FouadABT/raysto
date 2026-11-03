@@ -1,0 +1,187 @@
+{
+  "range": "today",
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "from": "2026-11-03T05:00:00.000Z",
+  "to": "2026-11-03T16:00:00.000Z",
+  "granularity": "hour",
+  "basis": "paidOrdersByCreatedAt",
+  "points": [
+    {
+      "start": "2026-11-03T05:00:00.000Z",
+      "label": "0:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T06:00:00.000Z",
+      "label": "1:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T07:00:00.000Z",
+      "label": "2:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T08:00:00.000Z",
+      "label": "3:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T09:00:00.000Z",
+      "label": "4:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T10:00:00.000Z",
+      "label": "5:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T11:00:00.000Z",
+      "label": "6:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T12:00:00.000Z",
+      "label": "7:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T13:00:00.000Z",
+      "label": "8:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T14:00:00.000Z",
+      "label": "9:00",
+      "salesMinor": 0,
+      "orders": 0
+    },
+    {
+      "start": "2026-11-03T15:00:00.000Z",
+      "label": "10:00",
+      "salesMinor": 2150,
+      "orders": 1
+    }
+  ],
+  "kpis": {
+    "sales": {
+      "value": 2150,
+      "previous": 8600,
+      "series": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2150
+      ]
+    },
+    "orders": {
+      "value": 1,
+      "previous": 4,
+      "series": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "averageTicket": {
+      "value": 2150,
+      "previous": 2150,
+      "series": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2150
+      ]
+    },
+    "tips": {
+      "value": 0,
+      "previous": 200,
+      "series": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "channels": [
+    {
+      "channel": "pickup",
+      "salesMinor": 2150,
+      "orders": 1
+    }
+  ],
+  "kitchen": {
+    "submitted": 0,
+    "accepted": 0,
+    "preparing": 1,
+    "ready": 0,
+    "oldestMinutes": 4
+  },
+  "latest": [
+    {
+      "id": 27,
+      "number": 14,
+      "status": "preparing",
+      "paymentStatus": "paid",
+      "fulfillment": "pickup",
+      "origin": "online",
+      "totalMinor": 2150,
+      "currency": "USD",
+      "createdAt": "2026-11-03T15:51:02.000Z",
+      "customerLabel": null
+    }
+  ],
+  "staff": [
+    {
+      "name": "Nadia",
+      "ordersMoved": 2,
+      "hours": 4.5
+    }
+  ],
+  "target": {
+    "dailyTargetMinor": 30000,
+    "todayMinor": 2150
+  },
+  "sample": null
+}

@@ -845,6 +845,14 @@ class _CounterScreenState extends State<CounterScreen> {
       ),
       const SizedBox(height: 16),
       Center(
+        child: LandingPaidStamp(
+          key: ValueKey('paid-${order['id']}'),
+          label: context.tr('PAID'),
+          semanticLabel: context.tr('Paid'),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Center(
         child: Text(
           order['number'] == null ? '#${order['id']}' : '#${order['number']}',
           style: theme.textTheme.displayMedium,
@@ -1120,6 +1128,46 @@ Widget orderLineText(BuildContext context, Json line) {
       '${line['quantity']}× ${line['name']}'
       '${options.isEmpty ? '' : ' · $options'}',
       textAlign: TextAlign.center,
+    ),
+  );
+}
+
+/// The counter's "PAID" mark. A sale only reaches this ticket once PayPal (or
+/// the cash drawer) confirmed it during the session, so the stamp lands on
+/// arrival; under reduced motion it simply appears.
+class LandingPaidStamp extends StatefulWidget {
+  const LandingPaidStamp({
+    super.key,
+    this.label = 'PAID',
+    this.semanticLabel = 'Paid',
+  });
+  final String label;
+  final String semanticLabel;
+  @override
+  State<LandingPaidStamp> createState() => _LandingPaidStampState();
+}
+
+class _LandingPaidStampState extends State<LandingPaidStamp> {
+  bool landed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => landed = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    // The space is held from the first frame, so nothing below jumps.
+    dimension: 104,
+    child: Center(
+      child: PaidStamp(
+        paid: landed,
+        label: widget.label,
+        semanticLabel: widget.semanticLabel,
+      ),
     ),
   );
 }

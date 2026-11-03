@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:crypto/crypto.dart';
@@ -43,6 +44,8 @@ part 'assistant_flows.dart';
 part 'agents_hub.dart';
 part 'menu_snap.dart';
 part 'counter_voice.dart';
+part 'pending_moves.dart';
+part 'staff_today.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};
@@ -280,27 +283,59 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
   bool busy = false;
   Timer? timer;
   bool foreground = true;
+
+  /// Whether this page's branch is the visible one. A hidden branch (its
+  /// TickerMode off) neither polls nor listens: it loads once when shown and
+  /// catches up each time it comes back.
+  bool? active;
+
+  RestaurantFeed? get feed => switch (widget.trigger) {
+    final RestaurantFeed feed => feed,
+    _ => null,
+  };
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     widget.trigger?.addListener(_triggered);
-    refresh();
-    if (widget.poll) {
-      timer = Timer.periodic(const Duration(seconds: 20), (_) {
-        if (foreground && ModalRoute.of(context)?.isCurrent == true) refresh();
-      });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final visible = TickerMode.valuesOf(context).enabled;
+    if (visible == active) return;
+    active = visible;
+    if (visible) {
+      feed?.resume();
+      if (widget.poll) {
+        timer?.cancel();
+        timer = Timer.periodic(const Duration(seconds: 20), (_) {
+          if (_current) refresh();
+        });
+      }
+      refresh();
+    } else {
+      timer?.cancel();
+      timer = null;
+      feed?.pause();
     }
   }
 
+  bool get _current =>
+      active == true &&
+      foreground &&
+      ModalRoute.of(context)?.isCurrent == true;
+
   void _triggered() {
-    if (foreground && ModalRoute.of(context)?.isCurrent == true) refresh();
+    if (_current) refresh();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     foreground = state == AppLifecycleState.resumed;
-    if (foreground && ModalRoute.of(context)?.isCurrent == true) refresh();
+    if (_current) refresh();
   }
 
   bool again = false;

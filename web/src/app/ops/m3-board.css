@@ -1,0 +1,473 @@
+/* The Orders board, Agents proposals and the pickup-code dialog, on the
+   Material tokens of md-sys.css. Loaded after operations.css and m3.css. */
+
+/* ---------- Toolbar: Board | List ---------- */
+.ops-root .m3-orders-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+.ops-root .m3-orders-bar .ops-chips {
+  margin: 0;
+}
+.ops-root .m3-segmented {
+  display: inline-flex;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  overflow: hidden;
+  flex: none;
+}
+.ops-root .m3-segmented button:not(.ops-studio *) {
+  min-height: 40px;
+  min-width: 72px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+}
+.ops-root .m3-segmented button:not(.ops-studio *) + button {
+  border-left: 1px solid var(--md-sys-color-outline);
+}
+.ops-root .m3-segmented button:not(.ops-studio *):hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover) * 100%), transparent);
+}
+.ops-root .m3-segmented button[aria-pressed="true"]:not(.ops-studio *) {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+/* The visible box is 40 px; the target reaches 48 with the toolbar's gap. */
+.ops-root .m3-segmented button:not(.ops-studio *)::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.ops-root .m3-segmented button:not(.ops-studio *) {
+  position: relative;
+}
+
+/* ---------- The board ---------- */
+.ops-root .m3-board-wrap {
+  min-width: 0;
+  max-width: 100%;
+}
+.ops-root .m3-board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(232px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 2px;
+}
+.ops-root .m3-board-col {
+  --stage: var(--md-sys-color-outline);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 280px;
+  padding: 12px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  transition:
+    background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+    border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.ops-root .m3-board-col[data-stage="awaiting"] { --stage: var(--raysto-chart-5); }
+.ops-root .m3-board-col[data-stage="new"] { --stage: var(--raysto-chart-2); }
+.ops-root .m3-board-col[data-stage="accepted"] { --stage: var(--raysto-chart-3); }
+.ops-root .m3-board-col[data-stage="preparing"] { --stage: var(--raysto-chart-4); }
+.ops-root .m3-board-col[data-stage="ready"] { --stage: var(--raysto-chart-1); }
+.ops-root .m3-board-col[data-stage="handedOver"] { --stage: var(--md-sys-color-outline); }
+.ops-root .m3-board-col[data-stage="done"] { --stage: var(--md-sys-color-outline-variant); }
+
+/* While a card is dragged: the next column invites, the others step back and say why. */
+.ops-root .m3-board-col[data-drop="allowed"] {
+  border: 2px dashed var(--md-sys-color-primary);
+  background: color-mix(in srgb, var(--md-sys-color-secondary-container) 35%, var(--md-sys-color-surface-container-low));
+}
+.ops-root .m3-board-col[data-drop="over"] {
+  border: 2px solid var(--md-sys-color-primary);
+  background: color-mix(in srgb, var(--md-sys-color-secondary-container) 70%, var(--md-sys-color-surface-container-low));
+}
+/* Only the cards of a blocked column step back: the reason stays fully
+   legible, and no column gets a stacking context that would hide the card
+   being dragged. The card's own column sits above the others meanwhile. */
+.ops-root .m3-board-col[data-drop="blocked"] .m3-board-list {
+  opacity: 0.5;
+}
+.ops-root .m3-board-col[data-drop="source"] {
+  position: relative;
+  z-index: 2;
+}
+.ops-root .m3-board-why {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.ops-root .m3-board-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+.ops-root .m3-board-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+.ops-root .m3-board-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--stage);
+  flex: none;
+}
+.ops-root .m3-board-count {
+  margin-left: auto;
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.ops-root .m3-board-empty {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+}
+.ops-root .m3-board-col button.m3-board-more:not(.ops-studio *) {
+  width: 100%;
+  min-height: 48px;
+  box-shadow: none;
+}
+
+.ops-root .m3-board-list {
+  transition: opacity var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ops-root .m3-board-drag {
+  position: relative;
+  border-radius: var(--md-sys-shape-corner-large);
+}
+.ops-root .m3-board-drag[draggable="false"],
+.ops-root .m3-board-drag:not([draggable]) {
+  touch-action: pan-x pan-y;
+}
+.ops-root .m3-board-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px 10px 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
+  overflow: hidden;
+}
+/* The stage colour is a stripe; the stage is also written on the card. */
+.ops-root .m3-board-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--stage);
+}
+.ops-root .m3-board-drag.dragging .m3-board-card {
+  box-shadow: var(--md-sys-elevation-level3);
+  cursor: grabbing;
+}
+.ops-root .m3-board-drag.dragging .m3-board-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-dragged) * 100%), transparent);
+  pointer-events: none;
+}
+@media (pointer: fine) {
+  .ops-root .m3-board-drag:not(.dragging) .m3-board-card {
+    cursor: grab;
+  }
+  .ops-root .m3-board-drag:not(.dragging) .m3-board-card:hover {
+    box-shadow: var(--md-sys-elevation-level2);
+  }
+}
+.ops-root .m3-board-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ops-root .m3-board-ticket {
+  font-family: "Fraunces Variable", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--md-sys-color-on-surface);
+}
+.ops-root .m3-board-stage {
+  padding: 2px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: color-mix(in srgb, var(--stage) 14%, var(--md-sys-color-surface-container-lowest));
+  color: var(--md-sys-color-on-surface);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ops-root .m3-board-meta,
+.ops-root .m3-board-lines,
+.ops-root .m3-board-foot {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.ops-root .m3-board-meta {
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-root .m3-board-lines {
+  color: var(--md-sys-color-on-surface);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ops-root .m3-board-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--md-sys-color-on-surface);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.ops-root .m3-board-age {
+  margin-left: auto;
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 500;
+}
+.ops-root .m3-board-unpaid {
+  padding: 1px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 12px;
+}
+.ops-root .m3-board-pending {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-size: 12px;
+  font-weight: 600;
+}
+.ops-root .m3-board-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.ops-root .m3-board-card button:is(.m3-board-open, .m3-board-move):not(.ops-studio *) {
+  min-height: 48px;
+  padding: 0 14px;
+  box-shadow: none;
+}
+.ops-root .m3-board-card button.m3-board-move:not(.ops-studio *) {
+  /* Never squeezed onto two lines: on a narrow card it takes its own row. */
+  flex: 1 0 auto;
+  white-space: nowrap;
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+.ops-root .m3-board-card button.m3-board-move:not(.ops-studio *):hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-primary) calc(var(--md-sys-state-hover) * 100%), var(--md-sys-color-primary));
+}
+.ops-root .m3-board-reason {
+  flex: 1;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Phones: one column at a time, snapping; the page itself never scrolls sideways. */
+@media (max-width: 600px) {
+  .ops-root .m3-board {
+    grid-auto-columns: calc(100% - 40px);
+    scroll-snap-type: x mandatory;
+  }
+}
+
+/* ---------- Order detail and pickup-code dialogs ---------- */
+.ops-root .m3-board-dialog .ops-order {
+  padding-right: 40px;
+}
+.ops-root .m3-board-dialog .ops-order h2 {
+  font-family: "Fraunces Variable", Georgia, serif;
+}
+.ops-root .m3-code-dialog {
+  max-width: min(420px, calc(100vw - 32px));
+}
+.ops-root .m3-code-dialog h2 {
+  margin: 0 0 16px;
+  font-family: "Fraunces Variable", Georgia, serif;
+  font-size: 24px;
+}
+.ops-root .m3-code-field {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+.ops-root .m3-code-field input {
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  font-size: 24px;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+.ops-root .m3-code-field input:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 0;
+  border-color: var(--md-sys-color-primary);
+}
+.ops-root .m3-code-help {
+  margin: 8px 0 20px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+}
+.ops-root .m3-code-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ops-root .m3-code-actions button:not(.ops-studio *) {
+  min-height: 48px;
+}
+
+/* ---------- Agents: proposals as cards ---------- */
+.ops-root .m3-proposals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+.ops-root .m3-proposal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 16px 16px 12px 20px;
+  border-radius: var(--raysto-shape-card);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
+  overflow: hidden;
+}
+.ops-root .m3-proposal::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--md-sys-color-outline-variant);
+}
+.ops-root .m3-proposal.money::before {
+  background: var(--md-sys-color-secondary-container);
+}
+.ops-root .m3-proposal.ops::before {
+  background: var(--raysto-chart-3);
+}
+.ops-root .m3-proposal h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.3;
+}
+.ops-root .m3-proposal-why {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ops-root .m3-proposal-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ops-root .m3-proposal-chips li {
+  padding: 4px 10px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  font-size: 12px;
+  font-weight: 600;
+}
+.ops-root .m3-proposal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.ops-root .m3-proposal-foot small {
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-root .m3-proposal-foot button:not(.ops-studio *) {
+  min-height: 48px;
+}
+.ops-root .m3-agent-dialog {
+  display: grid;
+  gap: 8px;
+  padding-right: 40px;
+}
+.ops-root .m3-agent-dialog h2 {
+  margin: 0;
+  font-family: "Fraunces Variable", Georgia, serif;
+}
+.ops-root .m3-agent-dialog form {
+  display: grid;
+  gap: 10px;
+}
+
+/* A count-up inside a KPI tile keeps the tile's number style (the tile's
+   label rule targets spans). */
+.ops-root .ops-kpi strong span {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}

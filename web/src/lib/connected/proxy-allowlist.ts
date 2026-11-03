@@ -34,6 +34,8 @@ export const consoleQueries = new Set([
   "expenses",
   "customers",
   "analytics",
+  // The owner's dashboard (docs/dashboard-contract.md).
+  "dashboard",
 ]);
 
 /** Back-office names from the design; the drift test accepts these until the backend ships them. */
@@ -108,6 +110,8 @@ export const consoleCommands = new Set([
   "dispute.sweep",
   "expense.record",
   "loyalty.run",
+  // Owner limits, the close time and the daily sales target.
+  "autonomy.set",
 ]);
 
 export function allowedPath(path: string): boolean {

@@ -797,6 +797,9 @@ class BackOfficeModule {
       case 'analytics':
         await w.role(_managers);
         return analytics(w, d);
+      case 'dashboard':
+        await w.role(_managers);
+        return DashboardModule.read(w, d);
     }
     return null;
   }

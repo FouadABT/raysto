@@ -124,11 +124,37 @@ class RestaurantFeed extends ChangeNotifier {
   StreamSubscription<Json>? _events;
   Timer? _poll, _debounce, _retry;
   int _cursor = -1, _failures = 0;
-  bool _closed = false;
+  bool _closed = false, _paused = false;
 
+  /// Connects after the current frame, so a board built on a hidden branch
+  /// can pause its feed before it ever subscribes.
   void start() {
+    if (_closed || _paused) return;
+    scheduleMicrotask(_connect);
+  }
+
+  /// A hidden branch stops listening and polling; the cursor is kept.
+  void pause() {
+    if (_paused) return;
+    _paused = true;
+    _events?.cancel();
+    _events = null;
+    _poll?.cancel();
+    _poll = null;
+    _retry?.cancel();
+    _debounce?.cancel();
+  }
+
+  /// Listening again from the last cursor seen; the page refreshes itself.
+  void resume() {
+    if (!_paused) return;
+    _paused = false;
+    start();
+  }
+
+  void _connect() {
     final id = live.restaurantId;
-    if (id == null || _closed) return;
+    if (id == null || _closed || _paused) return;
     _events?.cancel();
     _events = live.api
         .watchRestaurant(id, _cursor)
@@ -148,12 +174,13 @@ class RestaurantFeed extends ChangeNotifier {
 
   /// Coalesces bursts of notices into one refresh.
   void ping() {
+    if (_closed || _paused) return;
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), notifyListeners);
   }
 
   void _reconnect() {
-    if (_closed) return;
+    if (_closed || _paused) return;
     _poll ??= Timer.periodic(const Duration(seconds: 10), (_) => ping());
     ping(); // Catch up on whatever happened while disconnected.
     final wait = Duration(seconds: min(60, 2 << min(_failures++, 5)));

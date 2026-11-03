@@ -1,0 +1,127 @@
+{
+  "$description": "Raysto's Material 3 tokens: the one source of truth for the console (web/src/app/md-sys.css) and the Flutter app (lib/design_system/). Both are written by hand from this file; web/tests/tokens.test.ts and test/design_tokens_test.dart check them. Colour roles are the Flutter light scheme (AppTheme.light); the console is light-only.",
+  "md": {
+    "sys": {
+      "color": {
+        "primary": { "$type": "color", "$value": "#173f35" },
+        "on-primary": { "$type": "color", "$value": "#ffffff" },
+        "primary-container": { "$type": "color", "$value": "#e6ede2" },
+        "on-primary-container": { "$type": "color", "$value": "#173e34" },
+        "secondary": { "$type": "color", "$value": "#173f35" },
+        "on-secondary": { "$type": "color", "$value": "#ffffff" },
+        "secondary-container": { "$type": "color", "$value": "#d7f978" },
+        "on-secondary-container": { "$type": "color", "$value": "#2b3d06" },
+        "tertiary-container": { "$type": "color", "$value": "#f3e8db" },
+        "on-tertiary-container": { "$type": "color", "$value": "#173e34" },
+        "surface": { "$type": "color", "$value": "#f6f7f2" },
+        "on-surface": { "$type": "color", "$value": "#173e34" },
+        "surface-container-lowest": { "$type": "color", "$value": "#ffffff" },
+        "surface-container-low": { "$type": "color", "$value": "#f6f7f2" },
+        "surface-container": { "$type": "color", "$value": "#e6ede2" },
+        "on-surface-variant": { "$type": "color", "$value": "#59675e" },
+        "outline": { "$type": "color", "$value": "#68756c" },
+        "outline-variant": { "$type": "color", "$value": "#dce2d9" },
+        "error": { "$type": "color", "$value": "#a32d32" },
+        "on-error": { "$type": "color", "$value": "#ffffff" },
+        "error-container": { "$type": "color", "$value": "#fbe4dc" },
+        "on-error-container": { "$type": "color", "$value": "#9a3a25" },
+        "inverse-surface": { "$type": "color", "$value": "#173f35" },
+        "inverse-on-surface": { "$type": "color", "$value": "#f6f7f2" },
+        "inverse-primary": { "$type": "color", "$value": "#d7f978" },
+        "scrim": { "$type": "color", "$value": "#000000" }
+      },
+      "scrim-opacity": { "$type": "number", "$value": 0.32 },
+      "shape": {
+        "corner-none": { "$type": "dimension", "$value": "0px" },
+        "corner-extra-small": { "$type": "dimension", "$value": "4px" },
+        "corner-small": { "$type": "dimension", "$value": "8px" },
+        "corner-medium": { "$type": "dimension", "$value": "12px" },
+        "corner-large": { "$type": "dimension", "$value": "16px" },
+        "corner-extra-large": { "$type": "dimension", "$value": "28px" },
+        "corner-full": { "$type": "dimension", "$value": "9999px" }
+      },
+      "motion": {
+        "easing-emphasized": { "$type": "cubicBezier", "$value": [0.2, 0, 0, 1] },
+        "easing-emphasized-decelerate": { "$type": "cubicBezier", "$value": [0.05, 0.7, 0.1, 1] },
+        "easing-emphasized-accelerate": { "$type": "cubicBezier", "$value": [0.3, 0, 0.8, 0.15] },
+        "easing-standard": { "$type": "cubicBezier", "$value": [0.2, 0, 0, 1] },
+        "easing-standard-decelerate": { "$type": "cubicBezier", "$value": [0, 0, 0, 1] },
+        "easing-standard-accelerate": { "$type": "cubicBezier", "$value": [0.3, 0, 1, 1] },
+        "duration-short1": { "$type": "duration", "$value": "50ms" },
+        "duration-short2": { "$type": "duration", "$value": "100ms" },
+        "duration-short3": { "$type": "duration", "$value": "150ms" },
+        "duration-short4": { "$type": "duration", "$value": "200ms" },
+        "duration-medium1": { "$type": "duration", "$value": "250ms" },
+        "duration-medium2": { "$type": "duration", "$value": "300ms" },
+        "duration-medium3": { "$type": "duration", "$value": "350ms" },
+        "duration-medium4": { "$type": "duration", "$value": "400ms" },
+        "duration-long1": { "$type": "duration", "$value": "450ms" },
+        "duration-long2": { "$type": "duration", "$value": "500ms" },
+        "duration-long3": { "$type": "duration", "$value": "550ms" },
+        "duration-long4": { "$type": "duration", "$value": "600ms" }
+      },
+      "state": {
+        "hover": { "$type": "number", "$value": 0.08 },
+        "focus": { "$type": "number", "$value": 0.1 },
+        "pressed": { "$type": "number", "$value": 0.1 },
+        "dragged": { "$type": "number", "$value": 0.16 }
+      },
+      "elevation": {
+        "level1": { "$type": "shadow", "$value": "0 1px 2px rgb(23 62 52 / 6%), 0 1px 1px rgb(23 62 52 / 4%)" },
+        "level2": { "$type": "shadow", "$value": "0 14px 32px -18px rgb(23 62 52 / 30%), 0 2px 6px rgb(23 62 52 / 6%)" },
+        "level3": { "$type": "shadow", "$value": "0 22px 44px -20px rgb(23 62 52 / 38%), 0 4px 10px rgb(23 62 52 / 8%)" }
+      }
+    }
+  },
+  "raysto": {
+    "sys": {
+      "color": {
+        "success": { "$type": "color", "$value": "#1d6b45" },
+        "success-container": { "$type": "color", "$value": "#e3f1e6" },
+        "warning": { "$type": "color", "$value": "#7c5000" },
+        "warning-container": { "$type": "color", "$value": "#fbefd2" },
+        "info": { "$type": "color", "$value": "#1d4a5b" },
+        "info-container": { "$type": "color", "$value": "#dcecf3" },
+        "outline-soft": { "$type": "color", "$value": "#e8ece5" },
+        "primary-strong": { "$type": "color", "$value": "#1f5244" }
+      }
+    },
+    "chart": {
+      "1": { "$type": "color", "$value": "#173f35", "$description": "forest: the real series" },
+      "2": { "$type": "color", "$value": "#6a8f1f", "$description": "olive: lime's readable partner on white" },
+      "3": { "$type": "color", "$value": "#b27a14", "$description": "mustard, darkened to 3:1 on white for graphics" },
+      "4": { "$type": "color", "$value": "#b5543a", "$description": "burnt orange" },
+      "5": { "$type": "color", "$value": "#5c7a8a", "$description": "slate" },
+      "fill": { "$type": "color", "$value": "#d7f978", "$description": "lime area fill under the forest line; never a line or text colour on white" },
+      "sample": { "$type": "color", "$value": "#68756c", "$description": "dashed outline of the labelled sample history" }
+    },
+    "shape": {
+      "card": { "$type": "dimension", "$value": "24px", "$description": "the approved AppRadius.card; a deliberate deviation between Material's large (16) and extra-large (28)" }
+    },
+    "motion": {
+      "stagger-step": { "$type": "number", "$value": 0.09, "$description": "seconds per item, MOBILE_APP_DESIGN_SYSTEM_GUIDELINES L407" },
+      "stagger-cap": { "$type": "number", "$value": 0.36, "$description": "seconds, the most any item waits" },
+      "grace-ms": { "$type": "number", "$value": 5000, "$description": "status moves are sent after this unless Undo is pressed" }
+    }
+  },
+  "flutter": {
+    "$description": "AppMotion durations after snapping to Material steps, and the curves they use (stream F implements these in lib/design_system/motion.dart).",
+    "motion": {
+      "feedback": { "$type": "duration", "$value": "150ms" },
+      "selection": { "$type": "duration", "$value": "250ms" },
+      "branch": { "$type": "duration", "$value": "400ms" },
+      "sheet": { "$type": "duration", "$value": "350ms" },
+      "sheetReverse": { "$type": "duration", "$value": "250ms" },
+      "milestone": { "$type": "duration", "$value": "450ms" },
+      "dock": { "$type": "duration", "$value": "450ms" },
+      "reveal": { "$type": "duration", "$value": "600ms" },
+      "spatial": { "$type": "cubicBezier", "$value": [0.05, 0.7, 0.1, 1], "$description": "Easing.emphasizedDecelerate" },
+      "effects": { "$type": "cubicBezier", "$value": [0.2, 0, 0, 1], "$description": "Easing.standard" },
+      "exit": { "$type": "cubicBezier", "$value": [0.3, 0, 0.8, 0.15], "$description": "Easing.emphasizedAccelerate" }
+    },
+    "radius": {
+      "card": { "$type": "dimension", "$value": "24px" },
+      "sheet": { "$type": "dimension", "$value": "28px" }
+    }
+  }
+}

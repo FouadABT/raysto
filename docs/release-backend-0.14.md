@@ -1,4 +1,4 @@
-# Backend 0.14.0 and 0.14.1, console 0.16.0 and 0.16.1 (3 November 2026)
+# Backend 0.14.0 to 0.14.3, console 0.16.0 to 0.16.5 (3 November 2026)
 
 The back office: eight money agents, PayPal Payouts, Invoicing and disputes through the PayPal MCP server, and the records they work on. Deployed to `api.rays.to` and `ops.rays.to` on 3 November; the design and the contract between backend, console and app are in [back-office-design.md](back-office-design.md).
 
@@ -21,11 +21,21 @@ The back office: eight money agents, PayPal Payouts, Invoicing and disputes thro
 - The seeded complaint names the first dish of its order.
 - The payments agent's prompt says "the diner left" for what the counter saw, never "you reported".
 
-## Console 0.16.0 and 0.16.1
+## Backend 0.14.2 and 0.14.3
+
+- 0.14.2: a signed day can be closed again (the new draft replaces it and the audit says it was re-run); the complaints agent gives the diner the benefit of the doubt for a missing or wrong item the order contains, and refuses only claims that name nothing in the order; the judges' reset withdraws a quoted-but-unsent catering request and an answered complaint, so the next judge sees the agents work.
+- 0.14.3: the official toolkit reports a refused PayPal call as `{"ok":false,"status":403,...}` inside a successful MCP text block; the client now reads that as a failed tool (a 403 is a missing Sandbox feature, `provider_feature_disabled`; anything else `mcp_tool_rejected`). The seeded complaint wakes the complaints agent at once; a declined complaint keeps the agent's reason.
+- Live check after 0.14.3: the seeded complaint ("my falafel wrap was missing") was answered with an $8.00 partial refund proposal, PayPal's capture read through MCP; the catering send failed honestly with `provider_feature_disabled`.
+- Archives: 0.14.1 `a02fad7d…8b29`, 0.14.2 `28c8f52e…c079`, 0.14.3 `6122a4ab0b3a597e18b95f1ca9e3c3f7b5270209227ec824e13f637083567494`.
+
+## Console 0.16.0 to 0.16.5
 
 - **Money** section: Close the day, Pay & tips (PayPal batch ids), Catering (quote, invoice number, QR), Refunds & disputes, Expenses, Customers, Analytics (sales by hour and channel, fees, refunds, tips, staff cost, expenses, margin per dish). **Team** section: the week's shifts, clock in and out, the roster proposal.
 - **Try Raysto**: nine cards, money first; the one-sentence order is one tap; held-back menu rows are no longer counted as new; the menu is restored before each read; Overview counts agree; Payments shows ticket numbers beside order ids.
 - 0.16.1: the payment chase asks with "the diner left"; the catering card accepts the QR code as a data URL.
+- 0.16.2: rays.to shows the Android build 0.14.2 and its checksum.
+- 0.16.3 and 0.16.4: the catering card places a fresh request when the last one is spent; the complaint card names a dish the chosen order really has.
+- 0.16.5: a money card whose PayPal step was refused says why ("PayPal refused it: this feature is not enabled on the Sandbox app yet. Nothing was sent or charged.") instead of "run it again".
 
 ## Verification
 

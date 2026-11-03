@@ -108,6 +108,7 @@ class RaystoDock extends StatefulWidget {
     final style = Theme.of(context).textTheme.labelMedium!
         .copyWith(fontSize: 12, fontWeight: FontWeight.w600);
     double labelHeight = 0;
+    final padding = _labelPadding(options.length);
     for (final destination in options) {
       final painter =
           TextPainter(
@@ -115,13 +116,26 @@ class RaystoDock extends StatefulWidget {
             textScaler: MediaQuery.textScalerOf(context),
             textDirection: Directionality.of(context),
           )..layout(
-            maxWidth: math.max(1, (availableWidth - 12) / options.length - 12),
+            // A one-word label stays on one line (scaled down if it must);
+            // longer labels wrap between words.
+            maxWidth: _oneWord(destination.label)
+                ? double.infinity
+                : math.max(
+                    1,
+                    (availableWidth - 12) / options.length - 2 * padding,
+                  ),
           );
       labelHeight = math.max(labelHeight, painter.height);
       painter.dispose();
     }
     return math.max(68, 46 + labelHeight);
   }
+
+  /// Six or more destinations get a little less side padding per label.
+  static double _labelPadding(int count) => count >= 6 ? 2 : 6;
+
+  /// A word must never break in the middle ("Counte/r").
+  static bool _oneWord(String label) => !label.trim().contains(' ');
 
   @override
   State<RaystoDock> createState() => _RaystoDockState();
@@ -188,33 +202,43 @@ class _RaystoDockState extends State<RaystoDock>
   Widget _labels(BuildContext context, Color color) => Row(
     children: List.generate(
       widget.options.length,
-      (i) => Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                widget.index == i
-                    ? widget.options[i].selectedIcon
-                    : widget.options[i].icon,
-                size: 23,
-                color: color,
-              ),
-              const SizedBox(height: 5),
-              Text(
-                widget.options[i].label,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+      (i) {
+        final label = widget.options[i].label;
+        final text = Text(
+          label,
+          textAlign: TextAlign.center,
+          softWrap: !RaystoDock._oneWord(label),
+          maxLines: RaystoDock._oneWord(label) ? 1 : null,
+          style: Theme.of(context).textTheme.labelMedium!.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        );
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: RaystoDock._labelPadding(widget.options.length),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.index == i
+                      ? widget.options[i].selectedIcon
+                      : widget.options[i].icon,
+                  size: 23,
                   color: color,
                 ),
-              ),
-            ],
+                const SizedBox(height: 5),
+                RaystoDock._oneWord(label)
+                    ? FittedBox(fit: BoxFit.scaleDown, child: text)
+                    : text,
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     ),
   );
 
@@ -400,21 +424,27 @@ class _RetainedBranchesState extends State<RetainedBranches>
     _targets = List.of(_starts);
   }
 
+  /// Material fade-through: the outgoing branch fades out over the first
+  /// 35%; the incoming one fades in over the rest while growing from 0.92.
+  /// A branch caught half-way keeps its current look and continues from it.
   _BranchVisual _visual(int index) {
     final start = _starts[index];
     final target = _targets[index];
     final t = _transition.value;
-    final spatial = AppMotion.coordinated.transform(t);
     final double fade;
+    final double grow;
     if (target.opacity == 1) {
-      fade = start.opacity == 0 ? ((t - .15) / .85).clamp(0.0, 1.0) : t;
+      final late = start.opacity == 0 ? ((t - .35) / .65).clamp(0.0, 1.0) : t;
+      fade = AppMotion.effects.transform(late);
+      grow = AppMotion.spatial.transform(late);
     } else {
-      fade = (t / .32).clamp(0.0, 1.0);
+      fade = AppMotion.exit.transform((t / .35).clamp(0.0, 1.0));
+      grow = fade;
     }
     return _BranchVisual(
       start.opacity + (target.opacity - start.opacity) * fade,
-      start.offset + (target.offset - start.offset) * spatial,
-      start.scale + (target.scale - start.scale) * spatial,
+      start.offset + (target.offset - start.offset) * grow,
+      start.scale + (target.scale - start.scale) * grow,
     );
   }
 
@@ -442,15 +472,13 @@ class _RetainedBranchesState extends State<RetainedBranches>
       _transition.value = 1;
       return;
     }
-    var direction = widget.index > oldWidget.index ? 1 : -1;
-    if (Directionality.of(context) == TextDirection.rtl) direction *= -1;
     // Capture this frame before retargeting: a partial incoming page must not
     // suddenly become a fully opaque outgoing page after another tap.
     final current = List.generate(widget.children.length, _visual);
     _starts = List.generate(widget.children.length, (i) {
       final visual = current[i];
       if (i == widget.index && visual.opacity <= .001) {
-        return _BranchVisual(0, 40.0 * direction, .975);
+        return const _BranchVisual(0, 0, .92);
       }
       return visual;
     });
@@ -458,7 +486,7 @@ class _RetainedBranchesState extends State<RetainedBranches>
       widget.children.length,
       (i) => i == widget.index
           ? const _BranchVisual(1, 0, 1)
-          : _BranchVisual(0, -40.0 * direction, .985),
+          : _BranchVisual(0, 0, current[i].scale),
     );
     _transition.forward(from: 0);
   }

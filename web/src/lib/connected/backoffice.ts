@@ -18,6 +18,7 @@
  *   expenses {from, to}          → { rows: Expense[] }
  *   customers                    → { rows: CustomerProfile[] }
  *   analytics {from, to}         → Analytics
+ *   dashboard {range}            → Dashboard (see dashboard.ts and docs/dashboard-contract.md)
  * Commands (dataJson fields; id/version where a row changes):
  *   close.run {day?}             → { taskId }
  *   close.sign  (id: close.id, version)            → { state }
@@ -38,6 +39,8 @@
  */
 import type { ConnectedApi } from "./api";
 import { asRows, type AgentActionRow } from "./business";
+import type { Dashboard, DashboardRange } from "./dashboard";
+export type * from "./dashboard";
 import type { Json } from "./contracts";
 
 export interface Shift {
@@ -239,6 +242,12 @@ const gapNames: Record<string, string> = {
   refund: "Refund",
   unpaid: "Unpaid ticket",
   unpaidTicket: "Unpaid ticket",
+  // The close agent's own kinds (backend agent_close.dart).
+  unpaid_ticket: "Unpaid ticket",
+  capture_not_in_raysto: "Capture not in Raysto",
+  raysto_not_in_paypal: "Not in PayPal",
+  refund_mismatch: "Refund mismatch",
+  fee_note: "PayPal fees",
   cash: "Cash",
   missingCapture: "Capture not in Raysto",
   missingTransaction: "Not in PayPal",
@@ -250,7 +259,11 @@ const gapNames: Record<string, string> = {
 
 /** A gap as a short label, never the model's words. */
 export const gapLabel = (g: Pick<CloseGap, "kind">) =>
-  gapNames[g.kind] ?? g.kind.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
+  gapNames[g.kind] ??
+  g.kind
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (c) => c.toUpperCase());
 
 /** Where the close read PayPal from, in the words a judge checks. */
 export const closeSourceLabel = (source: string) =>
@@ -290,5 +303,6 @@ export const backoffice = (api: ConnectedApi, tenant: number) => ({
   expenses: async (from: string, to: string) => asRows<Expense>(await api.query<Json>("expenses", { restaurantId: tenant, from, to })),
   customers: async () => asRows<CustomerProfile>(await api.query<Json>("customers", { restaurantId: tenant })),
   analytics: (from: string, to: string) => api.query<Analytics>("analytics", { restaurantId: tenant, from, to }),
+  dashboard: (range: DashboardRange) => api.query<Dashboard>("dashboard", { restaurantId: tenant, range }),
   inbox: async () => asRows<AgentActionRow>(await api.query<Json>("agent.inbox", { restaurantId: tenant }).catch(() => ({ rows: [] }))),
 });

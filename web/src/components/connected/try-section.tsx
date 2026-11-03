@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ApiFailure, type ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
 import { agentCost, type AgentActionRow } from "@/lib/connected/business";
+import { gapLabel } from "@/lib/connected/backoffice";
 import {
   basketOf,
   elapsed,
@@ -13,8 +14,11 @@ import {
   type Dish,
   type DraftRow,
 } from "@/lib/connected/judge";
+import { m } from "motion/react";
+import { duration, easing, MotionRoot, stagger, useFirstVisit, useReduce } from "@/lib/connected/motion";
 import { AgentPanel } from "./business-sections";
 import { Icon, type IconName } from "./icons";
+import { CountUp, Stamp } from "./m3";
 
 /** The café's clock: pickup times read as the café sees them. */
 const cafeZone = "America/New_York";
@@ -131,8 +135,21 @@ function Card({
   lead: string;
   children: ReactNode;
 }) {
+  // The kit's Reveal, inline so the article keeps its own name and class:
+  // a fade with a 6 px rise, staggered, on the first visit of the session only.
+  const reduce = useReduce();
+  const first = useFirstVisit("try");
+  const still = reduce || !first;
+  const Tag = still ? "article" : m.article;
+  const enter = still
+    ? {}
+    : {
+        initial: { opacity: 0, y: 6 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: duration.medium2, ease: easing.emphasizedDecelerate, delay: stagger(n - 1) },
+      };
   return (
-    <article className="ops-try-card" aria-labelledby={`try-${n}`}>
+    <Tag className="ops-try-card" aria-labelledby={`try-${n}`} {...enter}>
       <header>
         <span className="ops-try-n" aria-hidden="true">
           <Icon name={icon} size={20} />
@@ -146,7 +163,7 @@ function Card({
       </header>
       <p className="ops-try-lead">{lead}</p>
       {children}
-    </article>
+    </Tag>
   );
 }
 
@@ -321,6 +338,11 @@ function MoneyOutcome({
 
 const money = (minor: unknown, code = "USD") => currency(Number(minor ?? 0), code);
 
+/** A result total that counts up to its real value. */
+const counted = (minor: unknown, code = "USD") => (
+  <CountUp value={Math.round(Number(minor ?? 0))} format={(n) => currency(n, code)} />
+);
+
 /* 1. The close agent matches PayPal's transactions to the till. */
 function CloseCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
@@ -369,8 +391,8 @@ function CloseCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
                 {close.source === "paypal_transactions" ? "PayPal's transaction list" : "Raysto's ledger of PayPal webhooks"}
               </span>
               <ul>
-                <li>PayPal captured {money(summary.paypalCapturedMinor, code)}</li>
-                <li>Raysto recorded {money(summary.raystoCapturedMinor, code)}</li>
+                <li>PayPal captured {counted(summary.paypalCapturedMinor, code)}</li>
+                <li>Raysto recorded {counted(summary.raystoCapturedMinor, code)}</li>
                 <li>Tips {money(summary.tipsMinor, code)} · refunds {money(summary.refundsMinor, code)} · fees {money(summary.feesMinor, code)}</li>
                 <li>Cash {money(summary.cashMinor, code)}</li>
               </ul>
@@ -378,7 +400,7 @@ function CloseCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
                 <ol className="ops-try-gaps">
                   {gaps.map((g, i) => (
                     <li key={i}>
-                      <strong>{String(g.kind ?? "gap")}</strong> {money(g.amountMinor, code)}: {String(g.explanation ?? "")}
+                      <strong>{gapLabel({ kind: String(g.kind ?? "gap") })}</strong> {money(g.amountMinor, code)}: {String(g.explanation ?? "")}
                     </li>
                   ))}
                 </ol>
@@ -460,7 +482,7 @@ function PayrollCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
           {batch && (
             <div className="ops-try-ticket">
               <span className="ops-eyebrow">
-                {String(batch.kind ?? "pay")} · {money(batch.totalMinor, code)}
+                {String(batch.kind ?? "pay")} · {counted(batch.totalMinor, code)}
               </span>
               {items.length ? (
                 <ul>
@@ -601,7 +623,7 @@ function CateringCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
                 </ul>
               )}
               <strong>
-                {money(request.totalMinor, code)}
+                {counted(request.totalMinor, code)}
                 {Number(request.depositMinor ?? 0) > 0 ? ` · deposit ${money(request.depositMinor, code)}` : ""}
               </strong>
               {request.invoiceNumber ? <p>Invoice {String(request.invoiceNumber)} sent by PayPal.</p> : null}
@@ -704,7 +726,7 @@ function ComplaintCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
               <p className="ops-try-answer">“{String(complaint.text ?? "")}”</p>
               {preview.amountMinor !== undefined && (
                 <strong>
-                  Proposed refund {money(preview.amountMinor, String(preview.currency ?? "USD"))}
+                  Proposed refund {counted(preview.amountMinor, String(preview.currency ?? "USD"))}
                   {preview.capturedMinor !== undefined ? ` of ${money(preview.capturedMinor, String(preview.currency ?? "USD"))} captured` : ""}
                 </strong>
               )}
@@ -1169,16 +1191,20 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             </div>
           )}
           <Progress demo={pay} />
-          {paid && (
-            <p className="ops-try-done" role="status">
-              <Icon name="check" size={18} />
-              <span>
-                Paid in PayPal Sandbox{paid.captureId ? `, capture ${String(paid.captureId)}` : ""}. Ticket
-                {paid.number ? ` #${String(paid.number)}` : ""} is on the kitchen board
-                {paid.pickupCode ? `; pickup code ${String(paid.pickupCode)}` : ""}.
-              </span>
-            </p>
-          )}
+          {/* The stamp is mounted before PayPal captures, so it lands at the moment it does. */}
+          <div className="ops-try-paidline">
+            {paid && (
+              <p className="ops-try-done" role="status">
+                <Icon name="check" size={18} />
+                <span>
+                  Paid in PayPal Sandbox{paid.captureId ? `, capture ${String(paid.captureId)}` : ""}. Ticket
+                  {paid.number ? ` #${String(paid.number)}` : ""} is on the kitchen board
+                  {paid.pickupCode ? `; pickup code ${String(paid.pickupCode)}` : ""}.
+                </span>
+              </p>
+            )}
+            <Stamp paid={Boolean(paid)} />
+          </div>
         </div>
       )}
     </Card>
@@ -1407,43 +1433,45 @@ export function TrySection({ api, tenant }: { api: ConnectedApi; tenant: number 
     }
   }
   return (
-    <div className="ops-try">
-      <section className="ops-try-intro">
-        <div>
-          <span className="ops-eyebrow">TRY RAYSTO · NINE LIVE DEMOS, MONEY FIRST</span>
-          <h2>AI coworkers run the café&rsquo;s money. You approve. PayPal moves it.</h2>
-          <p>
-            Each card runs the real product on this demo café: Gemini models, the PayPal MCP server, PayPal Payouts,
-            Invoicing, Refunds and Sandbox checkout. No real money moves, and nothing changes until you approve it.
-          </p>
+    <MotionRoot>
+      <div className="ops-try">
+        <section className="ops-try-intro">
+          <div>
+            <span className="ops-eyebrow">TRY RAYSTO · NINE LIVE DEMOS, MONEY FIRST</span>
+            <h2>AI coworkers run the café&rsquo;s money. You approve. PayPal moves it.</h2>
+            <p>
+              Each card runs the real product on this demo café: Gemini models, the PayPal MCP server, PayPal Payouts,
+              Invoicing, Refunds and Sandbox checkout. No real money moves, and nothing changes until you approve it.
+            </p>
+          </div>
+          <div className="ops-try-intro-side">
+            <span className="ops-sandbox">
+              <Icon name="paypal" size={16} />
+              PayPal Sandbox
+            </span>
+            <button className="ops-quiet" disabled={resetting} onClick={() => void reset()}>
+              <Icon name="refresh" size={18} />
+              {resetting ? "Starting fresh…" : "Start the café fresh"}
+            </button>
+            {note && (
+              <small role="status" aria-live="polite">
+                {note}
+              </small>
+            )}
+          </div>
+        </section>
+        <div className="ops-try-grid">
+          <CloseCard api={api} tenant={tenant} />
+          <PayrollCard api={api} tenant={tenant} />
+          <CateringCard api={api} tenant={tenant} />
+          <ComplaintCard api={api} tenant={tenant} />
+          <PaymentCard api={api} tenant={tenant} />
+          <OrderCard api={api} tenant={tenant} />
+          <MenuCard api={api} tenant={tenant} />
+          <VoiceCard api={api} tenant={tenant} />
+          <PhotoCard api={api} tenant={tenant} />
         </div>
-        <div className="ops-try-intro-side">
-          <span className="ops-sandbox">
-            <Icon name="paypal" size={16} />
-            PayPal Sandbox
-          </span>
-          <button className="ops-quiet" disabled={resetting} onClick={() => void reset()}>
-            <Icon name="refresh" size={18} />
-            {resetting ? "Starting fresh…" : "Start the café fresh"}
-          </button>
-          {note && (
-            <small role="status" aria-live="polite">
-              {note}
-            </small>
-          )}
-        </div>
-      </section>
-      <div className="ops-try-grid">
-        <CloseCard api={api} tenant={tenant} />
-        <PayrollCard api={api} tenant={tenant} />
-        <CateringCard api={api} tenant={tenant} />
-        <ComplaintCard api={api} tenant={tenant} />
-        <PaymentCard api={api} tenant={tenant} />
-        <OrderCard api={api} tenant={tenant} />
-        <MenuCard api={api} tenant={tenant} />
-        <VoiceCard api={api} tenant={tenant} />
-        <PhotoCard api={api} tenant={tenant} />
       </div>
-    </div>
+    </MotionRoot>
   );
 }

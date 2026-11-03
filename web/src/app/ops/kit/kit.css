@@ -1,0 +1,267 @@
+/* The development-only kit page. Layout only; colours come from the tokens. */
+.kit {
+  padding-top: 32px;
+}
+.kit h1 {
+  font-family: "Fraunces Variable", serif;
+  font-weight: 500;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.kit h1 em {
+  font-style: italic;
+}
+.kit h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.kit-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kit-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-bottom: 6px !important;
+}
+.kit-tools {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.kit-switch {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+}
+.kit-switch input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+}
+.kit :is(.kit-kpi-value, .kit-live-number, .kit-center) {
+  color: inherit;
+}
+.kit-btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+.kit-stack {
+  display: grid;
+  gap: 20px;
+}
+.kit-card {
+  min-width: 0;
+  padding: 20px;
+  border-radius: var(--raysto-shape-card);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
+}
+.kit-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.kit-kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.kit-kpi.hero .kit-kpi-label {
+  color: var(--md-sys-color-on-secondary-container);
+}
+.kit-kpi-value {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 6px 0 10px !important;
+}
+.kit-kpi-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 8px;
+}
+.kit-delta {
+  font-size: 12px;
+  font-weight: 600;
+}
+.kit-kpi.hero {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.kit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+.kit-row.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.kit-live {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+}
+.kit-live::before {
+  content: "";
+  position: absolute;
+  inset: -40% -30% auto auto;
+  width: 70%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, color-mix(in srgb, var(--md-sys-color-inverse-primary) 38%, transparent), transparent 65%);
+  pointer-events: none;
+}
+.kit-live > * {
+  position: relative;
+}
+.kit-live small,
+.kit-live .m3-bars-value {
+  color: var(--md-sys-color-inverse-on-surface);
+}
+.kit-live .m3-bars-track {
+  background: color-mix(in srgb, var(--md-sys-color-inverse-on-surface) 18%, transparent);
+}
+.kit-live-chip {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-inverse-primary);
+}
+.kit-live-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--md-sys-color-inverse-primary);
+}
+.kit-live-number {
+  display: grid;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+}
+.kit-center {
+  font-size: 22px;
+  font-weight: 700;
+}
+.kit-target {
+  display: grid;
+  justify-items: start;
+}
+.kit-col {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+.kit-log {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.kit-invoice {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface);
+  min-height: 96px;
+}
+.kit-stamp-slot {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+}
+.kit-order {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  padding: 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container);
+}
+.kit h2.kit-dialog-title {
+  font-family: "Fraunces Variable", serif;
+  font-size: 28px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.m3-dialog-surface > * + *,
+.m3-dialog-content > * + * {
+  margin-top: 10px;
+}
+.kit-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface);
+}
+.kit-nav-item {
+  position: relative;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+.kit-nav-item > span:last-child {
+  position: relative;
+  z-index: 1;
+}
+.kit-fade {
+  padding: 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container);
+  min-height: 96px;
+}
+.kit-grid {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .kit-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kit-row,
+  .kit-row.three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .kit-kpis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kit-kpi.hero {
+    order: -1;
+  }
+}

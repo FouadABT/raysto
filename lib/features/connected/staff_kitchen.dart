@@ -12,6 +12,33 @@ class _KitchenBoardState extends State<KitchenBoard> {
   late final RestaurantFeed feed = RestaurantFeed(widget.live)..start();
   Timer? ticker;
 
+  /// Drags on a tablet: a ticket moves at once and the step is sent after
+  /// the Undo window, so nothing on the server ever needs taking back.
+  late final PendingMoves moves = PendingMoves(
+    send: (id, status, version) => widget.live.api.command(
+      'order.transition',
+      {'status': status},
+      restaurantId: widget.live.restaurantId,
+      resourceId: id,
+      version: version,
+    ),
+    onSent: (_) => feed.ping(),
+    onRefused: (move, error) {
+      feed.ping();
+      if (!mounted) return;
+      showRaystoSnackBar(
+        context,
+        error is PlatformFailure
+            ? error.message
+            : context.tr('The order could not be moved. Please try again.'),
+      );
+    },
+  )..addListener(_moved);
+
+  void _moved() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -24,8 +51,24 @@ class _KitchenBoardState extends State<KitchenBoard> {
   @override
   void dispose() {
     ticker?.cancel();
+    moves
+      ..removeListener(_moved)
+      ..dispose();
     feed.dispose();
     super.dispose();
+  }
+
+  /// Moves [order] to [lane] when that lane holds its next step.
+  void drop(BuildContext c, StaffOrder order, Set<String> lane) {
+    final rule = allowedNext(order, widget.live, kitchen: true);
+    if (!rule.allowed || !lane.contains(rule.to)) return;
+    moves.schedule(order, rule.to!);
+    showRaystoSnackBar(
+      c,
+      '${order.title} · ${statusLabel(c, rule.to!)}',
+      undoLabel: c.tr('Undo'),
+      onUndo: () => moves.undo(order.id),
+    );
   }
 
   @override
@@ -38,15 +81,49 @@ class _KitchenBoardState extends State<KitchenBoard> {
       trigger: feed,
       load: () => live.api.query('kitchen', live.params({'limit': 100})),
       content: (c, d, refresh) {
-        final orders = records(d['rows']).map(StaffOrder.new).toList();
+        final orders = moves.overlay(
+          records(d['rows']).map(StaffOrder.new).toList(),
+        );
         List<StaffOrder> at(Set<String> states) =>
             orders.where((o) => states.contains(o.status)).toList();
         // Each stage is a lane: its color, its count, its tickets.
-        Widget column(String title, String state, List<StaffOrder> rows) =>
-            DecoratedBox(
+        Widget column(
+          String title,
+          String state,
+          Set<String> lane,
+          List<StaffOrder> rows, {
+          required bool wide,
+        }) => DragTarget<StaffOrder>(
+          onWillAcceptWithDetails: (details) {
+            final rule = allowedNext(details.data, live, kitchen: true);
+            return rule.allowed && lane.contains(rule.to);
+          },
+          onAcceptWithDetails: (details) => drop(c, details.data, lane),
+          builder: (c, accepted, rejected) {
+            final scheme = Theme.of(c).colorScheme;
+            // A refused lane says why in words, not only by colour.
+            final refusal = rejected.whereType<StaffOrder>().firstOrNull;
+            final reason = refusal == null || lane.contains(refusal.status)
+                ? null
+                : allowedNext(refusal, live, kitchen: true).reason ??
+                      'Not the next step';
+            return AnimatedContainer(
+              duration: AppMotion.duration(c, AppMotion.feedback),
+              curve: AppMotion.effects,
               decoration: BoxDecoration(
-                color: Theme.of(c).colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(AppRadius.card + 4),
+                color: accepted.isNotEmpty
+                    ? Color.alphaBlend(
+                        scheme.primary.withValues(alpha: AppStateLayer.dragged),
+                        scheme.surfaceContainerLow,
+                      )
+                    : scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppShape.extraLarge),
+                border: Border.all(
+                  color: accepted.isNotEmpty
+                      ? scheme.primary
+                      : scheme.surfaceContainerLow,
+                  width: 2,
+                ),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(10),
@@ -77,6 +154,17 @@ class _KitchenBoardState extends State<KitchenBoard> {
                         ],
                       ),
                     ),
+                    if (reason != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                        child: Text(
+                          c.tr(reason),
+                          style: Theme.of(c).textTheme.bodyMedium!.copyWith(
+                            color: scheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     if (rows.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(
@@ -91,31 +179,46 @@ class _KitchenBoardState extends State<KitchenBoard> {
                         ),
                       ),
                     for (final o in rows) ...[
-                      KitchenTicket(
-                        key: ValueKey(o.id),
-                        live: live,
-                        order: o,
-                        refresh: refresh,
-                      ),
+                      wide
+                          ? DraggableTicket(
+                              key: ValueKey(o.id),
+                              order: o,
+                              child: KitchenTicket(
+                                live: live,
+                                order: o,
+                                refresh: refresh,
+                              ),
+                            )
+                          : KitchenTicket(
+                              key: ValueKey(o.id),
+                              live: live,
+                              order: o,
+                              refresh: refresh,
+                            ),
                       const SizedBox(height: 10),
                     ],
                   ],
                 ),
               ),
             );
-        final columns = [
-          column('New', 'submitted', at({'submitted'})),
-          column('In progress', 'preparing', at({'accepted', 'preparing'})),
-          column('Ready', 'ready', at({'ready'})),
+          },
+        );
+        const fresh = {'submitted'}, cooking = {'accepted', 'preparing'};
+        const done = {'ready'};
+        List<Widget> columns({required bool wide}) => [
+          column('New', 'submitted', fresh, at(fresh), wide: wide),
+          column('In progress', 'preparing', cooking, at(cooking), wide: wide),
+          column('Ready', 'ready', done, at(done), wide: wide),
         ];
-        // A tablet on the pass shows the three stages side by side.
+        // A tablet on the pass shows the three stages side by side, and a
+        // ticket can be carried from one to the next.
         return [
           LayoutBuilder(
             builder: (c, box) => box.maxWidth >= 860
                 ? Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final (i, col) in columns.indexed) ...[
+                      for (final (i, col) in columns(wide: true).indexed) ...[
                         if (i > 0) const SizedBox(width: 14),
                         Expanded(child: col),
                       ],
@@ -124,7 +227,7 @@ class _KitchenBoardState extends State<KitchenBoard> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (final (i, col) in columns.indexed) ...[
+                      for (final (i, col) in columns(wide: false).indexed) ...[
                         if (i > 0) const SizedBox(height: 16),
                         col,
                       ],
@@ -365,4 +468,57 @@ class KitchenTicket extends StatelessWidget {
     );
     await refresh();
   });
+}
+
+/// A ticket a tablet can carry to the next lane: a long press lifts it, the
+/// lanes say where it may go, and its buttons still work without dragging.
+class DraggableTicket extends StatelessWidget {
+  const DraggableTicket({super.key, required this.order, required this.child});
+  final StaffOrder order;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (c, box) => LongPressDraggable<StaffOrder>(
+      data: order,
+      feedback: Material(
+        type: MaterialType.transparency,
+        child: SizedBox(
+          width: box.maxWidth,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33173F35),
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                ExcludeSemantics(child: IgnorePointer(child: child)),
+                // Material's dragged state layer over the lifted card.
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.card),
+                        color: AppColors.forest.withValues(
+                          alpha: AppStateLayer.dragged,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    ),
+  );
 }

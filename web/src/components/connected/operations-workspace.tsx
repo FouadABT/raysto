@@ -6,13 +6,13 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { AgGridReact } from "ag-grid-react";
 import {
   AllCommunityModule,
   ModuleRegistry,
-  themeQuartz,
   type ColDef,
   type ValueFormatterParams,
 } from "ag-grid-community";
@@ -31,6 +31,7 @@ import {
 } from "ag-studio";
 import { ApiFailure, ConnectedApi } from "@/lib/connected/api";
 import { RaystoHarness } from "@/lib/connected/studio-harness";
+import { m3GridTheme } from "@/lib/connected/grid-theme";
 import {
   currency,
   type AttentionFilter,
@@ -41,7 +42,6 @@ import {
 import { RoomPanel } from "./room-panel";
 import { Icon } from "./icons";
 import {
-  BusinessOverview,
   OrdersSection,
   PaymentsSection,
   type Section,
@@ -49,7 +49,29 @@ import {
 } from "./business-sections";
 import { TrySection } from "./try-section";
 import { MoneySection, TeamSection } from "./backoffice-sections";
+import { OverviewSection } from "./overview-section";
+import { FadeThrough, NavIndicator } from "./m3";
 import { isJudgeVenue } from "@/lib/connected/judge";
+import type { IconName } from "./icons";
+
+type Place = Section | "floor" | "try";
+/** The console's sections, in navigation order; the judges' café adds Try Raysto first. */
+const places: readonly (readonly [Place, string, IconName])[] = [
+  ["overview", "Overview", "overview"],
+  ["orders", "Orders", "orders"],
+  ["payments", "Payments", "payments"],
+  ["agents", "Agents", "agents"],
+  ["money", "Money", "money"],
+  ["team", "Team", "team"],
+  ["floor", "Floor", "floor"],
+];
+const tryPlace = ["try", "Try Raysto", "play"] as const;
+/**
+ * Sections whose content holds an AG Grid or AG Studio: they change with a
+ * plain fade, never a scale, because a transform on their ancestors breaks
+ * the grid's measurements.
+ */
+const gridHeavy = new Set<Place>(["orders", "payments", "agents", "money", "team", "floor"]);
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 // AG Studio can be switched off at build time (for example if its evaluation
@@ -57,20 +79,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const studioOn = process.env.NEXT_PUBLIC_RAYSTO_STUDIO !== "off";
 const license = process.env.NEXT_PUBLIC_AG_STUDIO_LICENSE;
 if (license) AgStudioLicenseManager.setLicenseKey(license);
-const gridTheme = themeQuartz.withParams({
-  accentColor: "#173f35",
-  backgroundColor: "#ffffff",
-  foregroundColor: "#173e34",
-  borderColor: "#e3e8df",
-  headerBackgroundColor: "#f8f9f4",
-  headerTextColor: "#5c6b62",
-  headerFontWeight: 600,
-  fontFamily: "var(--font-jakarta)",
-  rowHeight: 52,
-  rowHoverColor: "#f2f6ee",
-  selectedRowBackgroundColor: "#eef7d6",
-  columnBorder: false,
-});
 const raystoTheme = studioTheme.withParams({
   accentColor: "#173f35",
   backgroundColor: "#ffffff",
@@ -236,12 +244,21 @@ export function OperationsWorkspace({
   tenant,
   onDirty,
   navTarget,
+  drawerNavTarget,
+  appBarLead,
+  person,
 }: {
   api: ConnectedApi;
   tenant: number;
   onDirty?: (dirty: boolean) => void;
-  /** The console sidebar; the sections render there when it exists. */
+  /** The console sidebar (drawer or rail); the sections render there when it exists. */
   navTarget?: HTMLElement | null;
+  /** The phone's modal drawer, while it is open; the sections render there too. */
+  drawerNavTarget?: HTMLElement | null;
+  /** What the shell puts at the start of the top app bar (menu button, venue). */
+  appBarLead?: ReactNode;
+  /** The signed-in person, for the Overview's greeting. */
+  person?: { name?: string | null; email?: string | null };
 }) {
   const [snapshot, setSnapshot] = useState<OperationsSnapshot>();
   const [filter, setFilter] = useState<AttentionFilter>("all");
@@ -255,9 +272,7 @@ export function OperationsWorkspace({
   // The whole business first; the table floor is one section among four.
   // The judges' café opens on its five live demos.
   const judges = isJudgeVenue(tenant);
-  const [section, setSection] = useState<Section | "floor" | "try">(
-    judges ? "try" : "overview",
-  );
+  const [section, setSection] = useState<Place>(judges ? "try" : "overview");
   const [focus, setFocus] = useState<string>();
   const [layout, setLayout] = useState<AgReportState<Registry>>();
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -638,6 +653,32 @@ export function OperationsWorkspace({
           </button>
         ),
     });
+  const navItems = judges ? [tryPlace, ...places] : places;
+  const title = navItems.find(([id]) => id === section)?.[1] ?? "Overview";
+  // One navigation, rendered into the sidebar (drawer or rail) and, while it
+  // is open, the phone's modal drawer; each has its own sliding indicator.
+  const renderNav = (layoutId: string) => (
+    <nav className="ops-sections" aria-label="Console sections">
+      {navItems.map(([id, label, icon]) => (
+        <button
+          key={id}
+          type="button"
+          className="ops-nav-item"
+          aria-current={section === id ? "page" : undefined}
+          onClick={() => {
+            setFocus(undefined);
+            setSection(id);
+          }}
+        >
+          <NavIndicator active={section === id} layoutId={layoutId} />
+          <span className="ops-nav-icon">
+            <Icon name={icon} size={20} />
+          </span>
+          <span className="ops-nav-label">{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
   if (!snapshot || !layout)
     return (
       <section className="ops-empty">
@@ -652,68 +693,49 @@ export function OperationsWorkspace({
   return (
     <Context.Provider value={{ snapshot, filter, setFilter }}>
       <section className="ops-workspace">
-        <div className="ops-heading">
-          <div>
-            <span className="ops-eyebrow">EVERY ORDER, EVERY TABLE, EVERY PAYMENT</span>
-            <h1>{snapshot.name}</h1>
+        <header className="ops-appbar">
+          {appBarLead}
+          <div className="ops-appbar-title">
+            <span className="ops-eyebrow">{snapshot.name}</span>
+            <h1>{title}</h1>
           </div>
-          <span className={`ops-live ${delivery === "Live" ? "on" : ""}`}>
-            <i aria-hidden="true" />
-            {delivery}
-          </span>
-          <button className="ops-secondary" onClick={() => void refreshRef.current()}>
-            <Icon name="refresh" size={18} />
-            Refresh
-          </button>
-          {!judges && (
-            <button className="ops-secondary" onClick={() => void save()} disabled={saving}>
-              <Icon name="save" size={18} />
-              {saving ? "Saving…" : "Save workspace"}
+          <div className="ops-appbar-actions">
+            <span className={`ops-live ${delivery === "Live" ? "on" : ""}`} role="status">
+              <i aria-hidden="true" />
+              <span className="m3-sr">Live updates: </span>
+              {delivery}
+            </span>
+            <button
+              type="button"
+              className="ops-secondary ops-appbar-refresh"
+              aria-label="Refresh"
+              onClick={() => void refreshRef.current()}
+            >
+              <Icon name="refresh" size={18} />
+              <span aria-hidden="true">Refresh</span>
             </button>
-          )}
-        </div>
+            {section === "floor" && !judges && (
+              <button type="button" className="ops-secondary" onClick={() => void save()} disabled={saving}>
+                <Icon name="save" size={18} />
+                {saving ? "Saving…" : "Save workspace"}
+              </button>
+            )}
+          </div>
+        </header>
         {error && (
           <p className="ops-error" role="alert">
             {error}
           </p>
         )}
-        {(() => {
-          const nav = (
-            <nav className="ops-sections" aria-label="Console sections">
-              {(
-                [
-                  ...(judges ? ([["try", "Try Raysto", "play"]] as const) : []),
-                  ["overview", "Overview", "overview"],
-                  ["orders", "Orders", "orders"],
-                  ["payments", "Payments", "payments"],
-                  ["agents", "Agents", "agents"],
-                  ["money", "Money", "money"],
-                  ["team", "Team", "team"],
-                  ["floor", "Floor", "floor"],
-                ] as const
-              ).map(([id, label, icon]) => (
-                <button
-                  key={id}
-                  aria-pressed={section === id}
-                  aria-current={section === id ? "page" : undefined}
-                  onClick={() => {
-                    setFocus(undefined);
-                    setSection(id);
-                  }}
-                >
-                  <Icon name={icon} size={20} />
-                  {label}
-                </button>
-              ))}
-            </nav>
-          );
-          return navTarget ? createPortal(nav, navTarget) : nav;
-        })()}
+        {navTarget && createPortal(renderNav("ops-nav-side"), navTarget)}
+        {drawerNavTarget && createPortal(renderNav("ops-nav-drawer"), drawerNavTarget)}
+        {!navTarget && !drawerNavTarget && renderNav("ops-nav-inline")}
+        <FadeThrough k={section} scale={!gridHeavy.has(section)} className="ops-place">
         {section === "try" ? (
           <TrySection api={api} tenant={tenant} />
         ) : section !== "floor" ? (
           section === "overview" ? (
-            <BusinessOverview
+            <OverviewSection
               api={api}
               tenant={tenant}
               revision={snapshot.asOf}
@@ -722,6 +744,8 @@ export function OperationsWorkspace({
                 (sum, row) => sum + row.serviceCount,
                 0,
               )}
+              person={person}
+              judges={judges}
               open={(next, f) => {
                 setFocus(f);
                 setSection(next);
@@ -956,7 +980,7 @@ export function OperationsWorkspace({
             <div className="ops-grid">
               {tab === "tables" ? (
                 <AgGridReact<TableRow>
-                  theme={gridTheme}
+                  theme={m3GridTheme}
                   rowData={snapshot.rows}
                   columnDefs={tableColumns}
                   defaultColDef={{
@@ -971,7 +995,7 @@ export function OperationsWorkspace({
               ) : (
                 <AgGridReact<Json>
                   key={tab}
-                  theme={gridTheme}
+                  theme={m3GridTheme}
                   rowData={generalRows}
                   columnDefs={genericColumns}
                   defaultColDef={{
@@ -1020,6 +1044,7 @@ export function OperationsWorkspace({
         </div>
           </>
         )}
+        </FadeThrough>
       </section>
     </Context.Provider>
   );

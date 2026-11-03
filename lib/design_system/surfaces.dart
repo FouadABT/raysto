@@ -454,3 +454,97 @@ Future<T?> showAppSheet<T>(
     ),
   );
 }
+
+/// The "PAID" mark on a ticket or an invoice. It lands, in 200 ms, only when
+/// the payment is confirmed while the person is looking; a ticket that was
+/// already paid shows it still. Under reduced motion it simply appears.
+class PaidStamp extends StatefulWidget {
+  const PaidStamp({
+    super.key,
+    required this.paid,
+    this.animate = true,
+    this.label = 'PAID',
+    this.semanticLabel = 'Paid',
+    this.size = 92,
+  });
+
+  /// Whether PayPal (or the counter) confirmed the payment.
+  final bool paid;
+  final bool animate;
+  final String label;
+  final String semanticLabel;
+  final double size;
+
+  @override
+  State<PaidStamp> createState() => _PaidStampState();
+}
+
+class _PaidStampState extends State<PaidStamp>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _land = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 200),
+    value: 1,
+  );
+
+  @override
+  void didUpdateWidget(PaidStamp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.paid &&
+        widget.paid &&
+        widget.animate &&
+        !AppMotion.reduced(context)) {
+      _land.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _land.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.paid) return const SizedBox.shrink();
+    final size = widget.size;
+    return Semantics(
+      label: widget.semanticLabel,
+      child: ExcludeSemantics(
+        child: AnimatedBuilder(
+          animation: _land,
+          builder: (context, child) {
+            final t = AppMotion.exit.transform(_land.value);
+            return Opacity(
+              opacity: t,
+              child: Transform.scale(scale: 1.4 - .4 * t, child: child),
+            );
+          },
+          child: Transform.rotate(
+            angle: -0.14, // −8°
+            child: Container(
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.lime,
+                border: Border.all(color: AppColors.forest, width: 3),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: FittedBox(
+                  child: Text(
+                    widget.label,
+                    style: AppType.emphasis(28, color: AppColors.forest)
+                        .copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

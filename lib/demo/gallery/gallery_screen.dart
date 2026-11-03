@@ -72,6 +72,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
   int _seating = 0;
   int _pace = 1;
   int _progress = 0;
+  bool _paid = false;
+  int _sales = 19530;
   final Set<String> _preferences = {'Vegetarian'};
 
   bool get _draftDirty =>
@@ -798,6 +800,87 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ],
         ),
       ),
+      const SizedBox(height: 10),
+      const AppSectionTitle(
+        title: 'Numbers and charts that land on real values',
+        subtitle:
+            'Sample week from docs/fixtures/dashboard-7d.json. The dashed line '
+            'is the labelled sample history; it never joins the real one.',
+      ),
+      const AppEyebrow('SAMPLE DATA / NO LIVE REQUEST'),
+      AppPanel(
+        child: _CollectionBody(
+          children: [
+            CountUp(
+              value: _sales,
+              format: _usd,
+              semanticsLabel: 'Paid sales, sample week',
+              style: AppType.style(40, weight: FontWeight.w700, height: 1.1),
+            ),
+            const RaystoSparkline(
+              values: _sampleWeekSales,
+              semanticLabel: 'Paid sales, sample week',
+            ),
+            AppButton(
+              label: 'Add a sample \$21.50 sale',
+              secondary: true,
+              icon: PhosphorIconsRegular.plus,
+              onPressed: () => setState(() => _sales += 2150),
+            ),
+            RaystoAreaChart(
+              points: [
+                for (final (i, v) in _sampleWeekSales.indexed)
+                  ChartPoint(_sampleWeekDays[i], v),
+              ],
+              sample: _sampleHistory,
+              format: _usd,
+              semanticLabel: 'Paid sales by day, sample week',
+            ),
+            RaystoDonut(
+              slices: const [
+                ChartSlice('Pickup', 15100),
+                ChartSlice('Counter', 3080),
+                ChartSlice('Table', 1350),
+              ],
+              format: _usd,
+              semanticLabel: 'Sales by channel, sample week',
+            ),
+            RaystoRing(
+              value: 2150 / 30000,
+              semanticLabel: 'Daily target, sample',
+              semanticValue: '\$21.50 of \$300.00, 7%',
+              center: Text('7%', style: AppType.style(18, weight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+      const AppSectionTitle(
+        title: 'Paid, with an undo where a move can be undone',
+        subtitle:
+            'The stamp lands only when payment is confirmed in front of you. '
+            'Board moves offer Undo; money moves never do.',
+      ),
+      AppPanel(
+        child: _CollectionBody(
+          children: [
+            Center(child: PaidStamp(paid: _paid)),
+            AppButton(
+              label: _paid ? 'Reset the sample ticket' : 'Confirm a sample payment',
+              secondary: _paid,
+              onPressed: () => setState(() => _paid = !_paid),
+            ),
+            AppButton(
+              label: 'Move a sample order to Ready',
+              secondary: true,
+              onPressed: () => showRaystoSnackBar(
+                context,
+                '#14 is ready (sample)',
+                onUndo: () {},
+              ),
+            ),
+          ],
+        ),
+      ),
     ],
   );
 
@@ -1087,6 +1170,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
     ],
   );
 }
+
+String _usd(num minor) => '\$${(minor / 100).toStringAsFixed(2)}';
+
+const _sampleWeekDays = ['Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue'];
+const _sampleWeekSales = <num>[0, 0, 1350, 4280, 3150, 8600, 2150];
+const _sampleHistory = <num>[41200, 44800, 52600, 61900, 48300, 33700, 36100];
 
 class _CollectionBody extends StatelessWidget {
   const _CollectionBody({required this.children, this.gap = 16});

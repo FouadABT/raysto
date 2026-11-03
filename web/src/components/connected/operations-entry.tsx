@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import {
   GoogleAuthProvider,
@@ -13,7 +13,9 @@ import { connectedAuth } from "@/lib/connected/firebase";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Membership } from "@/lib/connected/contracts";
 import { judge, judgeLogin } from "@/lib/connected/judge";
+import { MotionRoot, setReduceMotion, useAppReduceMotion } from "@/lib/connected/motion";
 import { Icon } from "./icons";
+import { SnackbarProvider } from "./m3";
 
 const Workspace = dynamic(
   () => import("./operations-workspace").then((m) => m.OperationsWorkspace),
@@ -28,9 +30,6 @@ const Workspace = dynamic(
   },
 );
 export function OperationsEntry() {
-  const draft = useRef(false);
-  const canLeave = () =>
-    !draft.current || window.confirm("Discard the unsent room message?");
   const [auth, setAuth] = useState<Auth>();
   const [api, setApi] = useState<ConnectedApi>();
   const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -40,8 +39,7 @@ export function OperationsEntry() {
     [error, setError] = useState("");
   const [busy, setBusy] = useState(true),
     [signedIn, setSignedIn] = useState(false);
-  // The sidebar slot the workspace renders its sections into.
-  const [navTarget, setNavTarget] = useState<HTMLElement | null>(null);
+  const [person, setPerson] = useState<{ name?: string | null; email?: string | null }>();
   useEffect(() => {
     let active = true,
       unsubscribe = () => {},
@@ -61,6 +59,7 @@ export function OperationsEntry() {
           setMemberships([]);
           setSelected(undefined);
           setSignedIn(!!user);
+          setPerson(user ? { name: user.displayName, email: user.email } : undefined);
           if (!user && judgeLink) {
             judgeLink = false;
             void signInWithEmailAndPassword(a, judge.email, judge.password).catch(
@@ -127,90 +126,35 @@ export function OperationsEntry() {
       setBusy(false);
     }
   }
-  const signOutButton = (className: string) => (
-    <button
-      className={className}
-      onClick={() => {
-        if (auth && canLeave()) {
-          draft.current = false;
-          void signOut(auth);
-        }
-      }}
-    >
-      <Icon name="signOut" size={18} />
-      Sign out
-    </button>
-  );
-  const wordmark = (
-    <a className="ops-wordmark" href="/ops">
-      rays<span>to</span>
-      <i>✳</i>
-    </a>
-  );
+  const leave = () => {
+    if (auth) void signOut(auth);
+  };
   // Signed in with a restaurant: the console shell, with the sections in a
-  // sidebar that the workspace fills.
+  // navigation drawer (wide), a rail (medium) or a modal drawer (phone) that
+  // the workspace fills.
   if (signedIn && !busy && api && selected)
     return (
-      <main className="ops-root with-shell">
-        <aside className="ops-shell-side">
-          <div className="ops-shell-brand">
-            {wordmark}
-            <span className="ops-tag">THE RESTAURANT ROOM</span>
-          </div>
-          <label className="ops-venue">
-            <span>Restaurant</span>
-            <select
-              value={selected}
-              onChange={(e) => {
-                if (canLeave()) {
-                  draft.current = false;
-                  setSelected(Number(e.target.value));
-                }
-              }}
-            >
-              {memberships.map((m) => (
-                <option key={m.restaurantId} value={m.restaurantId}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-            <small>
-              You are its {memberships.find((m) => m.restaurantId === selected)?.role ?? "manager"}
-            </small>
-          </label>
-          <div className="ops-shell-nav" ref={setNavTarget} />
-          <div className="ops-shell-foot">
-            <span className="ops-sandbox">
-              <Icon name="paypal" size={16} />
-              PayPal Sandbox · no live payments
-            </span>
-            {signOutButton("ops-quiet")}
-          </div>
-        </aside>
-        <div className="ops-shell-main">
-          {error && (
-            <p className="ops-error" role="alert">
-              {error}
-            </p>
-          )}
-          <Workspace
-            key={selected}
-            api={api}
-            tenant={selected}
-            navTarget={navTarget}
-            onDirty={(dirty) => {
-              draft.current = dirty;
-            }}
-          />
-        </div>
-      </main>
+      <ConsoleShell
+        api={api}
+        memberships={memberships}
+        selected={selected}
+        onSelect={setSelected}
+        onSignOut={leave}
+        error={error}
+        person={person}
+      />
     );
   return (
     <main className="ops-root">
       <header className="ops-top">
-        {wordmark}
+        <Wordmark />
         <span className="ops-tag">THE RESTAURANT ROOM</span>
-        {signedIn && signOutButton("ops-quiet")}
+        {signedIn && (
+          <button className="ops-quiet" onClick={leave}>
+            <Icon name="signOut" size={18} />
+            Sign out
+          </button>
+        )}
       </header>
       {error && (
         <p className="ops-error" role="alert">
@@ -337,5 +281,229 @@ export function OperationsEntry() {
         </section>
       )}
     </main>
+  );
+}
+
+function Wordmark() {
+  return (
+    <a className="ops-wordmark" href="/ops" aria-label="Raysto">
+      <b className="ops-wordmark-text">
+        rays<span>to</span>
+      </b>
+      <i aria-hidden="true">✳</i>
+    </a>
+  );
+}
+
+function MenuIcon({ close = false }: { close?: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true" focusable="false">
+      {close ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+    </svg>
+  );
+}
+
+function VenuePicker({
+  memberships,
+  selected,
+  onSelect,
+  className,
+}: {
+  memberships: Membership[];
+  selected: number;
+  onSelect: (id: number) => void;
+  className: string;
+}) {
+  return (
+    <label className={`ops-venue ${className}`}>
+      <span>Restaurant</span>
+      <select aria-label="Restaurant" value={selected} onChange={(e) => onSelect(Number(e.target.value))}>
+        {memberships.map((m) => (
+          <option key={m.restaurantId} value={m.restaurantId}>
+            {m.name}
+          </option>
+        ))}
+      </select>
+      <small>You are its {memberships.find((m) => m.restaurantId === selected)?.role ?? "manager"}</small>
+    </label>
+  );
+}
+
+/** The console's own reduce-motion switch; it adds to the device setting, never overrides it. */
+function ReduceMotionSwitch() {
+  const on = useAppReduceMotion();
+  return (
+    <label className="ops-motion-switch">
+      <input type="checkbox" role="switch" checked={on} onChange={(e) => setReduceMotion(e.target.checked)} />
+      <span className="ops-motion-switch-text">Reduce motion</span>
+    </label>
+  );
+}
+
+function ShellFoot({ onSignOut }: { onSignOut: () => void }) {
+  return (
+    <div className="ops-shell-foot">
+      <span className="ops-sandbox">
+        <Icon name="paypal" size={16} />
+        <span>PayPal Sandbox · no live payments</span>
+      </span>
+      <ReduceMotionSwitch />
+      <button className="ops-quiet ops-signout" onClick={onSignOut}>
+        <Icon name="signOut" size={18} />
+        <span>Sign out</span>
+      </button>
+    </div>
+  );
+}
+
+/**
+ * The signed-in console: Material's navigation drawer on wide screens
+ * (≥1200 px), a navigation rail on medium ones (600–1199 px) and a top app
+ * bar with a modal drawer on phones. The workspace renders its sections into
+ * whichever navigation is on screen. Exported for the development preview.
+ */
+export function ConsoleShell({
+  api,
+  memberships,
+  selected,
+  onSelect,
+  onSignOut,
+  error,
+  person,
+  workspace,
+}: {
+  api: ConnectedApi;
+  memberships: Membership[];
+  selected: number;
+  onSelect: (id: number) => void;
+  onSignOut: () => void;
+  error?: string;
+  person?: { name?: string | null; email?: string | null };
+  /** The development preview passes the workspace in directly (no dynamic import). */
+  workspace?: typeof Workspace;
+}) {
+  const draft = useRef(false);
+  const canLeave = () => !draft.current || window.confirm("Discard the unsent room message?");
+  // The sidebar slot (drawer or rail) the workspace renders its sections into,
+  // and the phone drawer's slot while it is open.
+  const [navTarget, setNavTarget] = useState<HTMLElement | null>(null);
+  const [drawerTarget, setDrawerTarget] = useState<HTMLElement | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawer = useRef<HTMLDialogElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const View = workspace ?? Workspace;
+  const select = (id: number) => {
+    if (canLeave()) {
+      draft.current = false;
+      onSelect(id);
+    }
+  };
+  const signOutNow = () => {
+    if (canLeave()) {
+      draft.current = false;
+      onSignOut();
+    }
+  };
+  useEffect(() => {
+    const d = drawer.current;
+    if (drawerOpen && d && !d.open) d.showModal();
+  }, [drawerOpen]);
+  useEffect(() => {
+    const d = drawer.current;
+    if (!d) return;
+    // Native listeners: the sections are portalled into the drawer, so their
+    // clicks bubble through the dialog in the DOM, not in React's tree.
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target === d || target.closest(".ops-sections button")) d.close();
+    };
+    const onClose = () => {
+      setDrawerOpen(false);
+      menuButton.current?.focus();
+    };
+    d.addEventListener("click", onClick);
+    d.addEventListener("close", onClose);
+    // Wider than a phone, the rail or drawer is on screen: the modal goes.
+    const wide = window.matchMedia("(min-width: 600px)");
+    const onWide = () => {
+      if (wide.matches && d.open) d.close();
+    };
+    wide.addEventListener("change", onWide);
+    return () => {
+      d.removeEventListener("click", onClick);
+      d.removeEventListener("close", onClose);
+      wide.removeEventListener("change", onWide);
+    };
+  }, []);
+  const lead: ReactNode = (
+    <>
+      <button
+        ref={menuButton}
+        type="button"
+        className="ops-appbar-menu"
+        aria-label="Open the console menu"
+        aria-haspopup="dialog"
+        aria-expanded={drawerOpen}
+        onClick={() => setDrawerOpen(true)}
+      >
+        <MenuIcon />
+      </button>
+      <VenuePicker memberships={memberships} selected={selected} onSelect={select} className="in-bar" />
+      <span className="ops-appbar-sandbox">
+        <Icon name="paypal" size={16} />
+        Sandbox
+      </span>
+    </>
+  );
+  return (
+    <MotionRoot>
+      <SnackbarProvider>
+        <main className="ops-root with-shell">
+          <aside className="ops-shell-side" aria-label="Console">
+            <div className="ops-shell-brand">
+              <Wordmark />
+              <span className="ops-tag">THE RESTAURANT ROOM</span>
+            </div>
+            <VenuePicker memberships={memberships} selected={selected} onSelect={select} className="in-side" />
+            <div className="ops-shell-nav" ref={setNavTarget} />
+            <ShellFoot onSignOut={signOutNow} />
+          </aside>
+          <dialog ref={drawer} className="ops-drawer" aria-label="Console menu">
+            {drawerOpen && (
+              <div className="ops-drawer-body">
+                <div className="ops-drawer-head">
+                  <Wordmark />
+                  <button type="button" className="ops-drawer-close" aria-label="Close the menu" onClick={() => drawer.current?.close()}>
+                    <MenuIcon close />
+                  </button>
+                </div>
+                <VenuePicker memberships={memberships} selected={selected} onSelect={select} className="in-drawer" />
+                <div className="ops-shell-nav" ref={setDrawerTarget} />
+                <ShellFoot onSignOut={signOutNow} />
+              </div>
+            )}
+          </dialog>
+          <div className="ops-shell-main">
+            {error && (
+              <p className="ops-error" role="alert">
+                {error}
+              </p>
+            )}
+            <View
+              key={selected}
+              api={api}
+              tenant={selected}
+              navTarget={navTarget}
+              drawerNavTarget={drawerOpen ? drawerTarget : null}
+              appBarLead={lead}
+              person={person}
+              onDirty={(dirty) => {
+                draft.current = dirty;
+              }}
+            />
+          </div>
+        </main>
+      </SnackbarProvider>
+    </MotionRoot>
   );
 }

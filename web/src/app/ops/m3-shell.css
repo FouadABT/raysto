@@ -1,0 +1,878 @@
+/* The console shell on Material 3 (stream C): navigation drawer (≥1200 px),
+   navigation rail (600–1199 px), top app bar with a modal drawer (<600 px),
+   and the Overview. Imported after operations.css and m3.css, so it overrides
+   the older shell rules; only tokens from md-sys.css. */
+
+/* ---------- Navigation items (drawer, rail and modal drawer) ---------- */
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item {
+  position: relative;
+  isolation: isolate;
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  box-shadow: none;
+  color: #dbe6dc;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item > :not(.m3-nav-indicator) {
+  position: relative;
+  z-index: 1;
+}
+/* State layer: 8% on hover, 10% on press, on the same shape as the indicator. */
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+}
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item:hover {
+  background: transparent;
+  color: #fff;
+}
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item:hover::after {
+  opacity: var(--md-sys-state-hover);
+}
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item:active::after {
+  opacity: var(--md-sys-state-pressed);
+}
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item[aria-current="page"],
+.ops-root :is(.ops-shell-side, .ops-drawer) .ops-sections .ops-nav-item[aria-current="page"]:hover {
+  color: var(--md-sys-color-on-secondary-container);
+  font-weight: 700;
+}
+.ops-nav-icon {
+  display: inline-grid;
+  place-items: center;
+}
+
+/* ---------- The sidebar's footer ---------- */
+.ops-root .ops-shell-foot {
+  display: grid;
+  gap: 8px;
+}
+.ops-root .ops-shell-foot .ops-sandbox span {
+  min-width: 0;
+}
+.ops-motion-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: var(--md-sys-shape-corner-large);
+  color: #dbe6dc;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ops-motion-switch-text {
+  order: -1;
+}
+/* Material switch: a 52×32 track with a handle that grows when on. */
+.ops-root .ops-motion-switch input[type="checkbox"] {
+  flex: none;
+  appearance: none;
+  width: 52px;
+  height: 32px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #9fb5a6;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: radial-gradient(circle 8px at 14px 50%, #9fb5a6 96%, transparent 100%) no-repeat;
+  cursor: pointer;
+  transition:
+    background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+    border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.ops-root .ops-motion-switch input[type="checkbox"]:checked {
+  border-color: var(--md-sys-color-inverse-primary);
+  background: var(--md-sys-color-inverse-primary)
+    radial-gradient(circle 12px at 34px 50%, var(--md-sys-color-primary) 96%, transparent 100%) no-repeat;
+}
+
+/* ---------- The phone's modal navigation drawer ---------- */
+.ops-root dialog.ops-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(320px, 86vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0 var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0;
+  background: var(--md-sys-color-primary);
+  color: #eef3ea;
+  overflow-y: auto;
+}
+.ops-root dialog.ops-drawer::backdrop {
+  background: rgb(0 0 0 / var(--md-sys-scrim-opacity, 0.32));
+}
+.ops-root dialog.ops-drawer[open] {
+  animation: ops-drawer-in var(--md-sys-motion-duration-medium4) var(--md-sys-motion-easing-emphasized-decelerate);
+}
+@keyframes ops-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+.ops-root[data-reduce-motion] dialog.ops-drawer[open] {
+  animation: none;
+}
+.ops-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 100%;
+  padding: 16px 12px 20px;
+}
+.ops-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 0 12px;
+}
+.ops-drawer .ops-wordmark {
+  color: #fff;
+}
+.ops-drawer .ops-wordmark i {
+  color: var(--md-sys-color-inverse-primary);
+}
+.ops-drawer .ops-shell-nav {
+  flex: 1;
+}
+.ops-root .ops-drawer .ops-drawer-close {
+  width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+}
+.ops-root .ops-drawer .ops-drawer-close:hover {
+  background: color-mix(in srgb, #fff 8%, transparent);
+}
+.ops-drawer .ops-venue > span,
+.ops-drawer .ops-venue > small {
+  color: #9fb5a6;
+}
+.ops-drawer .ops-sandbox {
+  display: flex;
+}
+.ops-root .ops-drawer .ops-quiet {
+  justify-content: flex-start;
+  color: #c8d6ca;
+}
+
+/* ---------- The floating top app bar ---------- */
+.ops-root .ops-appbar {
+  position: sticky;
+  top: 12px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 22px;
+  padding: 10px 12px 10px 22px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
+}
+.ops-appbar-title {
+  flex: 1;
+  min-width: 0;
+}
+.ops-appbar-title .ops-eyebrow {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ops-root .ops-appbar h1 {
+  margin-top: 2px;
+  font-family: "Fraunces Variable", serif;
+  font-size: clamp(24px, 2.4vw, 30px);
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.ops-appbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.ops-root .ops-appbar .ops-live {
+  min-height: 36px;
+}
+.ops-root .ops-appbar .ops-appbar-menu {
+  display: none;
+  width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+}
+.ops-root .ops-appbar .ops-appbar-menu:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+.ops-appbar-sandbox {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* The venue picker lives in the drawer when it is wide, in the bar on medium screens. */
+.ops-root .ops-venue.in-bar {
+  display: none;
+  padding: 0;
+  max-width: 240px;
+}
+.ops-root .ops-venue.in-bar > span,
+.ops-root .ops-venue.in-bar > small {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.ops-root .ops-appbar .ops-venue select {
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background-color: var(--md-sys-color-surface);
+  border-color: var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23173f35' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+}
+.ops-place {
+  min-width: 0;
+}
+
+/* ---------- Wide: the navigation drawer keeps the forest sidebar ---------- */
+@media (min-width: 1200px) {
+  .ops-root.with-shell {
+    grid-template-columns: 272px minmax(0, 1fr);
+  }
+}
+
+/* ---------- Medium: the navigation rail ---------- */
+@media (min-width: 600px) and (max-width: 1199px) {
+  .ops-root.with-shell {
+    grid-template-columns: 88px minmax(0, 1fr);
+    background: linear-gradient(90deg, var(--md-sys-color-primary) 88px, var(--md-sys-color-surface) 88px);
+  }
+  .ops-root .ops-shell-side {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 0 14px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .ops-root .ops-shell-brand {
+    padding: 0;
+    justify-items: center;
+  }
+  .ops-root .ops-shell-side .ops-wordmark-text,
+  .ops-root .ops-shell-brand .ops-tag,
+  .ops-root .ops-venue.in-side,
+  .ops-root .ops-shell-side .ops-sandbox {
+    display: none;
+  }
+  .ops-root .ops-shell-side .ops-wordmark i {
+    padding: 0;
+    font-size: 28px;
+  }
+  .ops-root .ops-shell-side .ops-shell-nav {
+    flex: 1;
+    width: 100%;
+    overflow: visible;
+  }
+  .ops-root .ops-shell-side .ops-sections {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+  }
+  .ops-root .ops-shell-side .ops-sections .ops-nav-item {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    width: 80px;
+    min-height: 56px;
+    padding: 0;
+    border-radius: var(--md-sys-shape-corner-large);
+  }
+  /* The 56×32 indicator sits around the icon only (no transform: motion animates it). */
+  .ops-root .ops-shell-side .ops-sections .ops-nav-item .m3-nav-indicator {
+    inset: 0 auto auto calc(50% - 28px);
+    width: 56px;
+    height: 32px;
+  }
+  .ops-root .ops-shell-side .ops-sections .ops-nav-item::after {
+    inset: 0 auto auto calc(50% - 28px);
+    width: 56px;
+    height: 32px;
+  }
+  .ops-root .ops-shell-side .ops-nav-icon {
+    width: 56px;
+    height: 32px;
+  }
+  .ops-root .ops-shell-side .ops-nav-label {
+    font-size: 12px;
+    line-height: 16px;
+    color: #dbe6dc;
+  }
+  .ops-root .ops-shell-side .ops-nav-item[aria-current="page"] .ops-nav-label {
+    color: #fff;
+  }
+  .ops-root .ops-shell-side .ops-nav-item[aria-current="page"] .ops-nav-icon {
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  .ops-root .ops-shell-side .ops-shell-foot {
+    justify-items: center;
+    width: 100%;
+  }
+  .ops-root .ops-shell-side .ops-motion-switch {
+    padding: 0;
+  }
+  .ops-root .ops-shell-side :is(.ops-motion-switch-text, .ops-signout span) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .ops-root .ops-shell-side .ops-signout {
+    width: 48px;
+    padding: 0;
+    justify-content: center;
+  }
+  .ops-root .ops-venue.in-bar,
+  .ops-appbar-sandbox {
+    display: inline-flex;
+  }
+  .ops-root .ops-venue.in-bar {
+    display: block;
+  }
+}
+
+/* ---------- Phone: top app bar and a modal drawer ---------- */
+@media (max-width: 599px) {
+  .ops-root.with-shell {
+    grid-template-columns: minmax(0, 1fr);
+    background: var(--md-sys-color-surface);
+  }
+  .ops-root .ops-shell-side {
+    display: none;
+  }
+  .ops-root .ops-appbar {
+    top: 8px;
+    gap: 6px;
+    margin: 10px 0 16px;
+    padding: 6px 8px 6px 4px;
+  }
+  .ops-root .ops-appbar .ops-appbar-menu {
+    display: inline-flex;
+  }
+  .ops-root .ops-appbar h1 {
+    font-size: 22px;
+  }
+  .ops-root .ops-appbar .ops-live {
+    padding: 0 10px;
+  }
+  .ops-root .ops-appbar-refresh {
+    width: 48px;
+    min-height: 48px;
+    padding: 0;
+  }
+  .ops-root .ops-appbar-refresh > span {
+    display: none;
+  }
+}
+@media (max-width: 380px) {
+  /* The dot alone carries "Live"; the word stays for screen readers. */
+  .ops-root .ops-appbar .ops-live {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+}
+
+/* ---------- Overview ---------- */
+.ops-ov {
+  display: grid;
+  gap: 20px;
+}
+.ops-ov-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ops-root .ops-ov-date {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-root .ops-ov-greeting {
+  margin-top: 6px;
+  font-family: "Fraunces Variable", serif;
+  font-size: clamp(32px, 4.4vw, 52px);
+  font-weight: 450;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--md-sys-color-on-surface);
+}
+.ops-ov-greeting em {
+  font-style: italic;
+  font-weight: 420;
+}
+.ops-root .ops-ov-basis {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+/* Material segmented button. */
+.ops-segmented {
+  display: inline-flex;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  overflow: hidden;
+  background: var(--md-sys-color-surface-container-lowest);
+}
+.ops-root .ops-segmented button {
+  min-height: 48px;
+  padding: 0 18px;
+  gap: 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  box-shadow: none;
+}
+.ops-root .ops-segmented button + button {
+  border-left: 1px solid var(--md-sys-color-outline);
+}
+.ops-root .ops-segmented button:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+.ops-root .ops-segmented button[aria-pressed="true"] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-ov-needs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 44px;
+}
+.ops-root :is(button, span).ops-ov-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+.ops-root :is(button, span).ops-ov-chip.hot {
+  border-color: transparent;
+  background: var(--md-sys-color-tertiary-container);
+}
+.ops-root :is(button, span).ops-ov-chip.calm {
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-ov-card {
+  min-width: 0;
+  padding: 20px 22px;
+  border-radius: var(--raysto-shape-card, 24px);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
+}
+.ops-root .ops-ov-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.ops-ov-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.ops-root .ops-ov-card-head h3 {
+  margin-bottom: 0;
+}
+.ops-root .ops-ov-note {
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-root .ops-ov-empty {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  max-width: 46ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-ov-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.ops-root .ops-ov-kpi-label {
+  margin-bottom: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-root .ops-ov-kpi-value {
+  margin: 0;
+  font-size: clamp(28px, 2.6vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: inherit;
+}
+.ops-ov-kpi-main {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 6px 0 12px;
+}
+/* The figure keeps its width; the sparkline gives way so it never leaves
+   the card when a long figure meets a narrow column. */
+.ops-ov-kpi-main .m3-spark {
+  flex: 0 1 auto;
+  min-width: 40px;
+  max-width: 96px;
+  height: auto;
+  margin-bottom: 6px;
+}
+.ops-root .ops-ov-delta {
+  display: flex;
+  flex-wrap: wrap;
+  white-space: nowrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-ov-trend {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-weight: 700;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+.ops-ov-trend.up,
+.ops-ov-trend.new {
+  background: var(--raysto-sys-color-success-container);
+  color: var(--raysto-sys-color-success);
+}
+.ops-ov-trend.down {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+.ops-ov-kpi.hero {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-root .ops-ov-kpi.hero :is(.ops-ov-kpi-label, .ops-ov-delta) {
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-ov-kpi.hero .ops-ov-trend {
+  background: color-mix(in srgb, var(--md-sys-color-on-secondary-container) 12%, transparent);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-ov-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 16px;
+}
+.ops-ov-row.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* Kitchen live: the inverse surface with one static lime glow. */
+.ops-ov-live {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+}
+.ops-ov-live::before {
+  content: "";
+  position: absolute;
+  inset: -40% -30% auto auto;
+  width: 70%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, color-mix(in srgb, var(--md-sys-color-inverse-primary) 38%, transparent), transparent 65%);
+  pointer-events: none;
+}
+.ops-ov-live > * {
+  position: relative;
+}
+.ops-root .ops-ov-live :is(small, .m3-bars-value, .m3-bars-label, .ops-ov-live-foot) {
+  color: var(--md-sys-color-inverse-on-surface);
+}
+.ops-ov-live .m3-bars-track {
+  background: color-mix(in srgb, var(--md-sys-color-inverse-on-surface) 18%, transparent);
+}
+.ops-root .ops-ov-live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-inverse-primary);
+}
+.ops-ov-live-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--md-sys-color-inverse-primary);
+}
+.ops-root .ops-ov-live-number {
+  display: grid;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  color: inherit;
+}
+.ops-root .ops-ov-live-number small {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ops-root .ops-ov-live-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.ops-root button.ops-ov-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  box-shadow: none;
+  font-weight: 700;
+}
+.ops-root button.ops-ov-link:hover {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+}
+.ops-root button.ops-ov-link.inverse {
+  color: var(--md-sys-color-inverse-primary);
+}
+.ops-root button.ops-ov-link.inverse:hover {
+  background: color-mix(in srgb, var(--md-sys-color-inverse-primary) 12%, transparent);
+}
+.ops-root .ops-ov-center {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+.ops-ov-target {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 10px;
+}
+.ops-root .ops-ov-failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 14px;
+  color: var(--md-sys-color-on-error-container);
+  background: var(--md-sys-color-error-container);
+  box-shadow: none;
+}
+.ops-root .ops-ov-failed > div {
+  flex: 1;
+  min-width: 220px;
+  display: grid;
+  gap: 6px;
+}
+.ops-root .ops-ov-failed :is(h3, p) {
+  margin: 0;
+  color: inherit;
+}
+.ops-ov-latest ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-ov-latest li + li {
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+.ops-root .ops-ov-latest li button {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto auto 88px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  font-weight: 500;
+}
+.ops-root .ops-ov-latest li button:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 6%, transparent);
+}
+.ops-ov-latest-who {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-ov-latest-time {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+.ops-ov-latest-total {
+  justify-self: end;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1100px) {
+  .ops-ov-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ops-ov-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Channels and the target side by side; the team below, full width. */
+  .ops-ov-row.three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ops-ov-row.three > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 599px) {
+  .ops-ov-head {
+    align-items: start;
+  }
+  .ops-segmented {
+    width: 100%;
+  }
+  .ops-root .ops-segmented button {
+    flex: 1;
+    padding: 0 8px;
+  }
+  .ops-ov-card {
+    padding: 16px;
+  }
+  .ops-ov-kpis {
+    gap: 12px;
+  }
+  /* One hero first, the other figures two to a row. */
+  .ops-ov-kpi.hero {
+    grid-column: 1 / -1;
+  }
+  .ops-root .ops-ov-kpi-value {
+    font-size: 24px;
+  }
+  .ops-ov-row.three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ops-ov-kpi:not(.hero) .ops-ov-kpi-main {
+    flex-direction: column;
+    align-items: start;
+  }
+  .ops-root .ops-ov-delta {
+    white-space: normal;
+  }
+  .ops-root .ops-ov-latest li button {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    grid-template-areas: "num who total" "num pill time";
+    row-gap: 2px;
+  }
+  .ops-root .ops-ov-latest li button > strong {
+    grid-area: num;
+  }
+  .ops-ov-latest-who {
+    grid-area: who;
+  }
+  .ops-ov-latest-total {
+    grid-area: total;
+  }
+  .ops-root .ops-ov-latest li button > .ops-pill {
+    grid-area: pill;
+    justify-self: start;
+  }
+  .ops-ov-latest-time {
+    grid-area: time;
+    justify-self: end;
+  }
+}

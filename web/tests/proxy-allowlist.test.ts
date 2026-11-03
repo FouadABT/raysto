@@ -50,6 +50,8 @@ test("every allowlisted query exists in the backend or is promised by the design
   const queries = new Set([
     ...names(source, /^\s+case '([A-Za-z.]+)':/gm),
     ...names(source, /name == '([A-Za-z.]+)'/g),
+    // Back-office queries (and the dashboard) are answered by BackOfficeModule.query.
+    ...names(read("platform/backoffice.dart"), /^\s+case '([A-Za-z.]+)':/gm),
   ]);
   const promisedQueries = promised("Queries");
   for (const name of consoleQueries)
@@ -67,6 +69,8 @@ test("camel-case console commands pass and unlisted names do not", () => {
   assert.ok(allowedPath("media/13"));
   assert.ok(allowedPath("commands/menu.snap"));
   assert.ok(allowedPath("commands/payment.check"));
+  assert.ok(allowedPath("queries/dashboard"));
+  assert.ok(allowedPath("commands/autonomy.set"));
   assert.ok(!allowedPath("commands/admin.plan"));
   assert.ok(!allowedPath("commands/payment.refund/extra"));
   assert.ok(!allowedPath("queries/"));
