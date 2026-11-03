@@ -509,9 +509,22 @@ function CateringCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       const list = await api.query<{ rows: Json[] }>("catering", { restaurantId: tenant }).catch((e) => {
         throw unavailable(e, "Catering");
       });
-      // A request the agent has already priced keeps its proposal; a new one
-      // is placed only when none is waiting.
-      let row = list.rows.find((r) => r.taskId && !["paid", "cancelled"].includes(String(r.status)));
+      // A request still being priced, or priced with its invoice waiting for
+      // approval, is shown; otherwise (sent, paid, or a send that failed) a
+      // new one is placed so the agent works in front of the judge.
+      let row: Json | undefined;
+      for (const r of list.rows) {
+        if (!r.taskId || ["paid", "cancelled", "sent"].includes(String(r.status))) continue;
+        if (r.status === "requested") {
+          row = r;
+          break;
+        }
+        const t = await api.query<Json>("agent.task", { restaurantId: tenant, id: Number(r.taskId) }).catch(() => undefined);
+        if (t && ((t.actions as Json[] | undefined) ?? []).some((a) => a.status === "pending")) {
+          row = r;
+          break;
+        }
+      }
       if (!row) {
         say("A customer asks for lunch for twelve");
         try {
@@ -1199,7 +1212,7 @@ function PaymentCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       const asked = await api.command<{ taskId: number }>(
         "payment.check",
         tenant,
-        { reason: "check" },
+        { reason: "left" },
         { id: allocated.checkoutId },
       );
       const done = await agentTask(api, tenant, asked.taskId, signal, 90000);

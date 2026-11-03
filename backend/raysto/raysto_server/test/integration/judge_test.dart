@@ -301,7 +301,8 @@ void main() {
       expect(first, containsPair('catering', 1));
       expect(first, containsPair('dispute', 1));
       expect(result['shifts'], 18);
-      expect(result, containsPair('catering', 0));
+      // Every reset asks the catering demo afresh; the dispute stays.
+      expect(result, containsPair('catering', 1));
       expect(result, containsPair('dispute', 0));
       final rid = restaurant.id!;
       expect(

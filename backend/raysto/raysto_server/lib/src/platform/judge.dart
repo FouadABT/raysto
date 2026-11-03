@@ -333,7 +333,9 @@ class JudgeModule {
             clockInAt: past || onNow ? startsAt : null,
             clockOutAt: past ? endsAt : null,
             hourlyRateMinor: rate,
-            payoutEmail: email(i).isEmpty ? null : email(i),
+            // One Sandbox account per person; the rest have no payout email
+            // rather than sharing one, so a pay run never merges two people.
+            payoutEmail: i < emails.length ? email(i) : null,
             version: 1,
             createdAt: _now(),
           ),
@@ -342,6 +344,14 @@ class JudgeModule {
     }
     await StaffShift.db.insert(s, shifts, transaction: w.tx);
 
+    // Each reset starts the catering demo again: a request that was quoted
+    // but never sent (or whose send failed) is withdrawn and asked afresh.
+    await CateringRequest.db.deleteWhere(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) & t.status.inSet({'requested', 'quoted'}),
+      transaction: w.tx,
+    );
     var catering = 0;
     final asked = await CateringRequest.db.count(
       s,
@@ -375,6 +385,15 @@ class JudgeModule {
     }
 
     // A complaint needs a real paid order; judges' own PayPal orders qualify.
+    // Likewise a complaint the agent already answered is cleared so the
+    // next judge sees the agent work; refunded ones stay as history.
+    await Complaint.db.deleteWhere(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.status.inSet({'open', 'proposed', 'declined'}),
+      transaction: w.tx,
+    );
     var complaint = 0;
     final openComplaints = await Complaint.db.count(
       s,
@@ -419,7 +438,10 @@ class JudgeModule {
             orderId: o.id!,
             captureId: capture.id,
             userId: o.customerId,
-            text: 'My croissant was missing from the bag.',
+            // Name a dish the order really has, so the agent can check it.
+            text:
+                'My ${(o.lines.isEmpty ? 'order' : o.lines.first.name).toLowerCase()} '
+                'was missing from the bag.',
             status: 'open',
             version: 1,
             createdAt: _now(),

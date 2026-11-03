@@ -2,6 +2,8 @@
 
 Upload these in this order to the Devpost "Image gallery" field, with the captions below. All were taken from the screen recording of the judges' path on 2 November 2026 (production, PayPal Sandbox). Devpost shows the first image as the project's thumbnail.
 
+**To retake after 3 November:** the money agents (close, pay the team with the PayPal Payouts batch id, the catering quote, the complaint refund) and the console's Money section are not in these images yet. Replace image 7 (the Try page) with the nine-card page, and add one capture each of the close sign-off, the payout batch, and the Money section, taken from production once the new film is recorded. Do not add an invoice image until Invoicing is enabled on the Sandbox app and a real invoice is sent.
+
 | Order | File | Caption |
 |---|---|---|
 | 1 | [`media/try-payments.png`](media/try-payments.png) | A one-sentence order paid in PayPal Sandbox (left), and the payments agent's proposal with PayPal's own status, read through the PayPal MCP server, waiting for an identity check (right). |

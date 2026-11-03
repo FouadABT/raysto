@@ -297,10 +297,10 @@ void main() {
       expect(signed.signedBy, 'close-owner');
       final again = await CloseAgent.signCommand(owner.build(), command({}, id: close.id));
       expect(again['state'], 'signed');
-      await expectLater(
-        CloseAgent.runCommand(owner.build(), command({})),
-        throwsA(isA<DomainError>().having((e) => e.code, 'code', 'invalid_transition')),
-      );
+      // A signed day may be closed again: a new task is queued and the
+      // signed row stays until the new draft replaces it.
+      final again2 = await CloseAgent.runCommand(owner.build(), command({}));
+      expect(again2['taskId'], isA<int>());
       final read = await BackOfficeModule.read(
         owner.build(),
         restaurantId: restaurant.id!,

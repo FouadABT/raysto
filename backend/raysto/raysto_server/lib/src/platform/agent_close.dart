@@ -57,17 +57,8 @@ class CloseAgent {
           ? BackOfficeModule.localDay(w.settings, _now())
           : _day(d);
       window(w.settings, day);
-      final signed = await DailyClose.db.findFirstRow(
-        s,
-        where: (t) =>
-            t.restaurantId.equals(w.tenant) &
-            t.day.equals(day) &
-            t.state.equals('signed'),
-        transaction: w.tx,
-      );
-      if (signed != null) {
-        _fail('invalid_transition', 'This day is already signed off.');
-      }
+      // A signed day may be closed again (a late capture, a judge's demo):
+      // the new draft replaces the signed one and says it was re-run.
       final task = await AgentModule.enqueue(
         w,
         agent: agent,
@@ -284,9 +275,14 @@ class CloseAgent {
         'end_date': iso(end),
         'transaction_status': 'S',
       });
+      if (result['transaction_details'] is! List) {
+        // Anything but PayPal's list (an error object, an empty answer) is
+        // not evidence; the REST path says plainly whether the feature is on.
+        throw const McpFailure('mcp_unstructured_response');
+      }
       final rows = <Json>[];
       for (final raw
-          in (result['transaction_details'] as List? ?? []).whereType<Map>()) {
+          in (result['transaction_details'] as List).whereType<Map>()) {
         final info = _object(
           Map<String, dynamic>.from(raw)['transaction_info'] ?? {},
         );
@@ -574,9 +570,7 @@ class CloseAgent {
           where: (t) => t.restaurantId.equals(w.tenant) & t.day.equals(day),
           transaction: w.tx,
         );
-        if (row?.state == 'signed') {
-          _fail('invalid_transition', 'This day is already signed off.');
-        }
+        final reopened = row?.state == 'signed';
         row ??= DailyClose(
           restaurantId: w.tenant,
           day: day,
@@ -599,7 +593,10 @@ class CloseAgent {
         row = row.id == null
             ? await DailyClose.db.insertRow(s, row, transaction: w.tx)
             : await DailyClose.db.updateRow(s, row, transaction: w.tx);
-        await w.audit('close.drafted', 'dailyClose', row.id, {'day': day});
+        await w.audit('close.drafted', 'dailyClose', row.id, {
+          'day': day,
+          if (reopened) 'reopened': true,
+        });
         return row;
       },
     );

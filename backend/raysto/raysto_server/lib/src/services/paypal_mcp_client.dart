@@ -332,6 +332,11 @@ class PayPalMcpClient {
       final text = block['text'] as String;
       try {
         final value = jsonDecode(text);
+        // The toolkit reports a refused PayPal call as a JSON object with an
+        // "error" key and isError unset; that is a failed tool, not a result.
+        if (value is Map<String, dynamic> && value.containsKey('error')) {
+          throw const McpFailure('mcp_tool_failed');
+        }
         if (value is Map<String, dynamic>) return value;
         if (value is List) return {'items': value};
       } on FormatException {

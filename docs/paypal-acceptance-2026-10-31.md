@@ -109,6 +109,32 @@ A reviewer briefed only on the rules ran the judges' path on backend 0.13.8 (sec
 - **Judges' café (0.13.9).** An hourly tidy closes finished demo orders, so the copilot stops reading them as a late kitchen; a single late order is now called late, not a rush.
 - **Console (0.15.1).** The Floor's AG Studio canvas, cut-off grid labels, the venue picker, one coworker count, and the APK served from `rays.to/raysto.apk`.
 
+## Session 6 — the money agents (3 November, backend 0.14.0, console 0.16.0)
+
+Backend 0.14.0 (migration `20261103014213036`, twelve new tables) went live at 03:19 UTC with the eight money agents; console 0.16.0 followed with the nine-card Try page, money first. The PayPal MCP server now starts with twelve tools (seven reads for the model, five executes behind approval); the Sandbox webhook `6F260723274035041` also carries `INVOICING.INVOICE.PAID`, `INVOICING.INVOICE.CANCELLED`, `CUSTOMER.DISPUTE.CREATED` and `CUSTOMER.DISPUTE.RESOLVED`. Before the run, a spike on the server showed what the Sandbox app allows: **Payouts works** (batch `64ZL2AJ9CGL5C`, $0.01, pending), **Transaction Search and Invoicing answer `NOT_AUTHORIZED`** until they are enabled on the app, Disputes list works (none open).
+
+The nine cards were then run by `tool/judge_path_qa.cjs` in a real browser against production, 03:26–03:33 UTC; one click from rays.to to the Try page took 5.3–6.4 s.
+
+| Card | Result | Time, cost |
+|---|---|---|
+| 1. Close | The close agent read the day and asked PayPal through MCP; signed off after approval (close 1). Its PayPal read came back empty because Transaction Search is off, and the summary wrongly said PayPal "reported no captured transactions"; 0.14.1 makes an empty or refused list fall back to the ledger and say so | 13 s, $0.003 |
+| 2. Pay the team | Wages for two clocked staff ($144.00 and $304.00, tip pool $0.00); after the identity check PayPal Payouts accepted the batch | 10 s, $0.005; **payout batch `EUG58M87BKY5E`**, $448.00, `PENDING` at creation |
+| 3. Bill the caterer | "Lunch for 12 on Friday, sandwiches and salads, budget $150. Two of us are vegetarian." → 10× chicken club and 2× falafel wrap, $111.00, deposit $33.30. **Send the invoice** was refused: the MCP `create_invoice` answered with PayPal's `NOT_AUTHORIZED`, which 0.14.0 read as "no invoice id"; 0.14.1 reports it as "Invoicing is not enabled on this Sandbox app yet". No invoice was sent | quote 16 s, $0.009 |
+| 4. Settle a complaint | The agent read the ticket and PayPal's capture and proposed no refund, correctly: the seeded text said "my croissant was missing" and the order had no croissant. 0.14.1 seeds the complaint with a dish the order has | 16 s, $0.003 |
+| 5. Chase a payment | Checkout 24 left unpaid; the agent read PayPal through MCP and found nothing to fix yet (the card asked with reason `check`; 0.16.1 asks with `left`, and the agent now says "the diner left", never "you reported") | 17 s, $0.003 |
+| 6. One-tap order | Falafel wrap and mushroom risotto, $21.50, pickup 11:00 PM café time; one tap placed the order and opened PayPal; buyer 1 approved | basket 9.6 s; **capture `8L994373M64657007`**, ticket #14, pickup code 0271 |
+| 7. Menu | 14 dishes in 5 sections, 4 new, 1 price change, 1 held back without a price; published | 19 s, $0.012 |
+| 8. Voice | Croque monsieur, croque madame, cappuccino with oat milk; lemonade flagged | 3.5 s |
+| 9. Photo | Croque monsieur drawn, scanned, approved | 52.7 s, $0.040 |
+
+The loyalty agent also ran on the seeded café: its coupon proposal waits in the inbox. The supplies and expenses agents are covered by integration tests on the sample delivery note and receipt (`docs/qa/2026-11-03/`, not in git) and were not run on production in this session.
+
+### Fixes found by session 6
+
+- **MCP errors (0.14.1).** The toolkit reports a refused PayPal call as a JSON object with an `error` key and no `isError` flag; the client now treats that as a failed tool, so an invoice send says "not enabled" and the close falls back to the ledger instead of reading an empty answer as PayPal's word.
+- **Seeded complaint (0.14.1).** Names the first dish of the order it is attached to.
+- **Payment chase wording (0.14.1, console 0.16.1).** The Try card asks the agent with "the diner left", and the agent's prompt no longer tells it to write "you reported".
+
 ## Owner console
 
 The console at `https://ops.rays.to/ops` (0.12.0, then 0.12.1) showed the same records to the QA owner:
@@ -120,4 +146,5 @@ The console at `https://ops.rays.to/ops` (0.12.0, then 0.12.1) showed the same r
 
 - Physical-phone runs of the Android build (0.12.1, code 2015). The sessions drove the same backend commands the app sends.
 - Delivery, iOS, and live (non-Sandbox) PayPal.
+- A real Sandbox invoice, a real Sandbox dispute, a payout reaching `SUCCESS` (the batch above was `PENDING` when recorded), and the supplies and expenses agents on production: all wait for the Sandbox app's Invoicing and Transaction Search features, requested on 3 November.
 - For the agents: a camera photo of a real paper menu, a person speaking at a real counter, and the one-tap order tapped in the Android app itself (the session sent the same requests from a script).

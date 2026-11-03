@@ -588,7 +588,7 @@ void main() {
           );
         });
         await AgentModule.run(s, task.id!);
-        expect(prompts.first, contains('the diner left without finishing'));
+        expect(prompts.first, contains('left it without finishing the payment'));
       },
     );
 
