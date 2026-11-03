@@ -1,0 +1,18 @@
+class: CustomerProfile
+table: raysto_customer_profile
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String?
+  emailHash: String
+  displayName: String
+  visits: int
+  spentMinor: int
+  lastSeenAt: DateTime
+  tagsJson: String
+  couponCode: String?
+  updatedAt: DateTime
+indexes:
+  customer_profile_email:
+    fields: restaurantId, emailHash
+    unique: true

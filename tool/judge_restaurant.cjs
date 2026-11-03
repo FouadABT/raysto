@@ -7,6 +7,8 @@
 //   node tool/judge_restaurant.cjs venue     the owner creates and configures the café and makes the manager
 //   node tool/judge_restaurant.cjs fresh     the owner starts the café fresh (server needs RAYSTO_JUDGE_RESTAURANT_ID)
 //   node tool/judge_restaurant.cjs photo     upload the sample menu photo the menu agent reads
+//   node tool/judge_restaurant.cjs delivery  upload the sample delivery note the supplies agent reads
+//   node tool/judge_restaurant.cjs receipt   upload the sample receipt the expenses agent reads
 //   node tool/judge_restaurant.cjs console   write the judge login into web/.env.local for the console build
 //   node tool/judge_restaurant.cjs check     sign in as the manager and read what the demos need
 //   node tool/judge_restaurant.cjs repair    put the published passwords back if someone changed them
@@ -132,26 +134,36 @@ async function fresh() {
   report('Café started fresh', { ...result, ms: Date.now() - started });
 }
 
-async function photo() {
+// A sample photo the agents read: uploaded once, scanned, its id kept in
+// judge-accounts.json (`mediaId` for the menu, `keys.<name>` for the rest).
+async function upload(name, file, remember) {
   const owner = await signIn('owner');
-  const bytes = fs.readFileSync(path.join(root, 'web/public/judges/menu.jpg'));
-  if (!state.mediaId) {
-    const upload = await owner.command('menu-photo', 'media.upload', { purpose: 'menuSource', mime: 'image/jpeg', byteLength: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
-    const put = await fetch(`${api}media/${upload.mediaId}/content`, { method: 'PUT', headers: { ...owner.headers, 'Content-Type': 'application/octet-stream' }, body: bytes });
+  const bytes = fs.readFileSync(path.join(root, file));
+  let id = remember();
+  if (!id) {
+    const sent = await owner.command(`${name}-photo`, 'media.upload', { purpose: 'menuSource', mime: 'image/jpeg', byteLength: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
+    const put = await fetch(`${api}media/${sent.mediaId}/content`, { method: 'PUT', headers: { ...owner.headers, 'Content-Type': 'application/octet-stream' }, body: bytes });
     assert(put.ok, 'Upload failed: ' + put.status);
-    state.mediaId = upload.mediaId;
+    id = remember(sent.mediaId);
     save();
   }
   let status;
   for (let i = 0; i < 60; i++) {
-    const files = await owner.query('media', { cursor: state.mediaId - 1, limit: 5 });
-    status = files.rows.find((f) => f.id === state.mediaId)?.status;
+    const files = await owner.query('media', { cursor: id - 1, limit: 5 });
+    status = files.rows.find((f) => f.id === id)?.status;
     if (status === 'approved' || status === 'rejected') break;
     await new Promise((r) => setTimeout(r, 3000));
   }
-  assert(status === 'approved', 'The scanner did not approve the photo: ' + status);
-  report('Sample menu photo uploaded and scanned', { mediaId: state.mediaId, bytes: bytes.length, status });
+  assert(status === 'approved', `The scanner did not approve the ${name} photo: ` + status);
+  report(`Sample ${name} photo uploaded and scanned`, { mediaId: id, bytes: bytes.length, status });
 }
+
+const photo = () => upload('menu', 'web/public/judges/menu.jpg', (id) => (id ? (state.mediaId = id) : state.mediaId));
+const keyed = (name, file) => () =>
+  upload(name, file, (id) => (id ? ((state.keys ??= {})[name + 'MediaId'] = id) : state.keys?.[name + 'MediaId']));
+// The supplies and expenses agents read these two.
+const delivery = keyed('delivery', 'docs/qa/2026-11-03/delivery-note.jpg');
+const receipt = keyed('receipt', 'docs/qa/2026-11-03/receipt.jpg');
 
 function consoleEnv() {
   const env = path.join(root, 'web/.env.local');
@@ -161,7 +173,11 @@ function consoleEnv() {
     `NEXT_PUBLIC_RAYSTO_JUDGE_PASSWORD=${state.users.manager.password}`,
     `NEXT_PUBLIC_RAYSTO_JUDGE_RESTAURANT_ID=${state.restaurantId}`,
     `NEXT_PUBLIC_RAYSTO_JUDGE_DINER_EMAIL=${state.users.diner.email}`,
-    `NEXT_PUBLIC_RAYSTO_JUDGE_DINER_PASSWORD=${state.users.diner.password}`, ''].join('\n'), { mode: 0o600 });
+    `NEXT_PUBLIC_RAYSTO_JUDGE_DINER_PASSWORD=${state.users.diner.password}`,
+    ...(state.mediaId ? [`NEXT_PUBLIC_RAYSTO_JUDGE_MENU_MEDIA_ID=${state.mediaId}`] : []),
+    ...(state.keys?.deliveryMediaId ? [`NEXT_PUBLIC_RAYSTO_JUDGE_DELIVERY_MEDIA_ID=${state.keys.deliveryMediaId}`] : []),
+    ...(state.keys?.receiptMediaId ? [`NEXT_PUBLIC_RAYSTO_JUDGE_RECEIPT_MEDIA_ID=${state.keys.receiptMediaId}`] : []),
+    ''].join('\n'), { mode: 0o600 });
   report('Console judge login written to web/.env.local', { restaurantId: state.restaurantId });
 }
 
@@ -198,6 +214,8 @@ const modes = {
   venue,
   fresh,
   photo,
+  delivery,
+  receipt,
   console: consoleEnv,
   check,
   repair,
@@ -221,5 +239,5 @@ const modes = {
   },
 };
 const mode = modes[process.argv[2]];
-if (!mode) console.error('Usage: accounts | venue | fresh | photo | console | check | repair | logins');
+if (!mode) console.error('Usage: accounts | venue | fresh | photo | delivery | receipt | console | check | orders | inbox | repair | logins');
 else Promise.resolve(mode()).catch((e) => { console.error(e.message); process.exitCode = 1; });

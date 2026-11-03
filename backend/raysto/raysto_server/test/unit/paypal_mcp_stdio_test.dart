@@ -91,4 +91,34 @@ void main() {
       }
     },
   );
+
+  test('the tool list is pinned and reads, queries and executes stay apart', () async {
+    expect(
+      PayPalMcpClient.toolIds,
+      'orders.get,payments.getRefunds,transactions.list,invoices.list,'
+      'invoices.get,disputes.list,disputes.get,invoices.create,invoices.send,'
+      'invoices.sendReminder,invoices.generateQRC,disputes.create',
+    );
+    final client = fixture();
+    final listed = await client.query('list_transactions', {
+      'start_date': '2026-11-02T00:00:00Z',
+      'end_date': '2026-11-03T00:00:00Z',
+    });
+    expect(listed['tool'], 'list_transactions');
+    final sent = await client.execute('send_invoice', {
+      'invoice_id': 'INV2-FIXTURE',
+      'note': 'Thank you',
+    });
+    expect(sent['id'], 'INV2-FIXTURE');
+    expect(sent['status'], 'SENT');
+    for (final forbidden in [
+      () => client.query('create_invoice', {'currency_code': 'USD'}),
+      () => client.execute('get_order', {'id': 'ORDER123'}),
+      () => client.execute('create_refund', {'capture_id': 'CAP1'}),
+      () => client.query('list_transactions', {'merchant': 'x'}),
+      () => client.execute('send_invoice', {'note': 'missing the id'}),
+    ]) {
+      await expectLater(forbidden(), throwsA(isA<McpFailure>()));
+    }
+  });
 }

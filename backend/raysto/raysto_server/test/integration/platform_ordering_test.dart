@@ -46,6 +46,7 @@ void main() {
       int? visitId,
       bool counter = false,
       String? label,
+      int tipMinor = 0,
     }) => OrderingModule.quote(
       who.build(),
       CreateQuote(
@@ -54,7 +55,7 @@ void main() {
         visitId: visitId,
         fulfillment: fulfillment,
         linesJson: jsonEncode(lines),
-        tipMinor: 0,
+        tipMinor: tipMinor,
         onBehalf: counter ? true : null,
         customerLabel: label,
       ),
@@ -422,6 +423,78 @@ void main() {
       await age(checkout, 'capturing');
       final restored = await MoneyModule.reconcile(builder.build(), checkout);
       expect(restored['state'], 'created');
+    });
+
+    test('a tip rides the PayPal order and settles with it', () async {
+      final q = await quote(customer, [
+        {'productId': burger, 'quantity': 1},
+      ], tipMinor: 100);
+      expect(q['tipMinor'], 100);
+      expect(q['totalMinor'], 1000);
+      final id = (await submit(customer, q))['orderId'] as int;
+      final checkout =
+          (await pay(customer, orderId: id, method: 'paypal'))['checkoutId'] as int;
+      await MoneyModule.checkout(customer.build(), command({}, id: checkout));
+      // PayPal is asked for the food and the tip together.
+      expect(paypal.amountMinor, 1000);
+      paypal.status = 'APPROVED';
+      final done = await MoneyModule.capture(
+        customer.build(),
+        command({}, id: checkout),
+      );
+      expect(done['state'], 'completed');
+      expect((await order(id)).paymentStatus, 'paid');
+      final s = builder.build();
+      final tip = await BillCharge.db.findFirstRow(
+        s,
+        where: (t) => t.orderId.equals(id) & t.kind.equals('tip'),
+      );
+      expect(tip!.amountMinor, 100);
+      expect(tip.settledMinor, 100);
+    });
+
+    test('a tip chosen at payment time joins the PayPal amount once', () async {
+      final id = await onlineSale();
+      expect((await order(id)).totalMinor, 900);
+      final checkout =
+          (await MoneyModule.allocate(
+                customer.build(),
+                AllocatePayment(
+                  requestKey: key(),
+                  restaurantId: restaurant.id!,
+                  orderId: id,
+                  method: 'paypal',
+                  tipMinor: 200,
+                ),
+              ))['checkoutId']
+              as int;
+      expect((await intent(checkout)).amountMinor, 1100);
+      expect((await order(id)).totalMinor, 1100);
+      await MoneyModule.checkout(customer.build(), command({}, id: checkout));
+      expect(paypal.amountMinor, 1100);
+      paypal.status = 'APPROVED';
+      expect(
+        (await MoneyModule.capture(customer.build(), command({}, id: checkout)))['state'],
+        'completed',
+      );
+      final s = builder.build();
+      final tip = await BillCharge.db.findFirstRow(
+        s,
+        where: (t) => t.orderId.equals(id) & t.kind.equals('tip'),
+      );
+      expect(tip!.settledMinor, 200);
+      expect((await order(id)).paymentStatus, 'paid');
+      // Half the bill at most, and only on a whole-order PayPal payment.
+      final other = await onlineSale();
+      for (final bad in [
+        AllocatePayment(requestKey: key(), restaurantId: restaurant.id!, orderId: other, method: 'paypal', tipMinor: 500),
+        AllocatePayment(requestKey: key(), restaurantId: restaurant.id!, orderId: other, method: 'cash', tipMinor: 100),
+      ]) {
+        await expectLater(
+          MoneyModule.allocate(customer.build(), bad),
+          throwsA(isA<DomainError>()),
+        );
+      }
     });
 
     test('approval followed by a check settles the order', () async {

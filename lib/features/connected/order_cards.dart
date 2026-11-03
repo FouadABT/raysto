@@ -394,6 +394,83 @@ Widget checkoutCard(BuildContext c, Json d, String title, String message) {
   );
 }
 
+/// The tip choices a diner sees before PayPal: none by default, three
+/// percentages of the amount, or a sum of their own. The chosen amount is
+/// what goes to the server; nothing is recomputed afterwards.
+const tipPercents = [5, 10, 15];
+
+int tipFor(int amountMinor, int percent) => (amountMinor * percent / 100).round();
+
+/// The row of tip chips with the amount each would add; "Other" asks for a
+/// sum. [onChanged] receives the tip in minor units (0 for none).
+class TipChooser extends StatelessWidget {
+  const TipChooser({
+    super.key,
+    required this.amountMinor,
+    required this.currency,
+    required this.tipMinor,
+    required this.onChanged,
+  });
+  final int amountMinor, tipMinor;
+  final String currency;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext c) {
+    final theme = Theme.of(c);
+    final preset = tipMinor == 0 || tipPercents.any((p) => tipFor(amountMinor, p) == tipMinor);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(c.tr('Add a tip for the team?'), style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        // One sideways line on a phone, so every choice stays a 48px target.
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              AppChip(
+                label: c.tr('No tip'),
+                selected: tipMinor == 0,
+                onSelected: () => onChanged(0),
+              ),
+              for (final p in tipPercents) ...[
+                const SizedBox(width: 8),
+                AppChip(
+                  label: '$p% · ${money(tipFor(amountMinor, p), currency)}',
+                  selected: tipMinor != 0 && tipFor(amountMinor, p) == tipMinor,
+                  onSelected: () => onChanged(tipFor(amountMinor, p)),
+                ),
+              ],
+              const SizedBox(width: 8),
+              AppChip(
+                label: preset
+                    ? c.tr('Other')
+                    : '${c.tr('Other')} · ${money(tipMinor, currency)}',
+                selected: !preset,
+                onSelected: () async {
+                  final form = await editFields(c, c.tr('Add a tip for the team?'), [
+                    InputSpec('tipMinor', c.tr('Tip'), kind: 'money'),
+                  ], initial: {
+                    'tipMinor': preset ? null : tipMinor,
+                  }, submit: c.tr('Add tip'));
+                  final chosen = (form?['tipMinor'] as int?) ?? 0;
+                  if (form != null) onChanged(chosen.clamp(0, amountMinor ~/ 2));
+                },
+              ),
+            ],
+          ),
+        ),
+        if (tipMinor > 0) ...[
+          const SizedBox(height: 8),
+          MoneyRow(c.tr('Tip'), money(tipMinor, currency)),
+          MoneyRow(c.tr('Total'), money(amountMinor + tipMinor, currency), total: true),
+        ],
+      ],
+    );
+  }
+}
+
 /// A big first line for a card, with a quieter word beside it that moves
 /// beneath when the card is narrow or the text is large.
 Widget cardHeading(BuildContext c, String title, {String? aside}) {

@@ -31,6 +31,13 @@ class CatalogueModule {
     'agents': {},
     // Ordered menu sections with optional translations.
     'menuCategories': [],
+    // Minutes after local midnight when the day closes (daily close agent).
+    'closeAt': 1380,
+    // What the money agents may do by themselves, within these limits;
+    // everything else waits for a person and the identity check.
+    'autonomy': {'refundsMaxMinor': 0, 'refundsPerDay': 0, 'remindersAuto': false},
+    // How the payroll agent splits the week's tips: by hours worked, or equally.
+    'tipPolicy': 'hours',
   };
   static bool _tzInitialized = false;
   static tz.Location zone(String name) {
@@ -179,6 +186,9 @@ class CatalogueModule {
       }
     }
     validateSections(_list(merged, 'menuCategories', max: 40));
+    _int(merged, 'closeAt', max: 1439);
+    validateAutonomy(_object(merged['autonomy']));
+    _str(merged, 'tipPolicy', choices: {'hours', 'equal'});
     final codes = <String>{};
     for (final raw in _list(merged, 'coupons', max: 100)) {
       final p = _object(raw);
@@ -207,6 +217,47 @@ class CatalogueModule {
     }
     return merged;
   }
+
+  static Json validateAutonomy(Json a) {
+    _keys(a, {'refundsMaxMinor', 'refundsPerDay', 'remindersAuto'});
+    return {
+      'refundsMaxMinor': _int(a, 'refundsMaxMinor', max: 5000, fallback: 0),
+      'refundsPerDay': _int(a, 'refundsPerDay', max: 20, fallback: 0),
+      'remindersAuto': _bool(a, 'remindersAuto'),
+    };
+  }
+
+  /// The owner's limits for the money agents. Only these keys change; the
+  /// rest of the settings keep their saved values.
+  static Future<Json> autonomy(Session s, PlatformCommand c) => _mutate(
+    s,
+    c,
+    'autonomy.set',
+    (w, d) async {
+      _keys(d, {'autonomy', 'closeAt'});
+      final p =
+          w.policy ??
+          _fail('upgrade_required', 'Initialize this restaurant first.');
+      _version(p.version, c.expectedVersion);
+      final prior = w.settings;
+      final next = <String, dynamic>{
+        ...prior,
+        if (d.containsKey('autonomy'))
+          'autonomy': validateAutonomy(_object(d['autonomy'])),
+        if (d.containsKey('closeAt')) 'closeAt': _int(d, 'closeAt', max: 1439),
+      };
+      await JudgeModule.ownerOnly(w);
+      p.settingsJson = jsonEncode(validateSettings(next));
+      p.version++;
+      await RestaurantPolicy.db.updateRow(s, p, transaction: w.tx);
+      await w.audit('autonomy.set', 'restaurant', w.tenant, {
+        'autonomy': next['autonomy'],
+        'closeAt': next['closeAt'],
+      });
+      return {'version': p.version, 'autonomy': next['autonomy'], 'closeAt': next['closeAt']};
+    },
+    roles: _managers,
+  );
 
   static bool openAt(Json settings, DateTime at) {
     if (settings['paused'] == true) return false;
@@ -265,7 +316,8 @@ class CatalogueModule {
           (d['name'] != w.restaurant!.name ||
               settings.keys.any(
                 (k) =>
-                    !{'preparationMinutes', 'slotCapacity'}.contains(k) &&
+                    !{'preparationMinutes', 'slotCapacity', 'coupons'}
+                        .contains(k) &&
                     jsonEncode(settings[k]) != jsonEncode(prior[k]),
               ))) {
         await JudgeModule.ownerOnly(w);

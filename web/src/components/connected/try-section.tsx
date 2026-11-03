@@ -221,7 +221,495 @@ const decided = (state: string, executed: string) =>
       ? "Turned down. Nothing changed."
       : "It did not go through; run it again.";
 
-/* 1. A photo of a printed menu becomes a draft menu. */
+/** A command that the backend does not offer yet reads as that, never as a result. */
+const unavailable = (e: unknown, what: string) => {
+  const m = message(e);
+  if (/not_found|Unknown operation|404|not allowed|forbidden path/i.test(m))
+    return new Error(`${what} is not available on this deployment yet.`);
+  if (/provider_feature_disabled|not enabled/i.test(m))
+    return new Error(`${what}: this PayPal feature is not enabled on the Sandbox app yet.`);
+  return e instanceof Error ? e : new Error(m);
+};
+
+/** PayPal's ids from an executed action: what PayPal returned, as recorded. */
+function paypalIds(task: Json | undefined): string[] {
+  const out: string[] = [];
+  for (const a of (task?.actions as AgentActionRow[] | undefined) ?? []) {
+    const r = ((a as unknown as Json).result ?? {}) as Json;
+    const p = (a.preview ?? {}) as Json;
+    const pick: [string, string][] = [
+      ["providerBatchId", "PayPal payout batch"],
+      ["invoiceNumber", "PayPal invoice"],
+      ["providerInvoiceId", "PayPal invoice id"],
+      ["providerRefundId", "PayPal refund"],
+      ["providerCaptureId", "PayPal capture"],
+      ["providerDisputeId", "PayPal dispute"],
+    ];
+    for (const [k, label] of pick) {
+      const v = r[k] ?? p[k];
+      if (typeof v === "string" && v) out.push(`${label} ${v}`);
+    }
+  }
+  return [...new Set(out)];
+}
+
+/** Reads rows until one satisfies [pick], for the agents woken by an event. */
+async function pollRows<T extends Json>(
+  read: () => Promise<Json>,
+  pick: (rows: T[]) => T | undefined,
+  signal: AbortSignal,
+  limit = 30000,
+): Promise<T> {
+  const found = await poll(
+    async () => pick(((await read()).rows as T[] | undefined) ?? []),
+    (row) => row !== undefined,
+    signal,
+    2000,
+    limit,
+  );
+  return found as T;
+}
+
+/** The common tail of a money card: chips, approval, and PayPal's ids after it. */
+function MoneyOutcome({
+  api,
+  tenant,
+  task,
+  action,
+  executed,
+  chips,
+  refresh,
+}: {
+  api: ConnectedApi;
+  tenant: number;
+  task: Json;
+  action?: AgentActionRow;
+  executed: string;
+  chips: (string | false | undefined)[];
+  refresh: () => Promise<Json>;
+}) {
+  const [outcome, setOutcome] = useState("");
+  const [ids, setIds] = useState<string[]>([]);
+  return (
+    <>
+      <Chips items={[...chips, ...ids]} />
+      {outcome ? (
+        <p className="ops-try-done" role="status">
+          <Icon name="check" size={18} />
+          {outcome}
+        </p>
+      ) : action ? (
+        <Approve
+          api={api}
+          tenant={tenant}
+          action={action}
+          done={(state) => {
+            setOutcome(decided(state, executed));
+            if (state === "executed") void refresh().then((t) => setIds(paypalIds(t))).catch(() => {});
+          }}
+        />
+      ) : (
+        <p className="ops-try-answer">{String(task.summary ?? "")}</p>
+      )}
+    </>
+  );
+}
+
+const money = (minor: unknown, code = "USD") => currency(Number(minor ?? 0), code);
+
+/* 1. The close agent matches PayPal's transactions to the till. */
+function CloseCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
+  const demo = useDemo();
+  const [task, setTask] = useState<Json>();
+  const [close, setClose] = useState<Json>();
+  const start = () =>
+    demo.run(async (signal, say) => {
+      setTask(undefined);
+      setClose(undefined);
+      say("The close agent is reading PayPal's transactions and Raysto's ledger");
+      let asked: { taskId?: number };
+      try {
+        asked = await api.command<{ taskId?: number }>("close.run", tenant, {});
+      } catch (e) {
+        throw unavailable(e, "The daily close");
+      }
+      if (!asked.taskId) throw new Error("The close agent did not start.");
+      const done = await agentTask(api, tenant, asked.taskId, signal, 120000);
+      say("Reading the close");
+      const read = await api.query<{ close?: Json }>("backoffice.close", { restaurantId: tenant });
+      setClose(read.close ?? undefined);
+      setTask(done);
+    });
+  const summary = (close?.summary ?? {}) as Json;
+  const gaps = (close?.gaps as Json[] | undefined) ?? [];
+  const code = String(summary.currency ?? "USD");
+  return (
+    <Card
+      n={1}
+      icon="chart"
+      title="Close the day"
+      time="about 20 s"
+      lead="At closing time the close agent reads PayPal's own transaction list through the PayPal MCP server, matches it to the till and the kitchen, and explains every gap. You sign off; nothing is posted until you do."
+    >
+      <button className="ops-primary" disabled={demo.phase === "running"} onClick={() => void start()}>
+        <Icon name="play" size={18} />
+        Close today
+      </button>
+      <Progress demo={demo} />
+      {task && (
+        <div className="ops-try-result">
+          {close && (
+            <div className="ops-try-ticket">
+              <span className="ops-eyebrow">
+                Daily close · {String(close.day ?? "today")} ·{" "}
+                {close.source === "paypal_transactions" ? "PayPal's transaction list" : "Raysto's ledger of PayPal webhooks"}
+              </span>
+              <ul>
+                <li>PayPal captured {money(summary.paypalCapturedMinor, code)}</li>
+                <li>Raysto recorded {money(summary.raystoCapturedMinor, code)}</li>
+                <li>Tips {money(summary.tipsMinor, code)} · refunds {money(summary.refundsMinor, code)} · fees {money(summary.feesMinor, code)}</li>
+                <li>Cash {money(summary.cashMinor, code)}</li>
+              </ul>
+              {gaps.length ? (
+                <ol className="ops-try-gaps">
+                  {gaps.map((g, i) => (
+                    <li key={i}>
+                      <strong>{String(g.kind ?? "gap")}</strong> {money(g.amountMinor, code)}: {String(g.explanation ?? "")}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p>No gaps: PayPal and the till agree.</p>
+              )}
+            </div>
+          )}
+          <MoneyOutcome
+            api={api}
+            tenant={tenant}
+            task={task}
+            action={pendingOf(task)}
+            executed="Signed off. The close is posted with PayPal's figures beside the till's."
+            chips={[
+              ...toolsUsed(task.trace).map((t) => (/paypal|transactions/i.test(t) ? "read PayPal via MCP" : `used ${t}`)),
+              `closed in ${demo.took}`,
+              `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
+            ]}
+            refresh={() => api.query<Json>("agent.task", { restaurantId: tenant, id: task.id })}
+          />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* 2. Tips and wages from the week's shifts; PayPal Payouts sends the batch. */
+function PayrollCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
+  const demo = useDemo();
+  const [task, setTask] = useState<Json>();
+  const [batch, setBatch] = useState<Json>();
+  const start = () =>
+    demo.run(async (signal, say) => {
+      setTask(undefined);
+      setBatch(undefined);
+      say("The payroll agent is adding up this week's shifts and tips");
+      const to = new Date();
+      const from = new Date(to.getTime() - 7 * 86400000);
+      let asked: { taskId?: number };
+      try {
+        asked = await api.command<{ taskId?: number }>("payroll.run", tenant, {
+          from: from.toISOString(),
+          to: to.toISOString(),
+        });
+      } catch (e) {
+        throw unavailable(e, "The pay run");
+      }
+      if (!asked.taskId) throw new Error("The payroll agent did not start.");
+      const done = await agentTask(api, tenant, asked.taskId, signal, 120000);
+      const pending = pendingOf(done);
+      const batchId = Number(pending?.preview.batchId ?? 0);
+      if (batchId) {
+        say("Reading the batch");
+        const read = await api.query<Json>("payout", { restaurantId: tenant, id: batchId }).catch(() => undefined);
+        setBatch(read ?? (pending?.preview as Json | undefined));
+      } else {
+        setBatch(pending?.preview as Json | undefined);
+      }
+      setTask(done);
+    });
+  const items = (batch?.items as Json[] | undefined) ?? [];
+  const code = String(batch?.currency ?? "USD");
+  return (
+    <Card
+      n={2}
+      icon="team"
+      title="Pay the team"
+      time="about 15 s, then PayPal"
+      lead="The payroll agent turns this week's clocked shifts into wages and splits the tip pool by hours and role, as one batch. After your identity check, PayPal Payouts sends it to each person's PayPal, and the batch id is kept."
+    >
+      <button className="ops-primary" disabled={demo.phase === "running"} onClick={() => void start()}>
+        <Icon name="play" size={18} />
+        Run this week's pay
+      </button>
+      <Progress demo={demo} />
+      {task && (
+        <div className="ops-try-result">
+          {batch && (
+            <div className="ops-try-ticket">
+              <span className="ops-eyebrow">
+                {String(batch.kind ?? "pay")} · {money(batch.totalMinor, code)}
+              </span>
+              {items.length ? (
+                <ul>
+                  {items.map((it, i) => (
+                    <li key={i}>
+                      {String(it.recipientName ?? it.name ?? "")} · {money(it.amountMinor, code)}
+                      {it.note ? ` · ${String(it.note)}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{String(batch.summary ?? "No one is owed anything this week.")}</p>
+              )}
+            </div>
+          )}
+          <MoneyOutcome
+            api={api}
+            tenant={tenant}
+            task={task}
+            action={pendingOf(task)}
+            executed="Sent with PayPal Payouts. Each person receives it in their PayPal account (Sandbox)."
+            chips={[
+              ...toolsUsed(task.trace).map((t) => `used ${t}`),
+              `prepared in ${demo.took}`,
+              `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
+            ]}
+            refresh={() => api.query<Json>("agent.task", { restaurantId: tenant, id: task.id })}
+          />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* 3. A catering request becomes a priced PayPal invoice with a QR code. */
+function CateringCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
+  const demo = useDemo();
+  const [task, setTask] = useState<Json>();
+  const [request, setRequest] = useState<Json>();
+  const [qr, setQr] = useState<string>();
+  useEffect(() => () => {
+    if (qr) URL.revokeObjectURL(qr);
+  }, [qr]);
+  const start = () =>
+    demo.run(async (signal, say) => {
+      setTask(undefined);
+      setRequest(undefined);
+      setQr(undefined);
+      say("Finding the catering request");
+      const list = await api.query<{ rows: Json[] }>("catering", { restaurantId: tenant }).catch((e) => {
+        throw unavailable(e, "Catering");
+      });
+      // A request the agent has already priced keeps its proposal; a new one
+      // is placed only when none is waiting.
+      let row = list.rows.find((r) => r.taskId && !["paid", "cancelled"].includes(String(r.status)));
+      if (!row) {
+        say("A customer asks for lunch for twelve");
+        try {
+          await api.command("catering.request", tenant, {
+            customerEmail: judge.buyerEmail || "caterer@example.com",
+            customerName: "Studio Lumen",
+            text: "Lunch for 12 on Friday, sandwiches and salads, budget $150. Two of us are vegetarian.",
+          });
+        } catch (e) {
+          throw unavailable(e, "Catering");
+        }
+        say("The catering agent is pricing it from the menu");
+        row = await pollRows<Json>(
+          () => api.query<Json>("catering", { restaurantId: tenant }),
+          (rows) => rows.find((r) => r.taskId && r.status !== "cancelled"),
+          signal,
+        ).catch(() => {
+          throw new Error("The catering agent is not available on this deployment yet.");
+        });
+      }
+      const done = await agentTask(api, tenant, Number(row.taskId), signal, 120000);
+      say("Reading the quote");
+      const fresh = await api.query<Json>("catering.request", { restaurantId: tenant, id: row.id }).catch(() => row);
+      setRequest(fresh);
+      setTask(done);
+    });
+  const quote = (request?.quote ?? {}) as Json;
+  const lines = (quote.lines as Json[] | undefined) ?? [];
+  const code = String(request?.currency ?? "USD");
+  const refresh = async () => {
+    const t = await api.query<Json>("agent.task", { restaurantId: tenant, id: task!.id });
+    const fresh = await api.query<Json>("catering.request", { restaurantId: tenant, id: request!.id }).catch(() => request!);
+    setRequest(fresh);
+    if (typeof fresh.qrUrl === "string" && fresh.qrUrl.startsWith("data:image/")) {
+      setQr(fresh.qrUrl);
+    } else if (fresh.qrMediaId) {
+      const blob = await api.file(Number(fresh.qrMediaId)).catch(() => undefined);
+      if (blob) setQr(URL.createObjectURL(blob));
+    }
+    return t;
+  };
+  return (
+    <Card
+      n={3}
+      icon="invoice"
+      title="Bill the caterer"
+      time="about 20 s, then PayPal"
+      lead="A customer asks for lunch for twelve. The catering agent prices it from the menu, keeps to the budget and drafts the invoice with a deposit. After your identity check, PayPal Invoicing sends it, with a QR code the customer can pay from."
+    >
+      <button className="ops-primary" disabled={demo.phase === "running"} onClick={() => void start()}>
+        <Icon name="play" size={18} />
+        Quote and invoice
+      </button>
+      <Progress demo={demo} />
+      {task && (
+        <div className="ops-try-result">
+          {request && (
+            <div className="ops-try-ticket">
+              <span className="ops-eyebrow">
+                {String(request.customerName ?? "Customer")} · {String(request.status ?? "")}
+              </span>
+              <p className="ops-try-answer">“{String(request.text ?? "")}”</p>
+              {lines.length > 0 && (
+                <ul>
+                  {lines.map((l, i) => (
+                    <li key={i}>
+                      {Number(l.quantity ?? 1)}× {String(l.name ?? "")} · {money(Number(l.unitMinor ?? l.priceMinor ?? 0) * Number(l.quantity ?? 1), code)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <strong>
+                {money(request.totalMinor, code)}
+                {Number(request.depositMinor ?? 0) > 0 ? ` · deposit ${money(request.depositMinor, code)}` : ""}
+              </strong>
+              {request.invoiceNumber ? <p>Invoice {String(request.invoiceNumber)} sent by PayPal.</p> : null}
+              {qr && (
+                <figure className="ops-try-photo small">
+                  <img src={qr} alt="PayPal QR code for this invoice" />
+                  <figcaption>PayPal's QR code for the invoice</figcaption>
+                </figure>
+              )}
+            </div>
+          )}
+          <MoneyOutcome
+            api={api}
+            tenant={tenant}
+            task={task}
+            action={pendingOf(task)}
+            executed="Sent with PayPal Invoicing. The customer pays on PayPal's page or from the QR code; when it is paid, the order goes to the kitchen."
+            chips={[
+              ...toolsUsed(task.trace).map((t) => (/invoice/i.test(t) ? "PayPal Invoicing via MCP" : `used ${t}`)),
+              `quoted in ${demo.took}`,
+              `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
+            ]}
+            refresh={refresh}
+          />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* 4. A complaint on a paid order becomes a proposed PayPal refund. */
+function ComplaintCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
+  const demo = useDemo();
+  const [task, setTask] = useState<Json>();
+  const [complaint, setComplaint] = useState<Json>();
+  const start = () =>
+    demo.run(async (signal, say) => {
+      setTask(undefined);
+      setComplaint(undefined);
+      say("Finding a complaint on a paid order");
+      const list = await api.query<{ rows: Json[] }>("complaints", { restaurantId: tenant }).catch((e) => {
+        throw unavailable(e, "Complaints");
+      });
+      let row = list.rows.find((r) => ["open", "proposed"].includes(String(r.status)) && r.taskId);
+      if (!row) {
+        const orders = await api.query<{ rows: Json[] }>("orders", {
+          restaurantId: tenant,
+          staff: true,
+          order: "desc",
+          limit: 100,
+        });
+        const taken = new Set(list.rows.map((r) => Number(r.orderId)));
+        const paid = orders.rows.find(
+          (o) => o.paymentStatus === "paid" && !["cancelled", "rejected", "expired"].includes(String(o.status)) && !taken.has(Number(o.id)),
+        );
+        if (!paid)
+          throw new Error("No paid order without a complaint yet: pay for one with card 6 first, then come back.");
+        say(`A diner writes about ticket #${String(paid.number ?? paid.id)}`);
+        try {
+          await api.command("complaint.open", tenant, { text: "My croissant was missing from the bag." }, { id: Number(paid.id) });
+        } catch (e) {
+          throw unavailable(e, "Complaints");
+        }
+        say("The complaints agent is checking the ticket and PayPal's capture");
+        row = await pollRows<Json>(
+          () => api.query<Json>("complaints", { restaurantId: tenant }),
+          (rows) => rows.find((r) => Number(r.orderId) === Number(paid.id) && r.taskId),
+          signal,
+        ).catch(() => {
+          throw new Error("The complaints agent is not available on this deployment yet.");
+        });
+      }
+      const done = await agentTask(api, tenant, Number(row.taskId), signal, 120000);
+      setComplaint(row);
+      setTask(done);
+    });
+  const pending = task ? pendingOf(task) : undefined;
+  const preview = (pending?.preview ?? {}) as Json;
+  return (
+    <Card
+      n={4}
+      icon="money"
+      title="Settle a complaint"
+      time="about 20 s, then PayPal"
+      lead="A diner says something was missing. The complaints agent reads the kitchen ticket and PayPal's record of the capture, then proposes a full refund, a partial one or none, with its reasons. After your identity check, PayPal refunds it and the refund id is kept on the order."
+    >
+      <button className="ops-primary" disabled={demo.phase === "running"} onClick={() => void start()}>
+        <Icon name="play" size={18} />
+        Settle it
+      </button>
+      <Progress demo={demo} />
+      {task && (
+        <div className="ops-try-result">
+          {complaint && (
+            <div className="ops-try-ticket">
+              <span className="ops-eyebrow">Complaint on order {String(complaint.orderId)}</span>
+              <p className="ops-try-answer">“{String(complaint.text ?? "")}”</p>
+              {preview.amountMinor !== undefined && (
+                <strong>
+                  Proposed refund {money(preview.amountMinor, String(preview.currency ?? "USD"))}
+                  {preview.capturedMinor !== undefined ? ` of ${money(preview.capturedMinor, String(preview.currency ?? "USD"))} captured` : ""}
+                </strong>
+              )}
+            </div>
+          )}
+          <MoneyOutcome
+            api={api}
+            tenant={tenant}
+            task={task}
+            action={pending}
+            executed="Refunded through PayPal. The diner gets PayPal's email; the order shows the refund."
+            chips={[
+              ...toolsUsed(task.trace).map((t) => (/paypal/i.test(t) ? "asked PayPal via MCP" : `used ${t}`)),
+              `checked in ${demo.took}`,
+              `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
+            ]}
+            refresh={() => api.query<Json>("agent.task", { restaurantId: tenant, id: task.id })}
+          />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* 7. A photo of a printed menu becomes a draft menu. */
 function MenuCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
   const [rows, setRows] = useState<DraftRow[]>([]);
@@ -234,14 +722,22 @@ function MenuCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       setTask(undefined);
       setAction(undefined);
       setOutcome("");
+      // Every judge reads the photo against the same starting menu, so the
+      // changes it finds are the same ones the film and the README show.
+      say("Putting the starting menu back");
+      await api.command("judge.reset", tenant, { menu: true }).catch(() => {});
       say("Finding the menu photo");
       const media = await api.query<{ rows: Json[] }>("media", {
         restaurantId: tenant,
         limit: 100,
       });
-      const photo = media.rows.find(
-        (m) => m.purpose === "menuSource" && m.status === "approved",
-      );
+      // The menu photo by its id when the build knows it; otherwise the first
+      // approved source photo, which is the menu (the delivery note and the
+      // receipt came later).
+      const sources = media.rows
+        .filter((m) => m.purpose === "menuSource" && m.status === "approved")
+        .sort((a, b) => Number(a.id) - Number(b.id));
+      const photo = sources.find((m) => m.id === judge.menuMediaId) ?? sources[0];
       if (!photo) throw new Error("The sample menu photo is not set up yet.");
       say("The menu agent is reading the photo with Gemini");
       const asked = await api.command<{ taskId: number }>("menu.snap", tenant, {
@@ -264,13 +760,14 @@ function MenuCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       setTask(done);
       setAction(pending);
     });
-  const fresh = rows.filter((r) => r.change === "new").length;
+  // A dish without a price is held back, not published, so it is not "new".
+  const fresh = rows.filter((r) => r.change === "new" && r.available).length;
   const repriced = rows.filter((r) => r.change === "price").length;
   const check = rows.filter((r) => !r.available).length;
   const sections = [...new Set(rows.map((r) => r.category))];
   return (
     <Card
-      n={1}
+      n={7}
       icon="menu"
       title="Read a printed menu"
       time="about 20 s"
@@ -310,8 +807,8 @@ function MenuCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
                 <tr key={r.name} className={r.change}>
                   <td>
                     {r.name}
-                    {r.change === "new" && <em>new</em>}
-                    {!r.available && <em className="warn">price to check</em>}
+                    {r.change === "new" && r.available && <em>new</em>}
+                    {!r.available && <em className="warn">held back, price to check</em>}
                   </td>
                   <td>{r.category}</td>
                   <td>
@@ -347,7 +844,7 @@ function MenuCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   );
 }
 
-/* 2. A spoken order becomes ticket lines at the counter. */
+/* 8. A spoken order becomes ticket lines at the counter. */
 function VoiceCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
   const [heard, setHeard] = useState<{
@@ -419,7 +916,7 @@ function VoiceCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   }
   return (
     <Card
-      n={2}
+      n={8}
       icon="mic"
       title="Take an order by voice"
       time="about 5 s"
@@ -481,7 +978,7 @@ function VoiceCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   );
 }
 
-/* 3. One sentence becomes a paid pickup order, approved in PayPal. */
+/* 6. One sentence becomes a paid pickup order, approved in PayPal. */
 function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
   const pay = useDemo();
@@ -516,9 +1013,12 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
         throw new Error(String((done.answer as Json | undefined)?.text ?? "Raysto did not propose a basket. Try other words."));
       setRun(done);
     });
-  const order = () =>
-    pay.run(async (signal, say) => {
-      if (!basket) return;
+  const order = () => {
+    if (!basket) return;
+    // One tap: the tab opens now, while the browser still counts it as a
+    // click, and gets PayPal's page as soon as the order exists.
+    const tab = window.open("", "_blank", "noopener");
+    return pay.run(async (signal, say) => {
       say("Approving the basket and placing the order");
       const approved = await api.command<{ quoteId: number }>(
         "assistant.approve",
@@ -539,12 +1039,19 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
         { orderId: placed.orderId, method: "paypal" },
         key("allocate"),
       );
-      const created = await api.command<{ approvalUrl: string }>(
-        "payment.checkout",
-        tenant,
-        {},
-        { id: allocated.checkoutId, key: key("checkout") },
-      );
+      let created: { approvalUrl: string };
+      try {
+        created = await api.command<{ approvalUrl: string }>(
+          "payment.checkout",
+          tenant,
+          {},
+          { id: allocated.checkoutId, key: key("checkout") },
+        );
+      } catch (e) {
+        tab?.close();
+        throw e;
+      }
+      if (tab && !tab.closed) tab.location.href = created.approvalUrl;
       setCheckout({ id: allocated.checkoutId, orderId: placed.orderId, url: created.approvalUrl });
       say("Waiting for you to approve in PayPal Sandbox");
       const final = await poll(
@@ -567,6 +1074,7 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       );
       setPaid({ ...detail, captureId: payment?.providerCaptureId });
     });
+  };
   const slot = basket?.slot
     ? new Date(basket.slot).toLocaleTimeString("en-US", {
         hour: "numeric",
@@ -576,11 +1084,11 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
     : undefined;
   return (
     <Card
-      n={3}
+      n={6}
       icon="chat"
       title="Order lunch in one sentence"
       time="about 20 s, then PayPal"
-      lead="Ask Raysto as a diner would. It reads the menu, keeps to your budget and proposes a basket; one tap places the order and opens PayPal Sandbox. Only your approval in PayPal pays."
+      lead="Ask Raysto as a diner would. It reads the menu, keeps to your budget and proposes a basket. Then one tap places the order and opens PayPal Sandbox in a new tab. Only your approval in PayPal pays."
     >
       <label className="ops-try-input">
         <span>What would you like?</span>
@@ -620,8 +1128,9 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             <div className="ops-try-paypal">
               <a className="ops-primary" href={checkout.url} target="_blank" rel="noopener noreferrer">
                 <Icon name="paypal" size={18} />
-                Open PayPal Sandbox
+                Open PayPal Sandbox again
               </a>
+              <small>PayPal opened in a new tab. If your browser blocked it, use this link.</small>
               {judge.buyerEmail ? (
                 <dl>
                   <dt>Sandbox buyer</dt>
@@ -656,7 +1165,7 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   );
 }
 
-/* 4. The payments agent checks an unfinished PayPal payment. */
+/* 5. The payments agent checks an unfinished PayPal payment. */
 function PaymentCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
   const [task, setTask] = useState<Json>();
@@ -685,10 +1194,12 @@ function PaymentCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       });
       await api.command("payment.checkout", tenant, {}, { id: allocated.checkoutId });
       say("They walk away without paying. The payments agent asks PayPal");
+      // "check": the agent reads the ledger and PayPal and reports what it
+      // found, rather than repeating a report the manager never made.
       const asked = await api.command<{ taskId: number }>(
         "payment.check",
         tenant,
-        { reason: "left" },
+        { reason: "check" },
         { id: allocated.checkoutId },
       );
       const done = await agentTask(api, tenant, asked.taskId, signal, 90000);
@@ -697,10 +1208,10 @@ function PaymentCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
     });
   return (
     <Card
-      n={4}
+      n={5}
       icon="paypal"
       title="Chase an unfinished payment"
-      time="about 15 s"
+      time="about 20 s"
       lead="A diner opens PayPal and walks away. The payments agent reads Raysto's ledger and asks PayPal itself, through the PayPal MCP server, then prepares the fix. Money changes need your identity check."
     >
       <button className="ops-primary" disabled={demo.phase === "running"} onClick={() => void start()}>
@@ -740,7 +1251,7 @@ function PaymentCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   );
 }
 
-/* 5. The image studio draws a dish; the photo waits for approval. */
+/* 9. The image studio draws a dish; the photo waits for approval. */
 function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
   const [dishes, setDishes] = useState<Dish[]>([]);
@@ -800,7 +1311,7 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
     });
   return (
     <Card
-      n={5}
+      n={9}
       icon="image"
       title="Draw a dish for the menu"
       time="about 45 s"
@@ -879,11 +1390,11 @@ export function TrySection({ api, tenant }: { api: ConnectedApi; tenant: number 
     <div className="ops-try">
       <section className="ops-try-intro">
         <div>
-          <span className="ops-eyebrow">TRY RAYSTO · FIVE LIVE DEMOS</span>
-          <h2>AI coworkers prepare. You approve. PayPal moves the money.</h2>
+          <span className="ops-eyebrow">TRY RAYSTO · NINE LIVE DEMOS, MONEY FIRST</span>
+          <h2>AI coworkers run the café&rsquo;s money. You approve. PayPal moves it.</h2>
           <p>
-            Each card runs the real product on this demo café: Gemini models, the PayPal MCP server and PayPal Sandbox
-            checkout. No real money moves, and nothing changes until you approve it.
+            Each card runs the real product on this demo café: Gemini models, the PayPal MCP server, PayPal Payouts,
+            Invoicing, Refunds and Sandbox checkout. No real money moves, and nothing changes until you approve it.
           </p>
         </div>
         <div className="ops-try-intro-side">
@@ -903,10 +1414,14 @@ export function TrySection({ api, tenant }: { api: ConnectedApi; tenant: number 
         </div>
       </section>
       <div className="ops-try-grid">
+        <CloseCard api={api} tenant={tenant} />
+        <PayrollCard api={api} tenant={tenant} />
+        <CateringCard api={api} tenant={tenant} />
+        <ComplaintCard api={api} tenant={tenant} />
+        <PaymentCard api={api} tenant={tenant} />
+        <OrderCard api={api} tenant={tenant} />
         <MenuCard api={api} tenant={tenant} />
         <VoiceCard api={api} tenant={tenant} />
-        <OrderCard api={api} tenant={tenant} />
-        <PaymentCard api={api} tenant={tenant} />
         <PhotoCard api={api} tenant={tenant} />
       </div>
     </div>

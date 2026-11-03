@@ -27,6 +27,7 @@ abstract class AllocatePayment
     this.assistantProposalId,
     this.splitPlanId,
     required this.method,
+    this.tipMinor,
   });
 
   factory AllocatePayment({
@@ -40,6 +41,7 @@ abstract class AllocatePayment
     int? assistantProposalId,
     int? splitPlanId,
     required String method,
+    int? tipMinor,
   }) = _AllocatePaymentImpl;
 
   factory AllocatePayment.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -62,6 +64,7 @@ abstract class AllocatePayment
       assistantProposalId: jsonSerialization['assistantProposalId'] as int?,
       splitPlanId: jsonSerialization['splitPlanId'] as int?,
       method: jsonSerialization['method'] as String,
+      tipMinor: jsonSerialization['tipMinor'] as int?,
     );
   }
 
@@ -85,6 +88,8 @@ abstract class AllocatePayment
 
   String method;
 
+  int? tipMinor;
+
   /// Returns a shallow copy of this [AllocatePayment]
   /// with some or all fields replaced by the given arguments.
   @_is.useResult
@@ -99,6 +104,7 @@ abstract class AllocatePayment
     int? assistantProposalId,
     int? splitPlanId,
     String? method,
+    int? tipMinor,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -116,6 +122,7 @@ abstract class AllocatePayment
         'assistantProposalId': assistantProposalId,
       if (splitPlanId != null) 'splitPlanId': splitPlanId,
       'method': method,
+      if (tipMinor != null) 'tipMinor': tipMinor,
     };
   }
 
@@ -135,6 +142,7 @@ abstract class AllocatePayment
         'assistantProposalId': assistantProposalId,
       if (splitPlanId != null) 'splitPlanId': splitPlanId,
       'method': method,
+      if (tipMinor != null) 'tipMinor': tipMinor,
     };
   }
 
@@ -158,6 +166,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
     int? assistantProposalId,
     int? splitPlanId,
     required String method,
+    int? tipMinor,
   }) : super._(
          requestKey: requestKey,
          restaurantId: restaurantId,
@@ -169,6 +178,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
          assistantProposalId: assistantProposalId,
          splitPlanId: splitPlanId,
          method: method,
+         tipMinor: tipMinor,
        );
 
   /// Returns a shallow copy of this [AllocatePayment]
@@ -186,6 +196,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
     Object? assistantProposalId = _Undefined,
     Object? splitPlanId = _Undefined,
     String? method,
+    Object? tipMinor = _Undefined,
   }) {
     return AllocatePayment(
       requestKey: requestKey ?? this.requestKey,
@@ -204,6 +215,7 @@ class _AllocatePaymentImpl extends AllocatePayment {
           : this.assistantProposalId,
       splitPlanId: splitPlanId is int? ? splitPlanId : this.splitPlanId,
       method: method ?? this.method,
+      tipMinor: tipMinor is int? ? tipMinor : this.tipMinor,
     );
   }
 }

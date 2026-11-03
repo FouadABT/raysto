@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { judge } from "@/lib/connected/judge";
+import { coworkers, judge } from "@/lib/connected/judge";
 import { Icon, type IconName } from "@/components/connected/icons";
 
 const consoleUrl = "https://ops.rays.to/ops?judge=1";
@@ -87,16 +87,17 @@ function Hero() {
         </a>
         <span className="jg-eyebrow">PAYPAL AI HACKATHON · FOR JUDGES</span>
         <h1>
-          AI coworkers prepare.
+          AI coworkers run the café&rsquo;s money.
           <br />
           You approve.
           <br />
-          <em>PayPal moves the money.</em>
+          <em>PayPal moves it.</em>
         </h1>
         <p className="jg-lead">
-          Raysto is the till, kitchen board, ordering app and back office for a small restaurant. Six AI coworkers
-          read menus, hear orders, build baskets, chase payments, watch the kitchen and draw dishes, and every change
-          they prepare waits for a person.
+          Raysto is the till, kitchen board, ordering app and back office for a small restaurant. Its {coworkers.count}{" "}
+          AI coworkers close the day, pay the team, bill the caterer, settle refunds, chase payments, read menus, hear
+          orders and draw dishes. Each one prepares a change with its evidence, a person approves it, and PayPal&rsquo;s
+          own tools move the money.
         </p>
         <div className="jg-ctas">
           <a className="jg-primary" href={consoleUrl}>
@@ -195,10 +196,14 @@ const steps: { icon: IconName; title: string; text: string }[] = [
 ];
 
 const demos: { icon: IconName; title: string; see: string; time: string }[] = [
+  { icon: "chart", title: "Close the day", see: "The close agent matches PayPal's transactions to the till and explains every gap; you sign off.", time: "20 s" },
+  { icon: "team", title: "Pay the team", see: "Tips and wages from this week's shifts, one batch; PayPal Payouts sends it after your identity check.", time: "15 s + PayPal" },
+  { icon: "invoice", title: "Bill the caterer", see: "A one-line request becomes a priced PayPal invoice with a QR code; you send it.", time: "20 s + PayPal" },
+  { icon: "money", title: "Settle a complaint", see: "The agent checks the ticket and PayPal's capture, then proposes the refund; PayPal refunds it.", time: "20 s + PayPal" },
+  { icon: "paypal", title: "Chase an unfinished payment", see: "The payments agent asks PayPal through its MCP server and drafts the fix.", time: "20 s" },
+  { icon: "chat", title: "Order lunch in one sentence", see: "Raysto builds a basket within budget; one tap places it and opens PayPal Sandbox.", time: "20 s + PayPal" },
   { icon: "menu", title: "Read a printed menu", see: "14 dishes and prices come off a photo; the new ones wait for you.", time: "20 s" },
   { icon: "mic", title: "Take an order by voice", see: "A spoken counter order becomes ticket lines. Try your own voice.", time: "5 s" },
-  { icon: "chat", title: "Order lunch in one sentence", see: "Raysto builds a basket within budget; you approve in PayPal Sandbox.", time: "20 s + PayPal" },
-  { icon: "paypal", title: "Chase an unfinished payment", see: "The payments agent asks PayPal through its MCP server and drafts the fix.", time: "15 s" },
   { icon: "image", title: "Draw a dish for the menu", see: "Gemini draws a photo; it is scanned and labelled as an AI image.", time: "45 s" },
 ];
 
@@ -270,10 +275,10 @@ export function JudgesPage() {
         <section className="jg-section" aria-labelledby="try">
           <Reveal>
             <span className="jg-eyebrow">TRY IT IN TWO MINUTES</span>
-            <h2 id="try">Five live demos. One click signs you in.</h2>
+            <h2 id="try">Nine live demos, money first. One click signs you in.</h2>
             <p className="jg-section-lead">
               The button opens the owner console already signed in as the manager of a demo café. Each demo runs the real
-              product: Gemini, the PayPal MCP server and PayPal Sandbox checkout.
+              product: Gemini, the PayPal MCP server, PayPal Payouts, Invoicing, Refunds and Sandbox checkout.
             </p>
           </Reveal>
           <div className="jg-demos">
@@ -298,7 +303,7 @@ export function JudgesPage() {
           </div>
           <a className="jg-primary center" href={consoleUrl}>
             <Icon name="play" size={20} />
-            Open the five demos
+            Open the {coworkers.demos === 9 ? "nine" : String(coworkers.demos)} demos
           </a>
         </section>
 

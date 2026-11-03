@@ -1242,7 +1242,15 @@ class PlatformQueries {
                 .toList(),
           );
         default:
-          _fail('not_found', 'Unknown query.');
+          return await BackOfficeModule.query(
+                w,
+                name,
+                d,
+                limit,
+                cursor,
+                page,
+              ) ??
+              _fail('not_found', 'Unknown query.');
       }
     });
   }

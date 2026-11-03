@@ -1,0 +1,23 @@
+class: PayoutBatch
+table: raysto_payout_batch
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  kind: String
+  periodFrom: DateTime
+  periodTo: DateTime
+  totalMinor: int
+  currency: String
+  state: String
+  providerBatchId: String?
+  requestKey: String
+  taskId: int?
+  summaryJson: String
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  payout_batch_request:
+    fields: requestKey
+    unique: true
+  payout_batch_tenant:
+    fields: restaurantId, createdAt

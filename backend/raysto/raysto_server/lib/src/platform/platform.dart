@@ -45,9 +45,18 @@ part 'agent_payments.dart';
 part 'agent_menu.dart';
 part 'voice.dart';
 part 'agent_copilot.dart';
+part 'agent_supplies.dart';
+part 'agent_expenses.dart';
+part 'agent_loyalty.dart';
 part 'agent_images.dart';
 part 'media_ai.dart';
+part 'agent_catering.dart';
+part 'agent_complaints.dart';
+part 'agent_disputes.dart';
 part 'judge.dart';
+part 'backoffice.dart';
+part 'agent_close.dart';
+part 'agent_payroll.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -334,9 +343,29 @@ class PlatformApi {
     'payment.cancel': MoneyModule.cancel,
     'payment.release': MoneyModule.release,
     'payment.check': PaymentAgent.check,
+    'close.run': CloseAgent.runCommand,
+    'close.sign': CloseAgent.signCommand,
+    'payroll.run': PayrollAgent.runCommand,
+    'payout.send': PayrollAgent.sendCommand,
     'judge.reset': JudgeModule.command,
+    'autonomy.set': CatalogueModule.autonomy,
+    'shift.save': BackOfficeModule.saveShift,
+    'shift.clock': BackOfficeModule.clock,
+    'supplier.save': BackOfficeModule.saveSupplier,
+    'stock.save': BackOfficeModule.saveStock,
+    'expense.record': BackOfficeModule.recordExpense,
+    'complaint.open': BackOfficeModule.openComplaint,
+    'catering.request': BackOfficeModule.requestCatering,
+    'invoice.send': CateringAgent.send,
+    'invoice.remind': CateringAgent.remind,
+    'dispute.sweep': DisputeAgent.sweep,
+    'dispute.seed': DisputeAgent.seed,
     'merchant.connect': MoneyModule.connectMerchant,
     'merchant.refresh': MoneyModule.refreshMerchant,
+    'supply.receive': SuppliesAgent.receive,
+    'expense.snap': ExpensesAgent.snap,
+    'loyalty.run': LoyaltyAgent.start,
+    'shift.plan': CopilotAgent.plan,
     'billing.subscribe': OperationsModule.subscribe,
     'billing.refresh': OperationsModule.refreshSubscription,
     'billing.cancel': OperationsModule.cancelSubscription,

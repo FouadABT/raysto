@@ -32,9 +32,9 @@ import {
   type AgentTaskRow,
 } from "@/lib/connected/business";
 
-export type Section = "overview" | "orders" | "payments" | "agents";
+export type Section = "overview" | "orders" | "payments" | "agents" | "money" | "team";
 
-const gridTheme = themeQuartz.withParams({
+export const gridTheme = themeQuartz.withParams({
   accentColor: "#173f35",
   backgroundColor: "#ffffff",
   foregroundColor: "#173e34",
@@ -58,34 +58,35 @@ const gridTheme = themeQuartz.withParams({
 /** Status words read as small colored pills, so state is seen, not read. */
 const tones: Record<string, string> = {
   submitted: "new", new: "new", awaitingpayment: "new", created: "new", pending: "new", reserved: "new", queued: "new", review: "warn",
-  accepted: "cook", preparing: "cook", approved: "cook", capturing: "cook", running: "cook",
+  requested: "new", proposed: "new", drafted: "new", open: "new", planned: "new",
+  accepted: "cook", preparing: "cook", approved: "cook", capturing: "cook", running: "cook", quoted: "cook", sent: "cook", onshift: "cook",
   ready: "ready", outfordelivery: "ready",
-  paid: "ok", completed: "ok", collected: "ok", done: "ok", executed: "ok", captured: "ok", applied: "ok",
-  partiallyrefunded: "warn", refunded: "warn", uncertain: "late", failed: "late", unpaid: "late",
-  cancelled: "off", rejected: "off", expired: "off", released: "off", voided: "off",
+  paid: "ok", completed: "ok", collected: "ok", done: "ok", executed: "ok", captured: "ok", applied: "ok", signed: "ok", success: "ok", resolved: "ok",
+  partiallyrefunded: "warn", refunded: "warn", uncertain: "late", failed: "late", unpaid: "late", missed: "late", overdue: "late",
+  cancelled: "off", rejected: "off", expired: "off", released: "off", voided: "off", declined: "off",
 };
-const pill = (p: { value?: unknown; valueFormatted?: string | null }) =>
+export const pill = (p: { value?: unknown; valueFormatted?: string | null }) =>
   p.value == null || p.value === "" ? null : (
     <span className={`ops-pill ${tones[String(p.value).toLowerCase().replaceAll("_", "")] ?? "neutral"}`}>
       {p.valueFormatted ?? words(p.value)}
     </span>
   );
-const time = (iso: unknown) =>
+export const time = (iso: unknown) =>
   iso ? new Date(String(iso)).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
-const words = (v: unknown) => {
+export const words = (v: unknown) => {
   const s = String(v ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replaceAll("_", " ");
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
-const money =
+export const money =
   (fallback: string) =>
   (p: { value?: unknown; data?: unknown }): string =>
     currency(
       Number(p.value ?? 0),
       String((p.data as { currency?: string } | undefined)?.currency ?? fallback),
     );
-const defaults: ColDef = { sortable: true, filter: true, resizable: true, flex: 1, minWidth: 110 };
+export const defaults: ColDef = { sortable: true, filter: true, resizable: true, flex: 1, minWidth: 110 };
 
-function useLoad<T>(load: () => Promise<T>, deps: unknown[]) {
+export function useLoad<T>(load: () => Promise<T>, deps: unknown[]) {
   const [data, setData] = useState<T>();
   const [error, setError] = useState("");
   const run = useCallback(() => {
@@ -137,7 +138,11 @@ export function BusinessOverview({
       mix: channelMix(channels.channels ?? {}),
       totals: collectionTotals(asRows<CollectionRow>(collections)),
       attention: unresolved(asRows<CheckoutRow>(checkouts), new Date()).length,
-      active: asRows<OrderRow>(orders).filter((o) => statusGroup(o.status) !== "Done"),
+      // The kitchen sees an order once it is paid or accepted; one still
+      // waiting for its payment is not in the kitchen.
+      active: asRows<OrderRow>(orders).filter(
+        (o) => ["submitted", "accepted", "preparing", "ready"].includes(o.status),
+      ),
     };
   }, [api, tenant, revision]);
   const code = data?.summary.currency ?? currencyCode;
@@ -191,7 +196,7 @@ export function BusinessOverview({
     {
       label: "In the kitchen",
       value: active.length,
-      note: "New, preparing or ready",
+      note: "Paid and waiting, preparing or ready",
       icon: "kitchen",
       tone: active.length ? "busy" : "calm",
       to: ["orders", "active"],
@@ -238,7 +243,11 @@ export function BusinessOverview({
       <section className="ops-panel">
         <h2>Today by channel</h2>
         {mix.length === 0 ? (
-          <p className="ops-quiet-note">No orders yet today. Channels appear here as orders come in.</p>
+          <p className="ops-quiet-note">
+            {summary.ordersCreated > 0
+              ? `${summary.ordersCreated} ${summary.ordersCreated === 1 ? "order was" : "orders were"} placed today and none is paid yet. Channels count paid orders.`
+              : "No orders yet today. Channels appear here as paid orders come in."}
+          </p>
         ) : (
           <table className="ops-mix">
             <thead>
@@ -490,17 +499,27 @@ export function PaymentsSection({
   const [onlyOpen, setOnlyOpen] = useState(focus === "attempts");
   const { data, error } = useLoad(async () => {
     const week = dayRange(new Date(), 6);
-    const [checkouts, collections, refunds] = await Promise.all([
+    const [checkouts, collections, refunds, orders] = await Promise.all([
       api.query<Json>("checkouts", { restaurantId: tenant, staff: true, order: "desc", limit: 100 }),
       api.query<Json>("report", { restaurantId: tenant, report: "collections", limit: 100, ...week }),
       api.query<Json>("report", { restaurantId: tenant, report: "refunds", limit: 100, ...week }),
+      api.query<Json>("orders", { restaurantId: tenant, staff: true, order: "desc", limit: 200 }).catch(() => ({ rows: [] })),
     ]);
     return {
       checkouts: asRows<CheckoutRow>(checkouts).map((r) => ({ ...r, checkoutId: r.checkoutId ?? r.id })),
       collections: asRows<CollectionRow>(collections),
       refunds: asRows<RefundRow>(refunds),
+      // Ticket numbers, so a payment reads the same here as on the Orders board.
+      tickets: new Map(asRows<OrderRow>(orders).map((o) => [o.id, o.number])),
     };
   }, [api, tenant, revision]);
+  const forLabel = (orderId?: number | null, visitId?: number | null) => {
+    if (orderId) {
+      const n = data?.tickets.get(orderId);
+      return n ? `#${n} · order ${orderId}` : `Order ${orderId}`;
+    }
+    return visitId ? `Visit ${visitId}` : "";
+  };
   const totals = collectionTotals(data?.collections ?? []);
   const attempts = data ? (onlyOpen ? unresolved(data.checkouts, new Date()) : data.checkouts) : [];
   const tabs: [Tab, string][] = [
@@ -542,7 +561,7 @@ export function PaymentsSection({
               { field: "method", valueFormatter: (p) => (p.value === "paypal" ? "PayPal" : "Cash") },
               { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill },
               { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
-              { headerName: "For", valueGetter: (p) => (p.data?.orderId ? `Order ${p.data.orderId}` : `Visit ${p.data?.visitId}`) },
+              { headerName: "For", valueGetter: (p) => forLabel(p.data?.orderId, p.data?.visitId) },
               { field: "createdAt", headerName: "Started", valueFormatter: (p) => time(p.value) },
             ]}
           />
@@ -572,7 +591,7 @@ export function PaymentsSection({
               { field: "refundedMinor", headerName: "Refunded", type: "rightAligned", valueFormatter: money(currencyCode) },
               { field: "state", headerName: "Ledger", valueFormatter: (p) => (p.value === "review" ? "Under review" : words(p.value)), cellRenderer: pill },
               ...(tab === "captures" ? [{ field: "providerCaptureId" as const, headerName: "PayPal capture id", minWidth: 190 }] : []),
-              { headerName: "For", valueGetter: (p) => (p.data?.orderId ? `Order ${p.data.orderId}` : p.data?.visitId ? `Visit ${p.data.visitId}` : "") },
+              { headerName: "For", valueGetter: (p) => forLabel(p.data?.orderId, p.data?.visitId) },
               { field: "createdAt", headerName: "Collected", valueFormatter: (p) => time(p.value), sort: "desc" },
             ]}
           />

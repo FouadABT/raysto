@@ -45,19 +45,25 @@ import 'platform/audit_record.dart' as _icm9s83d;
 import 'platform/bill_charge.dart' as _iab8f16w;
 import 'platform/bill_split_plan.dart' as _iqi0qoum;
 import 'platform/billing_history.dart' as _iqyxcx8t;
+import 'platform/catering_request.dart' as _ibggpv5a;
 import 'platform/charge_share.dart' as _iaiv5uup;
 import 'platform/checkout_intent.dart' as _ic84k6y9;
 import 'platform/commission_entry.dart' as _ilsa31z6;
+import 'platform/complaint.dart' as _imzqw58n;
 import 'platform/conversation_room.dart' as _i6es2wkr;
 import 'platform/create_quote.dart' as _ihuzea45;
 import 'platform/customer_cart.dart' as _iku6hp32;
 import 'platform/customer_favorite.dart' as _i9nuszoc;
+import 'platform/customer_profile.dart' as _iorqh3g2;
 import 'platform/customer_review.dart' as _iasq0wzy;
+import 'platform/daily_close.dart' as _ilb6n6q9;
 import 'platform/delivery_assignment.dart' as _izs8cqpn;
 import 'platform/dining_reservation.dart' as _ijz5ts4w;
 import 'platform/dining_table.dart' as _i8p8f5o8;
 import 'platform/dining_visit.dart' as _ids0orjk;
 import 'platform/dining_waitlist.dart' as _iwj3dyxh;
+import 'platform/dispute_case.dart' as _izlzkb82;
+import 'platform/expense.dart' as _iy07qj3d;
 import 'platform/floor_layout.dart' as _ijsenvl9;
 import 'platform/kitchen_progress.dart' as _igcxmw5n;
 import 'platform/media_asset.dart' as _i8f1ig6q;
@@ -71,6 +77,8 @@ import 'platform/payment_allocation.dart' as _iro17wd2;
 import 'platform/payment_capture.dart' as _if5yjfbd;
 import 'platform/payment_exception.dart' as _i8uoe3bd;
 import 'platform/payment_refund.dart' as _ievhyl6k;
+import 'platform/payout_batch.dart' as _if9n1eao;
+import 'platform/payout_item.dart' as _i3825tb6;
 import 'platform/platform_command.dart' as _in5mt2du;
 import 'platform/platform_event.dart' as _i46ou76b;
 import 'platform/platform_job.dart' as _ijcw4tvs;
@@ -85,8 +93,12 @@ import 'platform/restaurant_subscription.dart' as _ij0wcuq1;
 import 'platform/room_member.dart' as _iou6uhjy;
 import 'platform/room_message.dart' as _ipbq43ew;
 import 'platform/security_grant.dart' as _izk5jc0w;
+import 'platform/staff_shift.dart' as _iyrt2bnh;
 import 'platform/start_visit.dart' as _ic6k5ko2;
+import 'platform/stock_item.dart' as _icnbtl02;
 import 'platform/submit_order.dart' as _ijdjbc0u;
+import 'platform/supplier.dart' as _i35nlrw0;
+import 'platform/supply_delivery.dart' as _i1ojfsf7;
 import 'platform/support_conversation.dart' as _ifweu7ui;
 import 'platform/support_message.dart' as _ixm1i1fm;
 import 'platform/user_notification.dart' as _iptgoord;
@@ -121,19 +133,25 @@ export 'platform/audit_record.dart';
 export 'platform/bill_charge.dart';
 export 'platform/bill_split_plan.dart';
 export 'platform/billing_history.dart';
+export 'platform/catering_request.dart';
 export 'platform/charge_share.dart';
 export 'platform/checkout_intent.dart';
 export 'platform/commission_entry.dart';
+export 'platform/complaint.dart';
 export 'platform/conversation_room.dart';
 export 'platform/create_quote.dart';
 export 'platform/customer_cart.dart';
 export 'platform/customer_favorite.dart';
+export 'platform/customer_profile.dart';
 export 'platform/customer_review.dart';
+export 'platform/daily_close.dart';
 export 'platform/delivery_assignment.dart';
 export 'platform/dining_reservation.dart';
 export 'platform/dining_table.dart';
 export 'platform/dining_visit.dart';
 export 'platform/dining_waitlist.dart';
+export 'platform/dispute_case.dart';
+export 'platform/expense.dart';
 export 'platform/floor_layout.dart';
 export 'platform/kitchen_progress.dart';
 export 'platform/media_asset.dart';
@@ -147,6 +165,8 @@ export 'platform/payment_allocation.dart';
 export 'platform/payment_capture.dart';
 export 'platform/payment_exception.dart';
 export 'platform/payment_refund.dart';
+export 'platform/payout_batch.dart';
+export 'platform/payout_item.dart';
 export 'platform/platform_command.dart';
 export 'platform/platform_event.dart';
 export 'platform/platform_job.dart';
@@ -161,8 +181,12 @@ export 'platform/restaurant_subscription.dart';
 export 'platform/room_member.dart';
 export 'platform/room_message.dart';
 export 'platform/security_grant.dart';
+export 'platform/staff_shift.dart';
 export 'platform/start_visit.dart';
+export 'platform/stock_item.dart';
 export 'platform/submit_order.dart';
+export 'platform/supplier.dart';
+export 'platform/supply_delivery.dart';
 export 'platform/support_conversation.dart';
 export 'platform/support_message.dart';
 export 'platform/user_notification.dart';
@@ -1711,6 +1735,186 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'raysto_catering_request',
+      dartName: 'CateringRequest',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'customerEmail',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'customerName',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'text',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'eventAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'quoteJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'providerInvoiceId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'invoiceNumber',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'qrMediaId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'orderId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'depositMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'totalMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'currency',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'dueAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'remindedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_catering_request_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'catering_invoice',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'providerInvoiceId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'catering_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'raysto_checkout_intent',
       dartName: 'CheckoutIntent',
       schema: 'public',
@@ -2022,6 +2226,129 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'raysto_complaint',
+      dartName: 'Complaint',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'orderId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'captureId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'text',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'refundId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_complaint_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_complaint_fk_1',
+          columns: ['orderId'],
+          referenceTable: 'raysto_order',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'complaint_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'raysto_conversation_room',
       dartName: 'ConversationRoom',
       schema: 'public',
@@ -2317,6 +2644,113 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'raysto_customer_profile',
+      dartName: 'CustomerProfile',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'emailHash',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'displayName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'visits',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spentMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lastSeenAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tagsJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'couponCode',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_customer_profile_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'customer_profile_email',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'emailHash',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'raysto_customer_review',
       dartName: 'CustomerReview',
       schema: 'public',
@@ -2414,6 +2848,119 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'orderId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_daily_close',
+      dartName: 'DailyClose',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'day',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'source',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'summaryJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'gapsJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'state',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'signedBy',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_daily_close_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'daily_close_day',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'day',
             ),
           ],
           type: 'btree',
@@ -3076,6 +3623,257 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_dispute_case',
+      dartName: 'DisputeCase',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'providerDisputeId',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'captureId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'reason',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'amountMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'currency',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'evidenceJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'replyText',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_dispute_case_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'dispute_provider',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'providerDisputeId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'dispute_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_expense',
+      dartName: 'Expense',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'category',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'amountMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'currency',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'vatMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spentAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'mediaId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'merchant',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'paypalTransactionId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_expense_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'expense_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'spentAt',
             ),
           ],
           type: 'btree',
@@ -5034,6 +5832,251 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'raysto_payout_batch',
+      dartName: 'PayoutBatch',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'kind',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'periodFrom',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'periodTo',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'totalMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'currency',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'state',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'providerBatchId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'requestKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'summaryJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_payout_batch_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'payout_batch_request',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'requestKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'payout_batch_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_payout_item',
+      dartName: 'PayoutItem',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'batchId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'recipientEmail',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'recipientName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'shiftIdsJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'amountMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'note',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'providerItemId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'state',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_payout_item_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_payout_item_fk_1',
+          columns: ['batchId'],
+          referenceTable: 'raysto_payout_batch',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'payout_item_batch',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'batchId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'raysto_platform_job',
       dartName: 'PlatformJob',
       schema: 'public',
@@ -6308,6 +7351,416 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'raysto_staff_shift',
+      dartName: 'StaffShift',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'name',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'role',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'startsAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'endsAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'clockInAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'clockOutAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'hourlyRateMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'payoutEmail',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_staff_shift_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'staff_shift_tenant_start',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'startsAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_stock_item',
+      dartName: 'StockItem',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'name',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'unit',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'quantity',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'costMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'supplierId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lowAt',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_stock_item_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'stock_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'name',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_supplier',
+      dartName: 'Supplier',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'name',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'payoutEmail',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_supplier_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'supplier_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'name',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_supply_delivery',
+      dartName: 'SupplyDelivery',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'supplierId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'mediaId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'linesJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'totalMinor',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'currency',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'state',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'payoutBatchId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'taskId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_supply_delivery_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'delivery_tenant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'raysto_support_conversation',
       dartName: 'SupportConversation',
       schema: 'public',
@@ -6904,6 +8357,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iqyxcx8t.BillingHistory) {
       return _iqyxcx8t.BillingHistory.fromJson(data) as T;
     }
+    if (t == _ibggpv5a.CateringRequest) {
+      return _ibggpv5a.CateringRequest.fromJson(data) as T;
+    }
     if (t == _iaiv5uup.ChargeShare) {
       return _iaiv5uup.ChargeShare.fromJson(data) as T;
     }
@@ -6912,6 +8368,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _ilsa31z6.CommissionEntry) {
       return _ilsa31z6.CommissionEntry.fromJson(data) as T;
+    }
+    if (t == _imzqw58n.Complaint) {
+      return _imzqw58n.Complaint.fromJson(data) as T;
     }
     if (t == _i6es2wkr.ConversationRoom) {
       return _i6es2wkr.ConversationRoom.fromJson(data) as T;
@@ -6925,8 +8384,14 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i9nuszoc.CustomerFavorite) {
       return _i9nuszoc.CustomerFavorite.fromJson(data) as T;
     }
+    if (t == _iorqh3g2.CustomerProfile) {
+      return _iorqh3g2.CustomerProfile.fromJson(data) as T;
+    }
     if (t == _iasq0wzy.CustomerReview) {
       return _iasq0wzy.CustomerReview.fromJson(data) as T;
+    }
+    if (t == _ilb6n6q9.DailyClose) {
+      return _ilb6n6q9.DailyClose.fromJson(data) as T;
     }
     if (t == _izs8cqpn.DeliveryAssignment) {
       return _izs8cqpn.DeliveryAssignment.fromJson(data) as T;
@@ -6942,6 +8407,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _iwj3dyxh.DiningWaitlist) {
       return _iwj3dyxh.DiningWaitlist.fromJson(data) as T;
+    }
+    if (t == _izlzkb82.DisputeCase) {
+      return _izlzkb82.DisputeCase.fromJson(data) as T;
+    }
+    if (t == _iy07qj3d.Expense) {
+      return _iy07qj3d.Expense.fromJson(data) as T;
     }
     if (t == _ijsenvl9.FloorLayout) {
       return _ijsenvl9.FloorLayout.fromJson(data) as T;
@@ -6981,6 +8452,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _ievhyl6k.PaymentRefund) {
       return _ievhyl6k.PaymentRefund.fromJson(data) as T;
+    }
+    if (t == _if9n1eao.PayoutBatch) {
+      return _if9n1eao.PayoutBatch.fromJson(data) as T;
+    }
+    if (t == _i3825tb6.PayoutItem) {
+      return _i3825tb6.PayoutItem.fromJson(data) as T;
     }
     if (t == _in5mt2du.PlatformCommand) {
       return _in5mt2du.PlatformCommand.fromJson(data) as T;
@@ -7024,11 +8501,23 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izk5jc0w.SecurityGrant) {
       return _izk5jc0w.SecurityGrant.fromJson(data) as T;
     }
+    if (t == _iyrt2bnh.StaffShift) {
+      return _iyrt2bnh.StaffShift.fromJson(data) as T;
+    }
     if (t == _ic6k5ko2.StartVisit) {
       return _ic6k5ko2.StartVisit.fromJson(data) as T;
     }
+    if (t == _icnbtl02.StockItem) {
+      return _icnbtl02.StockItem.fromJson(data) as T;
+    }
     if (t == _ijdjbc0u.SubmitOrder) {
       return _ijdjbc0u.SubmitOrder.fromJson(data) as T;
+    }
+    if (t == _i35nlrw0.Supplier) {
+      return _i35nlrw0.Supplier.fromJson(data) as T;
+    }
+    if (t == _i1ojfsf7.SupplyDelivery) {
+      return _i1ojfsf7.SupplyDelivery.fromJson(data) as T;
     }
     if (t == _ifweu7ui.SupportConversation) {
       return _ifweu7ui.SupportConversation.fromJson(data) as T;
@@ -7141,6 +8630,10 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _iqyxcx8t.BillingHistory.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_ibggpv5a.CateringRequest?>()) {
+      return (data != null ? _ibggpv5a.CateringRequest.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_iaiv5uup.ChargeShare?>()) {
       return (data != null ? _iaiv5uup.ChargeShare.fromJson(data) : null) as T;
     }
@@ -7151,6 +8644,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_ilsa31z6.CommissionEntry?>()) {
       return (data != null ? _ilsa31z6.CommissionEntry.fromJson(data) : null)
           as T;
+    }
+    if (t == _is.getType<_imzqw58n.Complaint?>()) {
+      return (data != null ? _imzqw58n.Complaint.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_i6es2wkr.ConversationRoom?>()) {
       return (data != null ? _i6es2wkr.ConversationRoom.fromJson(data) : null)
@@ -7166,9 +8662,16 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _i9nuszoc.CustomerFavorite.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_iorqh3g2.CustomerProfile?>()) {
+      return (data != null ? _iorqh3g2.CustomerProfile.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_iasq0wzy.CustomerReview?>()) {
       return (data != null ? _iasq0wzy.CustomerReview.fromJson(data) : null)
           as T;
+    }
+    if (t == _is.getType<_ilb6n6q9.DailyClose?>()) {
+      return (data != null ? _ilb6n6q9.DailyClose.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_izs8cqpn.DeliveryAssignment?>()) {
       return (data != null ? _izs8cqpn.DeliveryAssignment.fromJson(data) : null)
@@ -7187,6 +8690,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iwj3dyxh.DiningWaitlist?>()) {
       return (data != null ? _iwj3dyxh.DiningWaitlist.fromJson(data) : null)
           as T;
+    }
+    if (t == _is.getType<_izlzkb82.DisputeCase?>()) {
+      return (data != null ? _izlzkb82.DisputeCase.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iy07qj3d.Expense?>()) {
+      return (data != null ? _iy07qj3d.Expense.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_ijsenvl9.FloorLayout?>()) {
       return (data != null ? _ijsenvl9.FloorLayout.fromJson(data) : null) as T;
@@ -7235,6 +8744,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_ievhyl6k.PaymentRefund?>()) {
       return (data != null ? _ievhyl6k.PaymentRefund.fromJson(data) : null)
           as T;
+    }
+    if (t == _is.getType<_if9n1eao.PayoutBatch?>()) {
+      return (data != null ? _if9n1eao.PayoutBatch.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i3825tb6.PayoutItem?>()) {
+      return (data != null ? _i3825tb6.PayoutItem.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_in5mt2du.PlatformCommand?>()) {
       return (data != null ? _in5mt2du.PlatformCommand.fromJson(data) : null)
@@ -7289,11 +8804,24 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _izk5jc0w.SecurityGrant.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_iyrt2bnh.StaffShift?>()) {
+      return (data != null ? _iyrt2bnh.StaffShift.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_ic6k5ko2.StartVisit?>()) {
       return (data != null ? _ic6k5ko2.StartVisit.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_icnbtl02.StockItem?>()) {
+      return (data != null ? _icnbtl02.StockItem.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_ijdjbc0u.SubmitOrder?>()) {
       return (data != null ? _ijdjbc0u.SubmitOrder.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i35nlrw0.Supplier?>()) {
+      return (data != null ? _i35nlrw0.Supplier.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i1ojfsf7.SupplyDelivery?>()) {
+      return (data != null ? _i1ojfsf7.SupplyDelivery.fromJson(data) : null)
+          as T;
     }
     if (t == _is.getType<_ifweu7ui.SupportConversation?>()) {
       return (data != null
@@ -7425,19 +8953,25 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iab8f16w.BillCharge => 'BillCharge',
       _iqi0qoum.BillSplitPlan => 'BillSplitPlan',
       _iqyxcx8t.BillingHistory => 'BillingHistory',
+      _ibggpv5a.CateringRequest => 'CateringRequest',
       _iaiv5uup.ChargeShare => 'ChargeShare',
       _ic84k6y9.CheckoutIntent => 'CheckoutIntent',
       _ilsa31z6.CommissionEntry => 'CommissionEntry',
+      _imzqw58n.Complaint => 'Complaint',
       _i6es2wkr.ConversationRoom => 'ConversationRoom',
       _ihuzea45.CreateQuote => 'CreateQuote',
       _iku6hp32.CustomerCart => 'CustomerCart',
       _i9nuszoc.CustomerFavorite => 'CustomerFavorite',
+      _iorqh3g2.CustomerProfile => 'CustomerProfile',
       _iasq0wzy.CustomerReview => 'CustomerReview',
+      _ilb6n6q9.DailyClose => 'DailyClose',
       _izs8cqpn.DeliveryAssignment => 'DeliveryAssignment',
       _ijz5ts4w.DiningReservation => 'DiningReservation',
       _i8p8f5o8.DiningTable => 'DiningTable',
       _ids0orjk.DiningVisit => 'DiningVisit',
       _iwj3dyxh.DiningWaitlist => 'DiningWaitlist',
+      _izlzkb82.DisputeCase => 'DisputeCase',
+      _iy07qj3d.Expense => 'Expense',
       _ijsenvl9.FloorLayout => 'FloorLayout',
       _igcxmw5n.KitchenProgress => 'KitchenProgress',
       _i8f1ig6q.MediaAsset => 'MediaAsset',
@@ -7451,6 +8985,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       _if5yjfbd.PaymentCapture => 'PaymentCapture',
       _i8uoe3bd.PaymentException => 'PaymentException',
       _ievhyl6k.PaymentRefund => 'PaymentRefund',
+      _if9n1eao.PayoutBatch => 'PayoutBatch',
+      _i3825tb6.PayoutItem => 'PayoutItem',
       _in5mt2du.PlatformCommand => 'PlatformCommand',
       _i46ou76b.PlatformEvent => 'PlatformEvent',
       _ijcw4tvs.PlatformJob => 'PlatformJob',
@@ -7465,8 +9001,12 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iou6uhjy.RoomMember => 'RoomMember',
       _ipbq43ew.RoomMessage => 'RoomMessage',
       _izk5jc0w.SecurityGrant => 'SecurityGrant',
+      _iyrt2bnh.StaffShift => 'StaffShift',
       _ic6k5ko2.StartVisit => 'StartVisit',
+      _icnbtl02.StockItem => 'StockItem',
       _ijdjbc0u.SubmitOrder => 'SubmitOrder',
+      _i35nlrw0.Supplier => 'Supplier',
+      _i1ojfsf7.SupplyDelivery => 'SupplyDelivery',
       _ifweu7ui.SupportConversation => 'SupportConversation',
       _ixm1i1fm.SupportMessage => 'SupportMessage',
       _iptgoord.UserNotification => 'UserNotification',
@@ -7539,12 +9079,16 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'BillSplitPlan';
       case _iqyxcx8t.BillingHistory():
         return 'BillingHistory';
+      case _ibggpv5a.CateringRequest():
+        return 'CateringRequest';
       case _iaiv5uup.ChargeShare():
         return 'ChargeShare';
       case _ic84k6y9.CheckoutIntent():
         return 'CheckoutIntent';
       case _ilsa31z6.CommissionEntry():
         return 'CommissionEntry';
+      case _imzqw58n.Complaint():
+        return 'Complaint';
       case _i6es2wkr.ConversationRoom():
         return 'ConversationRoom';
       case _ihuzea45.CreateQuote():
@@ -7553,8 +9097,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'CustomerCart';
       case _i9nuszoc.CustomerFavorite():
         return 'CustomerFavorite';
+      case _iorqh3g2.CustomerProfile():
+        return 'CustomerProfile';
       case _iasq0wzy.CustomerReview():
         return 'CustomerReview';
+      case _ilb6n6q9.DailyClose():
+        return 'DailyClose';
       case _izs8cqpn.DeliveryAssignment():
         return 'DeliveryAssignment';
       case _ijz5ts4w.DiningReservation():
@@ -7565,6 +9113,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'DiningVisit';
       case _iwj3dyxh.DiningWaitlist():
         return 'DiningWaitlist';
+      case _izlzkb82.DisputeCase():
+        return 'DisputeCase';
+      case _iy07qj3d.Expense():
+        return 'Expense';
       case _ijsenvl9.FloorLayout():
         return 'FloorLayout';
       case _igcxmw5n.KitchenProgress():
@@ -7591,6 +9143,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'PaymentException';
       case _ievhyl6k.PaymentRefund():
         return 'PaymentRefund';
+      case _if9n1eao.PayoutBatch():
+        return 'PayoutBatch';
+      case _i3825tb6.PayoutItem():
+        return 'PayoutItem';
       case _in5mt2du.PlatformCommand():
         return 'PlatformCommand';
       case _i46ou76b.PlatformEvent():
@@ -7619,10 +9175,18 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'RoomMessage';
       case _izk5jc0w.SecurityGrant():
         return 'SecurityGrant';
+      case _iyrt2bnh.StaffShift():
+        return 'StaffShift';
       case _ic6k5ko2.StartVisit():
         return 'StartVisit';
+      case _icnbtl02.StockItem():
+        return 'StockItem';
       case _ijdjbc0u.SubmitOrder():
         return 'SubmitOrder';
+      case _i35nlrw0.Supplier():
+        return 'Supplier';
+      case _i1ojfsf7.SupplyDelivery():
+        return 'SupplyDelivery';
       case _ifweu7ui.SupportConversation():
         return 'SupportConversation';
       case _ixm1i1fm.SupportMessage():
@@ -7741,6 +9305,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'BillingHistory') {
       return deserialize<_iqyxcx8t.BillingHistory>(data['data']);
     }
+    if (dataClassName == 'CateringRequest') {
+      return deserialize<_ibggpv5a.CateringRequest>(data['data']);
+    }
     if (dataClassName == 'ChargeShare') {
       return deserialize<_iaiv5uup.ChargeShare>(data['data']);
     }
@@ -7749,6 +9316,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'CommissionEntry') {
       return deserialize<_ilsa31z6.CommissionEntry>(data['data']);
+    }
+    if (dataClassName == 'Complaint') {
+      return deserialize<_imzqw58n.Complaint>(data['data']);
     }
     if (dataClassName == 'ConversationRoom') {
       return deserialize<_i6es2wkr.ConversationRoom>(data['data']);
@@ -7762,8 +9332,14 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'CustomerFavorite') {
       return deserialize<_i9nuszoc.CustomerFavorite>(data['data']);
     }
+    if (dataClassName == 'CustomerProfile') {
+      return deserialize<_iorqh3g2.CustomerProfile>(data['data']);
+    }
     if (dataClassName == 'CustomerReview') {
       return deserialize<_iasq0wzy.CustomerReview>(data['data']);
+    }
+    if (dataClassName == 'DailyClose') {
+      return deserialize<_ilb6n6q9.DailyClose>(data['data']);
     }
     if (dataClassName == 'DeliveryAssignment') {
       return deserialize<_izs8cqpn.DeliveryAssignment>(data['data']);
@@ -7779,6 +9355,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'DiningWaitlist') {
       return deserialize<_iwj3dyxh.DiningWaitlist>(data['data']);
+    }
+    if (dataClassName == 'DisputeCase') {
+      return deserialize<_izlzkb82.DisputeCase>(data['data']);
+    }
+    if (dataClassName == 'Expense') {
+      return deserialize<_iy07qj3d.Expense>(data['data']);
     }
     if (dataClassName == 'FloorLayout') {
       return deserialize<_ijsenvl9.FloorLayout>(data['data']);
@@ -7818,6 +9400,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'PaymentRefund') {
       return deserialize<_ievhyl6k.PaymentRefund>(data['data']);
+    }
+    if (dataClassName == 'PayoutBatch') {
+      return deserialize<_if9n1eao.PayoutBatch>(data['data']);
+    }
+    if (dataClassName == 'PayoutItem') {
+      return deserialize<_i3825tb6.PayoutItem>(data['data']);
     }
     if (dataClassName == 'PlatformCommand') {
       return deserialize<_in5mt2du.PlatformCommand>(data['data']);
@@ -7861,11 +9449,23 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'SecurityGrant') {
       return deserialize<_izk5jc0w.SecurityGrant>(data['data']);
     }
+    if (dataClassName == 'StaffShift') {
+      return deserialize<_iyrt2bnh.StaffShift>(data['data']);
+    }
     if (dataClassName == 'StartVisit') {
       return deserialize<_ic6k5ko2.StartVisit>(data['data']);
     }
+    if (dataClassName == 'StockItem') {
+      return deserialize<_icnbtl02.StockItem>(data['data']);
+    }
     if (dataClassName == 'SubmitOrder') {
       return deserialize<_ijdjbc0u.SubmitOrder>(data['data']);
+    }
+    if (dataClassName == 'Supplier') {
+      return deserialize<_i35nlrw0.Supplier>(data['data']);
+    }
+    if (dataClassName == 'SupplyDelivery') {
+      return deserialize<_i1ojfsf7.SupplyDelivery>(data['data']);
     }
     if (dataClassName == 'SupportConversation') {
       return deserialize<_ifweu7ui.SupportConversation>(data['data']);
@@ -7976,18 +9576,26 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _iqi0qoum.BillSplitPlan.t;
       case _iqyxcx8t.BillingHistory:
         return _iqyxcx8t.BillingHistory.t;
+      case _ibggpv5a.CateringRequest:
+        return _ibggpv5a.CateringRequest.t;
       case _ic84k6y9.CheckoutIntent:
         return _ic84k6y9.CheckoutIntent.t;
       case _ilsa31z6.CommissionEntry:
         return _ilsa31z6.CommissionEntry.t;
+      case _imzqw58n.Complaint:
+        return _imzqw58n.Complaint.t;
       case _i6es2wkr.ConversationRoom:
         return _i6es2wkr.ConversationRoom.t;
       case _iku6hp32.CustomerCart:
         return _iku6hp32.CustomerCart.t;
       case _i9nuszoc.CustomerFavorite:
         return _i9nuszoc.CustomerFavorite.t;
+      case _iorqh3g2.CustomerProfile:
+        return _iorqh3g2.CustomerProfile.t;
       case _iasq0wzy.CustomerReview:
         return _iasq0wzy.CustomerReview.t;
+      case _ilb6n6q9.DailyClose:
+        return _ilb6n6q9.DailyClose.t;
       case _izs8cqpn.DeliveryAssignment:
         return _izs8cqpn.DeliveryAssignment.t;
       case _ijz5ts4w.DiningReservation:
@@ -7998,6 +9606,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _ids0orjk.DiningVisit.t;
       case _iwj3dyxh.DiningWaitlist:
         return _iwj3dyxh.DiningWaitlist.t;
+      case _izlzkb82.DisputeCase:
+        return _izlzkb82.DisputeCase.t;
+      case _iy07qj3d.Expense:
+        return _iy07qj3d.Expense.t;
       case _ijsenvl9.FloorLayout:
         return _ijsenvl9.FloorLayout.t;
       case _igcxmw5n.KitchenProgress:
@@ -8024,6 +9636,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _i8uoe3bd.PaymentException.t;
       case _ievhyl6k.PaymentRefund:
         return _ievhyl6k.PaymentRefund.t;
+      case _if9n1eao.PayoutBatch:
+        return _if9n1eao.PayoutBatch.t;
+      case _i3825tb6.PayoutItem:
+        return _i3825tb6.PayoutItem.t;
       case _ijcw4tvs.PlatformJob:
         return _ijcw4tvs.PlatformJob.t;
       case _if2vl5a9.PriceQuote:
@@ -8044,6 +9660,14 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _ipbq43ew.RoomMessage.t;
       case _izk5jc0w.SecurityGrant:
         return _izk5jc0w.SecurityGrant.t;
+      case _iyrt2bnh.StaffShift:
+        return _iyrt2bnh.StaffShift.t;
+      case _icnbtl02.StockItem:
+        return _icnbtl02.StockItem.t;
+      case _i35nlrw0.Supplier:
+        return _i35nlrw0.Supplier.t;
+      case _i1ojfsf7.SupplyDelivery:
+        return _i1ojfsf7.SupplyDelivery.t;
       case _ifweu7ui.SupportConversation:
         return _ifweu7ui.SupportConversation.t;
       case _ixm1i1fm.SupportMessage:

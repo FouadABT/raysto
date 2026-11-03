@@ -38,6 +38,7 @@ part 'staff_shell.dart';
 part 'staff_orders.dart';
 part 'staff_kitchen.dart';
 part 'staff_counter.dart';
+part 'staff_shifts.dart';
 part 'assistant_flows.dart';
 part 'agents_hub.dart';
 part 'menu_snap.dart';

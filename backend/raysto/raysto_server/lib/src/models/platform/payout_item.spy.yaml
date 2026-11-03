@@ -1,0 +1,16 @@
+class: PayoutItem
+table: raysto_payout_item
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  batchId: int, relation(parent=raysto_payout_batch)
+  recipientEmail: String
+  recipientName: String
+  shiftIdsJson: String
+  amountMinor: int
+  note: String
+  providerItemId: String?
+  state: String
+indexes:
+  payout_item_batch:
+    fields: batchId

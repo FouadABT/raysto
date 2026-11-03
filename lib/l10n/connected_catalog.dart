@@ -540,4 +540,63 @@ const connectedTranslations = <String, (String, String)>{
   'Refund due': ('Remboursement dû', 'استرداد مستحق'),
   'Released': ('Libéré', 'تم التحرير'),
   'Reversed': ('Annulé par PayPal', 'ألغته PayPal'),
+  // Shifts: the team clocks in and out on the tablet.
+  'Shifts': ('Services', 'الورديات'),
+  'Today': ('Aujourd’hui', 'اليوم'),
+  'This week': ('Cette semaine', 'هذا الأسبوع'),
+  'Your shift': ('Votre service', 'ورديتك'),
+  'On shift since': ('En service depuis', 'في الوردية منذ'),
+  'Clock in': ('Pointer l’arrivée', 'تسجيل الحضور'),
+  'Clock out': ('Pointer le départ', 'تسجيل الانصراف'),
+  'Scheduled': ('Prévu', 'مجدول'),
+  'You': ('Vous', 'أنت'),
+  'Team member': ('Membre de l’équipe', 'عضو الفريق'),
+  'Nobody is scheduled today.': (
+    'Personne n’est prévu aujourd’hui.',
+    'لا أحد مجدول اليوم.',
+  ),
+  'No shifts planned this week.': (
+    'Aucun service prévu cette semaine.',
+    'لا ورديات مخططة هذا الأسبوع.',
+  ),
+  'owner': ('propriétaire', 'المالك'),
+  'manager': ('gérant', 'المدير'),
+  'waiter': ('serveur', 'النادل'),
+  'kitchen': ('cuisine', 'المطبخ'),
+  'courier': ('livreur', 'الموصّل'),
+  // The tip before PayPal.
+  'Add a tip for the team?': (
+    'Ajouter un pourboire pour l’équipe ?',
+    'هل تضيف إكرامية للفريق؟',
+  ),
+  'Other': ('Autre', 'أخرى'),
+  'Add tip': ('Ajouter le pourboire', 'إضافة الإكرامية'),
+  'Continue to PayPal': ('Continuer vers PayPal', 'المتابعة إلى PayPal'),
+  // A complaint about a paid order.
+  'Something was wrong?': ('Un problème ?', 'هل حدث خطأ ما؟'),
+  'Tell the café in a sentence; a manager decides on a refund.': (
+    'Dites-le au café en une phrase ; un gérant décide d’un remboursement.',
+    'أخبر المقهى بجملة واحدة؛ يقرر المدير بشأن الاسترداد.',
+  ),
+  'Say what happened. The café checks your order and its PayPal payment, and a manager replies.': (
+    'Dites ce qui s’est passé. Le café vérifie votre commande et son paiement PayPal, puis un gérant vous répond.',
+    'اذكر ما حدث. يتحقق المقهى من طلبك ودفعته عبر PayPal، ثم يرد عليك مدير.',
+  ),
+  'What went wrong': ('Ce qui n’a pas été', 'ما الذي حدث'),
+  'The croissant was missing from my bag': (
+    'Le croissant manquait dans mon sac',
+    'الكرواسون لم يكن في الكيس',
+  ),
+  'Send to the café': ('Envoyer au café', 'إرسال إلى المقهى'),
+  'Discard your message?': ('Abandonner votre message ?', 'هل تتجاهل رسالتك؟'),
+  'Keep writing': ('Continuer d’écrire', 'متابعة الكتابة'),
+  'Sent. The café will reply.': (
+    'Envoyé. Le café vous répondra.',
+    'تم الإرسال. سيرد المقهى.',
+  ),
+  'The café looked into it': ('Le café a examiné votre message', 'نظر المقهى في الأمر'),
+  'Your message about this order has reached the café.': (
+    'Votre message sur cette commande est arrivé au café.',
+    'وصلت رسالتك بشأن هذا الطلب إلى المقهى.',
+  ),
 };

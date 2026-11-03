@@ -1,0 +1,18 @@
+class: Expense
+table: raysto_expense
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  category: String
+  amountMinor: int
+  currency: String
+  vatMinor: int
+  spentAt: DateTime
+  mediaId: int?
+  merchant: String
+  paypalTransactionId: String?
+  taskId: int?
+  createdAt: DateTime
+indexes:
+  expense_tenant:
+    fields: restaurantId, spentAt

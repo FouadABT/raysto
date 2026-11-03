@@ -69,6 +69,15 @@ class _StaffShellState extends State<StaffShell> {
           ),
           agentsPage(l),
         ),
+      // Everyone on the team clocks their own shift here.
+      (
+        DockDestination(
+          context.tr('Shifts'),
+          Icons.schedule_outlined,
+          Icons.schedule,
+        ),
+        ShiftsBoard(live: l),
+      ),
       if (l.role == 'courier')
         (
           DockDestination(

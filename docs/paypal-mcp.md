@@ -19,9 +19,17 @@ as an alternative, so Raysto now supports that official option.
 - The package is `@paypal/mcp` 1.8.1 with a committed dependency lock, including
   `@paypal/agent-toolkit` 1.11.0. Node 24.19.0 is bundled for Raysto; Awhar and
   machine-wide SDKs are not changed.
-- Startup explicitly selects Sandbox and only `orders.get,payments.getRefunds`.
-  The actual advertised tool schemas are `get_order(id)` and
-  `get_refund(refund_id)`. The client rejects incompatible schemas and write tools.
+- **Since 3 November (backend 0.14):** startup selects Sandbox and exactly twelve
+  tools. Seven are **reads the model may call** (`get_order`, `get_refund`,
+  `list_transactions`, `list_invoices`, `get_invoice`, `list_disputes`,
+  `get_dispute`). Five are **executes** (`create_invoice`, `send_invoice`,
+  `send_invoice_reminder`, `generate_invoice_qr_code`, `accept_dispute_claim`)
+  reachable only through `PayPalMcpClient.execute`, which the agent command
+  registry calls after a person approved the action (with the identity step-up
+  for money). The language model never sees the execute set. The contract check
+  (`paypal_mcp_runtime/verify-contract.cjs`) asserts the exact twelve names at
+  the Docker build. Before 0.14 the reader exposed only `get_order` and
+  `get_refund`; the observations below date from that version.
 - OAuth tokens travel in the subprocess environment, never command-line
   arguments. The subprocess does not inherit backend secrets or provider debug
   settings. Its stderr is drained without forwarding provider data to logs.

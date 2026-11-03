@@ -1,0 +1,30 @@
+class: CateringRequest
+table: raysto_catering_request
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  customerEmail: String
+  customerName: String?
+  text: String
+  eventAt: DateTime?
+  quoteJson: String
+  status: String
+  providerInvoiceId: String?
+  invoiceNumber: String?
+  qrMediaId: int?
+  orderId: int?
+  depositMinor: int
+  totalMinor: int
+  currency: String
+  dueAt: DateTime?
+  remindedAt: DateTime?
+  taskId: int?
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  catering_invoice:
+    fields: providerInvoiceId
+    unique: true
+  catering_tenant:
+    fields: restaurantId, createdAt

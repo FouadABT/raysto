@@ -1753,3 +1753,219 @@
     flex: 1;
   }
 }
+
+/* ---------- Back office: Money and Team ---------- */
+.ops-bo-tabs {
+  flex-wrap: wrap;
+}
+.ops-bo-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 18px;
+  align-items: start;
+}
+.ops-bo-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.ops-bo-card h2 {
+  font-family: "Fraunces Variable", serif;
+  font-weight: 460;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.ops-bo-card h3 {
+  font-size: 14px;
+  margin: 6px 0 0;
+}
+.ops-bo-card p {
+  margin: 0;
+  line-height: 1.55;
+}
+.ops-bo-figures {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 14px;
+}
+.ops-bo-figures dt {
+  color: var(--muted);
+}
+.ops-bo-figures dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.ops-bo-figures dd.ok {
+  color: var(--ok);
+}
+.ops-bo-figures dd.warn {
+  color: var(--warn);
+}
+.ops-bo-gaps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.ops-bo-gaps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--paper);
+}
+.ops-bo-gaps li strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ops-bo-gaps li p {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  color: var(--ink);
+}
+.ops-bo-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.ops-bo-form label.wide,
+.ops-bo-form button,
+.ops-bo-form .ops-note,
+.ops-bo-form .ops-eyebrow {
+  grid-column: 1 / -1;
+}
+.ops-root .ops-bo-form textarea {
+  resize: vertical;
+  min-height: 84px;
+  line-height: 1.5;
+}
+.ops-root .ops-bo-form .ops-primary,
+.ops-root .ops-bo-stepup .ops-primary {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.ops-bo-stepup {
+  display: grid;
+  gap: 10px;
+}
+.ops-bo-proposals {
+  display: grid;
+  gap: 18px;
+}
+.ops-bo-batch {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, var(--forest) 35%, var(--line));
+}
+.ops-bo-batch small {
+  color: var(--muted);
+}
+.ops-bo-qr {
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  background: #fff;
+}
+.ops-bo-chart {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+.ops-bo-chart svg {
+  width: 100%;
+  height: 160px;
+  display: block;
+}
+.ops-bo-bar {
+  fill: var(--forest);
+  opacity: 0.85;
+}
+.ops-bo-bar:hover {
+  opacity: 1;
+}
+.ops-bo-chart figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+}
+.ops-bo-chart figcaption span {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ops-root .ops-payments li .ops-secondary {
+  margin-top: 6px;
+  justify-self: start;
+}
+@media (max-width: 900px) {
+  .ops-bo-card h2 {
+    font-size: 21px;
+  }
+  .ops-bo-chart figcaption span:nth-child(odd):not(:first-child):not(:last-child) {
+    visibility: hidden;
+  }
+}
+.ops-bo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.ops-bo-toolbar .ops-chips {
+  flex-wrap: wrap;
+}
+.ops-bo-toolbar > p {
+  flex: 1 1 320px;
+  margin: 0;
+}
+.ops-root .ops-bo-toolbar > .ops-primary,
+.ops-root .ops-bo-toolbar > .ops-secondary {
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .ops-root .ops-bo-toolbar > .ops-primary,
+  .ops-root .ops-bo-toolbar > .ops-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (max-width: 600px) {
+  .ops-bo-toolbar .ops-chips small {
+    flex-basis: 100%;
+    padding: 4px 12px 8px;
+  }
+}
+
+/* Try Raysto: the money cards' gap list and the invoice QR. */
+.ops-try-gaps {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+}
+.ops-try-gaps strong {
+  text-transform: capitalize;
+}
+.ops-try-photo.small img {
+  max-width: 180px;
+}

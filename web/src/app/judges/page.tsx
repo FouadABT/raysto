@@ -5,7 +5,7 @@ import "./judges.css";
 export const metadata: Metadata = {
   title: { absolute: "Raysto · For hackathon judges" },
   description:
-    "Raysto: AI coworkers prepare, people approve, PayPal moves the money. Try five live demos in two minutes, nothing to install.",
+    "Raysto: AI coworkers run the café's money, people approve, PayPal moves it. Try nine live demos in three minutes, nothing to install.",
   robots: { index: true, follow: true },
 };
 

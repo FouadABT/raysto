@@ -1,0 +1,12 @@
+class: Supplier
+table: raysto_supplier
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  name: String
+  payoutEmail: String
+  version: int
+  createdAt: DateTime
+indexes:
+  supplier_tenant:
+    fields: restaurantId, name

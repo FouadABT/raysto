@@ -85,13 +85,28 @@ class AgentModule {
     'translator',
     'marketing',
     'reviews',
+    'supplies',
+    'expenses',
+    'loyalty',
+    'close',
+    'payroll',
+    'complaints',
+    'disputes',
   };
 
   /// Agents register their handlers here as they are built.
   static final Map<String, AgentHandler> handlers = {
     PaymentAgent.agent: PaymentAgent.run,
+    CloseAgent.agent: CloseAgent.run,
+    PayrollAgent.agent: PayrollAgent.run,
     MenuAgent.agent: MenuAgent.run,
+    CateringAgent.agent: CateringAgent.run,
+    ComplaintAgent.agent: ComplaintAgent.run,
+    DisputeAgent.agent: DisputeAgent.run,
     CopilotAgent.agent: CopilotAgent.run,
+    SuppliesAgent.agent: SuppliesAgent.run,
+    ExpensesAgent.agent: ExpensesAgent.run,
+    LoyaltyAgent.agent: LoyaltyAgent.run,
     ImageAgent.agent: ImageAgent.run,
   };
 
@@ -99,9 +114,12 @@ class AgentModule {
   static final Map<String, AgentTrigger> triggers = {
     'payment.uncertain': PaymentAgent.onCheckout,
     'payment.attention': PaymentAgent.onCheckout,
+    'payment.refund_requested': ComplaintAgent.onRefundRequested,
   };
 
   static final Map<String, AgentCommand> commands = {
+    ...CloseAgent.commands,
+    ...PayrollAgent.commands,
     'menu.publish': MenuAgent.publishCommand,
     'menu.image': ImageAgent.imageCommand,
     'menu.soldOut': AgentCommand(
@@ -149,6 +167,10 @@ class AgentModule {
         );
       },
     ),
+    ...SuppliesAgent.commands,
+    ...ExpensesAgent.commands,
+    ...LoyaltyAgent.commands,
+    ...CopilotAgent.commands,
     'settings.patch': AgentCommand(
       roles: _managers,
       risk: 'ops',
@@ -199,6 +221,8 @@ class AgentModule {
         );
       },
     ),
+    ...CateringAgent.commands,
+    ...DisputeAgent.commands,
     'payment.reconcile': AgentCommand(
       roles: _managers,
       risk: 'ops',

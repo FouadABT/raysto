@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-/// A deliberately read-only MCP client. It never exposes the provider's tool
-/// catalogue or credentials to the language model or accepts a caller's host.
+/// The PayPal MCP client. The language model only ever reaches the read
+/// tools in [allowed] (through [read] and [query]); the [executable] tools
+/// run only from an approved agent action's invoke step, through [execute].
+/// It never exposes the provider's tool catalogue or credentials to the model
+/// or accepts a caller's host.
 class PayPalMcpClient {
   PayPalMcpClient({required this.accessToken, http.Client? client})
     : _client = client ?? http.Client(),
@@ -52,7 +55,33 @@ class PayPalMcpClient {
   int _counter = 0;
   final Map<String, Map<String, dynamic>> _schemas = {};
   static final endpoint = Uri.parse('https://mcp.sandbox.paypal.com/http');
-  static const allowed = {'get_order', 'get_refund'};
+  /// Model-facing reads. Evidence only.
+  static const allowed = {
+    'get_order',
+    'get_refund',
+    'list_transactions',
+    'list_invoices',
+    'get_invoice',
+    'list_disputes',
+    'get_dispute',
+  };
+
+  /// Tools that change something at PayPal. Only [execute] reaches them, and
+  /// only an approved action calls [execute].
+  static const executable = {
+    'create_invoice',
+    'send_invoice',
+    'send_invoice_reminder',
+    'generate_invoice_qr_code',
+    'accept_dispute_claim',
+  };
+
+  /// The official server's ids for the tools above, in [allowed] order then
+  /// [executable] order. `verify-contract.cjs` and the stdio fixture pin it.
+  static const toolIds =
+      'orders.get,payments.getRefunds,transactions.list,invoices.list,'
+      'invoices.get,disputes.list,disputes.get,invoices.create,invoices.send,'
+      'invoices.sendReminder,invoices.generateQRC,disputes.create';
 
   void close() {
     _closed = true;
@@ -167,30 +196,33 @@ class PayPalMcpClient {
       if (tools is! List) throw const McpFailure('mcp_schema_mismatch');
       for (final tool in tools.whereType<Map>()) {
         final name = tool['name'];
-        if (!allowed.contains(name)) continue;
+        if (!allowed.contains(name) && !executable.contains(name)) continue;
         final schema = tool['inputSchema'];
         if (schema is! Map ||
             schema['type'] != 'object' ||
             schema['properties'] is! Map) {
           throw const McpFailure('mcp_schema_mismatch');
         }
-        final keys = (schema['properties'] as Map).keys.toSet();
-        final expected = name == 'get_refund'
-            ? {'refund_id'}
-            : _stdio != null
-            ? {'id'} // Official pinned @paypal/agent-toolkit schema.
-            : {'payment_id', 'order_id'};
-        final field = keys.length == 1
-            ? (schema['properties'] as Map)[keys.single]
-            : null;
-        if (keys.length != 1 ||
-            !expected.contains(keys.single) ||
-            field is! Map ||
-            field['type'] != 'string' ||
-            schema['required'] is! List ||
-            (schema['required'] as List).length != 1 ||
-            (schema['required'] as List).single != keys.single) {
-          throw const McpFailure('mcp_schema_mismatch');
+        if (name == 'get_order' || name == 'get_refund') {
+          // The two evidence reads keep their strict one-field contract.
+          final keys = (schema['properties'] as Map).keys.toSet();
+          final expected = name == 'get_refund'
+              ? {'refund_id'}
+              : _stdio != null
+              ? {'id'} // Official pinned @paypal/agent-toolkit schema.
+              : {'payment_id', 'order_id'};
+          final field = keys.length == 1
+              ? (schema['properties'] as Map)[keys.single]
+              : null;
+          if (keys.length != 1 ||
+              !expected.contains(keys.single) ||
+              field is! Map ||
+              field['type'] != 'string' ||
+              schema['required'] is! List ||
+              (schema['required'] as List).length != 1 ||
+              (schema['required'] as List).single != keys.single) {
+            throw const McpFailure('mcp_schema_mismatch');
+          }
         }
         _schemas[name as String] = Map<String, dynamic>.from(schema);
       }
@@ -210,7 +242,7 @@ class PayPalMcpClient {
   }
 
   Future<Map<String, dynamic>> _read(String tool, String providerId) async {
-    if (!allowed.contains(tool) ||
+    if (tool != 'get_order' && tool != 'get_refund' ||
         !RegExp(r'^[A-Za-z0-9_-]{1,100}$').hasMatch(providerId)) {
       throw const McpFailure('mcp_forbidden_tool');
     }
@@ -218,22 +250,98 @@ class PayPalMcpClient {
     final schema = _schemas[tool];
     if (schema == null) throw const McpFailure('mcp_schema_mismatch');
     final key = (schema['properties'] as Map).keys.single as String;
+    return _evidence(await _call(tool, {key: providerId}));
+  }
+
+  /// A read with arguments (lists and lookups other than the two evidence
+  /// reads). Arguments are checked against the tool's own schema; the result
+  /// is the structured content as the server returned it.
+  Future<Map<String, dynamic>> query(
+    String tool,
+    Map<String, dynamic> args,
+  ) async {
+    if (!allowed.contains(tool)) throw const McpFailure('mcp_forbidden_tool');
+    return _arguments(tool, args).timeout(
+      const Duration(seconds: 20),
+      onTimeout: () {
+        close();
+        throw const McpFailure('mcp_deadline');
+      },
+    );
+  }
+
+  /// A change at PayPal, run only from an approved action. Never offered to
+  /// the model loop.
+  Future<Map<String, dynamic>> execute(
+    String tool,
+    Map<String, dynamic> args,
+  ) async {
+    if (!executable.contains(tool)) {
+      throw const McpFailure('mcp_forbidden_tool');
+    }
+    return _arguments(tool, args).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () {
+        close();
+        throw const McpFailure('mcp_deadline');
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> _arguments(
+    String tool,
+    Map<String, dynamic> args,
+  ) async {
+    if (_schemas.isEmpty) await initialize();
+    final schema = _schemas[tool];
+    if (schema == null) throw const McpFailure('mcp_schema_mismatch');
+    final properties = schema['properties'] as Map;
+    for (final entry in args.entries) {
+      final value = entry.value;
+      if (!properties.containsKey(entry.key) ||
+          !(value is String ||
+              value is num ||
+              value is bool ||
+              value is Map ||
+              value is List)) {
+        throw const McpFailure('mcp_invalid_arguments');
+      }
+    }
+    for (final required in (schema['required'] as List? ?? [])) {
+      if (!args.containsKey(required)) {
+        throw const McpFailure('mcp_invalid_arguments');
+      }
+    }
+    return _call(tool, args);
+  }
+
+  Future<Map<String, dynamic>> _call(
+    String tool,
+    Map<String, dynamic> args,
+  ) async {
     final result = await _rpc('tools/call', {
       'name': tool,
-      'arguments': {key: providerId},
+      'arguments': args,
     });
     if (result['isError'] == true) throw const McpFailure('mcp_tool_failed');
     if (result['structuredContent'] is Map) {
-      return _evidence(
-        Map<String, dynamic>.from(result['structuredContent'] as Map),
-      );
+      return Map<String, dynamic>.from(result['structuredContent'] as Map);
     }
     for (final block in (result['content'] as List? ?? []).whereType<Map>()) {
       if (block['type'] != 'text' || block['text'] is! String) continue;
+      final text = block['text'] as String;
       try {
-        final value = jsonDecode(block['text'] as String);
-        if (value is Map<String, dynamic>) return _evidence(value);
+        final value = jsonDecode(text);
+        if (value is Map<String, dynamic>) return value;
+        if (value is List) return {'items': value};
       } on FormatException {
+        // PayPal answers the QR request with the PNG itself, base64 encoded,
+        // which the toolkit passes on as plain text.
+        if (tool == 'generate_invoice_qr_code' &&
+            text.length < 65536 &&
+            RegExp(r'^[A-Za-z0-9+/=\s]+$').hasMatch(text)) {
+          return {'qr_code': text.replaceAll(RegExp(r'\s'), '')};
+        }
         /* Plain prose is not financial evidence. */
       }
     }
@@ -251,8 +359,9 @@ class PayPalMcpClient {
   }
 }
 
-/// One bounded, shell-free subprocess per reader. It exposes only two tools,
-/// inherits no application secrets, and is never reachable over a network port.
+/// One bounded, shell-free subprocess per client. It exposes only the pinned
+/// tool list, inherits no application secrets, and is never reachable over a
+/// network port.
 class _PayPalStdio {
   _PayPalStdio(this.executable, this.script);
   final String executable;
@@ -272,7 +381,7 @@ class _PayPalStdio {
         executable,
         [
           script,
-          '--tools=orders.get,payments.getRefunds',
+          '--tools=${PayPalMcpClient.toolIds}',
           '--paypal-environment=sandbox',
         ],
         includeParentEnvironment: false,

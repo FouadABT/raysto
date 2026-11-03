@@ -1,0 +1,23 @@
+class: DisputeCase
+table: raysto_dispute_case
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  providerDisputeId: String
+  captureId: int?
+  reason: String
+  amountMinor: int
+  currency: String
+  status: String
+  evidenceJson: String
+  replyText: String?
+  taskId: int?
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  dispute_provider:
+    fields: providerDisputeId
+    unique: true
+  dispute_tenant:
+    fields: restaurantId, createdAt

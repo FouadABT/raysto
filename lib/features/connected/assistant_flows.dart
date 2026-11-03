@@ -23,6 +23,7 @@ class _AskRaystoPageState extends State<AskRaystoPage> {
   // request, so a retry after a dropped connection resumes and never orders
   // or charges twice.
   PendingCommand? approveRequest, submitRequest, allocateRequest;
+  int tipMinor = 0;
   PendingCommand? checkoutRequest;
 
   LiveContext get live => widget.live;
@@ -186,7 +187,11 @@ class _AskRaystoPageState extends State<AskRaystoPage> {
       final placed = await live.api.submit(submitRequest!);
       allocateRequest ??= PendingCommand(
         'payment.allocate',
-        live.params({'orderId': placed['orderId'], 'method': 'paypal'}),
+        live.params({
+          'orderId': placed['orderId'],
+          'method': 'paypal',
+          if (tipMinor > 0) 'tipMinor': tipMinor,
+        }),
       );
       final checkoutId =
           (await live.api.submit(allocateRequest!))['checkoutId'] as int;
@@ -297,6 +302,20 @@ class _AskRaystoPageState extends State<AskRaystoPage> {
                           Text(
                             '${context.tr('Total')} ${money(quote['totalMinor'], '${quote['currency'] ?? ''}')}',
                             style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          TipChooser(
+                            amountMinor: (quote['totalMinor'] as num? ?? 0)
+                                .toInt(),
+                            currency: '${quote['currency'] ?? ''}',
+                            tipMinor: tipMinor,
+                            onChanged: paying
+                                ? (_) {}
+                                : (v) => setState(() {
+                                    tipMinor = v;
+                                    // A different tip is a different payment.
+                                    allocateRequest = checkoutRequest = null;
+                                  }),
                           ),
                           const SizedBox(height: 12),
                           AppButton(

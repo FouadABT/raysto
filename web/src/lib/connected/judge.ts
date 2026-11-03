@@ -18,7 +18,18 @@ export const judge = {
   apkSha256: process.env.NEXT_PUBLIC_RAYSTO_APK_SHA256 ?? "",
   videoUrl: process.env.NEXT_PUBLIC_RAYSTO_VIDEO_URL ?? "",
   videoLength: process.env.NEXT_PUBLIC_RAYSTO_VIDEO_LENGTH ?? "",
+  /** The sample photos uploaded to the café: the printed menu, a supplier's
+   * delivery note and a receipt, for the menu, supplies and expenses agents. */
+  menuMediaId: Number(process.env.NEXT_PUBLIC_RAYSTO_JUDGE_MENU_MEDIA_ID ?? 0),
+  deliveryMediaId: Number(process.env.NEXT_PUBLIC_RAYSTO_JUDGE_DELIVERY_MEDIA_ID ?? 0),
+  receiptMediaId: Number(process.env.NEXT_PUBLIC_RAYSTO_JUDGE_RECEIPT_MEDIA_ID ?? 0),
 };
+
+/**
+ * How many AI coworkers the product ships, in words, for the judges' page and
+ * the Try page. One edit here when an agent is added or cut.
+ */
+export const coworkers = { count: "fourteen", demos: 9 };
 
 export const judgeLogin = () => !!(judge.email && judge.password);
 export const isJudgeVenue = (restaurantId: number) =>

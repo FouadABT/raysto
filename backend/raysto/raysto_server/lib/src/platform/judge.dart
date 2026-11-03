@@ -256,16 +256,329 @@ class JudgeModule {
   /// A manager of the judges' café starts it fresh. Work from the last ten
   /// minutes is kept, so another judge in the middle of a demo keeps theirs.
   static Future<Json> command(Session s, PlatformCommand c) async {
+    var menuOnly = false;
     await _mutate(s, c, 'judge.reset', (w, d) async {
-      _keys(d, {});
+      _keys(d, {'menu'});
+      menuOnly = d.containsKey('menu') && _bool(d, 'menu');
       if (!venue(w.tenant)) {
         _fail('forbidden', 'Only the judges’ café starts fresh.');
       }
-      await _rate(s, 'judge-reset:${w.tenant}', 2, w.tx);
-      await w.audit('judge.reset_requested', 'restaurant', w.tenant);
+      await _rate(s, 'judge-reset:${w.tenant}', menuOnly ? 20 : 2, w.tx);
+      await w.audit('judge.reset_requested', 'restaurant', w.tenant, {
+        if (menuOnly) 'menu': true,
+      });
       return {};
     }, roles: _managers);
-    return reset(s, c.restaurantId!, quiet: const Duration(minutes: 10));
+    return reset(
+      s,
+      c.restaurantId!,
+      quiet: const Duration(minutes: 10),
+      menuOnly: menuOnly,
+    );
+  }
+
+  /// The Sandbox buyer accounts standing in as the team's PayPal emails,
+  /// from `RAYSTO_JUDGE_PAYOUT_EMAILS` (comma-separated). Never hardcoded.
+  static List<String> get payoutEmails =>
+      (ProviderClients.environment()['RAYSTO_JUDGE_PAYOUT_EMAILS'] ?? '')
+          .split(',')
+          .map((e) => e.trim().toLowerCase())
+          .where((e) => e.contains('@'))
+          .toList();
+
+  /// What a judge finds in the back office: a team on shift this week, a
+  /// catering request, a complaint on a paid order, a seeded dispute,
+  /// suppliers, stock, last week's expenses and two regulars. Shifts are
+  /// re-made each day; the rest is added only when missing, and the hourly
+  /// tidy never touches any of it.
+  static Future<Json> seed(Work w) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final zone = CatalogueModule.zone(w.settings['timezone'] as String);
+    final emails = payoutEmails;
+    String email(int i) => emails.isEmpty ? '' : emails[i % emails.length];
+    final today = tz.TZDateTime.from(_now(), zone);
+    final monday = tz.TZDateTime(
+      zone,
+      today.year,
+      today.month,
+      today.day,
+    ).subtract(Duration(days: today.weekday - 1));
+
+    await StaffShift.db.deleteWhere(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      transaction: w.tx,
+    );
+    const team = [
+      ('Nadia', 'floor', 1600, 9, 17),
+      ('Omar', 'kitchen', 1800, 8, 16),
+      ('Lina', 'manager', 2200, 10, 18),
+    ];
+    final shifts = <StaffShift>[];
+    for (var day = 0; day < 6; day++) {
+      final date = monday.add(Duration(days: day));
+      for (final (i, (name, role, rate, from, to)) in team.indexed) {
+        final startsAt = tz.TZDateTime(zone, date.year, date.month, date.day, from).toUtc();
+        final endsAt = tz.TZDateTime(zone, date.year, date.month, date.day, to).toUtc();
+        final past = endsAt.isBefore(_now());
+        final onNow = startsAt.isBefore(_now()) && !past;
+        shifts.add(
+          StaffShift(
+            restaurantId: rid,
+            name: name,
+            role: role,
+            startsAt: startsAt,
+            endsAt: endsAt,
+            clockInAt: past || onNow ? startsAt : null,
+            clockOutAt: past ? endsAt : null,
+            hourlyRateMinor: rate,
+            payoutEmail: email(i).isEmpty ? null : email(i),
+            version: 1,
+            createdAt: _now(),
+          ),
+        );
+      }
+    }
+    await StaffShift.db.insert(s, shifts, transaction: w.tx);
+
+    var catering = 0;
+    final asked = await CateringRequest.db.count(
+      s,
+      where: (t) => t.restaurantId.equals(rid) & t.status.equals('requested'),
+      transaction: w.tx,
+    );
+    if (asked == 0) {
+      final friday = monday.add(const Duration(days: 4, hours: 12));
+      await CateringRequest.db.insertRow(
+        s,
+        CateringRequest(
+          restaurantId: rid,
+          customerEmail: email(0).isEmpty ? 'caterer@example.com' : email(0),
+          customerName: 'Studio Lumen',
+          text:
+              'Lunch for 12 on Friday, sandwiches and salads, budget \$150. '
+              'Two of us are vegetarian.',
+          eventAt: (friday.isBefore(today) ? friday.add(const Duration(days: 7)) : friday).toUtc(),
+          quoteJson: '{}',
+          status: 'requested',
+          depositMinor: 0,
+          totalMinor: 0,
+          currency: w.restaurant!.currency,
+          version: 1,
+          createdAt: _now(),
+          updatedAt: _now(),
+        ),
+        transaction: w.tx,
+      );
+      catering = 1;
+    }
+
+    // A complaint needs a real paid order; judges' own PayPal orders qualify.
+    var complaint = 0;
+    final openComplaints = await Complaint.db.count(
+      s,
+      where: (t) => t.restaurantId.equals(rid) & t.status.inSet({'open', 'proposed'}),
+      transaction: w.tx,
+    );
+    PaymentCapture? capture;
+    if (openComplaints == 0) {
+      final paid = await PurchaseOrder.db.find(
+        s,
+        where: (t) =>
+            t.restaurantId.equals(rid) &
+            t.paymentStatus.equals('paid') &
+            t.status.notInSet({'cancelled', 'rejected', 'expired'}),
+        orderBy: (t) => t.createdAt,
+        limit: 50,
+        transaction: w.tx,
+      );
+      for (final o in paid.reversed) {
+        final checkout = await CheckoutIntent.db.findFirstRow(
+          s,
+          where: (t) => t.orderId.equals(o.id!) & t.state.equals('completed'),
+          transaction: w.tx,
+        );
+        if (checkout == null) continue;
+        capture = await PaymentCapture.db.findFirstRow(
+          s,
+          where: (t) => t.checkoutId.equals(checkout.id!) & t.state.equals('completed'),
+          transaction: w.tx,
+        );
+        if (capture == null || capture.amountMinor - capture.refundedMinor < 100) continue;
+        final had = await Complaint.db.count(
+          s,
+          where: (t) => t.orderId.equals(o.id!),
+          transaction: w.tx,
+        );
+        if (had > 0) continue;
+        await Complaint.db.insertRow(
+          s,
+          Complaint(
+            restaurantId: rid,
+            orderId: o.id!,
+            captureId: capture.id,
+            userId: o.customerId,
+            text: 'My croissant was missing from the bag.',
+            status: 'open',
+            version: 1,
+            createdAt: _now(),
+            updatedAt: _now(),
+          ),
+          transaction: w.tx,
+        );
+        complaint = 1;
+        break;
+      }
+    }
+
+    var dispute = 0;
+    final disputes = await DisputeCase.db.count(
+      s,
+      where: (t) => t.restaurantId.equals(rid) & t.providerDisputeId.equals('SEEDED-JUDGES-1'),
+      transaction: w.tx,
+    );
+    if (disputes == 0) {
+      await DisputeCase.db.insertRow(
+        s,
+        DisputeCase(
+          restaurantId: rid,
+          providerDisputeId: 'SEEDED-JUDGES-1',
+          captureId: capture?.id,
+          reason: 'ITEM_NOT_RECEIVED',
+          amountMinor: 750,
+          currency: w.restaurant!.currency,
+          status: 'open',
+          evidenceJson: jsonEncode({
+            'seeded': true,
+            'note': 'A seeded Sandbox case: PayPal Sandbox cannot open a real dispute.',
+          }),
+          version: 1,
+          createdAt: _now(),
+          updatedAt: _now(),
+        ),
+        transaction: w.tx,
+      );
+      dispute = 1;
+    }
+
+    final suppliers = await Supplier.db.find(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      transaction: w.tx,
+    );
+    final byName = {for (final x in suppliers) x.name: x};
+    for (final (i, name) in ['Marché Dupont', 'Greenline Cleaning Supplies'].indexed) {
+      if (byName.containsKey(name)) continue;
+      byName[name] = await Supplier.db.insertRow(
+        s,
+        Supplier(
+          restaurantId: rid,
+          name: name,
+          payoutEmail: email(i).isEmpty ? 'supplier-${i + 1}@example.com' : email(i),
+          version: 1,
+          createdAt: _now(),
+        ),
+        transaction: w.tx,
+      );
+    }
+    final dupont = byName['Marché Dupont']!.id;
+    final stock = await StockItem.db.count(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      transaction: w.tx,
+    );
+    if (stock == 0) {
+      const items = [
+        ('Flour T55', 'kg', 12.0, 120, 10.0),
+        ('Butter AOP', 'kg', 3.5, 980, 4.0),
+        ('Free-range eggs', 'pcs', 60.0, 32, 48.0),
+        ('Button mushrooms', 'kg', 1.5, 650, 2.0),
+        ('Arborio rice', 'kg', 6.0, 390, 3.0),
+        ('Espresso beans', 'kg', 2.0, 2200, 2.5),
+      ];
+      await StockItem.db.insert(s, [
+        for (final (name, unit, quantity, cost, low) in items)
+          StockItem(
+            restaurantId: rid,
+            name: name,
+            unit: unit,
+            quantity: quantity,
+            costMinor: cost,
+            supplierId: dupont,
+            lowAt: low,
+            version: 1,
+            updatedAt: _now(),
+          ),
+      ], transaction: w.tx);
+    }
+
+    final expenses = await Expense.db.count(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      transaction: w.tx,
+    );
+    if (expenses == 0) {
+      await Expense.db.insert(s, [
+        Expense(
+          restaurantId: rid,
+          category: 'food',
+          amountMinor: 47980,
+          currency: w.restaurant!.currency,
+          vatMinor: 0,
+          spentAt: _now().subtract(const Duration(days: 6)),
+          merchant: 'Marché Dupont',
+          createdAt: _now(),
+        ),
+        Expense(
+          restaurantId: rid,
+          category: 'other',
+          amountMinor: 7956,
+          currency: w.restaurant!.currency,
+          vatMinor: 589,
+          spentAt: _now().subtract(const Duration(days: 4)),
+          merchant: 'Greenline Cleaning Supplies',
+          paypalTransactionId: '7XK40217PL338',
+          createdAt: _now(),
+        ),
+      ], transaction: w.tx);
+    }
+
+    final customers = await CustomerProfile.db.count(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      transaction: w.tx,
+    );
+    if (customers == 0) {
+      await CustomerProfile.db.insert(s, [
+        CustomerProfile(
+          restaurantId: rid,
+          emailHash: _hash('judges:regular'),
+          displayName: 'Maya (regular)',
+          visits: 14,
+          spentMinor: 18650,
+          lastSeenAt: _now().subtract(const Duration(days: 1)),
+          tagsJson: '["regular"]',
+          updatedAt: _now(),
+        ),
+        CustomerProfile(
+          restaurantId: rid,
+          emailHash: _hash('judges:lapsed'),
+          displayName: 'Tom (lapsed)',
+          visits: 6,
+          spentMinor: 7200,
+          lastSeenAt: _now().subtract(const Duration(days: 31)),
+          tagsJson: '["lapsed"]',
+          updatedAt: _now(),
+        ),
+      ], transaction: w.tx);
+    }
+    return {
+      'shifts': shifts.length,
+      'catering': catering,
+      'complaint': complaint,
+      'dispute': dispute,
+    };
   }
 
   /// Returns the café to its starting menu and settings. Nothing is deleted:
@@ -277,13 +590,16 @@ class JudgeModule {
     int rid, {
     Duration quiet = const Duration(hours: 1),
     bool full = true,
+    bool menuOnly = false,
   }) async {
     if (!venue(rid)) {
       _fail('forbidden', 'Only the judges’ café starts fresh.');
     }
     final before = _now().subtract(quiet);
     var released = 0;
-    final open = await CheckoutIntent.db.find(
+    final open = menuOnly
+        ? <CheckoutIntent>[]
+        : await CheckoutIntent.db.find(
       s,
       where: (t) =>
           t.restaurantId.equals(rid) &
@@ -313,15 +629,17 @@ class JudgeModule {
     }
     return MoneyModule.locked(s, rid, owner.userId, (w) async {
       var completed = 0, cancelled = 0, expired = 0;
-      final orders = await PurchaseOrder.db.find(
-        s,
-        where: (t) =>
-            t.restaurantId.equals(rid) &
-            t.status.notInSet({'completed', 'cancelled', 'rejected'}) &
-            (t.updatedAt < before),
-        limit: 500,
-        transaction: w.tx,
-      );
+      final orders = menuOnly
+          ? <PurchaseOrder>[]
+          : await PurchaseOrder.db.find(
+              s,
+              where: (t) =>
+                  t.restaurantId.equals(rid) &
+                  t.status.notInSet({'completed', 'cancelled', 'rejected'}) &
+                  (t.updatedAt < before),
+              limit: 500,
+              transaction: w.tx,
+            );
       for (final row in orders) {
         final (o, ctx) = await OrderingModule._order(w, row.id!);
         if ({
@@ -350,14 +668,16 @@ class JudgeModule {
         );
         cancelled++;
       }
-      final pending = await AgentAction.db.find(
-        s,
-        where: (t) =>
-            t.restaurantId.equals(rid) &
-            t.status.equals('pending') &
-            (t.createdAt < before),
-        transaction: w.tx,
-      );
+      final pending = menuOnly
+          ? <AgentAction>[]
+          : await AgentAction.db.find(
+              s,
+              where: (t) =>
+                  t.restaurantId.equals(rid) &
+                  t.status.equals('pending') &
+                  (t.createdAt < before),
+              transaction: w.tx,
+            );
       for (final a in pending) {
         a.status = 'expired';
         a.decidedAt = _now();
@@ -449,6 +769,7 @@ class JudgeModule {
         transaction: w.tx,
       );
       await CatalogueModule.applyDraft(w, draft, merge: false);
+      final seeded = menuOnly ? const <String, dynamic>{} : await seed(w);
       final result = {
         'released': released,
         'completed': completed,
@@ -456,8 +777,10 @@ class JudgeModule {
         'expired': expired,
         'dishes': items.length,
         'menuVersion': policy.menuVersion,
+        if (menuOnly) 'menuOnly': true,
+        ...seeded,
       };
-      await w.audit('judge.reset', 'restaurant', rid, result);
+      await w.audit(menuOnly ? 'judge.menu_restored' : 'judge.reset', 'restaurant', rid, result);
       return result;
     });
   }

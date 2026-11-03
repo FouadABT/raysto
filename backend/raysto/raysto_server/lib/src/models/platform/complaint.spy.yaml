@@ -1,0 +1,18 @@
+class: Complaint
+table: raysto_complaint
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  orderId: int, relation(parent=raysto_order)
+  captureId: int?
+  userId: String?
+  text: String
+  status: String
+  refundId: int?
+  taskId: int?
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  complaint_tenant:
+    fields: restaurantId, createdAt

@@ -21,6 +21,50 @@ export const consoleQueries = new Set([
   "media",
   "menu.drafts",
   "checkout",
+  // The back office (docs/back-office-design.md §3).
+  "backoffice.close",
+  "backoffice.closes",
+  "shifts",
+  "payouts",
+  "payout",
+  "catering",
+  "catering.request",
+  "complaints",
+  "disputes",
+  "expenses",
+  "customers",
+  "analytics",
+]);
+
+/** Back-office names from the design; the drift test accepts these until the backend ships them. */
+export const backofficeCommands = new Set([
+  "close.run",
+  "close.sign",
+  "payroll.run",
+  "payout.send",
+  "shift.save",
+  "shift.clock",
+  "catering.request",
+  "invoice.send",
+  "invoice.remind",
+  "complaint.open",
+  "dispute.sweep",
+  "expense.record",
+  "loyalty.run",
+]);
+export const backofficeQueries = new Set([
+  "backoffice.close",
+  "backoffice.closes",
+  "shifts",
+  "payouts",
+  "payout",
+  "catering",
+  "catering.request",
+  "complaints",
+  "disputes",
+  "expenses",
+  "customers",
+  "analytics",
 ]);
 
 export const consoleCommands = new Set([
@@ -49,6 +93,21 @@ export const consoleCommands = new Set([
   "payment.allocate",
   "payment.checkout",
   "judge.reset",
+  // The back office: the close, pay and tips, catering invoices, complaints
+  // and disputes, expenses, loyalty and shifts.
+  "close.run",
+  "close.sign",
+  "payroll.run",
+  "payout.send",
+  "shift.save",
+  "shift.clock",
+  "catering.request",
+  "invoice.send",
+  "invoice.remind",
+  "complaint.open",
+  "dispute.sweep",
+  "expense.record",
+  "loyalty.run",
 ]);
 
 export function allowedPath(path: string): boolean {

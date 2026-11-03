@@ -293,6 +293,112 @@ void main() {
         (await CheckoutIntent.db.findById(s, abandoned.id!))!.state,
         'cancelled',
       );
+
+      // The back office a judge finds: shifts this week, a catering request,
+      // a seeded dispute, suppliers, stock, expenses and two regulars. The
+      // first reset of the day seeds them; later resets re-make only shifts.
+      expect(first['shifts'], 18);
+      expect(first, containsPair('catering', 1));
+      expect(first, containsPair('dispute', 1));
+      expect(result['shifts'], 18);
+      expect(result, containsPair('catering', 0));
+      expect(result, containsPair('dispute', 0));
+      final rid = restaurant.id!;
+      expect(
+        await StaffShift.db.count(s, where: (t) => t.restaurantId.equals(rid)),
+        18,
+      );
+      expect(
+        await CateringRequest.db.count(
+          s,
+          where: (t) => t.restaurantId.equals(rid),
+        ),
+        1,
+      );
+      expect(
+        await Supplier.db.count(s, where: (t) => t.restaurantId.equals(rid)),
+        2,
+      );
+      expect(
+        await StockItem.db.count(s, where: (t) => t.restaurantId.equals(rid)),
+        6,
+      );
+      expect(
+        await Expense.db.count(s, where: (t) => t.restaurantId.equals(rid)),
+        2,
+      );
+      expect(
+        await CustomerProfile.db.count(
+          s,
+          where: (t) => t.restaurantId.equals(rid),
+        ),
+        2,
+      );
+      // No capture exists in this fixture, so no complaint is seeded.
+      expect(result, containsPair('complaint', 0));
+    });
+
+    test('restoring only the menu leaves orders and the back office', () async {
+      final s = builder.build();
+      await JudgeModule.reset(s, restaurant.id!);
+      final croque = (await menu())['Croque monsieur']!.productId;
+      final draft = await MenuDraft.db.insertRow(
+        s,
+        MenuDraft(
+          restaurantId: restaurant.id!,
+          userId: 'judge-manager',
+          itemsJson: jsonEncode([
+            {
+              'productId': croque,
+              'name': 'Croque monsieur',
+              'category': 'Sandwiches',
+              'priceMinor': 990,
+            },
+          ]),
+          baseMenuVersion: 0,
+          version: 1,
+          status: 'draft',
+          createdAt: now,
+        ),
+      );
+      await CatalogueModule.publishDraft(
+        manager.build(),
+        PlatformCommand(
+          requestKey: key(),
+          restaurantId: restaurant.id,
+          resourceId: draft.id,
+          expectedVersion: 1,
+          dataJson: '{"confirm":true,"merge":true}',
+        ),
+      );
+      final paid = await order('accepted', 'paid', at: old);
+      final shifts = await StaffShift.db.count(
+        s,
+        where: (t) => t.restaurantId.equals(restaurant.id!),
+      );
+
+      final result = await JudgeModule.command(
+        manager.build(),
+        PlatformCommand(
+          requestKey: key(),
+          restaurantId: restaurant.id,
+          dataJson: '{"menu":true}',
+        ),
+      );
+      expect(result, containsPair('menuOnly', true));
+      expect(result, containsPair('completed', 0));
+      expect((await MenuProduct.db.findById(s, croque))!.priceMinor, 750);
+      expect(
+        (await PurchaseOrder.db.findById(s, paid.id!))!.status,
+        'accepted',
+      );
+      expect(
+        await StaffShift.db.count(
+          s,
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ),
+        shifts,
+      );
     });
 
     test('the hourly tidy closes demo orders and keeps the menu', () async {
@@ -352,6 +458,21 @@ void main() {
         990,
         reason:
             'The tidy leaves a judge’s approved menu until the daily reset.',
+      );
+      expect(
+        await StaffShift.db.count(
+          s,
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ),
+        18,
+        reason: 'The tidy keeps the seeded back office.',
+      );
+      expect(
+        await CateringRequest.db.count(
+          s,
+          where: (t) => t.restaurantId.equals(restaurant.id!),
+        ),
+        1,
       );
 
       // The worker queues the tidy once an hour.

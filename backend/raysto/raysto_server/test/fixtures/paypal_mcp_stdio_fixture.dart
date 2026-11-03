@@ -4,7 +4,7 @@ import 'dart:io';
 
 Future<void> main(List<String> args) async {
   if (args.join('|') !=
-          '--tools=orders.get,payments.getRefunds|--paypal-environment=sandbox' ||
+          '--tools=orders.get,payments.getRefunds,transactions.list,invoices.list,invoices.get,disputes.list,disputes.get,invoices.create,invoices.send,invoices.sendReminder,invoices.generateQRC,disputes.create|--paypal-environment=sandbox' ||
       Platform.environment['PAYPAL_ACCESS_TOKEN'] != 'fixture-token' ||
       Platform.environment['PAYPAL_ENVIRONMENT'] != 'SANDBOX' ||
       Platform.environment.containsKey('PATH') ||
@@ -24,19 +24,51 @@ Future<void> main(List<String> args) async {
       result = {
         'tools': [
           for (final entry in {
-            'get_order': 'id',
-            'get_refund': 'refund_id',
+            'get_order': ['id'],
+            'get_refund': ['refund_id'],
+            'list_transactions': ['start_date', 'end_date'],
+            'list_invoices': ['page', 'page_size'],
+            'get_invoice': ['invoice_id'],
+            'list_disputes': ['page', 'page_size', 'dispute_state'],
+            'get_dispute': ['dispute_id'],
+            'create_invoice': [
+              'currency_code',
+              'primary_recipients',
+              'items',
+              'reference',
+              'note',
+              'invoicer_business_name',
+            ],
+            'send_invoice': ['invoice_id', 'note', 'send_to_recipient'],
+            'send_invoice_reminder': ['invoice_id', 'note', 'subject'],
+            'generate_invoice_qr_code': ['invoice_id', 'width', 'height'],
+            'accept_dispute_claim': ['dispute_id', 'note'],
           }.entries)
             {
               'name': entry.key,
               'inputSchema': {
                 'type': 'object',
                 'properties': {
-                  entry.value: {'type': 'string'},
+                  for (final f in entry.value) f: {'type': 'string'},
                 },
-                'required': [entry.value],
+                'required': [entry.value.first],
               },
             },
+        ],
+      };
+    } else if ((params['arguments'] as Map).length != 1) {
+      // Reads with arguments and executes echo what they were asked.
+      result = {
+        'content': [
+          {
+            'type': 'text',
+            'text': jsonEncode({
+              'tool': params['name'],
+              'arguments': params['arguments'],
+              'id': 'INV2-FIXTURE',
+              'status': 'SENT',
+            }),
+          },
         ],
       };
     } else {

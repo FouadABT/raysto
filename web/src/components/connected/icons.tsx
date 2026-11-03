@@ -24,6 +24,11 @@ const paths = {
   image: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><circle cx="9" cy="9.5" r="1.75" /><path d="m20.5 16-4.5-4.5L7 20" /></>,
   chat: <><path d="M4.5 5.5h15v10h-8l-4.5 3.5v-3.5H4.5z" /><path d="M8.5 9.5h7M8.5 12.5h4" /></>,
   menu: <><path d="M6 3.5h12v17H6z" /><path d="M9 8h6M9 11.5h6M9 15h4" /></>,
+  money: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7v10M14.75 9.25c0-1-1.2-1.75-2.75-1.75S9.25 8.25 9.25 9.5c0 2.5 5.5 1.5 5.5 4.25 0 1.25-1.2 2-2.75 2s-2.75-.75-2.75-1.75" /></>,
+  team: <><circle cx="9" cy="8.5" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0" /><circle cx="16.5" cy="9.5" r="2.25" /><path d="M15.5 14.25a4.5 4.5 0 0 1 5 4.25" /></>,
+  plus: <path d="M12 5v14M5 12h14" />,
+  invoice: <><path d="M6 3.5h9l3 3v14H6z" /><path d="M15 3.5v3h3M9 11h6M9 14.5h6M9 18h3" /></>,
+  chart: <><path d="M4 20h16" /><rect x="6" y="11" width="3" height="6" rx="0.75" /><rect x="11" y="7" width="3" height="10" rx="0.75" /><rect x="16" y="4" width="3" height="13" rx="0.75" /></>,
 } as const;
 
 export type IconName = keyof typeof paths;

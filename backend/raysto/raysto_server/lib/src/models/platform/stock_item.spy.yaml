@@ -1,0 +1,16 @@
+class: StockItem
+table: raysto_stock_item
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  name: String
+  unit: String
+  quantity: double
+  costMinor: int
+  supplierId: int?
+  lowAt: double
+  version: int
+  updatedAt: DateTime
+indexes:
+  stock_tenant:
+    fields: restaurantId, name

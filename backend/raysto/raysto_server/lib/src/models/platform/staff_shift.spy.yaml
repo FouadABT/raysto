@@ -1,0 +1,19 @@
+class: StaffShift
+table: raysto_staff_shift
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  userId: String?
+  name: String
+  role: String
+  startsAt: DateTime
+  endsAt: DateTime
+  clockInAt: DateTime?
+  clockOutAt: DateTime?
+  hourlyRateMinor: int
+  payoutEmail: String?
+  version: int
+  createdAt: DateTime
+indexes:
+  staff_shift_tenant_start:
+    fields: restaurantId, startsAt

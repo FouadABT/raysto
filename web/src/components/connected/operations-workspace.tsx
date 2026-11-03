@@ -48,6 +48,7 @@ import {
   AgentsSection,
 } from "./business-sections";
 import { TrySection } from "./try-section";
+import { MoneySection, TeamSection } from "./backoffice-sections";
 import { isJudgeVenue } from "@/lib/connected/judge";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -686,6 +687,8 @@ export function OperationsWorkspace({
                   ["orders", "Orders", "orders"],
                   ["payments", "Payments", "payments"],
                   ["agents", "Agents", "agents"],
+                  ["money", "Money", "money"],
+                  ["team", "Team", "team"],
                   ["floor", "Floor", "floor"],
                 ] as const
               ).map(([id, label, icon]) => (
@@ -735,6 +738,17 @@ export function OperationsWorkspace({
             />
           ) : section === "agents" ? (
             <AgentsSection api={api} tenant={tenant} revision={snapshot.asOf} />
+          ) : section === "money" ? (
+            <MoneySection
+              key={focus ?? "money"}
+              api={api}
+              tenant={tenant}
+              revision={snapshot.asOf}
+              focus={focus}
+              currencyCode={snapshot.currency}
+            />
+          ) : section === "team" ? (
+            <TeamSection api={api} tenant={tenant} revision={snapshot.asOf} currencyCode={snapshot.currency} />
           ) : (
             <PaymentsSection
               key={focus ?? "payments"}

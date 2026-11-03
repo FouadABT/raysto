@@ -1,0 +1,19 @@
+class: DailyClose
+table: raysto_daily_close
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  day: String
+  source: String
+  summaryJson: String
+  gapsJson: String
+  state: String
+  signedBy: String?
+  taskId: int?
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  daily_close_day:
+    fields: restaurantId, day
+    unique: true

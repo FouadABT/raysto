@@ -119,8 +119,16 @@ Widget orderPage(LiveContext live, int id) => DataPage(
             live,
             orderId: d['visitId'] == null ? id : null,
             visitId: d['visitId'],
+            totalMinor: d['visitId'] == null
+                ? (d['totalMinor'] as num?)?.toInt()
+                : null,
+            currency: '${d['currency'] ?? ''}',
           ),
         ),
+      if (!due &&
+          live.role == 'customer' &&
+          const {'paid', 'partiallyRefunded'}.contains(d['paymentStatus']))
+        complaintTile(c, live, id, obj(d['complaint']), refresh),
       if (staff)
         AppButton(
           label: 'Update order',
@@ -444,12 +452,227 @@ Widget visitPage(LiveContext live, int id) => DataPage(
   ],
 );
 
+/// Asks the diner for a tip on [amountMinor] before PayPal. Returns the tip
+/// in minor units, 0 when they chose none, or null when they went back.
+Future<int?> chooseTip(BuildContext c, int amountMinor, String currency) =>
+    showModalBottomSheet<int>(
+      context: c,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheet) {
+        var tip = 0;
+        return StatefulBuilder(
+          builder: (sheet, setState) => SafeArea(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                4,
+                20,
+                20 + MediaQuery.viewInsetsOf(sheet).bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TipChooser(
+                    amountMinor: amountMinor,
+                    currency: currency,
+                    tipMinor: tip,
+                    onChanged: (v) => setState(() => tip = v),
+                  ),
+                  const SizedBox(height: 16),
+                  AppButton(
+                    label: c.tr('Continue to PayPal'),
+                    icon: Icons.lock_outline,
+                    onPressed: () => Navigator.pop(sheet, tip),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+/// "Something was wrong?" on a paid order: the diner says what in a sentence,
+/// the café's complaints agent reads the ticket and the PayPal payment, and
+/// the manager decides on a refund. Once sent, the tile shows where it stands.
+Widget complaintTile(
+  BuildContext c,
+  LiveContext live,
+  int orderId,
+  Json complaint,
+  Future<void> Function() refresh,
+) {
+  if (complaint['status'] != null) {
+    final refunded = (complaint['refundedMinor'] as num? ?? 0).toInt();
+    final status = '${complaint['status']}';
+    return AppNotice(
+      title: c.tr(switch (status) {
+        'refunded' => 'Refunded',
+        'declined' => 'The café looked into it',
+        _ => 'Sent. The café will reply.',
+      }),
+      message: refunded > 0
+          ? '${c.tr('Refunded')} ${money(refunded, '${complaint['currency'] ?? ''}')}'
+          : c.tr('Your message about this order has reached the café.'),
+      icon: status == 'refunded' ? Icons.undo : Icons.mark_email_read_outlined,
+    );
+  }
+  return tile(
+    c.tr('Something was wrong?'),
+    Icons.report_problem_outlined,
+    () async {
+      final sent = await openComplaint(c, live, orderId);
+      if (sent) await refresh();
+    },
+    subtitle: c.tr('Tell the café in a sentence; a manager decides on a refund.'),
+  );
+}
+
+/// The complaint sheet. Unfinished text is protected: swiping or tapping
+/// away asks before discarding it. Returns true once sent.
+Future<bool> openComplaint(BuildContext c, LiveContext live, int orderId) async {
+  final sent = await showModalBottomSheet<bool>(
+    context: c,
+    isScrollControlled: true,
+    isDismissible: false,
+    enableDrag: false,
+    showDragHandle: true,
+    builder: (_) => ComplaintSheet(live: live, orderId: orderId),
+  );
+  return sent == true;
+}
+
+class ComplaintSheet extends StatefulWidget {
+  const ComplaintSheet({super.key, required this.live, required this.orderId});
+  final LiveContext live;
+  final int orderId;
+  @override
+  State<ComplaintSheet> createState() => _ComplaintSheetState();
+}
+
+class _ComplaintSheetState extends State<ComplaintSheet> {
+  final controller = TextEditingController();
+  bool busy = false, sent = false;
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  /// Whether to stay: unsent text asks first.
+  Future<bool> keep() async {
+    if (controller.text.trim().isEmpty || sent) return false;
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        title: Text(context.tr('Discard your message?')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialog, false),
+            child: Text(context.tr('Keep writing')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialog, true),
+            child: Text(context.tr('Discard')),
+          ),
+        ],
+      ),
+    );
+    return discard != true;
+  }
+
+  Future<void> leave() async {
+    if (!await keep() && mounted) Navigator.pop(context, sent);
+  }
+
+  Future<void> send() async {
+    setState(() => busy = true);
+    await perform(context, () async {
+      await widget.live.api.submit(
+        PendingCommand(
+          'complaint.open',
+          widget.live.params({
+            'orderId': widget.orderId,
+            'text': controller.text.trim(),
+          }),
+        ),
+      );
+      sent = true;
+    });
+    if (!mounted) return;
+    setState(() => busy = false);
+    if (sent) Navigator.pop(context, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) leave();
+      },
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            4,
+            20,
+            20 + MediaQuery.viewInsetsOf(c).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                c.tr('Something was wrong?'),
+                style: Theme.of(c).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                c.tr(
+                  'Say what happened. The café checks your order and its PayPal payment, and a manager replies.',
+                ),
+                style: Theme.of(c).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 14),
+              AppTextField(
+                label: c.tr('What went wrong'),
+                controller: controller,
+                maxLines: 3,
+                hint: c.tr('The croissant was missing from my bag'),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 14),
+              AppButton(
+                label: c.tr('Send to the café'),
+                icon: Icons.send_outlined,
+                busy: busy,
+                onPressed: busy || controller.text.trim().isEmpty ? null : send,
+              ),
+              TextButton(
+                onPressed: busy ? null : leave,
+                child: Text(c.tr('Not now')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Future<void> allocate(
   BuildContext c,
   LiveContext live, {
   int? orderId,
   int? visitId,
   List<Json> charges = const [],
+  int? totalMinor,
+  String currency = '',
 }) async {
   final form = await editFields(c, 'Choose how to pay', [
     InputSpec(
@@ -530,6 +753,17 @@ Future<void> allocate(
     );
     if (selected == null || !c.mounted) return;
   }
+  // A diner paying a whole bill with PayPal may add a tip; staff and
+  // partial payments go straight on.
+  int? tipMinor;
+  if (form['method'] == 'paypal' &&
+      form['split'] == 'wholeBill' &&
+      !live.operator &&
+      totalMinor != null &&
+      totalMinor > 0) {
+    tipMinor = await chooseTip(c, totalMinor, currency);
+    if (tipMinor == null || !c.mounted) return;
+  }
   final result = await live.action(
     c,
     form['method'] == 'cash' ? 'Confirm cash received' : 'Reserve payment',
@@ -541,6 +775,7 @@ Future<void> allocate(
       'visitId': ?visitId,
       if (form['split'] == 'customAmount') 'amountMinor': form['amountMinor'],
       'lineKeys': ?selected,
+      if ((tipMinor ?? 0) > 0) 'tipMinor': tipMinor,
     },
   );
   if (result != null && c.mounted) {

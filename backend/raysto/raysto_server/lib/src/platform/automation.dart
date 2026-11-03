@@ -616,8 +616,12 @@ class PlatformWorker {
     );
     await AgentModule.sweep(s);
     await PaymentAgent.sweep(s);
+    await LoyaltyAgent.sweep(s);
     await CopilotAgent.sweep(s);
+    await CateringAgent.remindOverdue(s);
     await JudgeModule.schedule(s);
+    await CloseAgent.schedule(s);
+    await PayrollAgent.schedule(s);
     await RateWindow.db.deleteWhere(
       s,
       where: (t) =>
@@ -835,6 +839,8 @@ class PlatformWorker {
         }
       case 'judge.reset':
         await JudgeModule.reset(s, _int(d, 'restaurantId', min: 1));
+      case 'payout.poll':
+        await PayrollAgent.poll(s, _int(d, 'batchId', min: 1), _int(d, 'attempt', fallback: 0));
       case 'judge.tidy':
         await JudgeModule.reset(
           s,
@@ -1212,6 +1218,24 @@ class PlatformWorker {
               t.merchantId.equals(merchantId) &
               t.environment.equals(ProviderClients.paypalEnvironment),
         );
+      }
+      if (event.eventType == 'INVOICING.INVOICE.PAID' &&
+          event.provider == 'paypal-single-sandbox') {
+        // The invoice object is the resource; the paid catering request is
+        // settled and its order placed exactly once (status guards repeats).
+        await CateringAgent.onInvoicePaid(
+          s,
+          _object(resource['invoice'] ?? resource),
+        );
+        event.status = 'processed';
+        event.processedAt = _now();
+        await ProviderInbox.db.updateRow(s, event);
+        return;
+      }
+      if (event.eventType == 'CUSTOMER.DISPUTE.CREATED') {
+        // Recorded for the disputes agent; the settlement exception below
+        // still preserves the raw event for an operator.
+        await DisputeAgent.onWebhook(s, resource);
       }
       final orderId =
           resource['supplementary_data']?['related_ids']?['order_id'] ??

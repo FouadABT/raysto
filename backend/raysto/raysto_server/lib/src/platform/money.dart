@@ -16,6 +16,7 @@ class MoneyModule {
         'assistantProposalId': r.assistantProposalId,
         if (r.splitPlanId != null) 'splitPlanId': r.splitPlanId,
         'method': r.method,
+        if ((r.tipMinor ?? 0) > 0) 'tipMinor': r.tipMinor,
       }),
     );
     return _mutate(s, c, 'payment.allocate', (w, d) async {
@@ -164,6 +165,8 @@ class MoneyModule {
           'Finish or reconcile the active checkout first.',
         );
       }
+      final tip = r.tipMinor ?? 0;
+      if (tip > 0) await _addTip(w, r, tip);
       final charges = await BillCharge.db.find(
         s,
         where: (t) =>
@@ -371,6 +374,57 @@ class MoneyModule {
         'currency': intent.currency,
       };
     });
+  }
+
+  /// A tip chosen at payment time, on a whole-order PayPal payment: one tip
+  /// charge, at most half the bill, so PayPal's amount carries it and the
+  /// payroll agent later finds it as a settled `tip` charge.
+  static Future<void> _addTip(Work w, AllocatePayment r, int tip) async {
+    if (r.orderId == null ||
+        r.method != 'paypal' ||
+        r.amountMinor != null ||
+        r.lineKeys != null ||
+        r.shares != null) {
+      _fail('invalid_input', 'A tip goes with a whole-order PayPal payment.');
+    }
+    final existing = await BillCharge.db.find(
+      w.s,
+      where: (t) => t.orderId.equals(r.orderId!),
+      transaction: w.tx,
+    );
+    if (existing.any((b) => b.kind == 'tip')) {
+      _fail('invalid_input', 'This order already carries a tip.');
+    }
+    final bill = existing.fold<int>(0, (n, b) => n + b.amountMinor);
+    if (tip > 100000 || tip > bill ~/ 2) {
+      _fail('invalid_amount', 'A tip is at most half the bill.');
+    }
+    await BillCharge.db.insertRow(
+      w.s,
+      BillCharge(
+        restaurantId: w.tenant,
+        orderId: r.orderId!,
+        lineKey: 'tip',
+        kind: 'tip',
+        amountMinor: tip,
+        creditedMinor: 0,
+        settledMinor: 0,
+        reservedMinor: 0,
+        foodNetMinor: 0,
+        version: 1,
+      ),
+      transaction: w.tx,
+    );
+    final o = (await PurchaseOrder.db.findById(
+      w.s,
+      r.orderId!,
+      transaction: w.tx,
+    ))!;
+    o.totalMinor += tip;
+    o.version++;
+    o.updatedAt = _now();
+    await PurchaseOrder.db.updateRow(w.s, o, transaction: w.tx);
+    await w.audit('order.tip_added', 'order', o.id, {'tipMinor': tip});
   }
 
   static Future<CheckoutIntent> _intent(Work w, int id) async {
@@ -1007,6 +1061,34 @@ class MoneyModule {
       'payment.refund',
       (w, d) async {
         await _stepUp(w);
+        return _refund(w, r, d);
+      },
+      roles: _managers,
+    );
+    return result;
+  }
+
+  /// A refund the complaints agent makes by itself, inside the owner's
+  /// limit: the agent's identity, no step-up, the same ledger rules. Repeats
+  /// of the same request key return the first refund.
+  static Future<Json> refundAsAgent(Session s, RequestRefund r) =>
+      AgentModule.asAgent(s, r.restaurantId, (w) async {
+        final existing = await PaymentRefund.db.findFirstRow(
+          s,
+          where: (t) =>
+              t.restaurantId.equals(w.tenant) &
+              t.requestKey.equals(r.requestKey),
+          transaction: w.tx,
+        );
+        if (existing != null) {
+          return {'refundId': existing.id, 'state': existing.state};
+        }
+        return _refund(w, r, {'reason': r.reason});
+      });
+
+  static Future<Json> _refund(Work w, RequestRefund r, Json d) async {
+    final s = w.s;
+    {
         final p = await PaymentCapture.db.findById(
           s,
           r.captureId,
@@ -1103,10 +1185,7 @@ class MoneyModule {
         await w.job('payment.refund', 'refund:${row.id}', {'refundId': row.id});
         await w.audit('payment.refund_requested', 'refund', row.id);
         return {'refundId': row.id, 'state': row.state};
-      },
-      roles: _managers,
-    );
-    return result;
+    }
   }
 
   static Future<void> processRefund(Session s, int id) async {

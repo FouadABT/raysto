@@ -10,3 +10,4 @@ fields:
   assistantProposalId: int?
   splitPlanId: int?
   method: String
+  tipMinor: int?

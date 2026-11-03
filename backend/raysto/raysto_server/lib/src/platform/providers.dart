@@ -99,6 +99,21 @@ class ProviderClients {
   static Future<Json> sendJson(http.Client client, http.Request request) async {
     final r = await client.send(request).timeout(const Duration(seconds: 25));
     final bytes = await bounded(r);
+    if (r.statusCode == 403) {
+      // A Sandbox app feature (Invoicing, Transaction Search, Payouts) that is
+      // not switched on answers NOT_AUTHORIZED; say so instead of "unavailable".
+      try {
+        if (_json(utf8.decode(bytes), maxBytes: 65536)['name'] ==
+            'NOT_AUTHORIZED') {
+          _fail(
+            'provider_feature_disabled',
+            'This PayPal feature is not enabled for the app.',
+          );
+        }
+      } on FormatException catch (_) {
+        // Not JSON: fall through to the generic failure.
+      }
+    }
     if (r.statusCode < 200 || r.statusCode >= 300) {
       _fail(
         'provider_unavailable',
@@ -259,6 +274,188 @@ class ProviderClients {
           },
         },
       );
+  /// Money out: one PayPal Payouts batch on the Sandbox business account,
+  /// for staff tips, wages and suppliers. Never called without a person's
+  /// approval; [batchId] is the idempotency key PayPal keeps.
+  static Future<Json> createPayout({
+    required String batchId,
+    required String currency,
+    required List<Json> items,
+    String subject = 'Payment from the café',
+    String note = '',
+  }) async {
+    if (items.isEmpty || items.length > 500) {
+      _fail('invalid_input', 'A payout batch holds 1–500 items.');
+    }
+    final r = await paypal(
+      'POST',
+      '/v1/payments/payouts',
+      singleMerchant: true,
+      requestId: 'payout-$batchId',
+      body: {
+        'sender_batch_header': {
+          'sender_batch_id': batchId,
+          'email_subject': subject,
+          if (note.isNotEmpty) 'email_message': note,
+        },
+        'items': [
+          for (final item in items)
+            {
+              'recipient_type': 'EMAIL',
+              'receiver': _str(item, 'email', max: 254),
+              'amount': {
+                'value': PayPalGateway.money(_int(item, 'amountMinor', min: 1)),
+                'currency': currency,
+              },
+              'note': _str(item, 'note', max: 4000),
+              'sender_item_id': _str(item, 'itemId', max: 63),
+            },
+        ],
+      },
+    );
+    final header = _object(r['batch_header']);
+    return {
+      'id': _str(header, 'payout_batch_id', max: 50),
+      'status': _str(header, 'batch_status', max: 30),
+    };
+  }
+
+  static Future<Json> readPayout(String providerBatchId) async {
+    if (!RegExp(r'^[A-Za-z0-9_-]{1,50}$').hasMatch(providerBatchId)) {
+      _fail('invalid_input', 'Invalid payout batch id.');
+    }
+    final r = await paypal(
+      'GET',
+      '/v1/payments/payouts/$providerBatchId?page_size=500',
+      singleMerchant: true,
+    );
+    final header = _object(r['batch_header']);
+    final fees = _object(header['fees'] ?? {});
+    return {
+      'id': _str(header, 'payout_batch_id', max: 50),
+      'status': _str(header, 'batch_status', max: 30),
+      'feesMinor': fees['value'] is String
+          ? PayPalGateway.parseMoney(fees['value'] as String)
+          : 0,
+      'items': [
+        for (final raw in (r['items'] as List? ?? []).whereType<Map>())
+          () {
+            final item = Map<String, dynamic>.from(raw);
+            final amount = _object(
+              _object(item['payout_item'] ?? {})['amount'] ?? {},
+            );
+            return {
+              'id': item['payout_item_id'],
+              'itemId': _object(item['payout_item'] ?? {})['sender_item_id'],
+              'status': item['transaction_status'],
+              'transactionId': item['transaction_id'],
+              'amountMinor': amount['value'] is String
+                  ? PayPalGateway.parseMoney(amount['value'] as String)
+                  : null,
+              'currency': amount['currency'],
+            };
+          }(),
+      ],
+    };
+  }
+
+  /// PayPal's own ledger for a period (Transaction Search). Needs the
+  /// feature enabled on the Sandbox app; otherwise `provider_feature_disabled`.
+  static Future<List<Json>> listTransactions(
+    DateTime from,
+    DateTime to, {
+    int page = 1,
+  }) async {
+    if (!to.isAfter(from) || to.difference(from).inDays > 31) {
+      _fail('invalid_input', 'Transaction windows are 1 second to 31 days.');
+    }
+    String iso(DateTime t) =>
+        '${t.toUtc().toIso8601String().split('.').first}Z';
+    final r = await paypal(
+      'GET',
+      '/v1/reporting/transactions?start_date=${iso(from)}&end_date=${iso(to)}'
+          '&fields=transaction_info,cart_info&page_size=100&page=$page',
+      singleMerchant: true,
+    );
+    return [
+      for (final raw
+          in (r['transaction_details'] as List? ?? []).whereType<Map>())
+        () {
+          final info = _object(
+            Map<String, dynamic>.from(raw)['transaction_info'] ?? {},
+          );
+          final amount = _object(info['transaction_amount'] ?? {});
+          final fee = _object(info['fee_amount'] ?? {});
+          return {
+            'id': info['transaction_id'],
+            'eventCode': info['transaction_event_code'],
+            'status': info['transaction_status'],
+            'at': info['transaction_initiation_date'],
+            'amountMinor': amount['value'] is String
+                ? PayPalGateway.parseMoney(
+                    (amount['value'] as String).replaceFirst('-', ''),
+                  ) *
+                      ((amount['value'] as String).startsWith('-') ? -1 : 1)
+                : null,
+            'currency': amount['currency_code'],
+            'feeMinor': fee['value'] is String
+                ? PayPalGateway.parseMoney(
+                    (fee['value'] as String).replaceFirst('-', ''),
+                  ) *
+                      ((fee['value'] as String).startsWith('-') ? -1 : 1)
+                : 0,
+            'customId': info['custom_field'],
+            'invoiceId': info['invoice_id'],
+            'referenceId': info['paypal_reference_id'],
+          };
+        }(),
+    ];
+  }
+
+  static Future<List<Json>> listDisputes() async {
+    final r = await paypal(
+      'GET',
+      '/v1/customer/disputes?page_size=50',
+      singleMerchant: true,
+    );
+    return [
+      for (final raw in (r['items'] as List? ?? []).whereType<Map>())
+        _dispute(Map<String, dynamic>.from(raw)),
+    ];
+  }
+
+  static Future<Json> getDispute(String id) async {
+    if (!RegExp(r'^[A-Za-z0-9_-]{1,50}$').hasMatch(id)) {
+      _fail('invalid_input', 'Invalid dispute id.');
+    }
+    return _dispute(
+      await paypal('GET', '/v1/customer/disputes/$id', singleMerchant: true),
+    );
+  }
+
+  static Json _dispute(Json d) {
+    final amount = _object(d['dispute_amount'] ?? {});
+    final transactions = (d['disputed_transactions'] as List? ?? [])
+        .whereType<Map>()
+        .toList();
+    return {
+      'id': d['dispute_id'],
+      'reason': d['reason'],
+      'status': d['status'],
+      'stage': d['dispute_life_cycle_stage'],
+      'amountMinor': amount['value'] is String
+          ? PayPalGateway.parseMoney(amount['value'] as String)
+          : null,
+      'currency': amount['currency_code'],
+      'createdAt': d['create_time'],
+      'respondBy': d['seller_response_due_date'],
+      'captureIds': [
+        for (final t in transactions)
+          if (t['seller_transaction_id'] is String) t['seller_transaction_id'],
+      ],
+    };
+  }
+
   static String? approval(Json r, {String rel = 'payer-action'}) {
     final links = r['links'] as List? ?? [];
     for (final l in links) {
