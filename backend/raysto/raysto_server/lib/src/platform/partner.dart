@@ -1009,28 +1009,31 @@ class PartnerModule {
     final at =
         DeliveryModule.point(CatalogueModule.address(_object(d['address']))) ??
         _fail('invalid_input', 'The address needs latitude and longitude.');
-    var pricing = w;
-    if (by == 'partner') {
-      final base = w.settings;
-      final patched = {
-        ...base,
-        'modes': {...(base['modes'] as List), 'delivery'}.toList(),
-        'deliveryFeeMinor': 0,
-        'deliveryFeeMode': 'flat',
-        'deliveryMinimumMinor': 0,
-        'deliveryZones': [
-          {'latitude': at.lat, 'longitude': at.lng, 'radiusKm': 1},
-        ],
-      };
-      pricing = Work(
-        w.s,
-        w.tx,
-        w.actor,
-        w.command,
-        w.restaurant,
-        w.policy!.copyWith(settingsJson: jsonEncode(patched)),
-      );
-    }
+    // The café's own delivery minimum is for its direct customers; a
+    // partner already took the order on its own terms, so it never applies.
+    // When the partner's couriers deliver, the café's zones and fee do not
+    // apply either.
+    final base = w.settings;
+    final patched = by == 'partner'
+        ? {
+            ...base,
+            'modes': {...(base['modes'] as List), 'delivery'}.toList(),
+            'deliveryFeeMinor': 0,
+            'deliveryFeeMode': 'flat',
+            'deliveryMinimumMinor': 0,
+            'deliveryZones': [
+              {'latitude': at.lat, 'longitude': at.lng, 'radiusKm': 1},
+            ],
+          }
+        : {...base, 'deliveryMinimumMinor': 0};
+    final pricing = Work(
+      w.s,
+      w.tx,
+      w.actor,
+      w.command,
+      w.restaurant,
+      w.policy!.copyWith(settingsJson: jsonEncode(patched)),
+    );
     final snapshot = await OrderingModule._price(pricing, {
       'fulfillment': 'delivery',
       'lines': d['lines'],

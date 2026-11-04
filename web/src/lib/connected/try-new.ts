@@ -198,10 +198,36 @@ const idLabels: [string, string][] = [
 ];
 
 /** What looks wrong in the month, each with the PayPal ids it is about. */
+/** The accountant's rule names, in words a café owner reads. */
+const findingNames: Record<string, string> = {
+  bill_due_soon: "A bill is due soon",
+  bill_overdue: "A bill is overdue",
+  bill_spike: "A bill is much higher than usual",
+  cash_shortfall: "Cash may run short",
+  duplicate_bill: "A bill may be a duplicate",
+  expense_uncategorised: "An expense has no category",
+  payout_failed: "A PayPal payout failed",
+  refund_rate_high: "Refunds are high",
+  request_overdue: "A payment request is overdue",
+  unbalanced_books: "The books do not balance",
+  vat_not_configured: "The VAT rate is not set",
+};
+
+/** A rule name the list above does not know yet: "some_rule" or "someRule" -> "Some rule". */
+const ruleWords = (code: string) => {
+  const words = code
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .toLowerCase();
+  return words ? words[0].toUpperCase() + words.slice(1) : words;
+};
+
 export function anomalyView(list: unknown): Anomaly[] {
   const out: Anomaly[] = [];
   for (const a of objects(list)) {
-    const title = text(a.title) ?? text(a.summary) ?? text(a.rule) ?? text(a.kind);
+    const code = text(a.kind) ?? text(a.rule);
+    const title = text(a.title) ?? text(a.summary) ?? (code ? findingNames[code] ?? ruleWords(code) : undefined);
     if (!title) continue;
     const ids: string[] = [];
     for (const source of [a, object(a.evidence), object(a.source)]) {
@@ -210,7 +236,7 @@ export function anomalyView(list: unknown): Anomaly[] {
         if (v && !ids.some((i) => i.endsWith(v))) ids.push(`${label} ${v}`);
       }
     }
-    out.push({ title, detail: text(a.detail) ?? text(a.explanation) ?? text(a.message), ids });
+    out.push({ title, detail: text(a.detail) ?? text(a.explanation) ?? text(a.message) ?? text(a.facts), ids });
   }
   return out;
 }
@@ -446,7 +472,9 @@ export function proposedOrder(preview: Json | undefined) {
 export function executedText(command: string): string {
   switch (command) {
     case "bill.pay":
-      return "Paid with PayPal Payouts to the vendor's PayPal account (Sandbox). The bill is marked paid and the ledger shows it.";
+      // PayPal accepts a payout at once and completes it a little later; the
+      // bill reads paid only when PayPal says the payout completed.
+      return "Sent with PayPal Payouts to the vendor's PayPal account (Sandbox). The bill reads paid once PayPal completes the payout, usually within minutes.";
     case "bill.record":
     case "bill.save":
     case "bill.approve":

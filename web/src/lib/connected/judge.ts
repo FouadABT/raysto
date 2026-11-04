@@ -37,11 +37,11 @@ export const coworkers = { count: "fourteen", demos: 9 };
  * tests/facts.test.ts fails when the two disagree.
  */
 export const evidence = {
-  captures: 11,
-  refunds: 4,
-  payoutBatches: 5,
-  backendUnit: 68,
-  backendIntegration: 122,
+  captures: 14,
+  refunds: 6,
+  payoutBatches: 8,
+  backendUnit: 90,
+  backendIntegration: 181,
   startedOn: "24 October 2026",
   firstCommit: "26 October 2026",
 };

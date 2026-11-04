@@ -1,49 +1,68 @@
 {
-  "about": "The one set of numbers every page states. web/tests/facts.test.ts checks README.md, docs/devpost-submission.md, docs/reviewer-guide.md and the judges page against it; the film captions are written from it.",
-  "asOf": "2026-11-04",
-  "startedOn": "24 October 2026",
-  "firstCommit": "26 October 2026",
-  "paypal": {
-    "captures": {
-      "count": 11,
-      "words": "Eleven",
-      "ids": [
-        "633829727B675370M",
-        "4C048952Y13801205",
-        "4MG67343RS1841023",
-        "47E23175WJ603464A",
-        "55W092765M630635H",
-        "9BY842216S6346205",
-        "3PV01986C4166344M",
-        "1FC985713C934991E",
-        "8DJ62510842222013",
-        "8L994373M64657007",
-        "20K31884958788526"
-      ]
-    },
-    "refunds": {
-      "count": 4,
-      "words": "four",
-      "ids": ["2J851836BE9699524", "8MM65248WS403211T", "0S763729H45148806", "80508388SK757251T"]
-    },
-    "payoutBatches": {
-      "count": 5,
-      "words": "five",
-      "ids": ["EUG58M87BKY5E", "4KZDS8M7DDWTL", "N48TL9D5X6PLG", "ZFW54957PSL9C", "TMS8FKRT6ALYU"]
-    }
+ "about": "The one set of numbers every page states. web/tests/facts.test.ts checks README.md, docs/devpost-submission.md, docs/reviewer-guide.md and the judges page against it; the film captions are written from it.",
+ "asOf": "2026-11-04",
+ "startedOn": "24 October 2026",
+ "firstCommit": "26 October 2026",
+ "paypal": {
+  "captures": {
+   "count": 14,
+   "words": "Fourteen",
+   "ids": [
+    "633829727B675370M",
+    "4C048952Y13801205",
+    "4MG67343RS1841023",
+    "47E23175WJ603464A",
+    "55W092765M630635H",
+    "9BY842216S6346205",
+    "3PV01986C4166344M",
+    "1FC985713C934991E",
+    "8DJ62510842222013",
+    "8L994373M64657007",
+    "20K31884958788526",
+    "6KA28102CB433905M",
+    "4B674470UL685961J",
+    "9BX29653G6291915K"
+   ]
   },
-  "tests": {
-    "backendUnit": 68,
-    "backendIntegration": 122,
-    "consoleUnit": 83,
-    "consoleBrowser": 31,
-    "app": 211
+  "refunds": {
+   "count": 6,
+   "words": "six",
+   "ids": [
+    "2J851836BE9699524",
+    "8MM65248WS403211T",
+    "0S763729H45148806",
+    "80508388SK757251T",
+    "5CM99257TT453104U",
+    "3HS05577CC683905V"
+   ]
   },
-  "versions": {
-    "backend": "0.15.1",
-    "console": "0.17.3",
-    "apk": "0.15.0",
-    "apkBuild": "0.15.0+2100",
-    "apkSha256": "eff6827e32ee079506c2d0e42f8dea6fdb3c3de80bcfa2c4e237536e279f9292"
+  "payoutBatches": {
+   "count": 8,
+   "words": "eight",
+   "ids": [
+    "EUG58M87BKY5E",
+    "4KZDS8M7DDWTL",
+    "N48TL9D5X6PLG",
+    "ZFW54957PSL9C",
+    "TMS8FKRT6ALYU",
+    "YCM8E55AAW8HA",
+    "LSQETJ2QB55Z4",
+    "K5EHYWJ2YBBQ8"
+   ]
   }
+ },
+ "tests": {
+  "backendUnit": 90,
+  "backendIntegration": 181,
+  "consoleUnit": 148,
+  "consoleBrowser": 65,
+  "app": 241
+ },
+ "versions": {
+  "backend": "0.16.1",
+  "console": "0.18.2",
+  "apk": "0.16.0",
+  "apkBuild": "0.16.0+2200",
+  "apkSha256": "6e3389a9f5d4dfa5b593905d2dff2fb24eaa6fc7fc27fadbafaee020de2422c8"
+ }
 }

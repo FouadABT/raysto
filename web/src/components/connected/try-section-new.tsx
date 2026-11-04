@@ -256,7 +256,7 @@ function BillCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             items={[
               repeat && "Same file as before: caught without spending AI",
               ...toolChips(task?.trace),
-              task && `read in ${demo.took}`,
+              task && demo.took && `read in ${demo.took}`,
               task && `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
               ...ids,
             ]}
@@ -426,7 +426,7 @@ function MonthCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             items={[
               ...toolChips(task?.trace),
               pnl.feesEstimated && "PayPal fees estimated where PayPal did not report them",
-              demo.phase === "done" && `read in ${demo.took}`,
+              demo.phase === "done" && demo.took && `read in ${demo.took}`,
               task && `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
           />
@@ -692,7 +692,7 @@ function DispatchCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
           <Chips
             items={[
               ...toolChips(task?.trace),
-              task && `ranked in ${demo.took}`,
+              task && demo.took && `ranked in ${demo.took}`,
               task && `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
           />
@@ -840,8 +840,14 @@ function SupplyCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
                     {c.quantity} {c.unit}
                   </td>
                   <td>
-                    {c.daysCover === undefined ? (c.low ? "below its low mark" : "no recent use") : `${c.daysCover} days`}
-                    {c.stockOutAt && c.daysCover !== undefined && (
+                    {c.daysCover === undefined
+                      ? c.low
+                        ? "below its low mark"
+                        : "no recent use"
+                      : c.daysCover > 365
+                        ? "over a year"
+                        : `${Math.round(c.daysCover)} days`}
+                    {c.stockOutAt && c.daysCover !== undefined && c.daysCover <= 365 && (
                       <span style={{ display: "block", fontSize: 12, fontWeight: 400, color: "var(--muted)" }}>
                         runs out {day(c.stockOutAt)}
                       </span>
@@ -869,7 +875,7 @@ function SupplyCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
               basisLabel(basis),
               `${reorders} to reorder`,
               ...toolChips(task?.trace),
-              task && `planned in ${demo.took}`,
+              task && demo.took && `planned in ${demo.took}`,
               task && `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
           />

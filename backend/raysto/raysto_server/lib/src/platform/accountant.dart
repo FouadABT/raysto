@@ -131,11 +131,47 @@ class BillsModule {
     );
     return rows
         .where(
-          (b) =>
-              b.id != except &&
-              b.vendor.trim().toLowerCase() == vendor.trim().toLowerCase(),
+          (b) => b.id != except && _vendorKey(b.vendor) == _vendorKey(vendor),
         )
         .firstOrNull;
+  }
+
+  /// A vendor's name as the AI may read it ("Metro Fiber", "METRO FIBER ·
+  /// Sample"): lower case, letters and digits only, without "sample".
+  static String _vendorKey(String v) => v
+      .toLowerCase()
+      .replaceAll(RegExp(r'\bsample\b'), '')
+      .replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+  /// A bill read with no PayPal address, from a vendor this café already
+  /// pays through PayPal (a bill a person approved or paid to a PayPal
+  /// payee), takes that payee: the AI accountant remembers how a vendor is
+  /// paid. The source bill is named in readJson, so the card can say why.
+  static Future<Bill> _knownPayee(Work w, Bill b) async {
+    if (b.payeeEmail != null) return b;
+    final key = _vendorKey(b.vendor);
+    if (key.isEmpty) return b;
+    final paid = await Bill.db.find(
+      w.s,
+      where: (t) =>
+          t.restaurantId.equals(w.tenant) &
+          t.payVia.equals('paypal') &
+          t.payeeEmail.notEquals(null) &
+          t.state.inSet({'approved', 'paying', 'paid'}) &
+          t.id.notEquals(b.id),
+      orderBy: (t) => t.id.desc(),
+      limit: 50,
+      transaction: w.tx,
+    );
+    final known = paid.where((x) => _vendorKey(x.vendor) == key).firstOrNull;
+    if (known == null) return b;
+    b
+      ..payeeEmail = known.payeeEmail
+      ..payVia = 'paypal'
+      ..readJson = jsonEncode({..._json(b.readJson), 'payeeFrom': known.id})
+      ..version += 1
+      ..updatedAt = _now();
+    return Bill.db.updateRow(w.s, b, transaction: w.tx);
   }
 
   /// A real bill replaces last month's expected copy of the same vendor
@@ -150,12 +186,10 @@ class BillsModule {
       limit: 20,
       transaction: w.tx,
     );
+    // Names compare as the AI reads them: "HUDSON POWER & LIGHT" is the
+    // expected "Hudson Power & Light · Sample".
     final match = expected
-        .where(
-          (e) =>
-              e.id != b.id &&
-              e.vendor.trim().toLowerCase() == b.vendor.trim().toLowerCase(),
-        )
+        .where((e) => e.id != b.id && _vendorKey(e.vendor) == _vendorKey(b.vendor))
         .firstOrNull;
     if (match == null) return;
     match

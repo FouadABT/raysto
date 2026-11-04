@@ -581,6 +581,7 @@ class AccountantAgent {
         transaction: w.tx,
       );
       await BillsModule._replaceExpected(w, b);
+      b = await BillsModule._knownPayee(w, b);
       final dup = await BillsModule._duplicateOf(
         w,
         vendor: b.vendor,

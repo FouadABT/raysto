@@ -32,7 +32,7 @@
 | Android app, a diner | `diner@rays.to` | `vanilla-basil-brioche-18` |
 | PayPal Sandbox buyer (PayPal's own approval page) | in the Devpost testing instructions | |
 
-The demo café starts fresh every day at 09:00 UTC and tidies finished demo orders every hour; its manager cannot rename it, change its team or take it offline. The console alone is enough to judge Raysto; the Android app is a direct download at **[rays.to/raysto.apk](https://rays.to/raysto.apk)** (its checksum and install steps are on [rays.to](https://rays.to)). The APK is 0.15.0 (4 November): the Today screen, kitchen tickets you drag between lanes, the Shifts tab, the tip step before PayPal and the complaint sheet.
+The demo café starts fresh every day at 09:00 UTC and tidies finished demo orders every hour; its manager cannot rename it, change its team or take it offline. The console alone is enough to judge Raysto; the Android app is a direct download at **[rays.to/raysto.apk](https://rays.to/raysto.apk)** (its checksum and install steps are on [rays.to](https://rays.to)). The APK is 0.16.0 (4 November): everything in 0.15.0 plus the AI accountant (snap a bill, pay it or mark it paid, a pay-link QR code), supplies (count stock, receive a delivery with the camera), the courier's deliveries with a map, the group's Today and the PayPal account page.
 
 ## What Raysto is
 
@@ -104,9 +104,9 @@ AI spending has hard caps: a hackathon budget split by feature, and $5 per resta
 
 ## Evidence
 
-- **Live PayPal Sandbox runs**, 31 October to 4 November: pickup, counter QR, a two-buyer split bill, a partial refund, the one-sentence order, the payments agent's release, and on 3 and 4 November the nine-card judge path with real Payouts batches and complaint refunds. Eleven captures, four refunds and five Payouts batches, with ids: [paypal-acceptance-2026-10-31.md](docs/paypal-acceptance-2026-10-31.md).
+- **Live PayPal Sandbox runs**, 31 October to 4 November: pickup, counter QR, a two-buyer split bill, a partial refund, the one-sentence order, the payments agent's release, and on 3 and 4 November the nine-card judge path with real Payouts batches and complaint refunds, and on 4 November the fourteen-card 0.16 path: a bill read by the AI accountant and paid with PayPal Payouts, and a pay link paid by the Sandbox buyer ([sandbox-run-0160.md](docs/sandbox-run-0160.md)). Fourteen captures, six refunds and eight Payouts batches, with ids: [paypal-acceptance-2026-10-31.md](docs/paypal-acceptance-2026-10-31.md).
 - **Live AI evaluation, 12 of 12**: 3 menus, 5 spoken orders, 4 takeaway requests against production: [ai-evaluation-results.md](docs/ai-evaluation-results.md). Inputs were rendered images and synthetic voices.
-- **Tests**: backend 68 unit tests and 122 integration tests on an isolated database (run serially); console 83 unit tests and 31 browser tests; app 211 widget tests, all passing on 4 November.
+- **Tests**: backend 90 unit tests and 181 integration tests on an isolated database (run serially); console 148 unit tests and 65 browser tests; app 241 widget tests, all passing on 4 November.
 - **Neutral audit** against the judging criteria: [raysto-hackathon-audit-2026-11-02.md](docs/audits/raysto-hackathon-audit-2026-11-02.md) (scored before the money agents).
 
 Not covered: a real restaurant, live (non-Sandbox) PayPal, iOS, a person speaking at a real counter, a real Sandbox invoice or dispute (the two features await enablement), and the supplies and expenses agents on production.

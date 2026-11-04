@@ -132,11 +132,15 @@ test("an anomaly carries the PayPal ids it is about, from wherever the backend p
     { title: "A capture with no order", providerCaptureId: "6KA28102CB433905M" },
     { kind: "newPayee", detail: "First payout to this email.", evidence: { providerBatchId: "TMS8FKRT6ALYU" } },
     { nothing: true },
+    { kind: "cash_shortfall", facts: "Cash would fall to -$120.00 within 30 days." },
   ]);
-  assert.equal(flags.length, 2);
+  assert.equal(flags.length, 3);
   assert.deepEqual(flags[0].ids, ["PayPal capture 6KA28102CB433905M"]);
-  assert.equal(flags[1].title, "newPayee");
+  // A rule's code is never shown raw: unknown ones become words.
+  assert.equal(flags[1].title, "New payee");
   assert.deepEqual(flags[1].ids, ["PayPal payout batch TMS8FKRT6ALYU"]);
+  assert.equal(flags[2].title, "Cash may run short");
+  assert.equal(flags[2].detail, "Cash would fall to -$120.00 within 30 days.");
 });
 
 test("a pay link is shown only as https, and paid only when the backend says paid", () => {

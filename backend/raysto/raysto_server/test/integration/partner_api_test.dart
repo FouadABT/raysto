@@ -437,6 +437,35 @@ void main() {
       expect(read.$2['status'], 'received');
     });
 
+    test('the café\'s own delivery minimum never applies to a partner\'s order', () async {
+      final s = builder.build();
+      final policy = (await RestaurantPolicy.db.findFirstRow(
+        s,
+        where: (t) => t.restaurantId.equals(restaurant.id!),
+      ))!;
+      final before = policy.settingsJson;
+      policy.settingsJson = jsonEncode({...jsonDecode(before) as Json, 'deliveryMinimumMinor': 100000});
+      await RestaurantPolicy.db.updateRow(s, policy);
+      try {
+        final app = await createApp();
+        final created = await call(
+          'POST',
+          'orders',
+          appKey: app['key'] as String,
+          secret: app['webhookSecret'] as String,
+          idem: 'idem-minimum-0001',
+          body: orderBody('MIN-1'),
+        );
+        expect(created.$1, 201, reason: '${created.$2}');
+        // The café's drivers deliver it, so the café's fee still applies.
+        expect(created.$2['deliveryFeeMinor'], 299);
+      } finally {
+        final fresh = (await RestaurantPolicy.db.findById(s, policy.id!))!;
+        fresh.settingsJson = before;
+        await RestaurantPolicy.db.updateRow(s, fresh);
+      }
+    });
+
     test('the café\'s progress reaches the partner signed, with backoff', () async {
       final app = await createApp();
       final apiKey = app['key'] as String;

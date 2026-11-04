@@ -27,7 +27,7 @@ test.describe("Try cards 10–14", () => {
     // Nothing is paid before the approval.
     await expect(c.locator(".ops-try-done")).toHaveCount(0);
     await c.getByRole("button", { name: "Approve (identity check)" }).click();
-    await expect(c.getByText(/Paid with PayPal Payouts to the vendor's PayPal account/)).toBeVisible();
+    await expect(c.getByText(/Sent with PayPal Payouts to the vendor's PayPal account/)).toBeVisible();
     await expect(c.getByText("PayPal payout batch PREVIEWBATCH01")).toBeVisible();
     await expect(c.getByText(/Paid with PayPal Payouts, batch PREVIEWBATCH01 \(Sandbox\)/)).toBeVisible();
   });

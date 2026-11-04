@@ -32,7 +32,7 @@ A snack bar or small restaurant runs on a till, paper tickets and a card termina
 - **Ask Raysto**: "Two vegetarian lunches under $25, ready as soon as you can." Raysto reads the menu, keeps to the budget, picks a pickup time the kitchen can keep (and says so when it cannot keep the time you asked for), and proposes a priced basket. One tap places the order and opens PayPal; only the diner's approval on PayPal's own page pays.
 - Table service with a shared room and exact split bills: each diner pays their own share in PayPal.
 
-- A tip step before PayPal and a "Something was wrong?" sheet on a paid order that reaches the complaints agent (in the source; the next APK build is pending).
+- A tip step before PayPal and a "Something was wrong?" sheet on a paid order that reaches the complaints agent (in the 0.16.0 APK).
 
 **For the owner** (console at [ops.rays.to](https://ops.rays.to/ops), AG Grid and AG Studio):
 - Today's sales, orders with their PayPal capture ids, payments kept apart by PayPal, cash, refund and attempt.
@@ -97,11 +97,11 @@ The rules are enforced by the backend, not by prompts:
 - **Backend**: Serverpod 4 and PostgreSQL on AWS ([api.rays.to](https://api.rays.to/ready)), with a durable job queue and a separate lane for AI work so a slow model never delays a payment.
 - **Console and judges' page**: Next.js 16, React 19, AG Grid, AG Studio.
 - **Services**: Firebase Authentication, Gemini Developer API, PayPal Orders v2, Payouts, Invoicing, Transaction Search, Disputes, Webhooks and the MCP server.
-- **Tests**: backend 68 unit tests and 122 integration tests on an isolated database; console 83 unit tests and 31 browser tests; app 211 widget tests, all passing on 4 November.
+- **Tests**: backend 90 unit tests and 181 integration tests on an isolated database; console 148 unit tests and 65 browser tests; app 241 widget tests, all passing on 4 November.
 
 ### Verified live in PayPal Sandbox (31 October to 4 November 2026)
 
-Eleven captures, four refunds and five Payouts batches in all.
+Fourteen captures, six refunds and eight Payouts batches in all.
 
 | Journey | Result | PayPal ids |
 |---|---|---|
@@ -151,7 +151,7 @@ flutter, dart, serverpod, postgresql, aws, nginx, cloudflare, next.js, react, ty
 2. Run the nine cards on the **Try Raysto** page in any order: Close the day, Pay the team, Bill the caterer, Settle a complaint, Chase an unfinished payment, Order lunch in one sentence, Read a printed menu, Take an order by voice, Draw a dish. Approvals that move money ask for the manager password again; it is prefilled for the judge login.
 3. For card 6, PayPal's Sandbox page asks for a buyer login: `<Sandbox buyer email>` / `<Sandbox buyer password>` (fill in from the private buyer file; never commit it).
 4. Two Sandbox app features are being enabled: Transaction Search (the close then reads PayPal's own list; until then it reconciles from Raysto's ledger and says so) and Invoicing (card 3 quotes, and says that sending is not enabled yet). Payouts (card 2) works.
-5. Android: install the APK from https://rays.to/raysto.apk and sign in as the diner (logins in the README), or as the manager to see the staff tablet. The build is 0.15.0 (4 November): Today screen, kitchen drag between lanes, Shifts tab, tip step before PayPal, complaint sheet.
+5. Android: install the APK from https://rays.to/raysto.apk and sign in as the diner (logins in the README), or as the manager to see the staff tablet. The build is 0.16.0 (4 November): 0.15.0 plus the AI accountant, supplies, the courier's deliveries, the group's Today and the PayPal account page.
 6. The demo café starts fresh every day at 09:00 UTC. Everything is PayPal Sandbox.
 
 ## Links

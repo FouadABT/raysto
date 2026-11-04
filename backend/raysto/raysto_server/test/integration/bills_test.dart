@@ -158,6 +158,89 @@ void main() {
       expect((payoutLine['source'] as Map)['providerId'], 'BATCH-1');
     });
 
+    test('a bill read as "HUDSON POWER & LIGHT" replaces the expected "Hudson Power & Light · Sample" and takes its payee', () async {
+      final s = builder.build();
+      final expected = await Bill.db.insertRow(
+        s,
+        Bill(
+          restaurantId: world.restaurant.id!,
+          vendor: 'Hudson Power & Light · Sample',
+          category: 'electricity',
+          amountMinor: 18000,
+          vatMinor: 0,
+          currency: 'USD',
+          state: 'expected',
+          payVia: 'paypal',
+          payeeEmail: 'billing@hudson.example',
+          recurring: 'monthly',
+          readJson: '{}',
+          version: 1,
+          createdAt: DateTime.now().toUtc(),
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+      world.vision = {
+        'vendor': 'HUDSON POWER & LIGHT',
+        'category': 'electricity',
+        'reference': 'HPL-2026-11-0417',
+        'amountMinor': 19086,
+        'vatMinor': 1414,
+        'currency': 'USD',
+        'issuedAt': iso(const Duration(days: -1)),
+        'dueAt': iso(const Duration(days: 20)),
+        'confidence': 1.0,
+      };
+      readsAndProposes('HUDSON POWER & LIGHT', 'electricity', 19086);
+      final task = await snapAndRun(await world.file('bill', 'hudson-november'));
+      final bill = (await Bill.db.findFirstRow(s, where: (t) => t.taskId.equals(task.id!)))!;
+      expect(bill.payVia, 'paypal');
+      expect(bill.payeeEmail, 'billing@hudson.example');
+      expect(bill.recurring, 'monthly');
+      expect((await Bill.db.findById(s, expected.id!))!.state, 'void');
+    });
+
+    test('a bill from a vendor the café already pays through PayPal takes that payee', () async {
+      final s = builder.build();
+      final approved = await Bill.db.insertRow(
+        s,
+        Bill(
+          restaurantId: world.restaurant.id!,
+          vendor: 'Metro Fiber · Sample',
+          category: 'internet',
+          reference: 'MF-OLD',
+          amountMinor: 5999,
+          vatMinor: 0,
+          currency: 'USD',
+          state: 'approved',
+          payVia: 'paypal',
+          payeeEmail: 'billing@metro-fiber.example',
+          readJson: '{}',
+          version: 1,
+          createdAt: DateTime.now().toUtc(),
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+      world.vision = {
+        'vendor': 'METRO FIBER',
+        'category': 'internet',
+        'reference': 'MF-NEW',
+        'amountMinor': 5999,
+        'vatMinor': 0,
+        'currency': 'USD',
+        'issuedAt': iso(const Duration(days: -1)),
+        'dueAt': iso(const Duration(days: 9)),
+        'recurring': true,
+        'confidence': 0.97,
+      };
+      readsAndProposes('METRO FIBER', 'internet', 5999);
+      final task = await snapAndRun(await world.file('bill', 'metro-fiber-new'));
+      final bill = (await Bill.db.findFirstRow(s, where: (t) => t.taskId.equals(task.id!)))!;
+      expect(bill.payVia, 'paypal');
+      expect(bill.payeeEmail, 'billing@metro-fiber.example');
+      expect(jsonDecode(bill.readJson)['payeeFrom'], approved.id);
+      expect(bill.duplicateOfId, isNull);
+    });
+
     test('a vendor without a PayPal email is paid elsewhere, and only with a proof', () async {
       final rent = await world.bill({
         'vendor': 'Rent Ltd',
