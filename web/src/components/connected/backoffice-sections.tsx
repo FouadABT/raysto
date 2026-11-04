@@ -40,7 +40,7 @@ import {
 } from "@/lib/connected/backoffice";
 import { m3GridTheme } from "@/lib/connected/grid-theme";
 import { MotionRoot } from "@/lib/connected/motion";
-import { approvalNotice, hourWindow, latestSent, payoutFor, peopleOf, spendShare, type Person } from "@/lib/connected/money-view";
+import { approvalNotice, heldOf, hourWindow, latestSent, payoutFor, peopleOf, spendShare, type Person } from "@/lib/connected/money-view";
 import { Icon } from "./icons";
 import { AgentPanel, defaults, money, pill, time, useLoad, words } from "./business-sections";
 import {
@@ -420,7 +420,7 @@ function PayTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: TabP
       { field: "createdAt", headerName: "Prepared", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
       { field: "kind", valueFormatter: (p) => words(p.value), flex: 0.6 },
       { headerName: "Period", valueGetter: (p) => `${String(p.data?.periodFrom ?? "").slice(0, 10)} → ${String(p.data?.periodTo ?? "").slice(0, 10)}`, minWidth: 190 },
-      { headerName: "People", valueGetter: (p) => p.data?.items.length ?? 0, flex: 0.5 },
+      { headerName: "People", valueGetter: (p) => p.data?.items?.length ?? 0, flex: 0.5, type: "rightAligned" },
       { field: "totalMinor", headerName: "Total", type: "rightAligned", valueFormatter: money(currencyCode) },
       { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 120 },
       { field: "providerBatchId", headerName: "PayPal batch id", minWidth: 170 },
@@ -446,17 +446,24 @@ function PayTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: TabP
               <strong>{words(b.kind)} · <Cash minor={b.totalMinor} code={b.currency} /></strong>
               <small>{String(b.periodFrom).slice(0, 10)} → {String(b.periodTo).slice(0, 10)}</small>
               <ul className="ops-payments">
-                {b.items.map((i, n) => (
+                {(b.items ?? []).map((i, n) => (
                   <li key={n}>
                     <strong>{i.recipientName} · {currency(i.amountMinor, b.currency)}</strong>
                     {i.note && <span>{i.note}</span>}
                   </li>
                 ))}
+                {heldOf(b).map((h, n) => (
+                  <li key={`held-${n}`} className="ops-bo-held">
+                    <strong>Held · {h.recipientName} · {currency(h.amountMinor, b.currency)}</strong>
+                    <span>{h.reason ?? "No PayPal email: add one to pay."}</span>
+                  </li>
+                ))}
               </ul>
-              {batchTotal(b) !== b.totalMinor && <p className="ops-error" role="alert">The lines do not add up to the batch total.</p>}
+              {batchTotal({ items: b.items ?? [] }) !== b.totalMinor && <p className="ops-error" role="alert">The lines do not add up to the batch total.</p>}
               {actionsFor(inbox, ["payout.send"]).some((a) => Number((a.preview as Json)?.batchId) === b.id) ? null : (
                 <StepUpAction api={api} tenant={tenant} label="Send with PayPal" onRun={async () => {
-                  const r = await api.command<Json>("payout.send", tenant, {}, { id: b.id, version: b.version });
+                  // A batch has no version: the server checks that it is still proposed.
+                  const r = await api.command<Json>("payout.send", tenant, {}, { id: b.id });
                   refresh();
                   return `Sent with PayPal Payouts. PayPal batch ${String(r.providerBatchId ?? "")}.`;
                 }} />
@@ -482,7 +489,7 @@ function PayTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: TabP
             {last.providerBatchId ? ` PayPal batch ${last.providerBatchId}.` : ""}
           </p>
           <ul className="ops-payments">
-            {last.items.map((i, n) => (
+            {(last.items ?? []).map((i, n) => (
               <li key={n}>
                 <strong>{i.recipientName} · {currency(i.amountMinor, last.currency)}</strong>
                 <span>{pill({ value: i.state })}</span>

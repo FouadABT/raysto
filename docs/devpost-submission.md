@@ -97,9 +97,11 @@ The rules are enforced by the backend, not by prompts:
 - **Backend**: Serverpod 4 and PostgreSQL on AWS ([api.rays.to](https://api.rays.to/ready)), with a durable job queue and a separate lane for AI work so a slow model never delays a payment.
 - **Console and judges' page**: Next.js 16, React 19, AG Grid, AG Studio.
 - **Services**: Firebase Authentication, Gemini Developer API, PayPal Orders v2, Payouts, Invoicing, Transaction Search, Disputes, Webhooks and the MCP server.
-- **Tests**: backend 68 unit tests and 112 integration tests on an isolated database; console 28; app 162 widget tests, all passing on 3 November.
+- **Tests**: backend 68 unit tests and 122 integration tests on an isolated database; console 83 unit tests and 31 browser tests; app 211 widget tests, all passing on 4 November.
 
-### Verified live in PayPal Sandbox (31 October to 3 November 2026)
+### Verified live in PayPal Sandbox (31 October to 4 November 2026)
+
+Eleven captures, four refunds and five Payouts batches in all.
 
 | Journey | Result | PayPal ids |
 |---|---|---|
@@ -112,6 +114,7 @@ The rules are enforced by the backend, not by prompts:
 | The judges' path, run three times on rays.to (the third filmed for the demo video) | Five live demos; each one-sentence order paid by a Sandbox buyer | captures `3PV01986C4166344M`, `1FC985713C934991E`, `8DJ62510842222013` |
 | Payments agent on an abandoned checkout | Read PayPal via MCP (`PAYER_ACTION_REQUIRED`), release approved after identity check | checkout 10 |
 | The nine-card judge path on 3 November (backend 0.14.0, console 0.16.0) | Close signed; pay run of $448.00 wages sent through PayPal Payouts; catering quoted (invoice send refused: Invoicing not yet enabled); one-tap order paid, ticket #14 | payout batch `EUG58M87BKY5E`, capture `8L994373M64657007` |
+| Pay runs and complaints, 3–4 November (backend 0.14.1 to 0.15.0) | Four more wage batches sent through PayPal Payouts after the identity check; three $8.00 complaint refunds made by PayPal; the redesigned console's nine-card run paid by buyer 1 | payout batches `4KZDS8M7DDWTL`, `N48TL9D5X6PLG`, `ZFW54957PSL9C`, `TMS8FKRT6ALYU`; refunds `8MM65248WS403211T`, `0S763729H45148806`, `80508388SK757251T`; capture `20K31884958788526` |
 | Live AI evaluation | 12 of 12: 3 menus, 5 spoken orders, 4 takeaway requests | [results](ai-evaluation-results.md) |
 
 ### Challenges we ran into
@@ -148,7 +151,7 @@ flutter, dart, serverpod, postgresql, aws, nginx, cloudflare, next.js, react, ty
 2. Run the nine cards on the **Try Raysto** page in any order: Close the day, Pay the team, Bill the caterer, Settle a complaint, Chase an unfinished payment, Order lunch in one sentence, Read a printed menu, Take an order by voice, Draw a dish. Approvals that move money ask for the manager password again; it is prefilled for the judge login.
 3. For card 6, PayPal's Sandbox page asks for a buyer login: `<Sandbox buyer email>` / `<Sandbox buyer password>` (fill in from the private buyer file; never commit it).
 4. Two Sandbox app features are being enabled: Transaction Search (the close then reads PayPal's own list; until then it reconciles from Raysto's ledger and says so) and Invoicing (card 3 quotes, and says that sending is not enabled yet). Payouts (card 2) works.
-5. Android: install the APK from https://rays.to/raysto.apk and sign in as the diner (logins in the README), or as the manager to see the staff tablet. The build is 0.14.2 (3 November): Shifts tab, tip step before PayPal, complaint sheet.
+5. Android: install the APK from https://rays.to/raysto.apk and sign in as the diner (logins in the README), or as the manager to see the staff tablet. The build is 0.15.0 (4 November): Today screen, kitchen drag between lanes, Shifts tab, tip step before PayPal, complaint sheet.
 6. The demo café starts fresh every day at 09:00 UTC. Everything is PayPal Sandbox.
 
 ## Links

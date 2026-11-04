@@ -4,6 +4,7 @@ import { ApiFailure, type ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
 import { agentCost, type AgentActionRow } from "@/lib/connected/business";
 import { gapLabel } from "@/lib/connected/backoffice";
+import { closeSourceChip, outcomeTone, toolChips, type OutcomeTone } from "@/lib/connected/try-chips";
 import {
   basketOf,
   elapsed,
@@ -231,16 +232,35 @@ function Approve({
   );
 }
 
-const decided = (state: string, executed: string, result?: Json) =>
-  state === "executed"
-    ? executed
-    : state === "rejected"
-      ? "Turned down. Nothing changed."
-      : result?.error === "provider_feature_disabled"
-        ? "PayPal refused it: this feature is not enabled on the Sandbox app yet. Nothing was sent or charged."
-        : typeof result?.message === "string" && result.message
-          ? `It did not go through: ${result.message}`
-          : "It did not go through; run it again.";
+/** How an approval ended, in words and in tone: only an executed action is "done". */
+type Decided = { text: string; tone: OutcomeTone };
+
+const decided = (state: string, executed: string, result?: Json): Decided => ({
+  tone: outcomeTone(state, result),
+  text:
+    state === "executed"
+      ? executed
+      : state === "rejected"
+        ? "Turned down. Nothing changed."
+        : state === "expired" || state === "stale"
+          ? "This proposal is out of date; run the card again for a fresh one."
+          : result?.error === "provider_feature_disabled"
+            ? "PayPal refused it: this feature is not enabled on the Sandbox app yet. Nothing was sent or charged."
+            : typeof result?.message === "string" && result.message
+              ? `It did not go through: ${result.message}`
+              : "It did not go through; run it again.",
+});
+
+/** The result line under an approval: a check only when it really ran. */
+function OutcomeLine({ outcome }: { outcome: Decided }) {
+  const icon: IconName = outcome.tone === "done" ? "check" : outcome.tone === "expired" ? "clock" : "alert";
+  return (
+    <p className={`ops-try-done${outcome.tone === "done" ? "" : ` ops-try-refused ops-try-${outcome.tone}`}`} role="status">
+      <Icon name={icon} size={18} />
+      <span>{outcome.text}</span>
+    </p>
+  );
+}
 
 /** A command that the backend does not offer yet reads as that, never as a result. */
 const unavailable = (e: unknown, what: string) => {
@@ -300,6 +320,7 @@ function MoneyOutcome({
   executed,
   chips,
   refresh,
+  idsAfter,
 }: {
   api: ConnectedApi;
   tenant: number;
@@ -308,17 +329,16 @@ function MoneyOutcome({
   executed: string;
   chips: (string | false | undefined)[];
   refresh: () => Promise<Json>;
+  /** PayPal's ids once the action ran, when the task alone does not carry them. */
+  idsAfter?: () => Promise<string[]>;
 }) {
-  const [outcome, setOutcome] = useState("");
+  const [outcome, setOutcome] = useState<Decided>();
   const [ids, setIds] = useState<string[]>([]);
   return (
     <>
       <Chips items={[...chips, ...ids]} />
       {outcome ? (
-        <p className="ops-try-done" role="status">
-          <Icon name="check" size={18} />
-          {outcome}
-        </p>
+        <OutcomeLine outcome={outcome} />
       ) : action ? (
         <Approve
           api={api}
@@ -326,7 +346,8 @@ function MoneyOutcome({
           action={action}
           done={(state, result) => {
             setOutcome(decided(state, executed, result));
-            if (state === "executed") void refresh().then((t) => setIds(paypalIds(t))).catch(() => {});
+            if (state === "executed")
+              void (idsAfter ? idsAfter() : refresh().then((t) => paypalIds(t))).then(setIds).catch(() => {});
           }}
         />
       ) : (
@@ -416,7 +437,8 @@ function CloseCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             action={pendingOf(task)}
             executed="Signed off. The close is posted with PayPal's figures beside the till's."
             chips={[
-              ...toolsUsed(task.trace).map((t) => (/paypal|transactions/i.test(t) ? "read PayPal via MCP" : `used ${t}`)),
+              closeSourceChip(close),
+              ...toolChips(task.trace).filter((c) => c.startsWith("used ")),
               `closed in ${demo.took}`,
               `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
@@ -505,7 +527,7 @@ function PayrollCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             action={pendingOf(task)}
             executed="Sent with PayPal Payouts. Each person receives it in their PayPal account (Sandbox)."
             chips={[
-              ...toolsUsed(task.trace).map((t) => `used ${t}`),
+              ...toolChips(task.trace),
               `prepared in ${demo.took}`,
               `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
@@ -642,7 +664,7 @@ function CateringCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             action={pendingOf(task)}
             executed="Sent with PayPal Invoicing. The customer pays on PayPal's page or from the QR code; when it is paid, the order goes to the kitchen."
             chips={[
-              ...toolsUsed(task.trace).map((t) => (/invoice/i.test(t) ? "PayPal Invoicing via MCP" : `used ${t}`)),
+              ...toolChips(task.trace),
               `quoted in ${demo.took}`,
               `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
@@ -738,8 +760,20 @@ function ComplaintCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             task={task}
             action={pending}
             executed="Refunded through PayPal. The diner gets PayPal's email; the order shows the refund."
+            idsAfter={async () => {
+              // PayPal's refund id arrives when the refund job hears back; wait for it briefly.
+              const deadline = Date.now() + 45000;
+              while (Date.now() < deadline) {
+                const rows = (await api.query<{ rows: Json[] }>("complaints", { restaurantId: tenant })).rows;
+                const row = rows.find((r) => Number(r.id) === Number(complaint?.id));
+                if (typeof row?.providerRefundId === "string" && row.providerRefundId)
+                  return [`PayPal refund ${row.providerRefundId}`];
+                await new Promise((r) => setTimeout(r, 3000));
+              }
+              return ["PayPal refund requested; its id appears on the order when PayPal confirms"];
+            }}
             chips={[
-              ...toolsUsed(task.trace).map((t) => (/paypal/i.test(t) ? "asked PayPal via MCP" : `used ${t}`)),
+              ...toolChips(task.trace),
               `checked in ${demo.took}`,
               `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
@@ -757,13 +791,13 @@ function MenuCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const [rows, setRows] = useState<DraftRow[]>([]);
   const [task, setTask] = useState<Json>();
   const [action, setAction] = useState<AgentActionRow>();
-  const [outcome, setOutcome] = useState("");
+  const [outcome, setOutcome] = useState<Decided>();
   const start = () =>
     demo.run(async (signal, say) => {
       setRows([]);
       setTask(undefined);
       setAction(undefined);
-      setOutcome("");
+      setOutcome(undefined);
       // Every judge reads the photo against the same starting menu, so the
       // changes it finds are the same ones the film and the README show.
       say("Putting the starting menu back");
@@ -862,19 +896,16 @@ function MenuCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             </tbody>
           </table>
           {outcome ? (
-            <p className="ops-try-done" role="status">
-              <Icon name="check" size={18} />
-              {outcome}
-            </p>
+            <OutcomeLine outcome={outcome} />
           ) : (
             action && (
               <Approve
                 api={api}
                 tenant={tenant}
                 action={action}
-                done={(state) =>
+                done={(state, result) =>
                   setOutcome(
-                    decided(state, "Published. Diners see the new menu in the app now."),
+                    decided(state, "Published. Diners see the new menu in the app now.", result),
                   )
                 }
               />
@@ -1026,7 +1057,7 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const pay = useDemo();
   const [text, setText] = useState("Two vegetarian lunches under $25, ready as soon as you can, please.");
   const [run, setRun] = useState<Json>();
-  const [checkout, setCheckout] = useState<{ id: number; orderId: number; url: string }>();
+  const [checkout, setCheckout] = useState<{ id: number; orderId: number; url: string; opened: boolean }>();
   const [paid, setPaid] = useState<Json>();
   const keys = useRef<Record<string, string>>({});
   const key = (step: string) => (keys.current[step] ??= crypto.randomUUID());
@@ -1058,9 +1089,14 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const order = () => {
     if (!basket) return;
     // One tap: the tab opens now, while the browser still counts it as a
-    // click, and gets PayPal's page as soon as the order exists.
-    const tab = window.open("", "_blank", "noopener");
+    // click, and gets PayPal's page as soon as the order exists. It is opened
+    // without "noopener" (with it, window.open returns null and the tab could
+    // never be sent to PayPal) and detached from this page by hand instead.
+    const tab = window.open("about:blank", "_blank");
+    if (tab) tab.opener = null;
+    let sent = false;
     return pay.run(async (signal, say) => {
+      try {
       say("Approving the basket and placing the order");
       const approved = await api.command<{ quoteId: number }>(
         "assistant.approve",
@@ -1093,8 +1129,10 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
         tab?.close();
         throw e;
       }
-      if (tab && !tab.closed) tab.location.href = created.approvalUrl;
-      setCheckout({ id: allocated.checkoutId, orderId: placed.orderId, url: created.approvalUrl });
+      const opened = !!tab && !tab.closed;
+      if (opened) tab.location.href = created.approvalUrl;
+      sent = true;
+      setCheckout({ id: allocated.checkoutId, orderId: placed.orderId, url: created.approvalUrl, opened });
       say("Waiting for you to approve in PayPal Sandbox");
       const final = await poll(
         () => api.query<Json>("checkout", { restaurantId: tenant, id: allocated.checkoutId }),
@@ -1115,6 +1153,11 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
         (p) => p.checkoutId === allocated.checkoutId,
       );
       setPaid({ ...detail, captureId: payment?.providerCaptureId });
+      } catch (e) {
+        // Never leave an empty tab behind when the order could not be made.
+        if (!sent) tab?.close();
+        throw e;
+      }
     });
   };
   const slot = basket?.slot
@@ -1170,9 +1213,13 @@ function OrderCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             <div className="ops-try-paypal">
               <a className="ops-primary" href={checkout.url} target="_blank" rel="noopener noreferrer">
                 <Icon name="paypal" size={18} />
-                Open PayPal Sandbox again
+                {checkout.opened ? "Open PayPal Sandbox again" : "Open PayPal"}
               </a>
-              <small>PayPal opened in a new tab. If your browser blocked it, use this link.</small>
+              <small>
+                {checkout.opened
+                  ? "PayPal opened in a new tab. If you closed it, use this link."
+                  : "Your browser kept the new tab from opening; open PayPal with this button."}
+              </small>
               {judge.buyerEmail ? (
                 <dl>
                   <dt>Sandbox buyer</dt>
@@ -1216,12 +1263,12 @@ function PaymentCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const demo = useDemo();
   const [task, setTask] = useState<Json>();
   const [action, setAction] = useState<AgentActionRow>();
-  const [outcome, setOutcome] = useState("");
+  const [outcome, setOutcome] = useState<Decided>();
   const start = () =>
     demo.run(async (signal, say) => {
       setTask(undefined);
       setAction(undefined);
-      setOutcome("");
+      setOutcome(undefined);
       say("A diner orders an espresso and opens PayPal");
       const menu = await menuOf(api, tenant);
       const dish =
@@ -1269,23 +1316,20 @@ function PaymentCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
         <div className="ops-try-result">
           <Chips
             items={[
-              ...toolsUsed(task.trace).map((t) => (t === "read_paypal" ? "asked PayPal via MCP" : `used ${t}`)),
+              ...toolChips(task.trace),
               `checked in ${demo.took}`,
               `AI cost ${agentCost(Number(task.chargedMicros ?? 0))}`,
             ]}
           />
           {outcome ? (
-            <p className="ops-try-done" role="status">
-              <Icon name="check" size={18} />
-              {outcome}
-            </p>
+            <OutcomeLine outcome={outcome} />
           ) : action ? (
             <Approve
               api={api}
               tenant={tenant}
               action={action}
-              done={(state) =>
-                setOutcome(decided(state, "Released. The order can be paid again or cancelled; PayPal holds nothing."))
+              done={(state, result) =>
+                setOutcome(decided(state, "Released. The order can be paid again or cancelled; PayPal holds nothing.", result))
               }
             />
           ) : (
@@ -1305,7 +1349,7 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const [picture, setPicture] = useState<string>();
   const [task, setTask] = useState<Json>();
   const [action, setAction] = useState<AgentActionRow>();
-  const [outcome, setOutcome] = useState("");
+  const [outcome, setOutcome] = useState<Decided>();
   useEffect(() => {
     let live = true;
     void menuOf(api, tenant)
@@ -1327,7 +1371,7 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
       if (!chosen) throw new Error("Choose a dish.");
       setTask(undefined);
       setAction(undefined);
-      setOutcome("");
+      setOutcome(undefined);
       setPicture(undefined);
       say("Gemini is drawing the dish");
       const asked = await api.command<{ taskIds: number[] }>("menu.photo", tenant, {
@@ -1397,17 +1441,14 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
             ]}
           />
           {outcome ? (
-            <p className="ops-try-done" role="status">
-              <Icon name="check" size={18} />
-              {outcome}
-            </p>
+            <OutcomeLine outcome={outcome} />
           ) : (
             action && (
               <Approve
                 api={api}
                 tenant={tenant}
                 action={action}
-                done={(state) => setOutcome(decided(state, "On the menu, labelled “AI image” for diners."))}
+                done={(state, result) => setOutcome(decided(state, "On the menu, labelled “AI image” for diners.", result))}
               />
             )
           )}

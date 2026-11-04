@@ -1,0 +1,49 @@
+{
+  "about": "The one set of numbers every page states. web/tests/facts.test.ts checks README.md, docs/devpost-submission.md, docs/reviewer-guide.md and the judges page against it; the film captions are written from it.",
+  "asOf": "2026-11-04",
+  "startedOn": "24 October 2026",
+  "firstCommit": "26 October 2026",
+  "paypal": {
+    "captures": {
+      "count": 11,
+      "words": "Eleven",
+      "ids": [
+        "633829727B675370M",
+        "4C048952Y13801205",
+        "4MG67343RS1841023",
+        "47E23175WJ603464A",
+        "55W092765M630635H",
+        "9BY842216S6346205",
+        "3PV01986C4166344M",
+        "1FC985713C934991E",
+        "8DJ62510842222013",
+        "8L994373M64657007",
+        "20K31884958788526"
+      ]
+    },
+    "refunds": {
+      "count": 4,
+      "words": "four",
+      "ids": ["2J851836BE9699524", "8MM65248WS403211T", "0S763729H45148806", "80508388SK757251T"]
+    },
+    "payoutBatches": {
+      "count": 5,
+      "words": "five",
+      "ids": ["EUG58M87BKY5E", "4KZDS8M7DDWTL", "N48TL9D5X6PLG", "ZFW54957PSL9C", "TMS8FKRT6ALYU"]
+    }
+  },
+  "tests": {
+    "backendUnit": 68,
+    "backendIntegration": 122,
+    "consoleUnit": 83,
+    "consoleBrowser": 31,
+    "app": 211
+  },
+  "versions": {
+    "backend": "0.15.1",
+    "console": "0.17.3",
+    "apk": "0.15.0",
+    "apkBuild": "0.15.0+2100",
+    "apkSha256": "eff6827e32ee079506c2d0e42f8dea6fdb3c3de80bcfa2c4e237536e279f9292"
+  }
+}

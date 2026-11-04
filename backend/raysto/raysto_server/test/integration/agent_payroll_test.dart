@@ -80,7 +80,7 @@ void main() {
       ),
     );
 
-    Future<int> shift(String name, String role, int hours, int rate, String email) async =>
+    Future<int> shift(String name, String role, int hours, int rate, String? email) async =>
         (await BackOfficeModule.saveShift(
           owner.build(),
           command({
@@ -89,7 +89,7 @@ void main() {
             'startsAt': DateTime.now().toUtc().subtract(Duration(hours: hours + 1)).toIso8601String(),
             'endsAt': DateTime.now().toUtc().subtract(const Duration(hours: 1)).toIso8601String(),
             'hourlyRateMinor': rate,
-            'payoutEmail': email,
+            'payoutEmail': ?email,
           }),
         ))['shiftId'] as int;
 
@@ -305,6 +305,105 @@ void main() {
       );
       expect(view['providerBatchId'], 'BATCH-1');
       expect((view['items'] as List).length, 2);
+      // The list carries each batch's lines too, the same as the single read.
+      final list = await BackOfficeModule.read(
+        owner.build(),
+        restaurantId: restaurant.id!,
+        name: 'payouts',
+      );
+      final rows = (list['rows'] as List).cast<Map>();
+      expect(rows.length, 2);
+      for (final row in rows) {
+        expect(row['items'], isA<List>(), reason: 'payouts list row ${row['id']}');
+      }
+      final listed = rows.firstWhere((r) => r['id'] == tips.id);
+      expect((listed['items'] as List).map((i) => (i as Map)['amountMinor']), [1334, 666]);
+    });
+
+    test('someone who worked without a PayPal email is held by name, never dropped', () async {
+      await shift('Nadia', 'floor', 4, 1500, 'nadia@example.test');
+      await shift('Lina', 'manager', 4, 2200, null);
+      await tippedSale(1000);
+      final s = builder.build();
+      final week = await PayrollAgent.readWeek(
+        s,
+        restaurant.id!,
+        DateTime.now().toUtc().subtract(const Duration(days: 1)),
+        DateTime.now().toUtc().add(const Duration(days: 1)),
+      );
+      // The pool counts the settled tip and is shared with everyone who worked.
+      expect(week['tipPoolMinor'], 1000);
+      final people = (week['people'] as List).cast<Map>();
+      final held = (week['held'] as List).cast<Map>();
+      expect(people.map((p) => p['recipientName']), ['Nadia']);
+      expect(held.map((p) => p['recipientName']), ['Lina']);
+      expect(people.single['tipMinor'] + held.single['tipMinor'], 1000);
+      expect(held.single['wagesMinor'], 4 * 2200);
+      expect(held.single['reason'], contains('PayPal email'));
+
+      final started = await PayrollAgent.runCommand(
+        owner.build(),
+        command({
+          'from': DateTime.now().toUtc().subtract(const Duration(days: 1)).toIso8601String(),
+          'to': DateTime.now().toUtc().add(const Duration(days: 1)).toIso8601String(),
+        }),
+      );
+      await AgentModule.run(s, started['taskId'] as int);
+      final task = (await AgentTask.db.findById(s, started['taskId'] as int))!;
+      expect(task.status, 'done', reason: '${task.summary} ${task.stateJson}');
+      expect(task.summary, contains('Held, no PayPal email yet: Lina'));
+      final batches = await PayoutBatch.db.find(
+        s,
+        where: (t) => t.restaurantId.equals(restaurant.id!),
+        orderBy: (t) => t.id,
+      );
+      for (final b in batches) {
+        final items = await PayoutItem.db.find(s, where: (t) => t.batchId.equals(b.id!));
+        expect(items.map((i) => i.recipientName), ['Nadia'], reason: b.kind);
+        final summary = jsonDecode(b.summaryJson) as Map;
+        expect((summary['held'] as List).cast<Map>().single['recipientName'], 'Lina');
+      }
+      final action = (await AgentAction.db.find(
+        s,
+        where: (t) => t.taskId.equals(task.id!),
+        orderBy: (t) => t.ordinal,
+      )).first;
+      final preview = jsonDecode(action.previewJson) as Map;
+      expect((preview['held'] as List).cast<Map>().single['recipientName'], 'Lina');
+    });
+
+    test('a tip counts once its order is paid, and only inside the period', () async {
+      await shift('Nadia', 'floor', 4, 1500, 'nadia@example.test');
+      // A tipped order that was never paid: its tip charge is not settled.
+      final q = await OrderingModule.quote(
+        customer.build(),
+        CreateQuote(
+          requestKey: key(),
+          restaurantId: restaurant.id!,
+          fulfillment: 'pickup',
+          linesJson: jsonEncode([
+            {'productId': burger, 'quantity': 1},
+          ]),
+          tipMinor: 300,
+        ),
+      );
+      await OrderingModule.submit(
+        customer.build(),
+        SubmitOrder(requestKey: key(), restaurantId: restaurant.id!, quoteId: q['id'] as int),
+      );
+      final s = builder.build();
+      Future<int> pool(DateTime from, DateTime to) async =>
+          (await PayrollAgent.readWeek(s, restaurant.id!, from, to))['tipPoolMinor'] as int;
+      final from = DateTime.now().toUtc().subtract(const Duration(days: 1));
+      final to = DateTime.now().toUtc().add(const Duration(days: 1));
+      expect(await pool(from, to), 0);
+      await tippedSale(700);
+      expect(await pool(from, to), 700);
+      // The same paid tip falls outside last week's window.
+      expect(
+        await pool(from.subtract(const Duration(days: 8)), from.subtract(const Duration(days: 1))),
+        0,
+      );
     });
 
     test('the split is exact under both policies', () {

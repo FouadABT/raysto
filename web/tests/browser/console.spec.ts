@@ -224,6 +224,22 @@ test.describe("money", () => {
     await expect(page.locator(".ops-bo-stamp")).toHaveCount(0);
   });
 
+  test("a payout list row without lines never crashes Team or the pay run, and held staff are named", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(preview + "?state=payouts");
+    await expect(page.locator(".ops-ov-greeting")).toBeVisible({ timeout: 60000 });
+    const side = page.locator(".ops-shell-side .ops-sections");
+    await side.getByRole("button", { name: "Team" }).click();
+    await expect(page.locator(".ops-appbar h1")).toHaveText("Team");
+    await expect(page.getByText("Nadia").first()).toBeVisible();
+    await side.getByRole("button", { name: "Money" }).click();
+    await page.getByRole("tab", { name: "Pay & tips" }).click();
+    await expect(page.getByText("Held · Lina")).toBeVisible();
+    await expect(page.getByText("No PayPal email: add one to pay.").first()).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
   test("Team switches between cards and the grid", async ({ page }) => {
     await openSection(page, "Team");
     const view = page.getByRole("group", { name: "Team view" });

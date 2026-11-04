@@ -74,11 +74,35 @@ export function peopleOf(shifts: readonly Shift[], now = new Date()): Person[] {
   return people.sort((a, b) => b.hours - a.hours || a.name.localeCompare(b.name));
 }
 
+/** A person who worked but has no PayPal email yet: held out of the batch, by name. */
+export interface HeldLine {
+  recipientName: string;
+  amountMinor: number;
+  minutes?: number;
+  reason?: string;
+}
+
+/** The held lines the payroll agent recorded on a batch (never sent to PayPal). */
+export function heldOf(b: object): HeldLine[] {
+  const held = ((b as { summary?: unknown }).summary as { held?: unknown } | null | undefined)?.held;
+  if (!Array.isArray(held)) return [];
+  return held
+    .filter((h): h is Record<string, unknown> => !!h && typeof h === "object")
+    .map((h) => ({
+      recipientName: String(h.recipientName ?? ""),
+      amountMinor: Number(h.amountMinor ?? 0),
+      minutes: h.minutes == null ? undefined : Number(h.minutes),
+      reason: h.reason == null ? undefined : String(h.reason),
+    }))
+    .filter((h) => h.recipientName);
+}
+
 /** The newest payout line for a person, if any batch named them. */
 export function payoutFor(name: string, batches: readonly PayoutBatch[]): { state: string; amountMinor: number; currency: string; kind: string } | undefined {
   const newest = [...batches].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   for (const b of newest) {
-    const item = b.items.find((i) => i.recipientName.trim().toLowerCase() === name.trim().toLowerCase());
+    // A list row from an older backend may carry no lines; it names nobody.
+    const item = (b.items ?? []).find((i) => i.recipientName.trim().toLowerCase() === name.trim().toLowerCase());
     if (item) return { state: item.state ?? b.state, amountMinor: item.amountMinor, currency: b.currency, kind: b.kind };
   }
   return undefined;

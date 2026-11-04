@@ -1970,3 +1970,13 @@
 .ops-try-photo.small img {
   max-width: 180px;
 }
+
+/* A refused, failed or expired approval never wears the green of a done one. */
+.ops-root .ops-try-done.ops-try-refused {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.ops-root .ops-try-done.ops-try-expired {
+  background: var(--md-sys-color-surface-container, var(--mint));
+  color: var(--md-sys-color-on-surface-variant, var(--muted));
+}

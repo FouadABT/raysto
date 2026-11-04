@@ -107,6 +107,54 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
           ? []
           : [{ id: 1, taskId: 1, agent: "payroll", command: "payout.send", title: "Pay this week's tips", rationale: "Preview", risk: "money", status: "pending", version: 1 }],
     }),
+    // `?state=payouts`: a list row in the shape the 0.15.0 backend sent (no
+    // `items`), next to a completed batch, with someone held for a missing email.
+    payouts: () =>
+      state !== "payouts"
+        ? { rows: [] }
+        : {
+            rows: [
+              {
+                id: 2,
+                kind: "wages",
+                periodFrom: asOf,
+                periodTo: asOf,
+                totalMinor: 28800,
+                currency: "USD",
+                state: "proposed",
+                createdAt: asOf,
+                summary: { held: [{ recipientName: "Lina", amountMinor: 35200, minutes: 960, reason: "No PayPal email: add one to pay." }] },
+              },
+              {
+                id: 1,
+                kind: "wages",
+                periodFrom: asOf,
+                periodTo: asOf,
+                totalMinor: 25600,
+                currency: "USD",
+                state: "completed",
+                providerBatchId: "TMS8FKRT6ALYU",
+                createdAt: asOf,
+                items: [{ recipientName: "Nadia", amountMinor: 25600, state: "completed" }],
+              },
+            ],
+            nextCursor: null,
+          },
+    shifts: () =>
+      state !== "payouts"
+        ? { rows: [] }
+        : {
+            rows: ["Omar", "Lina", "Nadia"].map((name, i) => ({
+              id: i + 1,
+              version: 1,
+              name,
+              role: i === 0 ? "kitchen" : "floor",
+              startsAt: new Date(Date.now() - (i + 2) * 3600000).toISOString(),
+              endsAt: new Date(Date.now() - (i + 1) * 3600000).toISOString(),
+              hourlyRateMinor: 1800,
+              payoutEmail: name === "Lina" ? null : `${name.toLowerCase()}@example.com`,
+            })),
+          },
     dashboard: (p) => {
       if (state === "failed") throw new ApiFailure("not_found", "Unknown query: dashboard (the backend does not serve it yet).");
       const d = p.range === "today" ? today : p.range === "30d" ? month(week) : week;

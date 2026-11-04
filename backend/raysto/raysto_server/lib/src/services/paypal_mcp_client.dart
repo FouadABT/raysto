@@ -334,12 +334,16 @@ class PayPalMcpClient {
         final value = jsonDecode(text);
         // The toolkit reports a refused PayPal call as a successful text
         // block holding {"ok":false,"status":403,...} (or an "error" key),
-        // with isError unset; that is a failed tool, not a result. A 403 is
-        // a feature the Sandbox app lacks; anything else is a rejected call.
+        // with isError unset; that is a failed tool, not a result. An
+        // "error" object and a 403 stay "failed" (as before 0.14.3; callers
+        // read a 403 as a feature the Sandbox app lacks); another refused
+        // status is a rejected call.
         if (value is Map<String, dynamic> &&
             (value.containsKey('error') || value['ok'] == false)) {
           throw McpFailure(
-            value['status'] == 403 ? 'mcp_tool_failed' : 'mcp_tool_rejected',
+            value['ok'] == false && value['status'] != 403
+                ? 'mcp_tool_rejected'
+                : 'mcp_tool_failed',
           );
         }
         if (value is Map<String, dynamic>) return value;

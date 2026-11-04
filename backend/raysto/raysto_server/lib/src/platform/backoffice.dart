@@ -687,7 +687,11 @@ class BackOfficeModule {
           limit: limit,
           transaction: tx,
         );
-        return page([for (final x in rows) payoutView(x)]);
+        final items = await _itemsView(s, [for (final x in rows) x.id!], tx);
+        return page([
+          for (final x in rows)
+            {...payoutView(x), 'items': items[x.id] ?? <Json>[]},
+        ]);
       case 'payout':
         await w.role(_managers);
         final x = await PayoutBatch.db.findById(
@@ -696,28 +700,8 @@ class BackOfficeModule {
           transaction: tx,
         );
         final batch = await _own(w, x, x?.restaurantId, 'Payout');
-        final items = await PayoutItem.db.find(
-          s,
-          where: (t) => t.batchId.equals(batch.id!),
-          orderBy: (t) => t.id,
-          transaction: tx,
-        );
-        return {
-          ...payoutView(batch),
-          'items': [
-            for (final i in items)
-              {
-                'id': i.id,
-                'recipientEmail': i.recipientEmail,
-                'recipientName': i.recipientName,
-                'shiftIds': jsonDecode(i.shiftIdsJson),
-                'amountMinor': i.amountMinor,
-                'note': i.note,
-                'providerItemId': i.providerItemId,
-                'state': i.state,
-              },
-          ],
-        };
+        final items = await _itemsView(s, [batch.id!], tx);
+        return {...payoutView(batch), 'items': items[batch.id] ?? <Json>[]};
       case 'backoffice.closes':
         await w.role(_managers);
         final rows = await DailyClose.db.find(
@@ -1009,6 +993,36 @@ class BackOfficeModule {
     'createdAt': x.createdAt.toIso8601String(),
     'updatedAt': x.updatedAt.toIso8601String(),
   };
+
+  /// The lines of each listed batch, read in one query: the list and the
+  /// single-batch query show the same items.
+  static Future<Map<int, List<Json>>> _itemsView(
+    Session s,
+    List<int> batchIds,
+    Transaction? tx,
+  ) async {
+    if (batchIds.isEmpty) return {};
+    final items = await PayoutItem.db.find(
+      s,
+      where: (t) => t.batchId.inSet(batchIds.toSet()),
+      orderBy: (t) => t.id,
+      transaction: tx,
+    );
+    final byBatch = <int, List<Json>>{};
+    for (final i in items) {
+      (byBatch[i.batchId] ??= []).add({
+        'id': i.id,
+        'recipientEmail': i.recipientEmail,
+        'recipientName': i.recipientName,
+        'shiftIds': jsonDecode(i.shiftIdsJson),
+        'amountMinor': i.amountMinor,
+        'note': i.note,
+        'providerItemId': i.providerItemId,
+        'state': i.state,
+      });
+    }
+    return byBatch;
+  }
 
   static Json closeView(DailyClose x) => {
     'id': x.id,

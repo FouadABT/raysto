@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { coworkers, judge } from "@/lib/connected/judge";
+import { coworkers, evidence, judge } from "@/lib/connected/judge";
 import { Icon, type IconName } from "@/components/connected/icons";
 
 const consoleUrl = "https://ops.rays.to/ops?judge=1";
@@ -347,12 +347,17 @@ export function JudgesPage() {
               <span>live AI evaluation cases: 3 menus, 5 spoken orders, 4 takeaway requests</span>
             </a>
             <a href={doc("paypal-acceptance-2026-10-31.md")} className="jg-fact">
-              <strong>9</strong>
-              <span>PayPal Sandbox captures recorded, plus a refund; two paid one split bill</span>
+              <strong>{evidence.captures}</strong>
+              <span>
+                PayPal Sandbox captures recorded, plus {evidence.refunds} refunds and {evidence.payoutBatches} Payouts
+                batches, each with its PayPal id
+              </span>
             </a>
             <a href={`${repo}#evidence`} className="jg-fact">
-              <strong>151</strong>
-              <span>backend tests (88 integration on an isolated database, 63 unit)</span>
+              <strong>{evidence.backendUnit + evidence.backendIntegration}</strong>
+              <span>
+                backend tests ({evidence.backendIntegration} integration on an isolated database, {evidence.backendUnit} unit)
+              </span>
             </a>
             <a href={`${repo}#how-paypal-is-used`} className="jg-fact">
               <strong>MCP</strong>
@@ -397,7 +402,8 @@ export function JudgesPage() {
       </main>
       <footer className="jg-footer">
         <span>
-          Built for the PayPal AI Hackathon, 26 October – 11 November 2026 · MIT licence ·{" "}
+          Built during the PayPal AI Hackathon: started {evidence.startedOn}, first commit {evidence.firstCommit} · MIT
+          licence ·{" "}
           <a href={repo}>Source on GitHub</a>
         </span>
         <span>PayPal Sandbox only. No real payments, no real restaurant.</span>

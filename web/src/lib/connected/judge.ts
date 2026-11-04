@@ -31,6 +31,21 @@ export const judge = {
  */
 export const coworkers = { count: "fourteen", demos: 9 };
 
+/**
+ * The evidence numbers on the judges' page. docs/facts.json holds the same
+ * facts (the console is built without the docs folder), and
+ * tests/facts.test.ts fails when the two disagree.
+ */
+export const evidence = {
+  captures: 11,
+  refunds: 4,
+  payoutBatches: 5,
+  backendUnit: 68,
+  backendIntegration: 122,
+  startedOn: "24 October 2026",
+  firstCommit: "26 October 2026",
+};
+
 export const judgeLogin = () => !!(judge.email && judge.password);
 export const isJudgeVenue = (restaurantId: number) =>
   judge.restaurantId > 0 && restaurantId === judge.restaurantId;
