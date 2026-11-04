@@ -35,11 +35,30 @@ class CatalogueModule {
     'closeAt': 1380,
     // What the money agents may do by themselves, within these limits;
     // everything else waits for a person and the identity check.
-    'autonomy': {'refundsMaxMinor': 0, 'refundsPerDay': 0, 'remindersAuto': false},
+    'autonomy': {
+      'refundsMaxMinor': 0,
+      'refundsPerDay': 0,
+      'remindersAuto': false,
+      // The accountant may pay a recurring bill by itself only within these
+      // limits, and by default only to a payee it has paid before.
+      'billsMaxMinor': 0,
+      'billsPerDay': 0,
+      'billsKnownPayeesOnly': true,
+    },
     // How the payroll agent splits the week's tips: by hours worked, or equally.
     'tipPolicy': 'hours',
     // The day's paid-sales goal the dashboard rings against; 0 means none.
     'dailyTargetMinor': 0,
+    // Delivery (0.16): a flat fee (deliveryFeeMinor) or base + per km up to a
+    // maximum; proof at the door; what a driver earns per delivery; and
+    // whether the AI dispatcher may send an offer without a person.
+    'deliveryFeeMode': 'flat',
+    'deliveryFeeBaseMinor': 0,
+    'deliveryFeePerKmMinor': 0,
+    'deliveryFeeMaxMinor': 0,
+    'deliveryProof': 'none',
+    'driverPayPerDeliveryMinor': 0,
+    'dispatchAuto': false,
   };
   static bool _tzInitialized = false;
   static tz.Location zone(String name) {
@@ -127,8 +146,19 @@ class CatalogueModule {
       'taxConfigured',
       'pricesIncludeTax',
       'autoAcceptPaid',
+      'dispatchAuto',
     ]) {
       _bool(merged, b);
+    }
+    _str(merged, 'deliveryFeeMode', choices: {'flat', 'distance'});
+    _str(merged, 'deliveryProof', choices: {'none', 'code', 'photo'});
+    for (final k in [
+      'deliveryFeeBaseMinor',
+      'deliveryFeePerKmMinor',
+      'deliveryFeeMaxMinor',
+      'driverPayPerDeliveryMinor',
+    ]) {
+      _int(merged, k, max: 100000);
     }
     _str(merged, 'paymentTiming', choices: {'before', 'end'});
     final modes = _list(merged, 'modes', max: 3);
@@ -222,11 +252,21 @@ class CatalogueModule {
   }
 
   static Json validateAutonomy(Json a) {
-    _keys(a, {'refundsMaxMinor', 'refundsPerDay', 'remindersAuto'});
+    _keys(a, {
+      'refundsMaxMinor',
+      'refundsPerDay',
+      'remindersAuto',
+      'billsMaxMinor',
+      'billsPerDay',
+      'billsKnownPayeesOnly',
+    });
     return {
       'refundsMaxMinor': _int(a, 'refundsMaxMinor', max: 5000, fallback: 0),
       'refundsPerDay': _int(a, 'refundsPerDay', max: 20, fallback: 0),
       'remindersAuto': _bool(a, 'remindersAuto'),
+      'billsMaxMinor': _int(a, 'billsMaxMinor', max: 50000, fallback: 0),
+      'billsPerDay': _int(a, 'billsPerDay', max: 20, fallback: 0),
+      'billsKnownPayeesOnly': _bool(a, 'billsKnownPayeesOnly', fallback: true),
     };
   }
 
@@ -244,10 +284,26 @@ class CatalogueModule {
           _fail('upgrade_required', 'Initialize this restaurant first.');
       _version(p.version, c.expectedVersion);
       final prior = w.settings;
+      final autonomy = d.containsKey('autonomy')
+          ? validateAutonomy(_object(d['autonomy']))
+          : null;
+      if (autonomy != null) {
+        // Letting the accountant pay bills by itself moves money: only the
+        // owner may change it, and only after the identity check.
+        final before = validateAutonomy(_object(prior['autonomy'] ?? {}));
+        final billsChanged = [
+          'billsMaxMinor',
+          'billsPerDay',
+          'billsKnownPayeesOnly',
+        ].any((k) => before[k] != autonomy[k]);
+        if (billsChanged) {
+          await w.role({'owner'});
+          await _stepUp(w);
+        }
+      }
       final next = <String, dynamic>{
         ...prior,
-        if (d.containsKey('autonomy'))
-          'autonomy': validateAutonomy(_object(d['autonomy'])),
+        'autonomy': ?autonomy,
         if (d.containsKey('closeAt')) 'closeAt': _int(d, 'closeAt', max: 1439),
         if (d.containsKey('dailyTargetMinor'))
           'dailyTargetMinor': _int(d, 'dailyTargetMinor', max: 10000000),

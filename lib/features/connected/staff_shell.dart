@@ -82,15 +82,7 @@ class _StaffShellState extends State<StaffShell> {
           ),
           agentsPage(l),
         ),
-      // Everyone on the team clocks their own shift here.
-      (
-        DockDestination(
-          context.tr('Shifts'),
-          Icons.schedule_outlined,
-          Icons.schedule,
-        ),
-        ShiftsBoard(live: l),
-      ),
+      // A courier starts on their deliveries, not their shifts.
       if (l.role == 'courier')
         (
           DockDestination(
@@ -100,6 +92,15 @@ class _StaffShellState extends State<StaffShell> {
           ),
           deliveriesPage(l),
         ),
+      // Everyone on the team clocks their own shift here.
+      (
+        DockDestination(
+          context.tr('Shifts'),
+          Icons.schedule_outlined,
+          Icons.schedule,
+        ),
+        ShiftsBoard(live: l),
+      ),
       (
         DockDestination(context.tr('More'), Icons.more_horiz, Icons.more_horiz),
         staffMore(l, widget.memberships, (m) {

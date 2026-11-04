@@ -8,6 +8,8 @@ import {
   backofficeQueries,
   consoleCommands,
   consoleQueries,
+  phase16Commands,
+  phase16Queries,
 } from "../src/lib/connected/proxy-allowlist";
 
 const platform = join(
@@ -21,10 +23,11 @@ const names = (source: string, pattern: RegExp) =>
 // The back-office names are promised by docs/back-office-design.md §3; until
 // the backend ships them they are accepted only when that section lists them.
 const design = readFileSync(join(__dirname, "../../docs/back-office-design.md"), "utf8");
-const promised = (kind: "Commands" | "Queries") =>
-  new Set(
-    [...(design.match(new RegExp(`^${kind}: (.*)$`, "m"))?.[1] ?? "").matchAll(/`([A-Za-z.]+)[^`]*`/g)].map((m) => m[1]),
-  );
+// The 0.16 names are promised by docs/release-0.16-design.md in the same way.
+const release16 = readFileSync(join(__dirname, "../../docs/release-0.16-design.md"), "utf8");
+const listedIn = (doc: string, kind: "Commands" | "Queries") =>
+  [...(doc.match(new RegExp(`^${kind}: (.*)$`, "m"))?.[1] ?? "").matchAll(/`([A-Za-z.]+)[^`]*`/g)].map((m) => m[1]);
+const promised = (kind: "Commands" | "Queries") => new Set([...listedIn(design, kind), ...listedIn(release16, kind)]);
 const pending: string[] = [];
 const known = (name: string, backend: Set<string>, promisedSet: Set<string>, listed: Set<string>) => {
   if (backend.has(name)) return true;
@@ -42,7 +45,10 @@ test("every allowlisted command exists in the backend or is promised by the desi
   ]);
   const promisedCommands = promised("Commands");
   for (const name of consoleCommands)
-    assert.ok(known(name, commands, promisedCommands, backofficeCommands), `unknown backend command ${name}`);
+    assert.ok(
+      known(name, commands, promisedCommands, new Set([...backofficeCommands, ...phase16Commands])),
+      `unknown backend command ${name}`,
+    );
 });
 
 test("every allowlisted query exists in the backend or is promised by the design", () => {
@@ -55,7 +61,10 @@ test("every allowlisted query exists in the backend or is promised by the design
   ]);
   const promisedQueries = promised("Queries");
   for (const name of consoleQueries)
-    assert.ok(known(name, queries, promisedQueries, backofficeQueries), `unknown backend query ${name}`);
+    assert.ok(
+      known(name, queries, promisedQueries, new Set([...backofficeQueries, ...phase16Queries])),
+      `unknown backend query ${name}`,
+    );
   if (pending.length) console.log(`back-office names not yet in the backend: ${pending.join(", ")}`);
 });
 
@@ -78,6 +87,10 @@ test("camel-case console commands pass and unlisted names do not", () => {
   assert.ok(!allowedPath("webhooks/paypal-platform"));
   assert.ok(!allowedPath("media/13/content"));
   assert.ok(!allowedPath("media/0"));
-  assert.ok(!allowedPath("commands/media.upload"));
+  // Uploads: the command is relayed; the bytes go through a separate,
+  // size-capped PUT route, never through allowedPath.
+  assert.ok(allowedPath("commands/media.upload"));
+  assert.ok(allowedPath("queries/ledger.pnl"));
+  assert.ok(allowedPath("commands/bill.pay"));
   assert.ok(!allowedPath("voice/counter/extra"));
 });

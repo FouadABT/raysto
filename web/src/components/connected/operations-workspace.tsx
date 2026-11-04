@@ -49,6 +49,10 @@ import {
 } from "./business-sections";
 import { TrySection } from "./try-section";
 import { MoneySection, TeamSection } from "./backoffice-sections";
+import { GroupSection } from "./group-section";
+import { AccountantSection } from "./accountant-section";
+import { DispatchSection } from "./dispatch-section";
+import { SuppliesSection } from "./supplies-section";
 import { OverviewSection } from "./overview-section";
 import { FadeThrough, NavIndicator } from "./m3";
 import { isJudgeVenue } from "@/lib/connected/judge";
@@ -63,6 +67,11 @@ const places: readonly (readonly [Place, string, IconName])[] = [
   ["agents", "Agents", "agents"],
   ["money", "Money", "money"],
   ["team", "Team", "team"],
+  // 0.16: accountant, delivery dispatch, supplies, and the franchise view.
+  ["accountant", "Accountant", "ledger"],
+  ["dispatch", "Dispatch", "dispatch"],
+  ["supplies", "Supplies", "supplies"],
+  ["group", "Group", "group"],
   ["floor", "Floor", "floor"],
 ];
 const tryPlace = ["try", "Try Raysto", "play"] as const;
@@ -71,7 +80,18 @@ const tryPlace = ["try", "Try Raysto", "play"] as const;
  * plain fade, never a scale, because a transform on their ancestors breaks
  * the grid's measurements.
  */
-const gridHeavy = new Set<Place>(["orders", "payments", "agents", "money", "team", "floor"]);
+const gridHeavy = new Set<Place>([
+  "orders",
+  "payments",
+  "agents",
+  "money",
+  "team",
+  "floor",
+  "group",
+  "accountant",
+  "dispatch",
+  "supplies",
+]);
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 // AG Studio can be switched off at build time (for example if its evaluation
@@ -771,6 +791,14 @@ export function OperationsWorkspace({
               focus={focus}
               currencyCode={snapshot.currency}
             />
+          ) : section === "accountant" ? (
+            <AccountantSection api={api} tenant={tenant} revision={snapshot.asOf} currencyCode={snapshot.currency} />
+          ) : section === "dispatch" ? (
+            <DispatchSection api={api} tenant={tenant} revision={snapshot.asOf} currencyCode={snapshot.currency} />
+          ) : section === "supplies" ? (
+            <SuppliesSection api={api} tenant={tenant} revision={snapshot.asOf} currencyCode={snapshot.currency} />
+          ) : section === "group" ? (
+            <GroupSection api={api} tenant={tenant} revision={snapshot.asOf} currencyCode={snapshot.currency} />
           ) : section === "team" ? (
             <TeamSection api={api} tenant={tenant} revision={snapshot.asOf} currencyCode={snapshot.currency} />
           ) : (

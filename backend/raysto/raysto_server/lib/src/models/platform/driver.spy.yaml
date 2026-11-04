@@ -1,0 +1,23 @@
+class: Driver
+table: raysto_driver
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  kind: String
+  userId: String?
+  partnerAppId: int?
+  name: String
+  phoneLast4: String?
+  vehicle: String
+  payoutEmail: String?
+  status: String
+  lastSeenAt: DateTime?
+  active: bool
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  driver_tenant_status:
+    fields: restaurantId, status
+  driver_user:
+    fields: userId

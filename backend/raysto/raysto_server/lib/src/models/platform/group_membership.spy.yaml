@@ -1,0 +1,16 @@
+class: GroupMembership
+table: raysto_group_membership
+serverOnly: true
+fields:
+  groupId: int, relation(parent=raysto_restaurant_group)
+  userId: String
+  role: String
+  active: bool
+  version: int
+  createdAt: DateTime
+indexes:
+  gmember_group_user:
+    fields: groupId, userId
+    unique: true
+  gmember_user:
+    fields: userId

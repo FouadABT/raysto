@@ -18,9 +18,25 @@ class AiModule {
         final purpose = _str(
           d,
           'purpose',
-          choices: {'menuSource', 'menuImage', 'support'},
+          choices: {
+            'menuSource',
+            'menuImage',
+            'support',
+            // 0.16: bills and receipts for the accountant, supplier delivery
+            // notes, and a courier's proof of delivery.
+            'bill',
+            'receipt',
+            'deliveryNote',
+            'deliveryProof',
+          },
         );
-        if (purpose != 'support') await w.role(_managers);
+        if ({'bill', 'receipt', 'deliveryNote'}.contains(purpose)) {
+          await w.role(_finance);
+        } else if (purpose == 'deliveryProof') {
+          await w.role({..._managers, 'courier'});
+        } else if (purpose != 'support') {
+          await w.role(_managers);
+        }
         final digest = _str(d, 'sha256', max: 64);
         if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(digest)) {
           _fail('invalid_input', 'Provide a SHA-256 digest.');
@@ -154,12 +170,18 @@ class AiModule {
               ).firstMatch(text)?.group(1) ??
               '',
         );
+        // A bill is read by the AI in one call; five pages keep it within the
+        // model's input limit.
+        final maxPages = a.purpose == 'bill' ? 5 : 20;
         if (info.exitCode != 0 ||
             pages == null ||
-            pages > 20 ||
+            pages > maxPages ||
             pages < 1 ||
             RegExp(r'^Encrypted:\s+yes', multiLine: true).hasMatch(text)) {
-          _fail('invalid_file', 'PDF must be unencrypted with 1–20 pages.');
+          _fail(
+            'invalid_file',
+            'PDF must be unencrypted with 1–$maxPages pages.',
+          );
         }
         metadata = {'pages': pages, 'reviewRequired': true};
       } else {

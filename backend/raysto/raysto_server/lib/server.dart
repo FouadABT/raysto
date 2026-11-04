@@ -4,6 +4,8 @@ import 'src/auth/firebase_configuration.dart';
 import 'src/generated/serverpod.dart';
 import 'src/web/api_routes.dart';
 import 'src/web/platform_routes.dart';
+import 'src/web/pay_link_route.dart';
+import 'src/web/partner_routes.dart';
 import 'src/web/platform_readiness.dart';
 import 'src/platform/platform.dart';
 
@@ -29,6 +31,9 @@ void run(List<String> args) async {
   pod.webServer.addRoute(PayPalWebhookRoute(), '/webhooks/paypal');
   pod.webServer.addRoute(PayPalReturnRoute(), '/payments/return');
   pod.webServer.addRoute(PayPalReturnRoute(), '/payments/cancel');
+  // 0.16: pay links (stream S1) and the Delivery Partner API (stream S2).
+  pod.webServer.addRoute(PayLinkRoute(), '/pay/**');
+  pod.webServer.addRoute(PartnerRoute(), '/api/partner/v1/**');
   await pod.start();
   if (Platform.environment['RAYSTO_PLATFORM_V2_ENABLED'] == 'true' &&
       Platform.environment['RAYSTO_PLATFORM_WORKER_ENABLED'] == 'true') {

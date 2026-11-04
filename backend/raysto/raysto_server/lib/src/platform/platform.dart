@@ -58,6 +58,18 @@ part 'backoffice.dart';
 part 'dashboard.dart';
 part 'agent_close.dart';
 part 'agent_payroll.dart';
+// 0.16 (plan: franchise, accountant, delivery, supplies, AG Studio). Each file
+// names its owner stream; registries below have one marked anchor each.
+part 'group.dart';
+part 'ledger.dart';
+part 'accountant.dart';
+part 'agent_accountant.dart';
+part 'delivery.dart';
+part 'partner.dart';
+part 'agent_dispatch.dart';
+part 'purchasing.dart';
+part 'agent_supplies_plan.dart';
+part 'studio_layout.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -283,6 +295,15 @@ class PlatformApi {
 
   static final Map<String, Future<Json> Function(Session, PlatformCommand)>
   commands = {
+    // 0.16 anchor: each module fills its own map; nothing else goes here.
+    ...GroupModule.commands,
+    ...BillsModule.commands,
+    ...PaymentRequestModule.commands,
+    ...LedgerModule.commands,
+    ...DeliveryModule.commands,
+    ...PartnerModule.commands,
+    ...PurchasingModule.commands,
+    ...StudioLayoutModule.commands,
     'room.split.reset': EqualShares.reset,
     'room.split.equal': EqualShares.equal,
     'operations.archiveThread': WorkspaceModule.archiveThread,

@@ -179,6 +179,32 @@ List<Widget> staffTiles(BuildContext c, LiveContext authorized) => [
           ),
         ),
       ],
+      // 0.16: the AI accountant and supplies (owners, managers and the
+      // accountant role), delivery dispatch, and the franchise view.
+      if (authorized.manager || authorized.role == 'accountant') ...[
+        tile(
+          'Accountant',
+          Icons.account_balance_wallet_outlined,
+          () => push(c, accountantPage(authorized)),
+        ),
+        tile(
+          'Supplies',
+          Icons.inventory_2_outlined,
+          () => push(c, suppliesPage(authorized)),
+        ),
+      ],
+      if (authorized.manager) ...[
+        tile(
+          'Dispatch',
+          Icons.map_outlined,
+          () => push(c, dispatchPage(authorized)),
+        ),
+        tile(
+          'Group',
+          Icons.store_mall_directory_outlined,
+          () => push(c, groupTodayPage(authorized)),
+        ),
+      ],
       if (authorized.role == 'owner')
         tile(
           'Merchant and subscription',

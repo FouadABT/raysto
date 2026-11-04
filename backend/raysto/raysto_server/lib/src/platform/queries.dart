@@ -1242,15 +1242,33 @@ class PlatformQueries {
                 .toList(),
           );
         default:
-          return await BackOfficeModule.query(
-                w,
-                name,
-                d,
-                limit,
-                cursor,
-                page,
-              ) ??
-              _fail('not_found', 'Unknown query.');
+          // 0.16 anchor: group reads first (they span venues and carry no
+          // restaurantId), then each module in turn; null means "not mine".
+          if (name.startsWith('group.')) {
+            return await GroupModule.query(w, name, d, limit, cursor, page) ??
+                _fail('not_found', 'Unknown query.');
+          }
+          for (final module in <Future<Json?> Function(
+            Work,
+            String,
+            Json,
+            int,
+            int,
+            Json Function(List<Json>),
+          )>[
+            LedgerModule.query,
+            BillsModule.query,
+            PaymentRequestModule.query,
+            DeliveryModule.query,
+            PartnerModule.query,
+            PurchasingModule.query,
+            StudioLayoutModule.query,
+            BackOfficeModule.query,
+          ]) {
+            final result = await module(w, name, d, limit, cursor, page);
+            if (result != null) return result;
+          }
+          _fail('not_found', 'Unknown query.');
       }
     });
   }

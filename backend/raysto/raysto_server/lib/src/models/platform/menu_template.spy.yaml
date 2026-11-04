@@ -1,0 +1,14 @@
+class: MenuTemplate
+table: raysto_menu_template
+serverOnly: true
+fields:
+  groupId: int, relation(parent=raysto_restaurant_group)
+  name: String
+  itemsJson: String
+  createdBy: String
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  mtemplate_group:
+    fields: groupId

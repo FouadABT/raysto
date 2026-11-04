@@ -25,6 +25,8 @@ abstract class StockItem
     required this.lowAt,
     required this.version,
     required this.updatedAt,
+    this.parLevel,
+    this.leadDays,
   });
 
   factory StockItem({
@@ -38,6 +40,8 @@ abstract class StockItem
     required double lowAt,
     required int version,
     required DateTime updatedAt,
+    double? parLevel,
+    int? leadDays,
   }) = _StockItemImpl;
 
   factory StockItem.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -54,6 +58,8 @@ abstract class StockItem
       updatedAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['updatedAt'],
       ),
+      parLevel: (jsonSerialization['parLevel'] as num?)?.toDouble(),
+      leadDays: jsonSerialization['leadDays'] as int?,
     );
   }
 
@@ -82,6 +88,10 @@ abstract class StockItem
 
   DateTime updatedAt;
 
+  double? parLevel;
+
+  int? leadDays;
+
   @override
   _is.Table<int?> get table => t;
 
@@ -99,6 +109,8 @@ abstract class StockItem
     double? lowAt,
     int? version,
     DateTime? updatedAt,
+    double? parLevel,
+    int? leadDays,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -114,6 +126,8 @@ abstract class StockItem
       'lowAt': lowAt,
       'version': version,
       'updatedAt': updatedAt.toJson(),
+      if (parLevel != null) 'parLevel': parLevel,
+      if (leadDays != null) 'leadDays': leadDays,
     };
   }
 
@@ -164,6 +178,8 @@ class _StockItemImpl extends StockItem {
     required double lowAt,
     required int version,
     required DateTime updatedAt,
+    double? parLevel,
+    int? leadDays,
   }) : super._(
          id: id,
          restaurantId: restaurantId,
@@ -175,6 +191,8 @@ class _StockItemImpl extends StockItem {
          lowAt: lowAt,
          version: version,
          updatedAt: updatedAt,
+         parLevel: parLevel,
+         leadDays: leadDays,
        );
 
   /// Returns a shallow copy of this [StockItem]
@@ -192,6 +210,8 @@ class _StockItemImpl extends StockItem {
     double? lowAt,
     int? version,
     DateTime? updatedAt,
+    Object? parLevel = _Undefined,
+    Object? leadDays = _Undefined,
   }) {
     return StockItem(
       id: id is int? ? id : this.id,
@@ -204,6 +224,8 @@ class _StockItemImpl extends StockItem {
       lowAt: lowAt ?? this.lowAt,
       version: version ?? this.version,
       updatedAt: updatedAt ?? this.updatedAt,
+      parLevel: parLevel is double? ? parLevel : this.parLevel,
+      leadDays: leadDays is int? ? leadDays : this.leadDays,
     );
   }
 }
@@ -256,6 +278,16 @@ class StockItemUpdateTable extends _is.UpdateTable<StockItemTable> {
         table.updatedAt,
         value,
       );
+
+  _is.ColumnValue<double, double> parLevel(double? value) => _is.ColumnValue(
+    table.parLevel,
+    value,
+  );
+
+  _is.ColumnValue<int, int> leadDays(int? value) => _is.ColumnValue(
+    table.leadDays,
+    value,
+  );
 }
 
 class StockItemTable extends _is.Table<int?> {
@@ -298,6 +330,14 @@ class StockItemTable extends _is.Table<int?> {
       'updatedAt',
       this,
     );
+    parLevel = _is.ColumnDouble(
+      'parLevel',
+      this,
+    );
+    leadDays = _is.ColumnInt(
+      'leadDays',
+      this,
+    );
   }
 
   late final StockItemUpdateTable updateTable;
@@ -320,6 +360,10 @@ class StockItemTable extends _is.Table<int?> {
 
   late final _is.ColumnDateTime updatedAt;
 
+  late final _is.ColumnDouble parLevel;
+
+  late final _is.ColumnInt leadDays;
+
   @override
   List<_is.Column> get columns => [
     id,
@@ -332,6 +376,8 @@ class StockItemTable extends _is.Table<int?> {
     lowAt,
     version,
     updatedAt,
+    parLevel,
+    leadDays,
   ];
 }
 

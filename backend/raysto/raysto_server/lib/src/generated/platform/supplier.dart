@@ -21,6 +21,8 @@ abstract class Supplier
     required this.payoutEmail,
     required this.version,
     required this.createdAt,
+    this.email,
+    this.leadDays,
   });
 
   factory Supplier({
@@ -30,6 +32,8 @@ abstract class Supplier
     required String payoutEmail,
     required int version,
     required DateTime createdAt,
+    String? email,
+    int? leadDays,
   }) = _SupplierImpl;
 
   factory Supplier.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -42,6 +46,8 @@ abstract class Supplier
       createdAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
+      email: jsonSerialization['email'] as String?,
+      leadDays: jsonSerialization['leadDays'] as int?,
     );
   }
 
@@ -62,6 +68,10 @@ abstract class Supplier
 
   DateTime createdAt;
 
+  String? email;
+
+  int? leadDays;
+
   @override
   _is.Table<int?> get table => t;
 
@@ -75,6 +85,8 @@ abstract class Supplier
     String? payoutEmail,
     int? version,
     DateTime? createdAt,
+    String? email,
+    int? leadDays,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -86,6 +98,8 @@ abstract class Supplier
       'payoutEmail': payoutEmail,
       'version': version,
       'createdAt': createdAt.toJson(),
+      if (email != null) 'email': email,
+      if (leadDays != null) 'leadDays': leadDays,
     };
   }
 
@@ -132,6 +146,8 @@ class _SupplierImpl extends Supplier {
     required String payoutEmail,
     required int version,
     required DateTime createdAt,
+    String? email,
+    int? leadDays,
   }) : super._(
          id: id,
          restaurantId: restaurantId,
@@ -139,6 +155,8 @@ class _SupplierImpl extends Supplier {
          payoutEmail: payoutEmail,
          version: version,
          createdAt: createdAt,
+         email: email,
+         leadDays: leadDays,
        );
 
   /// Returns a shallow copy of this [Supplier]
@@ -152,6 +170,8 @@ class _SupplierImpl extends Supplier {
     String? payoutEmail,
     int? version,
     DateTime? createdAt,
+    Object? email = _Undefined,
+    Object? leadDays = _Undefined,
   }) {
     return Supplier(
       id: id is int? ? id : this.id,
@@ -160,6 +180,8 @@ class _SupplierImpl extends Supplier {
       payoutEmail: payoutEmail ?? this.payoutEmail,
       version: version ?? this.version,
       createdAt: createdAt ?? this.createdAt,
+      email: email is String? ? email : this.email,
+      leadDays: leadDays is int? ? leadDays : this.leadDays,
     );
   }
 }
@@ -192,6 +214,16 @@ class SupplierUpdateTable extends _is.UpdateTable<SupplierTable> {
         table.createdAt,
         value,
       );
+
+  _is.ColumnValue<String, String> email(String? value) => _is.ColumnValue(
+    table.email,
+    value,
+  );
+
+  _is.ColumnValue<int, int> leadDays(int? value) => _is.ColumnValue(
+    table.leadDays,
+    value,
+  );
 }
 
 class SupplierTable extends _is.Table<int?> {
@@ -217,6 +249,14 @@ class SupplierTable extends _is.Table<int?> {
       'createdAt',
       this,
     );
+    email = _is.ColumnString(
+      'email',
+      this,
+    );
+    leadDays = _is.ColumnInt(
+      'leadDays',
+      this,
+    );
   }
 
   late final SupplierUpdateTable updateTable;
@@ -231,6 +271,10 @@ class SupplierTable extends _is.Table<int?> {
 
   late final _is.ColumnDateTime createdAt;
 
+  late final _is.ColumnString email;
+
+  late final _is.ColumnInt leadDays;
+
   @override
   List<_is.Column> get columns => [
     id,
@@ -239,6 +283,8 @@ class SupplierTable extends _is.Table<int?> {
     payoutEmail,
     version,
     createdAt,
+    email,
+    leadDays,
   ];
 }
 

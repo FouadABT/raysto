@@ -268,7 +268,27 @@ void main() {
           'closeAt': 1320,
         }, version: policy.version),
       );
-      expect(set['autonomy'], {'refundsMaxMinor': 500, 'refundsPerDay': 3, 'remindersAuto': true});
+      // Bill autonomy (0.16) keeps its safe defaults unless the owner changes it.
+      expect(set['autonomy'], {
+        'refundsMaxMinor': 500,
+        'refundsPerDay': 3,
+        'remindersAuto': true,
+        'billsMaxMinor': 0,
+        'billsPerDay': 0,
+        'billsKnownPayeesOnly': true,
+      });
+      // Letting the accountant pay bills by itself needs the identity check.
+      await expectLater(
+        CatalogueModule.autonomy(
+          owner.build(),
+          command({
+            'autonomy': {'billsMaxMinor': 2000, 'billsPerDay': 2},
+          }, version: (set['version'] as int)),
+        ),
+        throwsA(
+          isA<DomainError>().having((e) => e.code, 'code', 'reauthentication_required'),
+        ),
+      );
       final after = _decode(
         (await RestaurantPolicy.db.findById(s, policy.id!))!.settingsJson,
       );

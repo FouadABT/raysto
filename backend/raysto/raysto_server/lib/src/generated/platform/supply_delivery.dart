@@ -27,6 +27,8 @@ abstract class SupplyDelivery
     this.taskId,
     required this.version,
     required this.createdAt,
+    this.supplierOrderId,
+    this.matchJson,
   });
 
   factory SupplyDelivery({
@@ -42,6 +44,8 @@ abstract class SupplyDelivery
     int? taskId,
     required int version,
     required DateTime createdAt,
+    int? supplierOrderId,
+    String? matchJson,
   }) = _SupplyDeliveryImpl;
 
   factory SupplyDelivery.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -60,6 +64,8 @@ abstract class SupplyDelivery
       createdAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
+      supplierOrderId: jsonSerialization['supplierOrderId'] as int?,
+      matchJson: jsonSerialization['matchJson'] as String?,
     );
   }
 
@@ -92,6 +98,10 @@ abstract class SupplyDelivery
 
   DateTime createdAt;
 
+  int? supplierOrderId;
+
+  String? matchJson;
+
   @override
   _is.Table<int?> get table => t;
 
@@ -111,6 +121,8 @@ abstract class SupplyDelivery
     int? taskId,
     int? version,
     DateTime? createdAt,
+    int? supplierOrderId,
+    String? matchJson,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -128,6 +140,8 @@ abstract class SupplyDelivery
       if (taskId != null) 'taskId': taskId,
       'version': version,
       'createdAt': createdAt.toJson(),
+      if (supplierOrderId != null) 'supplierOrderId': supplierOrderId,
+      if (matchJson != null) 'matchJson': matchJson,
     };
   }
 
@@ -180,6 +194,8 @@ class _SupplyDeliveryImpl extends SupplyDelivery {
     int? taskId,
     required int version,
     required DateTime createdAt,
+    int? supplierOrderId,
+    String? matchJson,
   }) : super._(
          id: id,
          restaurantId: restaurantId,
@@ -193,6 +209,8 @@ class _SupplyDeliveryImpl extends SupplyDelivery {
          taskId: taskId,
          version: version,
          createdAt: createdAt,
+         supplierOrderId: supplierOrderId,
+         matchJson: matchJson,
        );
 
   /// Returns a shallow copy of this [SupplyDelivery]
@@ -212,6 +230,8 @@ class _SupplyDeliveryImpl extends SupplyDelivery {
     Object? taskId = _Undefined,
     int? version,
     DateTime? createdAt,
+    Object? supplierOrderId = _Undefined,
+    Object? matchJson = _Undefined,
   }) {
     return SupplyDelivery(
       id: id is int? ? id : this.id,
@@ -226,6 +246,10 @@ class _SupplyDeliveryImpl extends SupplyDelivery {
       taskId: taskId is int? ? taskId : this.taskId,
       version: version ?? this.version,
       createdAt: createdAt ?? this.createdAt,
+      supplierOrderId: supplierOrderId is int?
+          ? supplierOrderId
+          : this.supplierOrderId,
+      matchJson: matchJson is String? ? matchJson : this.matchJson,
     );
   }
 }
@@ -288,6 +312,16 @@ class SupplyDeliveryUpdateTable extends _is.UpdateTable<SupplyDeliveryTable> {
         table.createdAt,
         value,
       );
+
+  _is.ColumnValue<int, int> supplierOrderId(int? value) => _is.ColumnValue(
+    table.supplierOrderId,
+    value,
+  );
+
+  _is.ColumnValue<String, String> matchJson(String? value) => _is.ColumnValue(
+    table.matchJson,
+    value,
+  );
 }
 
 class SupplyDeliveryTable extends _is.Table<int?> {
@@ -338,6 +372,14 @@ class SupplyDeliveryTable extends _is.Table<int?> {
       'createdAt',
       this,
     );
+    supplierOrderId = _is.ColumnInt(
+      'supplierOrderId',
+      this,
+    );
+    matchJson = _is.ColumnString(
+      'matchJson',
+      this,
+    );
   }
 
   late final SupplyDeliveryUpdateTable updateTable;
@@ -364,6 +406,10 @@ class SupplyDeliveryTable extends _is.Table<int?> {
 
   late final _is.ColumnDateTime createdAt;
 
+  late final _is.ColumnInt supplierOrderId;
+
+  late final _is.ColumnString matchJson;
+
   @override
   List<_is.Column> get columns => [
     id,
@@ -378,6 +424,8 @@ class SupplyDeliveryTable extends _is.Table<int?> {
     taskId,
     version,
     createdAt,
+    supplierOrderId,
+    matchJson,
   ];
 }
 

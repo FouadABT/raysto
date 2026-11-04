@@ -46,6 +46,13 @@ part 'menu_snap.dart';
 part 'counter_voice.dart';
 part 'pending_moves.dart';
 part 'staff_today.dart';
+// 0.16 (docs/release-0.16-design.md); each file names its owner stream.
+part 'accountant.dart';
+part 'supplies.dart';
+part 'courier_home.dart';
+part 'tracking_map.dart';
+part 'osm_map.dart';
+part 'group_today.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};

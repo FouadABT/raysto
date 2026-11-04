@@ -36,7 +36,18 @@ import {
   type AgentTaskRow,
 } from "@/lib/connected/business";
 
-export type Section = "overview" | "orders" | "payments" | "agents" | "money" | "team";
+export type Section =
+  | "overview"
+  | "orders"
+  | "payments"
+  | "agents"
+  | "money"
+  | "team"
+  // 0.16 (docs/release-0.16-design.md).
+  | "group"
+  | "accountant"
+  | "dispatch"
+  | "supplies";
 
 /** The console's one grid theme, on the Material tokens (grid-theme.ts). */
 export const gridTheme = m3GridTheme;

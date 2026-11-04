@@ -1,0 +1,22 @@
+class: PartnerEvent
+table: raysto_partner_event
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  partnerAppId: int, relation(parent=raysto_partner_app)
+  direction: String
+  type: String
+  ref: String?
+  status: String
+  attempts: int
+  responseCode: int?
+  payloadJson: String
+  idempotencyKey: String?
+  nextAttemptAt: DateTime?
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  partner_event_app_at:
+    fields: partnerAppId, createdAt
+  partner_event_tenant_at:
+    fields: restaurantId, createdAt

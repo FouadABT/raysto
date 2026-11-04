@@ -69,6 +69,85 @@ export const backofficeQueries = new Set([
   "analytics",
 ]);
 
+/** 0.16 names (docs/release-0.16-design.md); the drift test accepts them until the backend ships them. */
+export const phase16Commands = new Set([
+  "group.create",
+  "group.attach",
+  "group.detach",
+  "group.member.invite",
+  "group.template.save",
+  "group.template.push",
+  "stock.transfer",
+  "bill.snap",
+  "bill.save",
+  "bill.approve",
+  "bill.pay",
+  "bill.markPaid",
+  "bill.void",
+  "request.create",
+  "request.send",
+  "request.remind",
+  "request.cancel",
+  "ledger.adjust",
+  "accountant.run",
+  "driver.save",
+  "driver.availability",
+  "delivery.offer",
+  "delivery.respond",
+  "delivery.proof",
+  "delivery.assign",
+  "delivery.transition",
+  "dispatch.suggest",
+  "partner.app.save",
+  "partner.app.rotate",
+  "supplier.order.save",
+  "supplier.order.send",
+  "supplier.order.receive",
+  "recipe.save",
+  "stock.count",
+  "stock.waste",
+  "stock.save",
+  "supplier.save",
+  "supply.receive",
+  "supplies.plan",
+  "expense.snap",
+  "studio.layout.save",
+  "media.upload",
+]);
+/** 0.16 queries, as above. */
+export const phase16Queries = new Set([
+  "group.list",
+  "group.overview",
+  "group.compare",
+  "group.ledger",
+  "group.payables",
+  "group.templates",
+  "ledger.journal",
+  "ledger.pnl",
+  "ledger.cashflow",
+  "ledger.vat",
+  "bills",
+  "bill",
+  "requests",
+  "request",
+  "drivers",
+  "delivery.board",
+  "deliveries",
+  "delivery.tracking",
+  "partner.apps",
+  "partner.events",
+  "supplier.orders",
+  "supplier.order",
+  "stock",
+  "stock.forecast",
+  "suppliers",
+  "recipes",
+  "supply.deliveries",
+  "supplier.scorecards",
+  "studio.layout",
+  "team",
+]);
+
 export const consoleCommands = new Set([
   "room.open",
   "room.read",
@@ -113,6 +192,9 @@ export const consoleCommands = new Set([
   // Owner limits, the close time and the daily sales target.
   "autonomy.set",
 ]);
+
+for (const name of phase16Commands) consoleCommands.add(name);
+for (const name of phase16Queries) consoleQueries.add(name);
 
 export function allowedPath(path: string): boolean {
   if (path === "auth/firebase" || path === "events") return true;

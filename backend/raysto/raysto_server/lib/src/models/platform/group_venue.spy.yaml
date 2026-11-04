@@ -1,0 +1,14 @@
+class: GroupVenue
+table: raysto_group_venue
+serverOnly: true
+fields:
+  groupId: int, relation(parent=raysto_restaurant_group)
+  restaurantId: int, relation(parent=raysto_restaurant)
+  attachedBy: String
+  attachedAt: DateTime
+indexes:
+  gvenue_restaurant:
+    fields: restaurantId
+    unique: true
+  gvenue_group:
+    fields: groupId

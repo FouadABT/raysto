@@ -1,0 +1,31 @@
+class: PaymentRequest
+table: raysto_payment_request
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  kind: String
+  payerName: String
+  payerEmail: String?
+  description: String
+  amountMinor: int
+  currency: String
+  dueAt: DateTime?
+  state: String
+  linkTokenHash: String
+  checkoutIntentId: int?
+  providerInvoiceId: String?
+  remindersSent: int
+  lastRemindedAt: DateTime?
+  partnerAppId: int?
+  cateringRequestId: int?
+  createdBy: String
+  paidAt: DateTime?
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  payreq_token:
+    fields: linkTokenHash
+    unique: true
+  payreq_tenant_state:
+    fields: restaurantId, state

@@ -92,6 +92,8 @@ class AgentModule {
     'payroll',
     'complaints',
     'disputes',
+    'accountant',
+    'dispatch',
   };
 
   /// Agents register their handlers here as they are built.
@@ -108,6 +110,9 @@ class AgentModule {
     ExpensesAgent.agent: ExpensesAgent.run,
     LoyaltyAgent.agent: LoyaltyAgent.run,
     ImageAgent.agent: ImageAgent.run,
+    // 0.16 anchor.
+    AccountantAgent.agent: AccountantAgent.run,
+    DispatchAgent.agent: DispatchAgent.run,
   };
 
   /// Audit kinds that wake an agent, e.g. `payment.attention` → payments.
@@ -118,6 +123,10 @@ class AgentModule {
   };
 
   static final Map<String, AgentCommand> commands = {
+    // 0.16 anchor.
+    ...AccountantAgent.commands,
+    ...DispatchAgent.commands,
+    ...SupplyPlanner.commands,
     ...CloseAgent.commands,
     ...PayrollAgent.commands,
     'menu.publish': MenuAgent.publishCommand,

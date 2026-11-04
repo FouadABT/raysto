@@ -1,0 +1,21 @@
+class: StockMovement
+table: raysto_stock_movement
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  stockItemId: int
+  kind: String
+  quantity: double
+  unitCostMinor: int?
+  refType: String
+  refId: String
+  at: DateTime
+  userId: String?
+indexes:
+  stock_move_ref:
+    fields: refType, refId, stockItemId
+    unique: true
+  stock_move_tenant_at:
+    fields: restaurantId, at
+  stock_move_item_at:
+    fields: stockItemId, at

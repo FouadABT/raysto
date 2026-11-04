@@ -26,6 +26,18 @@ abstract class DeliveryAssignment
     required this.locationConsent,
     required this.version,
     required this.updatedAt,
+    this.driverId,
+    this.partnerAppId,
+    this.partnerRef,
+    this.fulfilledBy,
+    this.etaAt,
+    this.distanceMeters,
+    this.feeMinor,
+    this.proofKind,
+    this.proofMediaId,
+    this.codeHash,
+    this.pickedUpAt,
+    this.deliveredAt,
   });
 
   factory DeliveryAssignment({
@@ -40,6 +52,18 @@ abstract class DeliveryAssignment
     required bool locationConsent,
     required int version,
     required DateTime updatedAt,
+    int? driverId,
+    int? partnerAppId,
+    String? partnerRef,
+    String? fulfilledBy,
+    DateTime? etaAt,
+    int? distanceMeters,
+    int? feeMinor,
+    String? proofKind,
+    int? proofMediaId,
+    String? codeHash,
+    DateTime? pickedUpAt,
+    DateTime? deliveredAt,
   }) = _DeliveryAssignmentImpl;
 
   factory DeliveryAssignment.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -63,6 +87,26 @@ abstract class DeliveryAssignment
       updatedAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['updatedAt'],
       ),
+      driverId: jsonSerialization['driverId'] as int?,
+      partnerAppId: jsonSerialization['partnerAppId'] as int?,
+      partnerRef: jsonSerialization['partnerRef'] as String?,
+      fulfilledBy: jsonSerialization['fulfilledBy'] as String?,
+      etaAt: jsonSerialization['etaAt'] == null
+          ? null
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['etaAt']),
+      distanceMeters: jsonSerialization['distanceMeters'] as int?,
+      feeMinor: jsonSerialization['feeMinor'] as int?,
+      proofKind: jsonSerialization['proofKind'] as String?,
+      proofMediaId: jsonSerialization['proofMediaId'] as int?,
+      codeHash: jsonSerialization['codeHash'] as String?,
+      pickedUpAt: jsonSerialization['pickedUpAt'] == null
+          ? null
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['pickedUpAt']),
+      deliveredAt: jsonSerialization['deliveredAt'] == null
+          ? null
+          : _is.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveredAt'],
+            ),
     );
   }
 
@@ -93,6 +137,30 @@ abstract class DeliveryAssignment
 
   DateTime updatedAt;
 
+  int? driverId;
+
+  int? partnerAppId;
+
+  String? partnerRef;
+
+  String? fulfilledBy;
+
+  DateTime? etaAt;
+
+  int? distanceMeters;
+
+  int? feeMinor;
+
+  String? proofKind;
+
+  int? proofMediaId;
+
+  String? codeHash;
+
+  DateTime? pickedUpAt;
+
+  DateTime? deliveredAt;
+
   @override
   _is.Table<int?> get table => t;
 
@@ -111,6 +179,18 @@ abstract class DeliveryAssignment
     bool? locationConsent,
     int? version,
     DateTime? updatedAt,
+    int? driverId,
+    int? partnerAppId,
+    String? partnerRef,
+    String? fulfilledBy,
+    DateTime? etaAt,
+    int? distanceMeters,
+    int? feeMinor,
+    String? proofKind,
+    int? proofMediaId,
+    String? codeHash,
+    DateTime? pickedUpAt,
+    DateTime? deliveredAt,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -128,6 +208,18 @@ abstract class DeliveryAssignment
       'locationConsent': locationConsent,
       'version': version,
       'updatedAt': updatedAt.toJson(),
+      if (driverId != null) 'driverId': driverId,
+      if (partnerAppId != null) 'partnerAppId': partnerAppId,
+      if (partnerRef != null) 'partnerRef': partnerRef,
+      if (fulfilledBy != null) 'fulfilledBy': fulfilledBy,
+      if (etaAt != null) 'etaAt': etaAt?.toJson(),
+      if (distanceMeters != null) 'distanceMeters': distanceMeters,
+      if (feeMinor != null) 'feeMinor': feeMinor,
+      if (proofKind != null) 'proofKind': proofKind,
+      if (proofMediaId != null) 'proofMediaId': proofMediaId,
+      if (codeHash != null) 'codeHash': codeHash,
+      if (pickedUpAt != null) 'pickedUpAt': pickedUpAt?.toJson(),
+      if (deliveredAt != null) 'deliveredAt': deliveredAt?.toJson(),
     };
   }
 
@@ -179,6 +271,18 @@ class _DeliveryAssignmentImpl extends DeliveryAssignment {
     required bool locationConsent,
     required int version,
     required DateTime updatedAt,
+    int? driverId,
+    int? partnerAppId,
+    String? partnerRef,
+    String? fulfilledBy,
+    DateTime? etaAt,
+    int? distanceMeters,
+    int? feeMinor,
+    String? proofKind,
+    int? proofMediaId,
+    String? codeHash,
+    DateTime? pickedUpAt,
+    DateTime? deliveredAt,
   }) : super._(
          id: id,
          restaurantId: restaurantId,
@@ -191,6 +295,18 @@ class _DeliveryAssignmentImpl extends DeliveryAssignment {
          locationConsent: locationConsent,
          version: version,
          updatedAt: updatedAt,
+         driverId: driverId,
+         partnerAppId: partnerAppId,
+         partnerRef: partnerRef,
+         fulfilledBy: fulfilledBy,
+         etaAt: etaAt,
+         distanceMeters: distanceMeters,
+         feeMinor: feeMinor,
+         proofKind: proofKind,
+         proofMediaId: proofMediaId,
+         codeHash: codeHash,
+         pickedUpAt: pickedUpAt,
+         deliveredAt: deliveredAt,
        );
 
   /// Returns a shallow copy of this [DeliveryAssignment]
@@ -209,6 +325,18 @@ class _DeliveryAssignmentImpl extends DeliveryAssignment {
     bool? locationConsent,
     int? version,
     DateTime? updatedAt,
+    Object? driverId = _Undefined,
+    Object? partnerAppId = _Undefined,
+    Object? partnerRef = _Undefined,
+    Object? fulfilledBy = _Undefined,
+    Object? etaAt = _Undefined,
+    Object? distanceMeters = _Undefined,
+    Object? feeMinor = _Undefined,
+    Object? proofKind = _Undefined,
+    Object? proofMediaId = _Undefined,
+    Object? codeHash = _Undefined,
+    Object? pickedUpAt = _Undefined,
+    Object? deliveredAt = _Undefined,
   }) {
     return DeliveryAssignment(
       id: id is int? ? id : this.id,
@@ -224,6 +352,20 @@ class _DeliveryAssignmentImpl extends DeliveryAssignment {
       locationConsent: locationConsent ?? this.locationConsent,
       version: version ?? this.version,
       updatedAt: updatedAt ?? this.updatedAt,
+      driverId: driverId is int? ? driverId : this.driverId,
+      partnerAppId: partnerAppId is int? ? partnerAppId : this.partnerAppId,
+      partnerRef: partnerRef is String? ? partnerRef : this.partnerRef,
+      fulfilledBy: fulfilledBy is String? ? fulfilledBy : this.fulfilledBy,
+      etaAt: etaAt is DateTime? ? etaAt : this.etaAt,
+      distanceMeters: distanceMeters is int?
+          ? distanceMeters
+          : this.distanceMeters,
+      feeMinor: feeMinor is int? ? feeMinor : this.feeMinor,
+      proofKind: proofKind is String? ? proofKind : this.proofKind,
+      proofMediaId: proofMediaId is int? ? proofMediaId : this.proofMediaId,
+      codeHash: codeHash is String? ? codeHash : this.codeHash,
+      pickedUpAt: pickedUpAt is DateTime? ? pickedUpAt : this.pickedUpAt,
+      deliveredAt: deliveredAt is DateTime? ? deliveredAt : this.deliveredAt,
     );
   }
 }
@@ -284,6 +426,68 @@ class DeliveryAssignmentUpdateTable
         table.updatedAt,
         value,
       );
+
+  _is.ColumnValue<int, int> driverId(int? value) => _is.ColumnValue(
+    table.driverId,
+    value,
+  );
+
+  _is.ColumnValue<int, int> partnerAppId(int? value) => _is.ColumnValue(
+    table.partnerAppId,
+    value,
+  );
+
+  _is.ColumnValue<String, String> partnerRef(String? value) => _is.ColumnValue(
+    table.partnerRef,
+    value,
+  );
+
+  _is.ColumnValue<String, String> fulfilledBy(String? value) => _is.ColumnValue(
+    table.fulfilledBy,
+    value,
+  );
+
+  _is.ColumnValue<DateTime, DateTime> etaAt(DateTime? value) => _is.ColumnValue(
+    table.etaAt,
+    value,
+  );
+
+  _is.ColumnValue<int, int> distanceMeters(int? value) => _is.ColumnValue(
+    table.distanceMeters,
+    value,
+  );
+
+  _is.ColumnValue<int, int> feeMinor(int? value) => _is.ColumnValue(
+    table.feeMinor,
+    value,
+  );
+
+  _is.ColumnValue<String, String> proofKind(String? value) => _is.ColumnValue(
+    table.proofKind,
+    value,
+  );
+
+  _is.ColumnValue<int, int> proofMediaId(int? value) => _is.ColumnValue(
+    table.proofMediaId,
+    value,
+  );
+
+  _is.ColumnValue<String, String> codeHash(String? value) => _is.ColumnValue(
+    table.codeHash,
+    value,
+  );
+
+  _is.ColumnValue<DateTime, DateTime> pickedUpAt(DateTime? value) =>
+      _is.ColumnValue(
+        table.pickedUpAt,
+        value,
+      );
+
+  _is.ColumnValue<DateTime, DateTime> deliveredAt(DateTime? value) =>
+      _is.ColumnValue(
+        table.deliveredAt,
+        value,
+      );
 }
 
 class DeliveryAssignmentTable extends _is.Table<int?> {
@@ -330,6 +534,54 @@ class DeliveryAssignmentTable extends _is.Table<int?> {
       'updatedAt',
       this,
     );
+    driverId = _is.ColumnInt(
+      'driverId',
+      this,
+    );
+    partnerAppId = _is.ColumnInt(
+      'partnerAppId',
+      this,
+    );
+    partnerRef = _is.ColumnString(
+      'partnerRef',
+      this,
+    );
+    fulfilledBy = _is.ColumnString(
+      'fulfilledBy',
+      this,
+    );
+    etaAt = _is.ColumnDateTime(
+      'etaAt',
+      this,
+    );
+    distanceMeters = _is.ColumnInt(
+      'distanceMeters',
+      this,
+    );
+    feeMinor = _is.ColumnInt(
+      'feeMinor',
+      this,
+    );
+    proofKind = _is.ColumnString(
+      'proofKind',
+      this,
+    );
+    proofMediaId = _is.ColumnInt(
+      'proofMediaId',
+      this,
+    );
+    codeHash = _is.ColumnString(
+      'codeHash',
+      this,
+    );
+    pickedUpAt = _is.ColumnDateTime(
+      'pickedUpAt',
+      this,
+    );
+    deliveredAt = _is.ColumnDateTime(
+      'deliveredAt',
+      this,
+    );
   }
 
   late final DeliveryAssignmentUpdateTable updateTable;
@@ -354,6 +606,30 @@ class DeliveryAssignmentTable extends _is.Table<int?> {
 
   late final _is.ColumnDateTime updatedAt;
 
+  late final _is.ColumnInt driverId;
+
+  late final _is.ColumnInt partnerAppId;
+
+  late final _is.ColumnString partnerRef;
+
+  late final _is.ColumnString fulfilledBy;
+
+  late final _is.ColumnDateTime etaAt;
+
+  late final _is.ColumnInt distanceMeters;
+
+  late final _is.ColumnInt feeMinor;
+
+  late final _is.ColumnString proofKind;
+
+  late final _is.ColumnInt proofMediaId;
+
+  late final _is.ColumnString codeHash;
+
+  late final _is.ColumnDateTime pickedUpAt;
+
+  late final _is.ColumnDateTime deliveredAt;
+
   @override
   List<_is.Column> get columns => [
     id,
@@ -367,6 +643,18 @@ class DeliveryAssignmentTable extends _is.Table<int?> {
     locationConsent,
     version,
     updatedAt,
+    driverId,
+    partnerAppId,
+    partnerRef,
+    fulfilledBy,
+    etaAt,
+    distanceMeters,
+    feeMinor,
+    proofKind,
+    proofMediaId,
+    codeHash,
+    pickedUpAt,
+    deliveredAt,
   ];
 }
 

@@ -29,6 +29,11 @@ const paths = {
   plus: <path d="M12 5v14M5 12h14" />,
   invoice: <><path d="M6 3.5h9l3 3v14H6z" /><path d="M15 3.5v3h3M9 11h6M9 14.5h6M9 18h3" /></>,
   chart: <><path d="M4 20h16" /><rect x="6" y="11" width="3" height="6" rx="0.75" /><rect x="11" y="7" width="3" height="10" rx="0.75" /><rect x="16" y="4" width="3" height="13" rx="0.75" /></>,
+  // 0.16 sections.
+  group: <><rect x="3.5" y="10" width="7" height="10" rx="1.5" /><rect x="13.5" y="5" width="7" height="15" rx="1.5" /><path d="M6 13.5h2M6 16.5h2M16 8.5h2M16 11.5h2M16 14.5h2" /></>,
+  ledger: <><rect x="5" y="3.5" width="14" height="17" rx="2" /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" /><path d="M15.5 15.5l1.5 1.5 2.5-3" /></>,
+  dispatch: <><circle cx="6.5" cy="17" r="2.5" /><circle cx="17.5" cy="17" r="2.5" /><path d="M9 17h6M13 6.5h3l2.5 8M11 10h4l-2 7" /><path d="M4 10h5" /></>,
+  supplies: <><path d="M4 8l8-4.5L20 8v8l-8 4.5L4 16z" /><path d="M4 8l8 4.5L20 8M12 12.5V20.5" /></>,
 } as const;
 
 export type IconName = keyof typeof paths;

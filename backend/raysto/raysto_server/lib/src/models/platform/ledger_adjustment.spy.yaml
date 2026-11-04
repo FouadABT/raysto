@@ -1,0 +1,16 @@
+class: LedgerAdjustment
+table: raysto_ledger_adjustment
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  at: DateTime
+  debitAccount: String
+  creditAccount: String
+  amountMinor: int
+  currency: String
+  reason: String
+  userId: String
+  createdAt: DateTime
+indexes:
+  ledger_adj_tenant_at:
+    fields: restaurantId, at

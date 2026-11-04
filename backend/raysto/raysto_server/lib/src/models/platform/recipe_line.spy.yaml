@@ -1,0 +1,15 @@
+class: RecipeLine
+table: raysto_recipe_line
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  productId: int
+  stockItemId: int
+  quantity: double
+  updatedAt: DateTime
+indexes:
+  recipe_line_product_item:
+    fields: productId, stockItemId
+    unique: true
+  recipe_line_tenant:
+    fields: restaurantId

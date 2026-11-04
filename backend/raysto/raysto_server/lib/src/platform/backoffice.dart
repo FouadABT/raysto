@@ -6,7 +6,16 @@ part of 'platform.dart';
 /// agents themselves live in `agent_*.dart`. Money only leaves through an
 /// approved agent action, never through a command here.
 class BackOfficeModule {
-  static const payoutKinds = {'tips', 'wages', 'supplier'};
+  /// What a PayPal Payouts batch can pay: the team, suppliers, bills,
+  /// delivery drivers and delivery partners.
+  static const payoutKinds = {
+    'tips',
+    'wages',
+    'supplier',
+    'bill',
+    'delivery',
+    'partner',
+  };
   static const expenseCategories = {
     'food',
     'drinks',

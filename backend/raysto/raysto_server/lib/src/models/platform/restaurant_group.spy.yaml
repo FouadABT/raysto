@@ -1,0 +1,13 @@
+class: RestaurantGroup
+table: raysto_restaurant_group
+serverOnly: true
+fields:
+  name: String
+  ownerUserId: String
+  currency: String
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  rgroup_owner:
+    fields: ownerUserId

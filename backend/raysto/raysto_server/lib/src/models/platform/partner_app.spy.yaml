@@ -1,0 +1,21 @@
+class: PartnerApp
+table: raysto_partner_app
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  name: String
+  keyPrefix: String
+  keyHash: String
+  webhookUrl: String?
+  secretVersion: int
+  simulator: bool
+  active: bool
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  partner_app_prefix:
+    fields: keyPrefix
+    unique: true
+  partner_app_tenant:
+    fields: restaurantId

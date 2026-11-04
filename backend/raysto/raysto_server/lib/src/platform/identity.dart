@@ -549,7 +549,7 @@ class IdentityModule {
         d,
         'role',
         choices: member.role == 'owner'
-            ? {'manager', 'waiter', 'kitchen', 'courier'}
+            ? {'manager', 'waiter', 'kitchen', 'courier', 'accountant'}
             : {'waiter', 'kitchen', 'courier'},
       );
       final email = _str(d, 'email', max: 254).toLowerCase();
@@ -694,7 +694,7 @@ class IdentityModule {
         d,
         'role',
         choices: caller.role == 'owner'
-            ? {'manager', 'waiter', 'kitchen', 'courier'}
+            ? {'manager', 'waiter', 'kitchen', 'courier', 'accountant'}
             : {'waiter', 'kitchen', 'courier'},
       );
       if (!target.active && _bool(d, 'active')) await teamCapacity(w);

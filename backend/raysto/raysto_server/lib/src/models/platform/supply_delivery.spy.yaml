@@ -13,6 +13,8 @@ fields:
   taskId: int?
   version: int
   createdAt: DateTime
+  supplierOrderId: int?
+  matchJson: String?
 indexes:
   delivery_tenant:
     fields: restaurantId, createdAt

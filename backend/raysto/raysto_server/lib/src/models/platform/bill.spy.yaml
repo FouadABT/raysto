@@ -1,0 +1,38 @@
+class: Bill
+table: raysto_bill
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  vendor: String
+  category: String
+  reference: String?
+  amountMinor: int
+  vatMinor: int
+  currency: String
+  issuedAt: DateTime?
+  dueAt: DateTime?
+  periodFrom: DateTime?
+  periodTo: DateTime?
+  state: String
+  payVia: String
+  payeeEmail: String?
+  recurring: String?
+  recurringOfId: int?
+  sourceMediaId: int?
+  proofMediaId: int?
+  contentSha: String?
+  supplierId: int?
+  supplierOrderId: int?
+  payoutBatchId: int?
+  readJson: String
+  duplicateOfId: int?
+  taskId: int?
+  paidAt: DateTime?
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  bill_tenant_due:
+    fields: restaurantId, dueAt
+  bill_tenant_state:
+    fields: restaurantId, state

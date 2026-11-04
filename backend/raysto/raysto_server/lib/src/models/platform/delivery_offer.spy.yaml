@@ -1,0 +1,18 @@
+class: DeliveryOffer
+table: raysto_delivery_offer
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  assignmentId: int, relation(parent=raysto_delivery_assignment)
+  driverId: int, relation(parent=raysto_driver)
+  state: String
+  expiresAt: DateTime
+  score: double
+  reasonJson: String
+  createdAt: DateTime
+  respondedAt: DateTime?
+indexes:
+  dlv_offer_assignment:
+    fields: assignmentId, state
+  dlv_offer_driver:
+    fields: driverId, state

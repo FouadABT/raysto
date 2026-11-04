@@ -413,6 +413,11 @@ Future<void> _visitAccess(
 const _capabilities = {'counter', 'dispatch', 'acceptOrders'};
 const _staff = {'owner', 'manager', 'waiter', 'kitchen', 'courier'};
 
+/// Who may read the books and handle bills and payment requests. `accountant`
+/// is a venue role (Membership.role) only an owner can invite; it does not
+/// join `_managers` or `_staff`, so it never runs the floor or the till.
+const _finance = {'owner', 'manager', 'accountant'};
+
 /// Which roles may hold each capability. A grant outside this list is ignored,
 /// so a courier can never run the till or accept orders.
 const _capabilityRoles = <String, Set<String>>{

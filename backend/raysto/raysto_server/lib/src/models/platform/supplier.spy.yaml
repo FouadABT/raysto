@@ -7,6 +7,8 @@ fields:
   payoutEmail: String
   version: int
   createdAt: DateTime
+  email: String?
+  leadDays: int?
 indexes:
   supplier_tenant:
     fields: restaurantId, name

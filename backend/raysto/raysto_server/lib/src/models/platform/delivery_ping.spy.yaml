@@ -1,0 +1,13 @@
+class: DeliveryPing
+table: raysto_delivery_ping
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  assignmentId: int, relation(parent=raysto_delivery_assignment)
+  lat: double
+  lng: double
+  accuracy: double?
+  at: DateTime
+indexes:
+  dlv_ping_assignment_at:
+    fields: assignmentId, at

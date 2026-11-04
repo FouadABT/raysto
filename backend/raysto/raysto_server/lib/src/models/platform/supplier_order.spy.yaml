@@ -1,0 +1,23 @@
+class: SupplierOrder
+table: raysto_supplier_order
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  supplierId: int?
+  state: String
+  linesJson: String
+  totalMinor: int
+  currency: String
+  expectedAt: DateTime?
+  sentAt: DateTime?
+  receivedAt: DateTime?
+  billId: int?
+  taskId: int?
+  note: String?
+  createdBy: String
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  supplier_order_tenant_state:
+    fields: restaurantId, state

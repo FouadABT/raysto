@@ -12,6 +12,18 @@ fields:
   locationConsent: bool
   version: int
   updatedAt: DateTime
+  driverId: int?
+  partnerAppId: int?
+  partnerRef: String?
+  fulfilledBy: String?
+  etaAt: DateTime?
+  distanceMeters: int?
+  feeMinor: int?
+  proofKind: String?
+  proofMediaId: int?
+  codeHash: String?
+  pickedUpAt: DateTime?
+  deliveredAt: DateTime?
 indexes:
   delivery_order:
     fields: orderId

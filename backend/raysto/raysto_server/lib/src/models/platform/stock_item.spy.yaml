@@ -11,6 +11,8 @@ fields:
   lowAt: double
   version: int
   updatedAt: DateTime
+  parLevel: double?
+  leadDays: int?
 indexes:
   stock_tenant:
     fields: restaurantId, name

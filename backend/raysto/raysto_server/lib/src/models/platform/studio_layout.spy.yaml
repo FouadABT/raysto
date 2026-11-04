@@ -1,0 +1,14 @@
+class: StudioLayout
+table: raysto_studio_layout
+serverOnly: true
+fields:
+  scope: String
+  userId: String
+  section: String
+  stateJson: String
+  version: int
+  updatedAt: DateTime
+indexes:
+  studio_layout_key:
+    fields: scope, userId, section
+    unique: true
