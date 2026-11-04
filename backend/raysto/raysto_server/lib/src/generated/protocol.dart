@@ -77,6 +77,7 @@ import 'platform/media_asset.dart' as _i8f1ig6q;
 import 'platform/menu_definition.dart' as _i39nz0x4;
 import 'platform/menu_draft.dart' as _iryjexya;
 import 'platform/menu_template.dart' as _iuxwlez3;
+import 'platform/merchant_app.dart' as _iccc4ziu;
 import 'platform/merchant_connection.dart' as _itytb8tk;
 import 'platform/mutation_receipt.dart' as _iotby0fz;
 import 'platform/operations_layout.dart' as _i3exdroq;
@@ -181,6 +182,7 @@ export 'platform/media_asset.dart';
 export 'platform/menu_definition.dart';
 export 'platform/menu_draft.dart';
 export 'platform/menu_template.dart';
+export 'platform/merchant_app.dart';
 export 'platform/merchant_connection.dart';
 export 'platform/mutation_receipt.dart';
 export 'platform/operations_layout.dart';
@@ -5588,6 +5590,174 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'raysto_merchant_app',
+      dartName: 'MerchantApp',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'environment',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'clientId',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'secretCipher',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'keyVersion',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'credentialVersion',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'merchantId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'appId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'webhookToken',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'webhookId',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'webhookStatus',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'featuresJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'checkedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'savedBy',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_merchant_app_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'merchant_app_restaurant',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'environment',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'merchant_app_webhook',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'webhookToken',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'raysto_merchant_connection',
       dartName: 'MerchantConnection',
       schema: 'public',
@@ -10554,6 +10724,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iuxwlez3.MenuTemplate) {
       return _iuxwlez3.MenuTemplate.fromJson(data) as T;
     }
+    if (t == _iccc4ziu.MerchantApp) {
+      return _iccc4ziu.MerchantApp.fromJson(data) as T;
+    }
     if (t == _itytb8tk.MerchantConnection) {
       return _itytb8tk.MerchantConnection.fromJson(data) as T;
     }
@@ -10890,6 +11063,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iuxwlez3.MenuTemplate?>()) {
       return (data != null ? _iuxwlez3.MenuTemplate.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_iccc4ziu.MerchantApp?>()) {
+      return (data != null ? _iccc4ziu.MerchantApp.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_itytb8tk.MerchantConnection?>()) {
       return (data != null ? _itytb8tk.MerchantConnection.fromJson(data) : null)
           as T;
@@ -11189,6 +11365,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i39nz0x4.MenuDefinition => 'MenuDefinition',
       _iryjexya.MenuDraft => 'MenuDraft',
       _iuxwlez3.MenuTemplate => 'MenuTemplate',
+      _iccc4ziu.MerchantApp => 'MerchantApp',
       _itytb8tk.MerchantConnection => 'MerchantConnection',
       _iotby0fz.MutationReceipt => 'MutationReceipt',
       _i3exdroq.OperationsLayout => 'OperationsLayout',
@@ -11363,6 +11540,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'MenuDraft';
       case _iuxwlez3.MenuTemplate():
         return 'MenuTemplate';
+      case _iccc4ziu.MerchantApp():
+        return 'MerchantApp';
       case _itytb8tk.MerchantConnection():
         return 'MerchantConnection';
       case _iotby0fz.MutationReceipt():
@@ -11653,6 +11832,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'MenuTemplate') {
       return deserialize<_iuxwlez3.MenuTemplate>(data['data']);
     }
+    if (dataClassName == 'MerchantApp') {
+      return deserialize<_iccc4ziu.MerchantApp>(data['data']);
+    }
     if (dataClassName == 'MerchantConnection') {
       return deserialize<_itytb8tk.MerchantConnection>(data['data']);
     }
@@ -11936,6 +12118,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _iryjexya.MenuDraft.t;
       case _iuxwlez3.MenuTemplate:
         return _iuxwlez3.MenuTemplate.t;
+      case _iccc4ziu.MerchantApp:
+        return _iccc4ziu.MerchantApp.t;
       case _itytb8tk.MerchantConnection:
         return _itytb8tk.MerchantConnection.t;
       case _iotby0fz.MutationReceipt:

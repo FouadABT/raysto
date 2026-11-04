@@ -1,0 +1,70 @@
+/* The file drop zone (stream S1), reusable by any section. A 48 px minimum
+   target, a visible focus ring, and a dashed edge that turns solid while a
+   file is dragged over it. */
+.ops-upload {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.ops-root .ops-upload-zone {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 112px;
+  padding: 18px 16px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius, 16px);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--md-sys-motion-easing-standard, ease),
+    background-color 160ms var(--md-sys-motion-easing-standard, ease);
+}
+.ops-upload.compact .ops-upload-zone {
+  min-height: 72px;
+  padding: 12px;
+}
+.ops-root .ops-upload-zone:hover:not(:disabled),
+.ops-root .ops-upload-zone.over {
+  border-style: solid;
+  border-color: var(--forest);
+  background: color-mix(in srgb, var(--mint, #dff3e4) 45%, var(--surface));
+}
+.ops-root .ops-upload-zone:focus-visible {
+  outline: 3px solid var(--forest);
+  outline-offset: 2px;
+}
+.ops-root .ops-upload-zone:disabled {
+  cursor: progress;
+  opacity: 0.85;
+}
+.ops-upload-label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.ops-upload-zone small {
+  color: var(--muted);
+  max-width: 46ch;
+}
+.ops-upload-zone.busy svg {
+  animation: ops-upload-spin 1.2s linear infinite;
+}
+.ops-upload > .ops-note:empty {
+  display: none;
+}
+@keyframes ops-upload-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ops-upload-zone.busy svg {
+    animation: none;
+  }
+}
+.ops-root[data-reduce-motion] .ops-upload-zone.busy svg {
+  animation: none;
+}

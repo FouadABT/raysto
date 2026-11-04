@@ -192,6 +192,12 @@ List<Widget> staffTiles(BuildContext c, LiveContext authorized) => [
           Icons.inventory_2_outlined,
           () => push(c, suppliesPage(authorized)),
         ),
+        // 0.16 (S6): which PayPal account the café's money goes through.
+        tile(
+          'PayPal account',
+          Icons.payments_outlined,
+          () => push(c, paypalAccountPage(authorized)),
+        ),
       ],
       if (authorized.manager) ...[
         tile(
@@ -811,135 +817,75 @@ Widget kitchenPage(LiveContext live) => rowsPage(
   poll: true,
 );
 
-Widget deliveriesPage(LiveContext live) => rowsPage(
-  live,
-  'Delivery tasks',
-  'deliveries',
-  (c, task, refresh) => AppPanel(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        RecordSummary(task),
-        if (live.manager)
-          TextButton(
-            onPressed: () async {
-              await live.action(
-                c,
-                'Assign courier',
-                'delivery.assign',
-                id: task['id'],
-                version: task['version'],
-                fields: const [
-                  InputSpec('courierId', 'Courier account reference'),
-                ],
-              );
-              await refresh();
-            },
-            child: const Text('Assign courier'),
-          ),
-        AppButton(
-          label: 'Update delivery',
-          onPressed: () async {
-            await live.action(
-              c,
-              'Delivery progress',
-              'delivery.transition',
-              id: task['id'],
-              version: task['version'],
-              fields: [
-                InputSpec(
-                  'status',
-                  'Status',
-                  options: [
-                    'collected',
-                    'outForDelivery',
-                    'delivered',
-                    'issue',
-                    if (live.manager) 'resolved',
-                  ],
+/// A courier lands on their own home (offers, steps, map, proof); a manager
+/// sees every delivery and assigns from the café's driver cards. Owner of the
+/// courier and driver parts: stream S2.
+Widget deliveriesPage(LiveContext live) => live.role == 'courier'
+    ? CourierHome(live: live)
+    : rowsPage(
+        live,
+        'Delivery tasks',
+        'deliveries',
+        (c, task, refresh) => AppPanel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              RecordSummary(task),
+              if (live.manager &&
+                  {'unassigned', 'assigned', 'issue'}.contains(task['status']))
+                TextButton(
+                  onPressed: () => perform(c, () async {
+                    final driverId = await pickDriver(c, live);
+                    if (driverId == null) return;
+                    await live.api.command(
+                      'delivery.assign',
+                      {'driverId': driverId},
+                      restaurantId: live.restaurantId,
+                      resourceId: task['id'] as int,
+                      version: task['version'] as int,
+                    );
+                    await refresh();
+                  }),
+                  child: Text(c.tr('Assign a driver')),
                 ),
-                const InputSpec(
-                  'reason',
-                  'Issue description',
-                  kind: 'long',
-                  optional: true,
-                ),
-                const InputSpec('resolution', 'Resolution', optional: true),
-              ],
-            );
-            await refresh();
-          },
-        ),
-        if (live.role == 'courier' &&
-            {
-              'assigned',
-              'collected',
-              'outForDelivery',
-            }.contains(task['status'])) ...[
-          OutlinedButton(
-            onPressed: () => perform(c, () async {
-              final consent = await editFields(
-                c,
-                'Share this location with the customer',
-                const [
-                  InputSpec(
-                    'consent',
-                    'Share my current location for this active delivery',
-                    kind: 'bool',
-                    value: false,
-                  ),
-                ],
-                submit: 'Continue',
-              );
-              if (consent?['consent'] != true) return;
-              var permission = await Geolocator.checkPermission();
-              if (permission == LocationPermission.denied) {
-                permission = await Geolocator.requestPermission();
-              }
-              if (permission == LocationPermission.denied ||
-                  permission == LocationPermission.deniedForever) {
-                throw const PlatformFailure(
-                  'permission_required',
-                  'Location permission is required.',
-                );
-              }
-              final location = await Geolocator.getCurrentPosition(
-                locationSettings: const LocationSettings(
-                  timeLimit: Duration(seconds: 20),
-                ),
-              );
-              await live.api.command(
-                'delivery.location',
-                {
-                  'consent': true,
-                  'latitude': location.latitude,
-                  'longitude': location.longitude,
+              AppButton(
+                label: 'Update delivery',
+                onPressed: () async {
+                  await live.action(
+                    c,
+                    'Delivery progress',
+                    'delivery.transition',
+                    id: task['id'],
+                    version: task['version'],
+                    fields: [
+                      InputSpec(
+                        'status',
+                        'Status',
+                        options: [
+                          'collected',
+                          'outForDelivery',
+                          'delivered',
+                          'issue',
+                          if (live.manager) 'resolved',
+                        ],
+                      ),
+                      const InputSpec(
+                        'reason',
+                        'Issue description',
+                        kind: 'long',
+                        optional: true,
+                      ),
+                      const InputSpec('resolution', 'Resolution', optional: true),
+                    ],
+                  );
+                  await refresh();
                 },
-                restaurantId: live.restaurantId,
-                resourceId: task['id'],
-              );
-              await refresh();
-            }),
-            child: const Text('Share current location for 5 minutes'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => perform(c, () async {
-              await live.api.command(
-                'delivery.location',
-                {'consent': false},
-                restaurantId: live.restaurantId,
-                resourceId: task['id'],
-              );
-              await refresh();
-            }),
-            child: const Text('Stop sharing location'),
-          ),
-        ],
-      ],
-    ),
-  ),
-  poll: true,
-);
+        ),
+        poll: true,
+      );
 
 Widget teamPage(LiveContext live) => rowsPage(
   live,

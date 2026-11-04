@@ -1,0 +1,195 @@
+/* The accountant (stream S1): KPIs, findings, the bill and request detail,
+   the pay link's QR code. Everything else reuses the back-office classes. */
+.ops-accountant {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+.ops-acc-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-inline-start: 6px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--late-bg);
+  color: var(--late);
+  font-size: 12px;
+  font-weight: 700;
+}
+.ops-acc-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+.ops-acc-proposals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 14px;
+}
+.ops-acc-findings {
+  display: grid;
+  gap: 12px;
+}
+.ops-acc-finding-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-acc-finding {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  min-width: 0;
+}
+.ops-acc-finding.high {
+  border-inline-start-color: var(--late);
+}
+.ops-acc-finding.medium {
+  border-inline-start-color: var(--warn);
+}
+.ops-acc-finding.low {
+  border-inline-start-color: var(--forest);
+}
+.ops-acc-finding p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ops-acc-severity {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.ops-acc-finding-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.ops-acc-finding-foot small {
+  color: var(--muted);
+}
+.ops-acc-finding-foot .ops-secondary {
+  margin-inline-start: auto;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ops-acc-intake {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+.ops-acc-intake > .ops-secondary,
+.ops-acc-actions > button,
+.ops-acc-actions .ops-primary {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .ops-acc-intake {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ops-acc-detail {
+  display: grid;
+  gap: 12px;
+  scroll-margin-top: 80px;
+}
+.ops-acc-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ops-acc-detail-head > div {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+.ops-acc-detail-head h2 {
+  overflow-wrap: anywhere;
+}
+.ops-acc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: start;
+}
+.ops-acc-actions .ops-bo-stepup {
+  flex: 1 1 260px;
+}
+.ops-acc-proof {
+  display: grid;
+  gap: 10px;
+}
+.ops-acc-wide,
+.ops-acc-month {
+  display: grid;
+  gap: 4px;
+}
+.ops-acc-check {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+}
+.ops-acc-kind {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ops-acc-kind legend {
+  width: 100%;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.ops-acc-kind label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+}
+.ops-acc-qr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.ops-acc-qr > svg {
+  flex: none;
+  width: 176px;
+  height: 176px;
+}
+.ops-acc-qr figcaption {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 180px;
+}
+.ops-acc-qr code {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.ops-acc-estimate {
+  border-inline-start: 3px solid var(--warn);
+  padding-inline-start: 10px;
+}

@@ -48,7 +48,9 @@ class BackOfficeModule {
   }
 
   static Future<T> _own<T>(Work w, T? row, int? tenant, String what) async {
-    if (row == null || tenant != w.tenant) _fail('not_found', '$what not found.');
+    if (row == null || tenant != w.tenant) {
+      _fail('not_found', '$what not found.');
+    }
     return row;
   }
 
@@ -143,8 +145,11 @@ class BackOfficeModule {
       final shift = await _own(
         w,
         await StaffShift.db.findById(s, _id(c), transaction: w.tx),
-        (await StaffShift.db.findById(s, _id(c), transaction: w.tx))
-            ?.restaurantId,
+        (await StaffShift.db.findById(
+          s,
+          _id(c),
+          transaction: w.tx,
+        ))?.restaurantId,
         'Shift',
       );
       if (shift.userId != w.user) await w.role(_managers);
@@ -205,7 +210,9 @@ class BackOfficeModule {
     c,
     'supplier.save',
     (w, d) async {
-      _keys(d, {'name', 'payoutEmail'});
+      // `email` (where supplier orders are sent) and `leadDays` are optional;
+      // leaving them out keeps what is saved.
+      _keys(d, {'name', 'payoutEmail', 'email', 'leadDays'});
       Supplier? row;
       if (c.resourceId != null) {
         final found = await Supplier.db.findById(s, _id(c), transaction: w.tx);
@@ -223,6 +230,16 @@ class BackOfficeModule {
         ..name = _str(d, 'name', max: 120)
         ..payoutEmail = _email(d, 'payoutEmail')
         ..version += 1;
+      if (d.containsKey('email')) {
+        row.email = d['email'] == null || d['email'] == ''
+            ? null
+            : _email(d, 'email');
+      }
+      if (d.containsKey('leadDays')) {
+        row.leadDays = d['leadDays'] == null
+            ? null
+            : _int(d, 'leadDays', min: 0, max: 60);
+      }
       row = row.id == null
           ? await Supplier.db.insertRow(s, row, transaction: w.tx)
           : await Supplier.db.updateRow(s, row, transaction: w.tx);
@@ -237,7 +254,18 @@ class BackOfficeModule {
     c,
     'stock.save',
     (w, d) async {
-      _keys(d, {'name', 'unit', 'quantity', 'costMinor', 'supplierId', 'lowAt'});
+      // `parLevel` (order up to) and `leadDays` are optional; leaving them out
+      // keeps what is saved.
+      _keys(d, {
+        'name',
+        'unit',
+        'quantity',
+        'costMinor',
+        'supplierId',
+        'lowAt',
+        'parLevel',
+        'leadDays',
+      });
       StockItem? row;
       if (c.resourceId != null) {
         final found = await StockItem.db.findById(
@@ -245,7 +273,12 @@ class BackOfficeModule {
           _id(c),
           transaction: w.tx,
         );
-        row = await _own<StockItem>(w, found, found?.restaurantId, 'Stock item');
+        row = await _own<StockItem>(
+          w,
+          found,
+          found?.restaurantId,
+          'Stock item',
+        );
         _version(row.version, c.expectedVersion);
       }
       int? supplierId;
@@ -270,13 +303,25 @@ class BackOfficeModule {
       );
       row
         ..name = _str(d, 'name', max: 120)
-        ..unit = _str(d, 'unit', choices: {'kg', 'g', 'l', 'ml', 'piece', 'box'})
+        ..unit = _str(
+          d,
+          'unit',
+          choices: {'kg', 'g', 'l', 'ml', 'piece', 'box'},
+        )
         ..quantity = _amount(d, 'quantity')
         ..costMinor = _int(d, 'costMinor', max: 10000000)
         ..supplierId = supplierId
         ..lowAt = _amount(d, 'lowAt')
         ..updatedAt = _now()
         ..version += 1;
+      if (d.containsKey('parLevel')) {
+        row.parLevel = d['parLevel'] == null ? null : _amount(d, 'parLevel');
+      }
+      if (d.containsKey('leadDays')) {
+        row.leadDays = d['leadDays'] == null
+            ? null
+            : _int(d, 'leadDays', min: 0, max: 60);
+      }
       row = row.id == null
           ? await StockItem.db.insertRow(s, row, transaction: w.tx)
           : await StockItem.db.updateRow(s, row, transaction: w.tx);
@@ -365,7 +410,10 @@ class BackOfficeModule {
         transaction: w.tx,
       );
       if (open != null) {
-        _fail('invalid_transition', 'This order already has an open complaint.');
+        _fail(
+          'invalid_transition',
+          'This order already has an open complaint.',
+        );
       }
       final checkout = await CheckoutIntent.db.findFirstRow(
         s,
@@ -589,8 +637,10 @@ class BackOfficeModule {
               'updatedAt': x.updatedAt.toIso8601String(),
             },
         ]);
-      case 'deliveries':
-        await w.role(_managers);
+      // Renamed from `deliveries` in 0.16 (stream S3); accountants read it
+      // for the 3-way match.
+      case 'supply.deliveries':
+        await w.role(_finance);
         final rows = await SupplyDelivery.db.find(
           s,
           where: (t) =>
@@ -612,6 +662,8 @@ class BackOfficeModule {
               'state': x.state,
               'payoutBatchId': x.payoutBatchId,
               'taskId': x.taskId,
+              'supplierOrderId': x.supplierOrderId,
+              'match': x.matchJson == null ? null : jsonDecode(x.matchJson!),
               'version': x.version,
               'createdAt': x.createdAt.toIso8601String(),
             },
@@ -839,7 +891,8 @@ class BackOfficeModule {
     final byChannel = <String, int>{};
     for (final o in orders) {
       final hour = tz.TZDateTime.from(o.createdAt, zone).hour;
-      byHour[hour]['salesMinor'] = (byHour[hour]['salesMinor'] as int) + o.totalMinor;
+      byHour[hour]['salesMinor'] =
+          (byHour[hour]['salesMinor'] as int) + o.totalMinor;
       byHour[hour]['orders'] = (byHour[hour]['orders'] as int) + 1;
       final channel = OrderingModule.isWalkIn(o.customerId)
           ? 'counter'
@@ -902,7 +955,11 @@ class BackOfficeModule {
             'true' &&
         to.difference(from).inDays <= 31) {
       try {
-        final rows = await ProviderClients.listTransactions(from, to);
+        final rows = await ProviderClients.listTransactions(
+          from,
+          to,
+          account: await MerchantAppModule.forRestaurant(s, w.tenant),
+        );
         fees = rows.fold<int>(0, (n, t) => n - ((t['feeMinor'] as int?) ?? 0));
         estimated = false;
         feeSource = 'paypal_transactions';
@@ -962,7 +1019,8 @@ class BackOfficeModule {
       'currency': w.restaurant!.currency,
       'byHour': byHour,
       'byChannel': [
-        for (final e in byChannel.entries) {'channel': e.key, 'salesMinor': e.value},
+        for (final e in byChannel.entries)
+          {'channel': e.key, 'salesMinor': e.value},
       ],
       'salesMinor': orders.fold<int>(0, (n, o) => n + o.totalMinor),
       'orders': orders.length,

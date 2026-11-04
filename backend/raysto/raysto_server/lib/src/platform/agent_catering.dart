@@ -18,8 +18,21 @@ class CateringAgent {
   /// Runs one MCP change and turns its failure into a code a manager can
   /// act on. A refused tool most often means the Sandbox app lacks the
   /// Invoicing feature; the message says so without claiming it.
-  static Future<Json> _execute(String tool, Json args) async {
-    final client = mcp();
+  /// The MCP client for one café: its own PayPal app's token when it has
+  /// one, else the shared seam above (which tests replace).
+  static PayPalMcpClient mcpFor(PayPalAccount? account) => account == null
+      ? mcp()
+      : PayPalMcpClient.configured(
+          ProviderClients.environment(),
+          accessToken: () => ProviderClients.paypalReadToken(account: account),
+        );
+
+  static Future<Json> _execute(
+    String tool,
+    Json args, {
+    PayPalAccount? account,
+  }) async {
+    final client = mcpFor(account);
     try {
       return await client.execute(tool, args);
     } on McpFailure catch (e) {
@@ -104,22 +117,23 @@ class CateringAgent {
     AgentDraft? draft;
     Json? facts;
 
-    Future<Json> readRequest() async => facts ??= await AgentModule.asAgent<Json>(
-      s,
-      task.restaurantId,
-      (w) async {
-        final r = await _request(w, requestId);
-        return {
-          'requestId': r.id,
-          'customerName': r.customerName,
-          'text': r.text,
-          'eventAt': r.eventAt?.toIso8601String(),
-          'daysUntilEvent': r.eventAt?.difference(_now()).inDays,
-          'currency': r.currency,
-          'status': r.status,
-        };
-      },
-    );
+    Future<Json> readRequest() async =>
+        facts ??= await AgentModule.asAgent<Json>(
+          s,
+          task.restaurantId,
+          (w) async {
+            final r = await _request(w, requestId);
+            return {
+              'requestId': r.id,
+              'customerName': r.customerName,
+              'text': r.text,
+              'eventAt': r.eventAt?.toIso8601String(),
+              'daysUntilEvent': r.eventAt?.difference(_now()).inDays,
+              'currency': r.currency,
+              'status': r.status,
+            };
+          },
+        );
 
     final result = await AgentRuntime.loop(
       s,
@@ -395,6 +409,8 @@ class CateringAgent {
     final requestId = claim['requestId'] as int;
     final approver = claim['user'] as String;
     final r = (await CateringRequest.db.findById(s, requestId))!;
+    // 0.16 (S6): the café's own PayPal app when it has one.
+    final account = await MerchantAppModule.forRestaurant(s, r.restaurantId);
     final restaurant = (await Restaurant.db.findById(s, r.restaurantId))!;
     final quote = _json(r.quoteJson);
     String? invoiceId, number, qr;
@@ -408,8 +424,7 @@ class CateringAgent {
           {
             'billing_info': {
               'email_address': r.customerEmail,
-              if (r.customerName != null)
-                'business_name': r.customerName,
+              if (r.customerName != null) 'business_name': r.customerName,
             },
           },
         ],
@@ -435,7 +450,7 @@ class CateringAgent {
               'unit_of_measure': 'QUANTITY',
             },
         ],
-      });
+      }, account: account);
       invoiceId = created['id'] is String
           ? created['id'] as String
           : (created['href'] is String
@@ -449,7 +464,7 @@ class CateringAgent {
         'invoice_id': invoiceId,
         'note': 'Thank you. Pay by the due date to confirm your event.',
         'send_to_recipient': true,
-      });
+      }, account: account);
       final detail = _object(created['detail'] ?? {});
       number = detail['invoice_number'] as String?;
       try {
@@ -457,10 +472,12 @@ class CateringAgent {
           'invoice_id': invoiceId,
           'width': 300,
           'height': 300,
-        });
-        final png = [image['qr_code'], image['data'], image['image']]
-            .whereType<String>()
-            .firstOrNull;
+        }, account: account);
+        final png = [
+          image['qr_code'],
+          image['data'],
+          image['image'],
+        ].whereType<String>().firstOrNull;
         if (png != null &&
             png.length < 65536 &&
             RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(png)) {
@@ -532,13 +549,19 @@ class CateringAgent {
     return {'requestId': r['requestId'], 'reminded': true};
   }
 
-  static Future<void> _remind(Session s, int requestId, {required String by}) async {
+  static Future<void> _remind(
+    Session s,
+    int requestId, {
+    required String by,
+  }) async {
     final r = (await CateringRequest.db.findById(s, requestId))!;
+    // 0.16 (S6): the café's own PayPal app when it has one.
+    final account = await MerchantAppModule.forRestaurant(s, r.restaurantId);
     await _execute('send_invoice_reminder', {
       'invoice_id': r.providerInvoiceId!,
       'subject': 'Reminder: your catering invoice',
       'note': 'A friendly reminder that this invoice is still unpaid.',
-    });
+    }, account: account);
     await AgentModule.asAgent(s, r.restaurantId, (w) async {
       final fresh = (await CateringRequest.db.findById(
         s,
@@ -578,7 +601,9 @@ class CateringAgent {
         s,
         where: (t) => t.restaurantId.equals(r.restaurantId),
       );
-      final autonomy = _object(_json(policy?.settingsJson ?? '{}')['autonomy'] ?? {});
+      final autonomy = _object(
+        _json(policy?.settingsJson ?? '{}')['autonomy'] ?? {},
+      );
       if (autonomy['remindersAuto'] != true) continue;
       try {
         await _remind(s, r.id!, by: 'agent');

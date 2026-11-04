@@ -644,6 +644,8 @@ class PlatformWorker {
     await JudgeModule.schedule(s);
     await CloseAgent.schedule(s);
     await PayrollAgent.schedule(s);
+    // 0.16 (S2): delivery offers expire after 90 s; old pings go.
+    await DeliveryModule.sweep(s);
     await RateWindow.db.deleteWhere(
       s,
       where: (t) =>
@@ -862,7 +864,20 @@ class PlatformWorker {
       case 'judge.reset':
         await JudgeModule.reset(s, _int(d, 'restaurantId', min: 1));
       case 'payout.poll':
-        await PayrollAgent.poll(s, _int(d, 'batchId', min: 1), _int(d, 'attempt', fallback: 0));
+        await PayrollAgent.poll(
+          s,
+          _int(d, 'batchId', min: 1),
+          _int(d, 'attempt', fallback: 0),
+        );
+      // 0.16 (S2): signed partner webhooks and the automatic dispatcher.
+      case 'partner.webhook':
+        await PartnerModule.deliver(
+          s,
+          _int(d, 'eventId', min: 1),
+          _int(d, 'attempt', fallback: 0, max: 10),
+        );
+      case 'dispatch.auto':
+        await DispatchAgent.autoJob(s, _int(d, 'assignmentId', min: 1));
       case 'judge.tidy':
         await JudgeModule.reset(
           s,
@@ -981,6 +996,12 @@ class PlatformWorker {
           'Raysto activity update',
           'There is a ${_str(d, 'kind')} update in your Raysto inbox. Open Raysto to view its details.',
         );
+      // 0.16 (stream S3): a purchase order emailed to its supplier.
+      case 'email.supplierOrder':
+        await PurchasingModule.emailOrder(
+          s,
+          _int(d, 'orderId', min: 1, max: 1 << 31),
+        );
       case 'reservation.expire':
         await expireReservation(s, _int(d, 'reservationId', min: 1));
       case 'order.expire':
@@ -1058,18 +1079,47 @@ class PlatformWorker {
     Map<String, String> headers, {
     bool billing = false,
     bool singleMerchant = false,
+    String? appToken,
   }) async {
-    await ProviderClients.verifyWebhook(
-      event,
-      headers,
-      billing: billing,
-      singleMerchant: singleMerchant,
-    );
-    final provider = billing
-        ? 'paypal-billing'
-        : singleMerchant
-        ? 'paypal-single-sandbox'
-        : 'paypal-platform';
+    final String provider;
+    if (appToken != null) {
+      // 0.16 (S6): a restaurant's own PayPal app. Its address is opaque and
+      // rotates with the app; the signature is checked with that app's keys
+      // and webhook id, never the shared app's.
+      final app = await MerchantApp.db.findFirstRow(
+        s,
+        where: (t) => t.webhookToken.equals(appToken),
+      );
+      if (app == null || app.status != 'ready' || app.webhookId == null) {
+        _fail('not_found', 'Unknown webhook.');
+      }
+      final account = await MerchantAppModule.forRestaurant(
+        s,
+        app.restaurantId,
+      );
+      if (account == null || account.appId != app.id) {
+        _fail('not_found', 'Unknown webhook.');
+      }
+      await ProviderClients.verifyWebhook(
+        event,
+        headers,
+        account: account,
+        webhookId: app.webhookId,
+      );
+      provider = account.channel;
+    } else {
+      await ProviderClients.verifyWebhook(
+        event,
+        headers,
+        billing: billing,
+        singleMerchant: singleMerchant,
+      );
+      provider = billing
+          ? 'paypal-billing'
+          : singleMerchant
+          ? 'paypal-single-sandbox'
+          : 'paypal-platform';
+    }
     final id = _str(event, 'id', max: 150);
     final type = _str(event, 'event_type', max: 150);
     await s.db.transaction((tx) async {
@@ -1110,6 +1160,22 @@ class PlatformWorker {
         transaction: tx,
       );
     });
+  }
+
+  /// An own app's paid invoice must be one of its own restaurant's.
+  static Future<bool> _invoiceBelongs(Session s, Json invoice, int rid) async {
+    final id = invoice['id'];
+    if (id is! String) return false;
+    final request = await PaymentRequest.db.findFirstRow(
+      s,
+      where: (t) => t.providerInvoiceId.equals(id),
+    );
+    if (request != null) return request.restaurantId == rid;
+    final catering = await CateringRequest.db.findFirstRow(
+      s,
+      where: (t) => t.providerInvoiceId.equals(id),
+    );
+    return catering?.restaurantId == rid;
   }
 
   static Future<void> processInbox(Session s, int id) async {
@@ -1235,20 +1301,82 @@ class PlatformWorker {
         final merchantId = _str(resource, 'merchant_id', max: 100);
         await MerchantConnection.db.updateWhere(
           s,
-          columnValues: (t) => [t.status('restricted'), t.verifiedAt(null)],
+          columnValues: (t) => [t.status('revoked'), t.verifiedAt(null)],
           where: (t) =>
               t.merchantId.equals(merchantId) &
               t.environment.equals(ProviderClients.paypalEnvironment),
         );
       }
+      if (event.provider == 'paypal-platform' &&
+          event.eventType == 'MERCHANT.ONBOARDING.COMPLETED') {
+        // The seller finished Connect with PayPal: Raysto reads the result
+        // as the partner, as merchant.refresh would, without the owner.
+        await MerchantAppModule.onboardingCompleted(s, resource);
+        event.status = 'processed';
+        event.processedAt = _now();
+        await ProviderInbox.db.updateRow(s, event);
+        return;
+      }
+      final ownApp = event.provider.startsWith('paypal-app:')
+          ? await MerchantApp.db.findById(
+              s,
+              int.tryParse(event.provider.substring('paypal-app:'.length)) ?? 0,
+            )
+          : null;
+      if (event.eventType.startsWith('PAYMENT.PAYOUTSBATCH.')) {
+        // A batch settled at PayPal: look now instead of at the next poll.
+        // Only the app that sent the batch may speak for it.
+        final providerBatchId = _object(
+          resource['batch_header'] ?? {},
+        )['payout_batch_id'];
+        final b = providerBatchId is String
+            ? await PayoutBatch.db.findFirstRow(
+                s,
+                where: (t) => t.providerBatchId.equals(providerBatchId),
+              )
+            : null;
+        final route = b == null ? null : _json(b.summaryJson)['paypal'];
+        final sender = route is Map && route['mode'] == 'ownApp'
+            ? 'paypal-app:${route['appId']}'
+            : 'paypal-single-sandbox';
+        if (b != null &&
+            b.state == 'sent' &&
+            event.provider == sender &&
+            (ownApp == null || ownApp.restaurantId == b.restaurantId)) {
+          await PlatformJob.db.insert(s, [
+            PlatformJob(
+              restaurantId: b.restaurantId,
+              kind: 'payout.poll',
+              dedupeKey: 'payout-poll:${b.id}:hook:${event.eventId}',
+              // The last attempt: the scheduled chain keeps its own pace.
+              payloadJson: jsonEncode({'batchId': b.id, 'attempt': 48}),
+              state: 'pending',
+              attempts: 0,
+              availableAt: _now(),
+              createdAt: _now(),
+            ),
+          ], ignoreConflicts: true);
+        }
+        event.status = b == null ? 'operatorReview' : 'processed';
+        event.processedAt = _now();
+        await ProviderInbox.db.updateRow(s, event);
+        return;
+      }
       if (event.eventType == 'INVOICING.INVOICE.PAID' &&
-          event.provider == 'paypal-single-sandbox') {
-        // The invoice object is the resource; the paid catering request is
+          (event.provider == 'paypal-single-sandbox' || ownApp != null)) {
+        // The invoice object is the resource. A payment request's invoice
+        // settles that request; otherwise the paid catering request is
         // settled and its order placed exactly once (status guards repeats).
-        await CateringAgent.onInvoicePaid(
-          s,
-          _object(resource['invoice'] ?? resource),
-        );
+        final invoice = _object(resource['invoice'] ?? resource);
+        if (ownApp != null &&
+            !await _invoiceBelongs(s, invoice, ownApp.restaurantId)) {
+          event.status = 'operatorReview';
+          await ProviderInbox.db.updateRow(s, event);
+          return;
+        }
+        if (!await PaymentRequestModule.onInvoicePaid(s, invoice)) {
+          await CateringAgent.onInvoicePaid(s, invoice);
+        }
         event.status = 'processed';
         event.processedAt = _now();
         await ProviderInbox.db.updateRow(s, event);
@@ -1270,9 +1398,7 @@ class PlatformWorker {
           where: (t) => t.providerOrderId.equals('$orderId'),
         );
         if (i != null) {
-          final expected = i.providerMode == 'singleMerchantSandbox'
-              ? 'paypal-single-sandbox'
-              : 'paypal-platform';
+          final expected = await MerchantAppModule.channelFor(s, i);
           if (event.provider != expected) {
             _fail(
               'provider_mismatch',
@@ -1292,9 +1418,9 @@ class PlatformWorker {
           final checkout = capture == null
               ? null
               : await CheckoutIntent.db.findById(s, capture.checkoutId);
-          final expected = checkout?.providerMode == 'singleMerchantSandbox'
-              ? 'paypal-single-sandbox'
-              : 'paypal-platform';
+          final expected = checkout == null
+              ? null
+              : await MerchantAppModule.channelFor(s, checkout);
           if (checkout == null || event.provider != expected) {
             _fail(
               'provider_mismatch',

@@ -42,7 +42,9 @@ class DisputeAgent {
     );
     if (existing != null) {
       final status = d['status'] as String?;
-      if (status != null && status != existing.status && existing.status != 'accepted') {
+      if (status != null &&
+          status != existing.status &&
+          existing.status != 'accepted') {
         existing
           ..status = status
           ..version += 1
@@ -98,11 +100,13 @@ class DisputeAgent {
       _keys(d, {});
       return {'restaurantId': w.tenant};
     }, roles: _managers);
+    // 0.16 (S6): the café's own PayPal app when it has one.
+    final account = await MerchantAppModule.forRestaurant(s, c.restaurantId!);
     List<Json> disputes;
     String source;
     PayPalMcpClient? client;
     try {
-      client = CateringAgent.mcp();
+      client = CateringAgent.mcpFor(account);
       final listed = await client.query('list_disputes', {
         'page_size': 20,
         'page': 1,
@@ -113,7 +117,7 @@ class DisputeAgent {
       ];
       source = 'paypal_mcp';
     } catch (_) {
-      disputes = await ProviderClients.listDisputes();
+      disputes = await ProviderClients.listDisputes(account: account);
       source = 'paypal_rest';
     } finally {
       client?.close();
@@ -223,9 +227,13 @@ class DisputeAgent {
           'note': 'Seeded for the demo; not a PayPal record.',
         };
       } else {
+        final account = await MerchantAppModule.forRestaurant(
+          s,
+          c.restaurantId,
+        );
         PayPalMcpClient? client;
         try {
-          client = CateringAgent.mcp();
+          client = CateringAgent.mcpFor(account);
           final d = await client.query('get_dispute', {
             'dispute_id': c.providerDisputeId,
           });
@@ -238,16 +246,25 @@ class DisputeAgent {
           try {
             paypal = {
               'source': 'paypal_rest',
-              ...await ProviderClients.getDispute(c.providerDisputeId),
+              ...await ProviderClients.getDispute(
+                c.providerDisputeId,
+                account: account,
+              ),
             };
           } on DomainError catch (e) {
-            paypal = {'source': 'raysto_ledger', 'status': c.status, 'code': e.code};
+            paypal = {
+              'source': 'raysto_ledger',
+              'status': c.status,
+              'code': e.code,
+            };
           }
         } finally {
           client?.close();
         }
       }
-      return facts = await AgentModule.asAgent<Json>(s, task.restaurantId, (w) async {
+      return facts = await AgentModule.asAgent<Json>(s, task.restaurantId, (
+        w,
+      ) async {
         Json? order;
         if (c.captureId != null) {
           final capture = await PaymentCapture.db.findById(
@@ -369,7 +386,8 @@ class DisputeAgent {
             }
             final evidence = [
               for (final e in raw)
-                if (e is String && e.trim().isNotEmpty) e.trim().substring(0, min(200, e.trim().length)),
+                if (e is String && e.trim().isNotEmpty)
+                  e.trim().substring(0, min(200, e.trim().length)),
             ];
             final f = await readDispute();
             await AgentModule.asAgent(s, task.restaurantId, (w) async {
@@ -415,7 +433,9 @@ class DisputeAgent {
           ? 'The café is in the wrong on dispute ${c.providerDisputeId}: accepting it is proposed.'
           : c.replyText != null
           ? 'Evidence and a reply are ready for dispute ${c.providerDisputeId}; the café can contest it.'
-          : (result.text.isNotEmpty ? result.text : 'Read dispute ${c.providerDisputeId}.'),
+          : (result.text.isNotEmpty
+                ? result.text
+                : 'Read dispute ${c.providerDisputeId}.'),
       drafts: [?draft],
       trace: result.trace,
       chargedMicros: result.chargedMicros,
@@ -472,10 +492,17 @@ class DisputeAgent {
       if (x.status == 'seeded') {
         _fail('invalid_transition', 'A seeded case is never sent to PayPal.');
       }
-      return {'caseId': x.id, 'status': 'accepting', 'providerDisputeId': x.providerDisputeId, 'user': w.user};
+      return {
+        'caseId': x.id,
+        'status': 'accepting',
+        'providerDisputeId': x.providerDisputeId,
+        'user': w.user,
+      };
     }, roles: _managers);
     if (claim['status'] != 'accepting') return claim;
-    final client = CateringAgent.mcp();
+    final client = CateringAgent.mcpFor(
+      await MerchantAppModule.forRestaurant(s, c.restaurantId!),
+    );
     try {
       await client.execute('accept_dispute_claim', {
         'dispute_id': claim['providerDisputeId'],
@@ -484,7 +511,9 @@ class DisputeAgent {
       });
     } on McpFailure catch (e) {
       _fail(
-        e.code == 'mcp_tool_failed' ? 'provider_feature_disabled' : 'provider_unavailable',
+        e.code == 'mcp_tool_failed'
+            ? 'provider_feature_disabled'
+            : 'provider_unavailable',
         'PayPal did not accept the claim.',
       );
     } finally {

@@ -1,5 +1,7 @@
 # Raysto video projects
 
+**Motion design for the AI-with-PayPal story** follows the [motion guide](MOTION-GUIDE.md): tools, colours, movement, the scene list and honesty rules. The first scene is **MoneyBrainTest**, a 15-second animated diagram in `src/motion/MoneyBrain.tsx`.
+
 The newest judge-facing opening is **RaystoJudges38**: an original 38-second editorial collage segment to follow the founder's 10-second introduction. See the [research brief](JUDGES-RESEARCH.md), [production notes](JUDGES-PRODUCTION.md) and [timed narration](JUDGES-NARRATION.txt). Its current local master is `../dist/raysto-judges-phase1-38s-pro-audio-1080p.mp4`, with licensed professional stock music and recorded paper effects. [Audio credits and reproduction](AUDIO-LICENSES.md). The previous synthesized-audio export is preserved.
 
 The earlier longer film is **RaystoChallenge**, a 78-second landscape hackathon walkthrough: [story, capture provenance and narration guide](CHALLENGE-DEMO.md). Render it to `../dist/raysto-hackathon-demo-v2-1080p.mp4`. It combines an actual Android recording with native interface captures, connected operations, a genuine PayPal Sandbox handoff and explicitly simulated settlement.

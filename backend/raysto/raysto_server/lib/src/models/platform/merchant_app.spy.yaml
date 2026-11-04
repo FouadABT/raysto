@@ -1,0 +1,44 @@
+# A restaurant's own PayPal REST app (0.16, stream S6): the owner pastes the
+# Client ID and Secret of their PayPal developer app and every PayPal call
+# for that restaurant uses it. The secret is stored only AES-256-GCM
+# encrypted under the server-only RAYSTO_MERCHANT_SECRET_KEY and is never
+# returned, logged or audited. Sandbox only on this deployment.
+class: MerchantApp
+table: raysto_merchant_app
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  environment: String
+  clientId: String
+  # base64(nonce || ciphertext || tag); empty once removed.
+  secretCipher: String
+  # Which server encryption key sealed [secretCipher].
+  keyVersion: int
+  # Bumped on every save; keys the in-memory token cache.
+  credentialVersion: int
+  # ready | removed
+  status: String
+  # The PayPal account the app belongs to, learned from PayPal (reporting
+  # balance or the first order's payee) or given by the owner.
+  merchantId: String?
+  appId: String?
+  # Opaque id in the webhook URL; rotated when the PayPal app changes.
+  webhookToken: String
+  webhookId: String?
+  # pending | registered | failed
+  webhookStatus: String
+  # The read-only feature checklist (orders, refunds, payouts, invoicing,
+  # transactionSearch, disputes): {name: {state, code?}}.
+  featuresJson: String
+  checkedAt: DateTime?
+  savedBy: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  version: int
+indexes:
+  merchant_app_restaurant:
+    fields: restaurantId, environment
+    unique: true
+  merchant_app_webhook:
+    fields: webhookToken
+    unique: true

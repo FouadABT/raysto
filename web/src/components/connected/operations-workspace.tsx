@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { AgGridReact } from "ag-grid-react";
 import {
   AllCommunityModule,
   ModuleRegistry,
@@ -31,7 +30,6 @@ import {
 } from "ag-studio";
 import { ApiFailure, ConnectedApi } from "@/lib/connected/api";
 import { RaystoHarness } from "@/lib/connected/studio-harness";
-import { m3GridTheme } from "@/lib/connected/grid-theme";
 import {
   currency,
   type AttentionFilter,
@@ -55,6 +53,8 @@ import { DispatchSection } from "./dispatch-section";
 import { SuppliesSection } from "./supplies-section";
 import { OverviewSection } from "./overview-section";
 import { FadeThrough, NavIndicator } from "./m3";
+import { RaystoGrid } from "./raysto-grid";
+import { boolCol, countCol, idCol, moneyCol, statusCol, words as wordsOf } from "@/lib/connected/grid-columns";
 import { isJudgeVenue } from "@/lib/connected/judge";
 import type { IconName } from "./icons";
 
@@ -245,18 +245,13 @@ const defaultLayout: AgReportState<Registry> = {
   },
 };
 const tableColumns: ColDef<TableRow>[] = [
-  { field: "label", headerName: "Table", minWidth: 110 },
-  { field: "zone", minWidth: 110 },
-  { field: "guests", width: 100 },
-  { field: "status", minWidth: 130 },
-  {
-    field: "outstandingMinor",
-    headerName: "Outstanding",
-    minWidth: 150,
-    valueFormatter: (p) => currency(p.value ?? 0, p.data?.currency ?? "USD"),
-  },
-  { field: "serviceCount", headerName: "Requests", width: 110 },
-  { field: "billRequested", headerName: "Bill requested", width: 150 },
+  { field: "label", headerName: "Table", minWidth: 110, cellClass: "ops-cell-strong" },
+  { field: "zone", headerName: "Zone", minWidth: 110 },
+  countCol<TableRow>("Guests", "guests", { minWidth: 100, flex: 0.6 }),
+  statusCol<TableRow>("Status", "status", { minWidth: 140 }),
+  moneyCol<TableRow>("Outstanding", "outstandingMinor", (r) => r.currency),
+  countCol<TableRow>("Requests", "serviceCount", { minWidth: 110, flex: 0.6 }),
+  boolCol<TableRow>("Bill requested", "billRequested", { labels: ["Bill requested", "No bill asked"], minWidth: 140 }),
 ];
 
 export function OperationsWorkspace({
@@ -592,60 +587,30 @@ export function OperationsWorkspace({
       : tab === "payments"
         ? payments.filter(inView)
         : services;
-  const genericColumns: ColDef<Json>[] = (
+  // The floor's records, in the console's column kinds (grid-columns.ts).
+  const venueCurrency = (r: Json) => String(r.currency ?? snapshot?.currency ?? "USD");
+  const serviceWords = (v: unknown) => (v === "dineIn" ? "Dine-in" : wordsOf(v));
+  const genericColumns: ColDef<Json>[] =
     tab === "orders"
-      ? ["id", "fulfillment", "status", "paymentStatus", "totalMinor"]
+      ? [
+          idCol<Json>("Order", "id", { prefix: "#" }),
+          { field: "fulfillment", headerName: "Service", minWidth: 120, valueFormatter: (p: ValueFormatterParams<Json>) => serviceWords(p.value) },
+          statusCol<Json>("Status", "status"),
+          statusCol<Json>("Payment", "paymentStatus"),
+          moneyCol<Json>("Total", "totalMinor", venueCurrency),
+        ]
       : tab === "payments"
-        ? ["id", "state", "amountMinor", "currency"]
-        : ["table", "kind", "status"]
-  ).map((field) => ({
-    field,
-    minWidth: 130,
-    headerName:
-      (
-        {
-          id: tab === "orders" ? "Order" : "Checkout",
-          fulfillment: "Service",
-          status: "Status",
-          state: "Payment status",
-          paymentStatus: "Payment",
-          totalMinor: "Total",
-          amountMinor: "Amount",
-          currency: "Currency",
-          table: "Table",
-          kind: "Request",
-        } as Record<string, string>
-      )[field] ?? field,
-    ...(field.endsWith("Minor")
-      ? {
-          valueFormatter: (p: ValueFormatterParams<Json>) =>
-            currency(
-              Number(p.value ?? 0),
-              String(p.data?.currency ?? snapshot?.currency ?? "USD"),
-            ),
-        }
-      : {
-          valueFormatter: (p: ValueFormatterParams<Json>) => {
-            if (field === "fulfillment" && p.value === "dineIn")
-              return "Dine-in";
-            if (
-              [
-                "fulfillment",
-                "status",
-                "state",
-                "paymentStatus",
-                "kind",
-              ].includes(field)
-            ) {
-              const label = String(p.value ?? "")
-                .replace(/([a-z])([A-Z])/g, "$1 $2")
-                .replaceAll("_", " ");
-              return label.charAt(0).toUpperCase() + label.slice(1);
-            }
-            return String(p.value ?? "");
-          },
-        }),
-  }));
+        ? [
+            idCol<Json>("Checkout", "id", { prefix: "#" }),
+            statusCol<Json>("Payment status", "state"),
+            moneyCol<Json>("Amount", "amountMinor", venueCurrency),
+            { field: "currency", headerName: "Currency", minWidth: 100, flex: 0.5 },
+          ]
+        : [
+            { field: "table", headerName: "Table", minWidth: 110, cellClass: "ops-cell-strong" },
+            { field: "kind", headerName: "Request", minWidth: 130, valueFormatter: (p: ValueFormatterParams<Json>) => wordsOf(p.value) },
+            statusCol<Json>("Status", "status"),
+          ];
   if (tab === "services")
     genericColumns.push({
       headerName: "Service",
@@ -1005,36 +970,27 @@ export function OperationsWorkspace({
                 </button>
               ))}
             </nav>
-            <div className="ops-grid">
-              {tab === "tables" ? (
-                <AgGridReact<TableRow>
-                  theme={m3GridTheme}
-                  rowData={snapshot.rows}
-                  columnDefs={tableColumns}
-                  defaultColDef={{
-                    sortable: true,
-                    filter: true,
-                    resizable: true,
-                    flex: 1,
-                  }}
-                  onRowClicked={(e) => e.data && void openTable(e.data)}
-                  getRowId={(p) => String(p.data.id)}
-                />
-              ) : (
-                <AgGridReact<Json>
-                  key={tab}
-                  theme={m3GridTheme}
-                  rowData={generalRows}
-                  columnDefs={genericColumns}
-                  defaultColDef={{
-                    sortable: true,
-                    filter: true,
-                    resizable: true,
-                    flex: 1,
-                  }}
-                />
-              )}
-            </div>
+            {tab === "tables" ? (
+              <RaystoGrid<TableRow>
+                label="Tables"
+                rows={snapshot.rows}
+                columns={tableColumns}
+                onRowClicked={(e) => e.data && void openTable(e.data)}
+                getRowId={(p) => String(p.data.id)}
+                csvName="tables"
+                emptyText="No table in this view."
+              />
+            ) : (
+              <RaystoGrid<Json>
+                key={tab}
+                label={tab === "orders" ? "Floor orders" : tab === "payments" ? "Floor payments" : "Service requests"}
+                rows={generalRows}
+                columns={genericColumns}
+                csvName={`floor-${tab}`}
+                totals={tab !== "services"}
+                emptyText={tab === "services" ? "No open request." : `No ${tab} in this view.`}
+              />
+            )}
             <small>
               Orders and payments show up to 100 records, narrowed by the shared
               attention filter.

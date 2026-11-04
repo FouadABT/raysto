@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { allowedPath } from "@/lib/connected/proxy-allowlist";
+import { checkUpload, readLimited, uploadMaximum } from "@/lib/connected/upload-proxy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -141,3 +142,71 @@ async function proxy(
 }
 export const GET = proxy;
 export const POST = proxy;
+
+/**
+ * 0.16 (stream S1): the bytes of a file reserved with `media.upload`, such
+ * as a bill or a receipt. Only `media/{id}/content`, only from the console's
+ * own origin, only a photo or a PDF of at most 8 MiB; the backend checks the
+ * size and SHA-256 against the reservation and scans the file.
+ */
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ path: string[] }> },
+) {
+  const path = (await context.params).path.join("/");
+  const origin =
+    process.env.RAYSTO_CONSOLE_ORIGIN ??
+    (process.env.NODE_ENV === "production"
+      ? "https://ops.rays.to"
+      : request.nextUrl.origin);
+  const check = checkUpload({
+    path,
+    origin: request.headers.get("origin"),
+    expectedOrigin: origin,
+    contentType: request.headers.get("content-type"),
+    contentLength: request.headers.get("content-length"),
+  });
+  if (!check.ok)
+    return Response.json(
+      { error: { code: check.code } },
+      { status: check.status },
+    );
+  const body = await readLimited(request.body, uploadMaximum);
+  if (body === null) return new Response(null, { status: 413 });
+  if (body.length === 0)
+    return Response.json({ error: { code: "empty_file" } }, { status: 400 });
+  const headers = new Headers({ "content-type": check.type });
+  for (const name of ["authorization", "x-raysto-firebase-token"]) {
+    const value = request.headers.get(name);
+    if (value && value.length <= 20000) headers.set(name, value);
+  }
+  try {
+    // Fixed origin and a fixed path shape: never an open proxy.
+    const result = await fetch(`https://api.rays.to/api/v2/${path}`, {
+      method: "PUT",
+      headers,
+      body: body as BodyInit,
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(120000),
+    });
+    return new Response(await result.arrayBuffer(), {
+      status: result.status,
+      headers: {
+        "Content-Type": result.headers.get("content-type") ?? "application/json",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch {
+    return Response.json(
+      {
+        error: {
+          code: "backend_unavailable",
+          message: "The file could not be sent. Try again.",
+        },
+      },
+      { status: 502 },
+    );
+  }
+}

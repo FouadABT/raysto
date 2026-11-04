@@ -1,7 +1,7 @@
 name: raysto
 description: Raysto mobile restaurant platform with connected accounts and an isolated offline demo.
 publish_to: 'none'
-version: 0.15.0+2100
+version: 0.16.0+2200
 
 environment:
   sdk: ^3.13.0
@@ -40,6 +40,8 @@ dependencies:
   animations: 2.2.0
   flutter_markdown_plus: 1.0.12
   record: 7.1.2
+  flutter_map: 8.2.2
+  latlong2: 0.9.1
 
 dev_dependencies:
   flutter_test:

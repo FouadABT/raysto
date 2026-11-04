@@ -9,6 +9,10 @@
 //   node tool/judge_restaurant.cjs photo     upload the sample menu photo the menu agent reads
 //   node tool/judge_restaurant.cjs delivery  upload the sample delivery note the supplies agent reads
 //   node tool/judge_restaurant.cjs receipt   upload the sample receipt the expenses agent reads
+//   node tool/judge_restaurant.cjs courier   make the published courier login the café's courier (0.16 delivery)
+//   node tool/judge_restaurant.cjs venue2    the owner creates the second café, Atelier Harbour · Sample, and makes the manager
+//   node tool/judge_restaurant.cjs bill      upload the sample electricity bill PDF the accountant reads (Try card 10)
+//   node tool/judge_restaurant.cjs partner   create "Demo Delivery Co. (simulator)"; its shown-once key goes to backend/.secrets/partner-sim.json
 //   node tool/judge_restaurant.cjs console   write the judge login into web/.env.local for the console build
 //   node tool/judge_restaurant.cjs check     sign in as the manager and read what the demos need
 //   node tool/judge_restaurant.cjs repair    put the published passwords back if someone changed them
@@ -56,6 +60,8 @@ const accounts = {
   owner: { email: 'judges-owner@rays.to', name: 'Judges café owner', published: false },
   manager: { email: 'judge@rays.to', name: 'Hackathon judge', published: true },
   diner: { email: 'diner@rays.to', name: 'Hackathon diner', published: true },
+  // 0.16: the driver login for the app's courier screens (Sandbox only).
+  courier: { email: 'courier@rays.to', name: 'Hackathon courier', published: true },
 };
 
 async function signIn(role) {
@@ -69,7 +75,7 @@ async function signIn(role) {
   return {
     headers,
     query: (name, params = {}) => http(api + 'queries/' + name + '?' + new URLSearchParams({ ...(rid() ? { restaurantId: rid() } : {}), ...params }), null, headers),
-    command: (step, name, data = {}, opts = {}) => http(api + 'commands/' + name, { requestKey: key(step), restaurantId: opts.restaurantId === null ? undefined : rid(), resourceId: opts.id, expectedVersion: opts.version, dataJson: JSON.stringify(data) }, headers),
+    command: (step, name, data = {}, opts = {}) => http(api + 'commands/' + name, { requestKey: key(step), restaurantId: opts.restaurantId === null ? undefined : opts.restaurantId ?? rid(), resourceId: opts.id, expectedVersion: opts.version, dataJson: JSON.stringify(data) }, headers),
   };
 }
 
@@ -136,12 +142,12 @@ async function fresh() {
 
 // A sample photo the agents read: uploaded once, scanned, its id kept in
 // judge-accounts.json (`mediaId` for the menu, `keys.<name>` for the rest).
-async function upload(name, file, remember) {
+async function upload(name, file, remember, { purpose = 'menuSource', mime = 'image/jpeg' } = {}) {
   const owner = await signIn('owner');
   const bytes = fs.readFileSync(path.join(root, file));
   let id = remember();
   if (!id) {
-    const sent = await owner.command(`${name}-photo`, 'media.upload', { purpose: 'menuSource', mime: 'image/jpeg', byteLength: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
+    const sent = await owner.command(`${name}-photo`, 'media.upload', { purpose, mime, byteLength: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
     const put = await fetch(`${api}media/${sent.mediaId}/content`, { method: 'PUT', headers: { ...owner.headers, 'Content-Type': 'application/octet-stream' }, body: bytes });
     assert(put.ok, 'Upload failed: ' + put.status);
     id = remember(sent.mediaId);
@@ -165,6 +171,111 @@ const keyed = (name, file) => () =>
 const delivery = keyed('delivery', 'docs/qa/2026-11-03/delivery-note.jpg');
 const receipt = keyed('receipt', 'docs/qa/2026-11-03/receipt.jpg');
 
+// 0.16: the sample electricity bill (tool/judge_samples.cjs renders it), as
+// the PDF a utility sends; the accountant reads it on Try card 10.
+async function bill() {
+  const remember = (id) => (id ? ((state.keys ??= {}).billMediaId = id) : state.keys?.billMediaId);
+  await upload('bill', 'web/public/judges/bill.pdf', remember, { purpose: 'bill', mime: 'application/pdf' });
+}
+
+// 0.16: the published courier login becomes the café's courier, so the app's
+// delivery screens have a real driver (the reset adds two simulated ones).
+async function courier() {
+  if (state.courierJoined) return report('The courier login is already the café\u2019s courier');
+  const owner = await signIn('owner');
+  const invite = await owner.command('invite-courier', 'team.invite', { email: accounts.courier.email, role: 'courier' });
+  const driver = await signIn('courier');
+  await driver.command('accept-courier', 'team.accept', { token: invite.invitationCode });
+  state.courierJoined = true;
+  save();
+  report('The courier login is the café\u2019s courier', { email: accounts.courier.email });
+}
+
+// 0.16: the franchise demo's second café. The server's reset names it
+// "Atelier Harbour · Sample" and seeds it once RAYSTO_JUDGE_SECOND_RESTAURANT_ID
+// is set; this only creates it, configures it and makes the judge its manager.
+async function venue2() {
+  const owner = await signIn('owner');
+  if (!state.secondRestaurantId) {
+    state.secondRestaurantId = (await owner.command('create-2', 'restaurant.create', { name: 'Atelier Harbour · Sample', currency: 'USD' }, { restaurantId: null })).id;
+    save();
+    report('Second café created', { restaurantId: state.secondRestaurantId });
+  }
+  const second = { restaurantId: state.secondRestaurantId };
+  if (!state.secondConfigured) {
+    const manage = await owner.query('restaurant.manage', second);
+    await owner.command('configure-2', 'restaurant.configure', {
+      name: manage.name,
+      currency: 'USD',
+      settings: {
+        ...manage.settings,
+        address: 'PayPal Sandbox demo for hackathon judges · sample second café, not a real place',
+        contactEmail: accounts.manager.email,
+        country: 'US',
+        timezone: 'America/New_York',
+        languages: ['en', 'fr', 'ar'],
+        modes: ['pickup', 'dineIn'],
+        hours: Array.from({ length: 7 }, (_, i) => ({ day: i + 1, start: 0, end: 1440 })),
+        taxConfigured: true,
+        taxBps: 0,
+        paymentTiming: 'before',
+        autoAcceptPaid: true,
+        guestOrdering: false,
+      },
+    }, { ...second, version: manage.version });
+    state.secondConfigured = true;
+    save();
+    report('Second café configured: pickup and dine-in, New York time, USD');
+  }
+  if (!state.secondManagerJoined) {
+    const invite = await owner.command('invite-manager-2', 'team.invite', { email: accounts.manager.email, role: 'manager' }, second);
+    const manager = await signIn('manager');
+    await manager.command('accept-2', 'team.accept', { token: invite.invitationCode }, second);
+    state.secondManagerJoined = true;
+    save();
+    report('The judge account manages the second café too');
+  }
+  report('Set this on the server, then start both cafés fresh', { RAYSTO_JUDGE_SECOND_RESTAURANT_ID: state.secondRestaurantId });
+}
+
+// 0.16: "Demo Delivery Co. (simulator)", a pretend outside delivery app on
+// the Delivery Partner API. Its key is shown once: it is written to the
+// git-ignored backend/.secrets/partner-sim.json and never printed.
+//   node tool/judge_restaurant.cjs partner [webhook-url]
+async function partner() {
+  const secretFile = path.join(root, 'backend/.secrets/partner-sim.json');
+  if (fs.existsSync(secretFile)) {
+    const kept = JSON.parse(fs.readFileSync(secretFile, 'utf8'));
+    return report('The simulator partner already exists', { appId: kept.appId, keyPrefix: kept.keyPrefix });
+  }
+  const owner = await signIn('owner');
+  // Creating a partner app is behind the identity check: the password sign-in
+  // just made is the recent proof the server records.
+  await owner.command('stepup-partner-' + Date.now(), 'identity.stepUp', { firebaseIdToken: owner.headers['X-Raysto-Firebase-Token'] });
+  const webhookUrl = process.argv[3];
+  const made = await owner.command('partner-sim', 'partner.app.save', {
+    name: 'Demo Delivery Co. (simulator)',
+    simulator: true,
+    ...(webhookUrl ? { webhookUrl } : {}),
+  });
+  const app = made.app ?? made;
+  const kept = {
+    appId: app.id ?? made.appId,
+    keyPrefix: app.keyPrefix ?? made.keyPrefix,
+    key: made.key ?? made.apiKey,
+    webhookSecret: made.webhookSecret ?? made.secret,
+    restaurantId: state.restaurantId,
+    createdAt: new Date().toISOString(),
+  };
+  assert(kept.appId && kept.key, 'partner.app.save did not return an id and a key.');
+  fs.writeFileSync(secretFile, JSON.stringify(kept, null, 1), { mode: 0o600 });
+  report('Simulator partner created; its key is in backend/.secrets/partner-sim.json', {
+    appId: kept.appId,
+    keyPrefix: kept.keyPrefix,
+    RAYSTO_SIM_PARTNER_APP_ID: kept.appId,
+  });
+}
+
 function consoleEnv() {
   const env = path.join(root, 'web/.env.local');
   const keep = fs.readFileSync(env, 'utf8').split(/\r?\n/).filter((l) => l && !l.startsWith('NEXT_PUBLIC_RAYSTO_JUDGE_'));
@@ -177,6 +288,10 @@ function consoleEnv() {
     ...(state.mediaId ? [`NEXT_PUBLIC_RAYSTO_JUDGE_MENU_MEDIA_ID=${state.mediaId}`] : []),
     ...(state.keys?.deliveryMediaId ? [`NEXT_PUBLIC_RAYSTO_JUDGE_DELIVERY_MEDIA_ID=${state.keys.deliveryMediaId}`] : []),
     ...(state.keys?.receiptMediaId ? [`NEXT_PUBLIC_RAYSTO_JUDGE_RECEIPT_MEDIA_ID=${state.keys.receiptMediaId}`] : []),
+    ...(state.keys?.billMediaId ? [`NEXT_PUBLIC_RAYSTO_JUDGE_BILL_MEDIA_ID=${state.keys.billMediaId}`] : []),
+    ...(state.users.courier && state.courierJoined
+      ? [`NEXT_PUBLIC_RAYSTO_JUDGE_COURIER_EMAIL=${state.users.courier.email}`, `NEXT_PUBLIC_RAYSTO_JUDGE_COURIER_PASSWORD=${state.users.courier.password}`]
+      : []),
     ''].join('\n'), { mode: 0o600 });
   report('Console judge login written to web/.env.local', { restaurantId: state.restaurantId });
 }
@@ -192,6 +307,7 @@ async function check() {
     voice: menu.voice,
     currency: menu.currency,
     menuPhoto: media.rows.find((m) => m.purpose === 'menuSource' && m.status === 'approved')?.id ?? null,
+    billFile: media.rows.find((m) => m.purpose === 'bill' && m.status === 'approved')?.id ?? null,
     menu: menu.menu.map((d) => `${d.name} ${d.priceMinor}`),
   });
 }
@@ -216,6 +332,10 @@ const modes = {
   photo,
   delivery,
   receipt,
+  courier,
+  venue2,
+  bill,
+  partner,
   console: consoleEnv,
   check,
   repair,
@@ -244,10 +364,11 @@ const modes = {
     console.log(JSON.stringify(data).slice(0, 4000));
   },
   logins: () => {
-    for (const role of ['manager', 'diner']) console.log(`${role}: ${state.users[role].email} / ${state.users[role].password}`);
+    for (const role of ['manager', 'diner', 'courier']) if (state.users[role]) console.log(`${role}: ${state.users[role].email} / ${state.users[role].password}`);
     console.log(`restaurantId: ${state.restaurantId}`);
+    if (state.secondRestaurantId) console.log(`secondRestaurantId: ${state.secondRestaurantId}`);
   },
 };
 const mode = modes[process.argv[2]];
-if (!mode) console.error('Usage: accounts | venue | fresh | photo | delivery | receipt | console | check | orders | inbox | repair | logins');
+if (!mode) console.error('Usage: accounts | venue | fresh | photo | delivery | receipt | courier | venue2 | bill | partner | console | check | orders | inbox | repair | logins');
 else Promise.resolve(mode()).catch((e) => { console.error(e.message); process.exitCode = 1; });

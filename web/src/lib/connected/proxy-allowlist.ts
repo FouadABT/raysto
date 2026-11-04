@@ -126,6 +126,7 @@ export const phase16Queries = new Set([
   "ledger.pnl",
   "ledger.cashflow",
   "ledger.vat",
+  "accountant.anomalies",
   "bills",
   "bill",
   "requests",
@@ -193,7 +194,19 @@ export const consoleCommands = new Set([
   "autonomy.set",
 ]);
 
+/** 0.16 stream S6: each restaurant's own PayPal account (own app, partner connection). */
+export const merchantCommands = new Set([
+  "merchant.app.save",
+  "merchant.app.check",
+  "merchant.app.remove",
+  "merchant.connect",
+  "merchant.refresh",
+]);
+export const merchantQueries = new Set(["merchant.status"]);
+
 for (const name of phase16Commands) consoleCommands.add(name);
+for (const name of merchantCommands) consoleCommands.add(name);
+for (const name of merchantQueries) consoleQueries.add(name);
 for (const name of phase16Queries) consoleQueries.add(name);
 
 export function allowedPath(path: string): boolean {

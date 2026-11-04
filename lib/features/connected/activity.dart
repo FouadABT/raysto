@@ -178,18 +178,8 @@ Widget orderPage(LiveContext live, int id) => DataPage(
         tile(
           'Delivery tracking',
           Icons.delivery_dining,
-          () => push(
-            c,
-            DataPage(
-              title: 'Delivery',
-              poll: true,
-              load: () => live.api.query(
-                'delivery.tracking',
-                live.params({'orderId': id}),
-              ),
-              content: (_, state, _) => [RecordSummary(state)],
-            ),
-          ),
+          // 0.16 (S2): the live map, the estimate and the handover code.
+          () => push(c, trackingMapPage(live, orderId: id)),
         ),
       if (d['status'] == 'completed' && live.role == 'customer')
         tile(
@@ -1008,6 +998,29 @@ Widget notificationsPage(LiveContext live) => rowsPage(
             TableRoomPage(
               live: live.tenant(ref['restaurantId']),
               roomId: ref['roomId'],
+            ),
+          );
+        } else if (ref['deliveryId'] != null &&
+            ref['restaurantId'] != null &&
+            '${n['kind']}'.startsWith('delivery.') &&
+            c.mounted) {
+          // 0.16 (S2): an offer or a job opens the courier's deliveries.
+          await push(
+            c,
+            CourierHome(
+              live: live.tenant(ref['restaurantId'], role: 'courier'),
+            ),
+          );
+        } else if (n['kind'] == 'delivery.assigned' &&
+            ref['orderId'] != null &&
+            ref['restaurantId'] != null &&
+            c.mounted) {
+          // A diner's driver is on the way: open the tracking map.
+          await push(
+            c,
+            trackingMapPage(
+              live.tenant(ref['restaurantId']),
+              orderId: ref['orderId'] as int,
             ),
           );
         } else if (ref['orderId'] != null &&

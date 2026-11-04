@@ -18,6 +18,8 @@ dependencies:
   timezone: ^0.10.1
   image: 4.12.0
   dart_jsonwebtoken: ^3.4.1
+  # AES-256-GCM for restaurant PayPal app secrets (already resolved via dart_jsonwebtoken).
+  pointycastle: 4.0.0
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'

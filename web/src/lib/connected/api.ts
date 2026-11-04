@@ -148,6 +148,32 @@ export class ConnectedApi {
       );
     return payload.data as T;
   }
+  /**
+   * 0.16 (stream S1): the bytes of a file reserved with `media.upload` (a
+   * bill, a receipt, a delivery note), sent with its real type through the
+   * console proxy's one PUT route. The backend scans it before any use.
+   */
+  async upload(mediaId: number, file: Blob): Promise<Json> {
+    const headers = await this.credentials();
+    headers.set("Content-Type", file.type || "application/octet-stream");
+    const response = await fetch(`/api/raysto/media/${mediaId}/content`, {
+      method: "PUT",
+      headers,
+      body: file,
+      cache: "no-store",
+      signal: AbortSignal.timeout(120000),
+    });
+    this.current();
+    if (response.status === 413)
+      throw new ApiFailure("payload_too_large", "Keep the file under 8 MB.");
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok)
+      throw new ApiFailure(
+        payload.error?.code ?? "upload_failed",
+        payload.error?.message ?? "The file could not be sent.",
+      );
+    return (payload.data ?? payload) as Json;
+  }
   /** A private file the signed-in manager may see, such as a proposed photo. */
   async file(id: number): Promise<Blob> {
     const headers = await this.credentials();

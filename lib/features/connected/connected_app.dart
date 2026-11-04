@@ -12,6 +12,9 @@ import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+// 0.16 (S2): OpenStreetMap through flutter_map, prefixed to keep names apart.
+import 'package:flutter_map/flutter_map.dart' as fm;
+import 'package:latlong2/latlong.dart' as ll;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:record/record.dart';
@@ -53,6 +56,8 @@ part 'courier_home.dart';
 part 'tracking_map.dart';
 part 'osm_map.dart';
 part 'group_today.dart';
+// 0.16 stream S6: the café's PayPal account, read-only on the phone.
+part 'paypal_account.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};

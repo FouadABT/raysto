@@ -1,0 +1,81 @@
+/* Money › PayPal account (stream S6): the account the café's money goes
+   through, the own-app checklist and the key form. Reuses the back-office
+   card, form and step-up classes; only the lists below are new. */
+.ops-paypal-account h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ops-paypal-account .ops-bo-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px 18px;
+  margin: 0 0 14px;
+}
+.ops-paypal-account .ops-bo-facts dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.ops-paypal-account .ops-bo-facts dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+.ops-paypal-features {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.ops-paypal-features li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.ops-paypal-features li[data-state="enabled"] svg {
+  color: var(--ok);
+}
+.ops-paypal-features li[data-state="notEnabled"] svg,
+.ops-paypal-features li[data-state="keysRejected"] svg {
+  color: var(--warn);
+}
+.ops-paypal-features li strong {
+  font-weight: 600;
+  text-align: end;
+}
+@media (max-width: 420px) {
+  .ops-paypal-features li {
+    grid-template-columns: auto 1fr;
+  }
+  .ops-paypal-features li strong {
+    grid-column: 2;
+    text-align: start;
+  }
+}
+.ops-paypal-steps {
+  margin: 0 0 12px;
+  padding-inline-start: 20px;
+  color: var(--muted);
+}
+.ops-paypal-account .ops-bo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ops-paypal-account .ops-bo-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+}
+.ops-paypal-account .ops-bo-check input {
+  width: 22px;
+  height: 22px;
+}

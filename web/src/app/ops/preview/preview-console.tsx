@@ -6,6 +6,16 @@ import type { Json } from "@/lib/connected/contracts";
 import type { Dashboard } from "@/lib/connected/dashboard";
 import { ConsoleShell } from "@/components/connected/operations-entry";
 import { OperationsWorkspace } from "@/components/connected/operations-workspace";
+// S3 (supplies) preview fixtures: append-only.
+import { suppliesPreview } from "@/lib/connected/supplies-preview";
+// S4 (group) preview fixtures: append-only.
+import { groupPreview, groupPreviewShell } from "@/lib/connected/group-preview";
+// S1 (accountant) preview fixtures: append-only.
+import { accountantPreview } from "@/lib/connected/accountant-preview";
+// S2 (dispatch) preview fixtures: append-only.
+import { dispatchPreview } from "@/lib/connected/dispatch-preview";
+// S6: the PayPal account, `?state=paypal` for a café on its own app.
+import { paypalAccountPreview } from "@/lib/connected/paypal-account";
 
 /**
  * Development only: the real console shell and workspace on a fixture API,
@@ -31,6 +41,8 @@ export function PreviewConsole({ week, today }: { week: Dashboard; today: Dashbo
       onSignOut={() => {}}
       person={{ name: "Fouad Preview", email: "preview@example.com" }}
       workspace={OperationsWorkspace}
+      // S4: `?state=group` adds a second venue and a group (append-only).
+      {...groupPreviewShell(state)}
     />
   );
 }
@@ -160,6 +172,21 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
       const d = p.range === "today" ? today : p.range === "30d" ? month(week) : week;
       return state === "empty" ? emptied(d) : d;
     },
+    // ---- S3 supplies fixtures (append-only block) ----
+    ...suppliesPreview(asOf),
+    // ---- end S3 ----
+    // ---- S4 group fixtures, `?state=group` (append-only block) ----
+    ...groupPreview(state, asOf),
+    // ---- end S4 ----
+    // ---- S1 accountant fixtures (append-only block) ----
+    ...accountantPreview(asOf),
+    // ---- end S1 ----
+    // ---- S2 dispatch fixtures (append-only block) ----
+    ...dispatchPreview(asOf),
+    // ---- end S2 ----
+    // ---- S6 PayPal account fixtures (append-only block) ----
+    ...paypalAccountPreview(state),
+    // ---- end S6 ----
   };
   const api = {
     async query<T>(name: string, params: Json = {}) {

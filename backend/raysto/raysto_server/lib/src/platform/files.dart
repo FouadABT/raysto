@@ -113,7 +113,16 @@ class PlatformFiles {
               );
             });
           } else {
-            await _role(s, actor.userId, a.restaurantId!, _managers);
+            // The venue's accountant reads the money documents (bills and
+            // receipts) that the AI accountant works from.
+            await _role(
+              s,
+              actor.userId,
+              a.restaurantId!,
+              const {'bill', 'receipt'}.contains(a.purpose)
+                  ? _finance
+                  : _managers,
+            );
           }
         }
       }

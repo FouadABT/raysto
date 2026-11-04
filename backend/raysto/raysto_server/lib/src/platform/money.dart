@@ -240,26 +240,31 @@ class MoneyModule {
       if (amount < 1 || amount > total || amount > 1000000) {
         _fail('invalid_amount', 'Amount exceeds the available balance.');
       }
-      MerchantConnection? merchant;
+      // 0.16 (S6) routing: the café's own PayPal app, else its partner
+      // connection, else the shared Sandbox merchant.
+      final own = r.method == 'paypal'
+          ? await MerchantAppModule.forRestaurant(s, w.tenant, tx: w.tx)
+          : null;
+      final merchant = r.method == 'paypal' && own == null
+          ? await MerchantConnection.db.findFirstRow(
+              s,
+              where: (t) =>
+                  t.restaurantId.equals(w.tenant) &
+                  t.environment.equals(ProviderClients.paypalEnvironment),
+              transaction: w.tx,
+            )
+          : null;
+      final partnerReady = _merchantReady(merchant);
       final single =
-          r.method == 'paypal' && ProviderClients.singleRestaurant(w.tenant);
-      if (r.method == 'paypal' && !single) {
-        merchant = await MerchantConnection.db.findFirstRow(
-          s,
-          where: (t) =>
-              t.restaurantId.equals(w.tenant) &
-              t.environment.equals(ProviderClients.paypalEnvironment),
-          transaction: w.tx,
+          r.method == 'paypal' &&
+          own == null &&
+          !partnerReady &&
+          ProviderClients.singleRestaurant(w.tenant);
+      if (r.method == 'paypal' && own == null && !single && !partnerReady) {
+        _fail(
+          'merchant_unavailable',
+          'Refresh the restaurant merchant connection before checkout.',
         );
-        if (merchant?.status != 'ready' ||
-            merchant?.merchantId == null ||
-            merchant?.verifiedAt == null ||
-            _now().difference(merchant!.verifiedAt!).inHours > 24) {
-          _fail(
-            'merchant_unavailable',
-            'Refresh the restaurant merchant connection before checkout.',
-          );
-        }
       }
       final sub = await RestaurantSubscription.db.findFirstRow(
         s,
@@ -269,7 +274,7 @@ class MoneyModule {
       final plan = sub == null
           ? null
           : await RestaurantPlan.db.findById(s, sub.planId, transaction: w.tx);
-      if (r.method == 'paypal' && !single && plan == null) {
+      if (r.method == 'paypal' && own == null && !single && plan == null) {
         _fail(
           'billing_configuration_required',
           'Configure the restaurant commission plan first.',
@@ -286,7 +291,9 @@ class MoneyModule {
         // Cumulative rounding prevents repeated tiny payments from avoiding
         // the configured commission. Cash portions remain commission-free.
         final b = entry.key;
-        final bps = r.method == 'cash' || single ? 0 : plan!.commissionBps;
+        final bps = r.method == 'cash' || single || own != null
+            ? 0
+            : plan!.commissionBps;
         if (b.amountMinor > 0) {
           fee +=
               (b.foodNetMinor *
@@ -311,16 +318,22 @@ class MoneyModule {
           requestKey: r.requestKey,
           requestHash: _hash(c.dataJson),
           providerRequestId: _uuid(),
-          merchantId: single
+          merchantId: own != null
+              ? own.merchantId ?? ''
+              : single
               ? ProviderClients.required('PAYPAL_SANDBOX_MERCHANT_ID')
               : merchant?.merchantId ?? 'cash',
-          providerMode: single ? 'singleMerchantSandbox' : 'marketplace',
+          providerMode: own != null
+              ? 'ownApp'
+              : single
+              ? 'singleMerchantSandbox'
+              : 'marketplace',
           state: 'reserved',
           method: r.method,
           currency: w.restaurant!.currency,
           amountMinor: amount,
           commissionMinor: fee,
-          commissionBps: single ? 0 : plan?.commissionBps ?? 0,
+          commissionBps: single || own != null ? 0 : plan?.commissionBps ?? 0,
           createdAt: _now(),
           updatedAt: _now(),
         ),
@@ -470,6 +483,116 @@ class MoneyModule {
     return reconcile(s, _id(c), create: true);
   }
 
+  /// 0.16 (stream S1): a payment request's own Orders v2 checkout. It holds
+  /// no bill charges and no commission, so its capture settles the request
+  /// and nothing else. An open checkout is reused for three hours, then
+  /// replaced, since PayPal lets an unapproved order lapse. Called by the
+  /// public `/pay/{token}` route, so it is rate limited per request.
+  static Future<Json> requestCheckout(Session s, int requestId) async {
+    final request = await PaymentRequest.db.findById(s, requestId);
+    if (request == null) _fail('not_found', 'Payment request not found.');
+    final picked = await locked(s, request.restaurantId, request.createdBy, (
+      w,
+    ) async {
+      await _rate(s, 'paylink:$requestId', 20, w.tx);
+      final r = (await PaymentRequest.db.findById(
+        s,
+        requestId,
+        transaction: w.tx,
+        lockMode: LockMode.forUpdate,
+      ))!;
+      if (r.kind != 'link' || !{'open', 'sent'}.contains(r.state)) {
+        return {'state': r.state == 'paid' ? 'completed' : 'unavailable'};
+      }
+      if (r.checkoutIntentId != null) {
+        final i = await CheckoutIntent.db.findById(
+          s,
+          r.checkoutIntentId!,
+          transaction: w.tx,
+        );
+        if (i != null) {
+          final stale =
+              {'reserved', 'created'}.contains(i.state) &&
+              _now().difference(i.createdAt).inHours >= 3;
+          if (stale) await _release(w, i, 'cancelled');
+          if (!stale && !{'cancelled', 'failed'}.contains(i.state)) {
+            return {'checkoutId': i.id, 'state': i.state};
+          }
+        }
+      }
+      // 0.16 (S6): own app > partner connection > shared Sandbox.
+      final own = await MerchantAppModule.forRestaurant(s, w.tenant, tx: w.tx);
+      final merchant = own == null
+          ? await MerchantConnection.db.findFirstRow(
+              s,
+              where: (t) =>
+                  t.restaurantId.equals(w.tenant) &
+                  t.environment.equals(ProviderClients.paypalEnvironment),
+              transaction: w.tx,
+            )
+          : null;
+      final partnerReady = _merchantReady(merchant);
+      final single =
+          own == null &&
+          !partnerReady &&
+          ProviderClients.singleRestaurant(w.tenant);
+      if (own == null && !single && !partnerReady) {
+        _fail(
+          'merchant_unavailable',
+          'The café\'s PayPal connection needs a refresh before it can take payments.',
+        );
+      }
+      final key = 'payreq-${r.id}-${_uuid()}';
+      final i = await CheckoutIntent.db.insertRow(
+        s,
+        CheckoutIntent(
+          restaurantId: w.tenant,
+          userId: r.createdBy,
+          requestKey: key,
+          requestHash: _hash(key),
+          providerRequestId: _uuid(),
+          merchantId: own != null
+              ? own.merchantId ?? ''
+              : single
+              ? ProviderClients.required('PAYPAL_SANDBOX_MERCHANT_ID')
+              : merchant!.merchantId!,
+          providerMode: own != null
+              ? 'ownApp'
+              : single
+              ? 'singleMerchantSandbox'
+              : 'marketplace',
+          state: 'reserved',
+          method: 'paypal',
+          currency: r.currency,
+          amountMinor: r.amountMinor,
+          commissionMinor: 0,
+          commissionBps: 0,
+          createdAt: _now(),
+          updatedAt: _now(),
+        ),
+        transaction: w.tx,
+      );
+      r
+        ..checkoutIntentId = i.id
+        ..version += 1
+        ..updatedAt = _now();
+      await PaymentRequest.db.updateRow(s, r, transaction: w.tx);
+      await w.audit('payment.reserved', 'checkout', i.id, {'requestId': r.id});
+      await w.job('payment.reconcile', 'payment:${i.id}', {
+        'checkoutId': i.id,
+      }, at: _now().add(const Duration(minutes: 2)));
+      return {'checkoutId': i.id, 'state': i.state};
+    });
+    final id = picked['checkoutId'];
+    if (id is! int) return picked;
+    return switch (picked['state']) {
+      'completed' => {...picked},
+      'approved' => settleApproved(s, id),
+      'reserved' || 'creating' => reconcile(s, id, create: true),
+      _ => reconcile(s, id),
+    };
+  }
+
   static Future<Json> capture(Session s, PlatformCommand c) async {
     await _mutate(s, c, 'payment.capture', (w, d) async {
       _keys(d, {});
@@ -568,10 +691,11 @@ class MoneyModule {
       );
     }
     if (before.providerOrderId != null) {
-      final provider = await ProviderClients.paypal(
+      final provider = await ProviderClients.paypalFor(
+        s,
+        before,
         'GET',
         '/v2/checkout/orders/${before.providerOrderId}',
-        singleMerchant: before.providerMode == 'singleMerchantSandbox',
       );
       validateOrder(before, provider);
       final unit = _object((provider['purchase_units'] as List).single);
@@ -820,12 +944,14 @@ class MoneyModule {
         provider = await ProviderClients.createCheckout(
           i,
           brand: (await Restaurant.db.findById(s, i.restaurantId))?.name,
+          account: await MerchantAppModule.forIntent(s, i),
         );
       } else if (i.providerOrderId != null) {
-        provider = await ProviderClients.paypal(
+        provider = await ProviderClients.paypalFor(
+          s,
+          i,
           'GET',
           '/v2/checkout/orders/${i.providerOrderId}',
-          singleMerchant: i.providerMode == 'singleMerchantSandbox',
         );
       } else {
         return view(i);
@@ -849,13 +975,14 @@ class MoneyModule {
         });
         if (!renewed) return view((await CheckoutIntent.db.findById(s, id))!);
         posted = true;
-        provider = await ProviderClients.paypal(
+        provider = await ProviderClients.paypalFor(
+          s,
+          i,
           'POST',
           '/v2/checkout/orders/${provider['id']}/capture',
           body: {},
           requestId: 'cap-${i.providerRequestId}',
-          merchant: i.merchantId,
-          singleMerchant: i.providerMode == 'singleMerchantSandbox',
+          asMerchant: true,
         );
         validateOrder(i, provider);
       }
@@ -875,6 +1002,7 @@ class MoneyModule {
         );
         current.providerOrderId = _str(provider, 'id', max: 50);
         current.approvalUrl = ProviderClients.approval(provider);
+        await MerchantAppModule.learn(w, current, provider);
         final units = provider['purchase_units'] as List;
         final payments = _object(units.single)['payments'] as Map?;
         final captures = payments?['captures'] as List? ?? [];
@@ -958,10 +1086,11 @@ class MoneyModule {
     if (i.providerOrderId == null || i.method != 'paypal') return;
     final Json provider;
     try {
-      provider = await ProviderClients.paypal(
+      provider = await ProviderClients.paypalFor(
+        s,
+        i,
         'GET',
         '/v2/checkout/orders/${i.providerOrderId}',
-        singleMerchant: i.providerMode == 'singleMerchantSandbox',
       );
     } catch (_) {
       return; // The next webhook or job retries the read.
@@ -1029,7 +1158,8 @@ class MoneyModule {
     if (p['intent'] != 'CAPTURE' ||
         (i.providerOrderId != null && p['id'] != i.providerOrderId) ||
         u['custom_id'] != 'raysto-v2:${i.id}' ||
-        _object(u['payee'])['merchant_id'] != i.merchantId ||
+        (_object(u['payee'])['merchant_id'] != i.merchantId &&
+            !(i.providerMode == 'ownApp' && i.merchantId.isEmpty)) ||
         a['currency_code'] != i.currency ||
         PayPalGateway.parseMoney(_str(a, 'value')) != i.amountMinor) {
       _fail('payment_mismatch', 'PayPal order does not match checkout.');
@@ -1089,102 +1219,101 @@ class MoneyModule {
   static Future<Json> _refund(Work w, RequestRefund r, Json d) async {
     final s = w.s;
     {
-        final p = await PaymentCapture.db.findById(
+      final p = await PaymentCapture.db.findById(
+        s,
+        r.captureId,
+        transaction: w.tx,
+      );
+      if (p == null || p.restaurantId != w.tenant || p.state != 'completed') {
+        _fail('not_found', 'Capture not found.');
+      }
+      final pending = await PaymentRefund.db.find(
+        s,
+        where: (t) => t.captureId.equals(p.id!) & t.state.notEquals('failed'),
+        transaction: w.tx,
+      );
+      final committed = pending.fold<int>(0, (sum, x) => sum + x.amountMinor);
+      if (r.amountMinor < 1 || r.amountMinor > p.amountMinor - committed) {
+        _fail('invalid_amount', 'Refund exceeds the unrefunded capture.');
+      }
+      final i = (await CheckoutIntent.db.findById(
+        s,
+        p.checkoutId,
+        transaction: w.tx,
+      ))!;
+      var allocations = await PaymentAllocation.db.find(
+        s,
+        where: (t) => t.checkoutId.equals(i.id!),
+        orderBy: (t) => t.id,
+        transaction: w.tx,
+      );
+      // One capture can pay several orders: a refund for one order consumes
+      // only that order's charges, so the others keep their payment status.
+      if (r.orderId != null) {
+        final charges = await BillCharge.db.find(
           s,
-          r.captureId,
+          where: (t) =>
+              t.orderId.equals(r.orderId!) & t.restaurantId.equals(w.tenant),
           transaction: w.tx,
         );
-        if (p == null || p.restaurantId != w.tenant || p.state != 'completed') {
-          _fail('not_found', 'Capture not found.');
+        final ids = {for (final b in charges) b.id};
+        allocations = allocations
+            .where((a) => ids.contains(a.chargeId))
+            .toList();
+        if (allocations.isEmpty) {
+          _fail('not_found', 'This capture did not pay that order.');
         }
-        final pending = await PaymentRefund.db.find(
-          s,
-          where: (t) => t.captureId.equals(p.id!) & t.state.notEquals('failed'),
-          transaction: w.tx,
+      }
+      final used = <int, int>{};
+      for (final f in pending) {
+        for (final a
+            in (_json(f.allocationJson)['allocations'] as List).cast<Json>()) {
+          used[a['id']] = (used[a['id']] ?? 0) + (a['amount'] as int);
+        }
+      }
+      var remaining = r.amountMinor;
+      var food = 0;
+      final parts = <Json>[];
+      for (final a in allocations) {
+        final n = min(remaining, a.amountMinor - (used[a.id] ?? 0));
+        if (n <= 0) continue;
+        parts.add({'id': a.id, 'amount': n});
+        food += a.foodNetMinor * n ~/ a.amountMinor;
+        remaining -= n;
+        if (remaining == 0) break;
+      }
+      if (remaining != 0) {
+        _fail(
+          'payment_mismatch',
+          'Refund allocations require reconciliation.',
         );
-        final committed = pending.fold<int>(0, (sum, x) => sum + x.amountMinor);
-        if (r.amountMinor < 1 || r.amountMinor > p.amountMinor - committed) {
-          _fail('invalid_amount', 'Refund exceeds the unrefunded capture.');
-        }
-        final i = (await CheckoutIntent.db.findById(
-          s,
-          p.checkoutId,
-          transaction: w.tx,
-        ))!;
-        var allocations = await PaymentAllocation.db.find(
-          s,
-          where: (t) => t.checkoutId.equals(i.id!),
-          orderBy: (t) => t.id,
-          transaction: w.tx,
-        );
-        // One capture can pay several orders: a refund for one order consumes
-        // only that order's charges, so the others keep their payment status.
-        if (r.orderId != null) {
-          final charges = await BillCharge.db.find(
-            s,
-            where: (t) =>
-                t.orderId.equals(r.orderId!) & t.restaurantId.equals(w.tenant),
-            transaction: w.tx,
-          );
-          final ids = {for (final b in charges) b.id};
-          allocations = allocations
-              .where((a) => ids.contains(a.chargeId))
-              .toList();
-          if (allocations.isEmpty) {
-            _fail('not_found', 'This capture did not pay that order.');
-          }
-        }
-        final used = <int, int>{};
-        for (final f in pending) {
-          for (final a
-              in (_json(f.allocationJson)['allocations'] as List)
-                  .cast<Json>()) {
-            used[a['id']] = (used[a['id']] ?? 0) + (a['amount'] as int);
-          }
-        }
-        var remaining = r.amountMinor;
-        var food = 0;
-        final parts = <Json>[];
-        for (final a in allocations) {
-          final n = min(remaining, a.amountMinor - (used[a.id] ?? 0));
-          if (n <= 0) continue;
-          parts.add({'id': a.id, 'amount': n});
-          food += a.foodNetMinor * n ~/ a.amountMinor;
-          remaining -= n;
-          if (remaining == 0) break;
-        }
-        if (remaining != 0) {
-          _fail(
-            'payment_mismatch',
-            'Refund allocations require reconciliation.',
-          );
-        }
-        final feeRemaining =
-            i.commissionMinor -
-            pending.fold<int>(0, (n, f) => n + f.commissionMinor);
-        final fee = r.amountMinor == p.amountMinor - committed
-            ? feeRemaining
-            : min(feeRemaining, food * i.commissionBps ~/ 10000);
-        final row = await PaymentRefund.db.insertRow(
-          s,
-          PaymentRefund(
-            restaurantId: w.tenant,
-            captureId: p.id!,
-            requestKey: r.requestKey,
-            allocationJson: jsonEncode({'allocations': parts}),
-            amountMinor: r.amountMinor,
-            commissionMinor: fee,
-            reason: _str(d, 'reason', max: 500),
-            state: 'pending',
-            createdBy: w.user,
-            createdAt: _now(),
-            updatedAt: _now(),
-          ),
-          transaction: w.tx,
-        );
-        await w.job('payment.refund', 'refund:${row.id}', {'refundId': row.id});
-        await w.audit('payment.refund_requested', 'refund', row.id);
-        return {'refundId': row.id, 'state': row.state};
+      }
+      final feeRemaining =
+          i.commissionMinor -
+          pending.fold<int>(0, (n, f) => n + f.commissionMinor);
+      final fee = r.amountMinor == p.amountMinor - committed
+          ? feeRemaining
+          : min(feeRemaining, food * i.commissionBps ~/ 10000);
+      final row = await PaymentRefund.db.insertRow(
+        s,
+        PaymentRefund(
+          restaurantId: w.tenant,
+          captureId: p.id!,
+          requestKey: r.requestKey,
+          allocationJson: jsonEncode({'allocations': parts}),
+          amountMinor: r.amountMinor,
+          commissionMinor: fee,
+          reason: _str(d, 'reason', max: 500),
+          state: 'pending',
+          createdBy: w.user,
+          createdAt: _now(),
+          updatedAt: _now(),
+        ),
+        transaction: w.tx,
+      );
+      await w.job('payment.refund', 'refund:${row.id}', {'refundId': row.id});
+      await w.audit('payment.refund_requested', 'refund', row.id);
+      return {'refundId': row.id, 'state': row.state};
     }
   }
 
@@ -1210,17 +1339,19 @@ class MoneyModule {
             },
           }
         : r.providerRefundId != null
-        ? await ProviderClients.paypal(
+        ? await ProviderClients.paypalFor(
+            s,
+            i,
             'GET',
             '/v2/payments/refunds/${r.providerRefundId}',
-            merchant: i.merchantId,
-            singleMerchant: i.providerMode == 'singleMerchantSandbox',
+            asMerchant: true,
           )
-        : await ProviderClients.paypal(
+        : await ProviderClients.paypalFor(
+            s,
+            i,
             'POST',
             '/v2/payments/captures/${p.providerCaptureId}/refund',
-            merchant: i.merchantId,
-            singleMerchant: i.providerMode == 'singleMerchantSandbox',
+            asMerchant: true,
             requestId: 'refund-$id',
             body: {
               'amount': {
@@ -1332,6 +1463,9 @@ class MoneyModule {
   static Future<Json> connectMerchant(Session s, PlatformCommand c) async {
     final r = await _mutate(s, c, 'merchant.connect', (w, d) async {
       _keys(d, {'shareDataConsent'});
+      if (!MerchantAppModule.partnerAvailable) {
+        _fail('partner_approval_required', MerchantAppModule.partnerNote);
+      }
       if (!_bool(d, 'shareDataConsent')) {
         _fail(
           'consent_required',
@@ -1361,32 +1495,51 @@ class MoneyModule {
       await w.audit('merchant.onboarding', 'merchant', m.id);
       return {'connectionId': m.id, 'trackingId': m.trackingId};
     }, roles: {'owner'});
-    final response = await ProviderClients.paypal(
-      'POST',
-      '/v2/customer/partner-referrals',
-      requestId: c.requestKey,
-      body: {
-        'tracking_id': r['trackingId'],
-        'operations': [
-          {
-            'operation': 'API_INTEGRATION',
-            'api_integration_preference': {
-              'rest_api_integration': {
-                'integration_method': 'PAYPAL',
-                'integration_type': 'THIRD_PARTY',
-                'third_party_details': {
-                  'features': ['PAYMENT', 'REFUND', 'PARTNER_FEE'],
+    final returnUrl =
+        ProviderClients.environment()['PAYPAL_ONBOARDING_RETURN_URL']?.trim() ??
+        '';
+    final Json response;
+    try {
+      response = await ProviderClients.paypal(
+        'POST',
+        '/v2/customer/partner-referrals',
+        requestId: c.requestKey,
+        body: {
+          'tracking_id': r['trackingId'],
+          // Back to the console, which re-checks the connection on arrival.
+          if (returnUrl.startsWith('https://'))
+            'partner_config_override': {'return_url': returnUrl},
+          'operations': [
+            {
+              'operation': 'API_INTEGRATION',
+              'api_integration_preference': {
+                'rest_api_integration': {
+                  'integration_method': 'PAYPAL',
+                  'integration_type': 'THIRD_PARTY',
+                  'third_party_details': {
+                    'features': ['PAYMENT', 'REFUND', 'PARTNER_FEE'],
+                  },
                 },
               },
             },
-          },
-        ],
-        'products': ['PPCP'],
-        'legal_consents': [
-          {'type': 'SHARE_DATA_CONSENT', 'granted': true},
-        ],
-      },
-    );
+          ],
+          'products': ['PPCP'],
+          'legal_consents': [
+            {'type': 'SHARE_DATA_CONSENT', 'granted': true},
+          ],
+        },
+      );
+    } on DomainError catch (e) {
+      if (e.code != 'provider_feature_disabled') rethrow;
+      // PayPal's NOT_AUTHORIZED: Raysto is not an approved partner yet.
+      await MerchantConnection.db.updateWhere(
+        s,
+        columnValues: (t) => [t.status('approvalRequired')],
+        where: (t) =>
+            t.id.equals(r['connectionId'] as int) & t.status.equals('pending'),
+      );
+      _fail('partner_approval_required', MerchantAppModule.partnerNote);
+    }
     return {
       ...r,
       'onboardingUrl': ProviderClients.approval(response, rel: 'action_url'),
@@ -1419,14 +1572,56 @@ class MoneyModule {
       _fail('merchant_pending', 'Merchant consent is not complete.');
     }
     final merchant = _str(_object(entries.single), 'merchant_id', max: 50);
-    final details = await ProviderClients.paypal(
-      'GET',
-      '/v1/customer/partners/$partner/merchant-integrations/$merchant',
-    );
+    final details = await merchantIntegration(merchant);
     if (details['merchant_id'] != merchant ||
         details['tracking_id'] != r['trackingId']) {
       _fail('merchant_mismatch', 'PayPal onboarding identity differs.');
     }
+    return MoneyModule.locked(
+      s,
+      c.restaurantId!,
+      s.authenticated!.userIdentifier,
+      (w) async {
+        await w.role({'owner'});
+        final m = (await MerchantConnection.db.findById(
+          s,
+          r['id'] as int,
+          transaction: w.tx,
+        ))!;
+        applyIntegration(m, merchant, details);
+        await MerchantConnection.db.updateRow(s, m, transaction: w.tx);
+        await w.audit('merchant.verified', 'merchant', m.id);
+        return {'status': m.status};
+      },
+    );
+  }
+
+  /// A connection counts for checkout while PayPal confirmed it in the last day.
+  static bool _merchantReady(MerchantConnection? m) =>
+      m?.status == 'ready' &&
+      m?.merchantId != null &&
+      m?.verifiedAt != null &&
+      _now().difference(m!.verifiedAt!).inHours <= 24;
+
+  /// PayPal's record of one seller's integration, read as the partner.
+  static Future<Json> merchantIntegration(String merchant) async {
+    if (!RegExp(r'^[A-Za-z0-9]{1,50}$').hasMatch(merchant)) {
+      _fail('invalid_input', 'Invalid merchant id.');
+    }
+    final partner = ProviderClients.required('PAYPAL_PLATFORM_MERCHANT_ID');
+    return ProviderClients.paypal(
+      'GET',
+      '/v1/customer/partners/$partner/merchant-integrations/$merchant',
+    );
+  }
+
+  /// Ready only when the seller consented to Raysto, can receive payments,
+  /// confirmed their email and is subscribed to PPCP in an allowed country.
+  static void applyIntegration(
+    MerchantConnection m,
+    String merchant,
+    Json details,
+  ) {
     final consent = (details['oauth_integrations'] as List? ?? [])
         .whereType<Map>()
         .expand((i) => i['oauth_third_party'] as List? ?? [])
@@ -1453,32 +1648,16 @@ class MoneyModule {
               p['vetting_status'] == 'SUBSCRIBED',
         ) &&
         ProviderClients.merchantCountryAllowed(details);
-    return MoneyModule.locked(
-      s,
-      c.restaurantId!,
-      s.authenticated!.userIdentifier,
-      (w) async {
-        await w.role({'owner'});
-        final m = (await MerchantConnection.db.findById(
-          s,
-          r['id'] as int,
-          transaction: w.tx,
-        ))!;
-        m.merchantId = merchant;
-        m.status = ready ? 'ready' : 'restricted';
-        m.verifiedAt = _now();
-        m.capabilitiesJson = jsonEncode({
-          'paymentsReceivable': details['payments_receivable'] == true,
-          'country': details['country'],
-          'consentVerified': consent,
-          'products': details['products'],
-          'capabilities': details['capabilities'],
-          'reviewRequired': details['country'] is! String,
-        });
-        await MerchantConnection.db.updateRow(s, m, transaction: w.tx);
-        await w.audit('merchant.verified', 'merchant', m.id);
-        return {'status': m.status};
-      },
-    );
+    m.merchantId = merchant;
+    m.status = ready ? 'ready' : 'restricted';
+    m.verifiedAt = _now();
+    m.capabilitiesJson = jsonEncode({
+      'paymentsReceivable': details['payments_receivable'] == true,
+      'country': details['country'],
+      'consentVerified': consent,
+      'products': details['products'],
+      'capabilities': details['capabilities'],
+      'reviewRequired': details['country'] is! String,
+    });
   }
 }

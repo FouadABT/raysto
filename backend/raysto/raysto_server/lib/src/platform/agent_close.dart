@@ -70,7 +70,9 @@ class CloseAgent {
         triggerRef: 'day:$day',
         input: {'day': day},
       );
-      if (task == null) _fail('unavailable', 'The close agent is switched off.');
+      if (task == null) {
+        _fail('unavailable', 'The close agent is switched off.');
+      }
       return {'taskId': task.id, 'day': day};
     },
     roles: _managers,
@@ -81,7 +83,10 @@ class CloseAgent {
     if (!AgentModule.enabled(agent)) return;
     final policies = await RestaurantPolicy.db.find(s, limit: 500);
     for (final policy in policies) {
-      final settings = {...CatalogueModule.defaults, ..._json(policy.settingsJson)};
+      final settings = {
+        ...CatalogueModule.defaults,
+        ..._json(policy.settingsJson),
+      };
       final zoneName = settings['timezone'];
       if (zoneName is! String) continue;
       final tz.Location zone;
@@ -91,7 +96,9 @@ class CloseAgent {
         continue;
       }
       final local = tz.TZDateTime.from(_now(), zone);
-      final closeAt = settings['closeAt'] is int ? settings['closeAt'] as int : 1380;
+      final closeAt = settings['closeAt'] is int
+          ? settings['closeAt'] as int
+          : 1380;
       if (local.hour * 60 + local.minute < closeAt) continue;
       final day = BackOfficeModule.localDay(settings, _now());
       final mark = '${policy.restaurantId}:$day';
@@ -200,7 +207,8 @@ class CloseAgent {
           );
           final due = charges.fold<int>(
             0,
-            (n, b) => n + max(0, b.amountMinor - b.settledMinor - b.creditedMinor),
+            (n, b) =>
+                n + max(0, b.amountMinor - b.settledMinor - b.creditedMinor),
           );
           if (due <= 0) continue;
           final ctx = await OrderContext.db.findFirstRow(
@@ -251,13 +259,21 @@ class CloseAgent {
                 'amountMinor': i.amountMinor,
               },
           ],
+          // 0.16 (stream S1): the day's books from the derived journal:
+          // expenses, bills, payouts by kind, supplier deliveries, payment
+          // requests, commissions, cash in and out, and net profit.
+          'books': await LedgerModule.dayBooks(w, start, end),
         };
       });
 
   /// PayPal's own list for the day: the MCP server first, then the REST
   /// Transaction Search, each needing the feature on the Sandbox app. When
   /// neither answers, the close says so and works from Raysto's ledger.
-  static Future<Json> readPayPalDay(DateTime start, DateTime end) async {
+  static Future<Json> readPayPalDay(
+    DateTime start,
+    DateTime end, {
+    PayPalAccount? account,
+  }) async {
     final env = ProviderClients.environment();
     PayPalMcpClient? client;
     try {
@@ -266,7 +282,7 @@ class CloseAgent {
       }
       client = PayPalMcpClient.configured(
         env,
-        accessToken: ProviderClients.paypalReadToken,
+        accessToken: () => ProviderClients.paypalReadToken(account: account),
       );
       String iso(DateTime t) =>
           '${t.toUtc().toIso8601String().split('.').first}Z';
@@ -315,7 +331,11 @@ class CloseAgent {
       client?.close();
     }
     try {
-      final rows = await ProviderClients.listTransactions(start, end);
+      final rows = await ProviderClients.listTransactions(
+        start,
+        end,
+        account: account,
+      );
       return {
         'source': 'paypal_transactions',
         'via': 'paypal_rest',
@@ -371,7 +391,8 @@ class CloseAgent {
           'kind': 'capture_not_in_raysto',
           'amountMinor': t['amountMinor'],
           'ref': t['id'],
-          if (open) 'fix': {'command': 'payment.reconcile', 'checkoutId': checkoutId},
+          if (open)
+            'fix': {'command': 'payment.reconcile', 'checkoutId': checkoutId},
         });
       }
       final seen = {for (final t in transactions) '${t['id']}'};
@@ -418,6 +439,8 @@ class CloseAgent {
     final input = _json(task.inputJson);
     final day = _day(input);
     final restaurant = await Restaurant.db.findById(s, task.restaurantId);
+    // 0.16 (S6): PayPal's list comes from the café's own app when it has one.
+    final account = await MerchantAppModule.forRestaurant(s, task.restaurantId);
     final policy = await RestaurantPolicy.db.findFirstRow(
       s,
       where: (t) => t.restaurantId.equals(task.restaurantId),
@@ -435,7 +458,7 @@ class CloseAgent {
     Future<Json> readLedger() async =>
         ledger ??= await readDay(s, task.restaurantId, day);
     Future<Json> readPayPal() async {
-      paypal ??= await readPayPalDay(start, end);
+      paypal ??= await readPayPalDay(start, end, account: account);
       found ??= candidates(await readLedger(), paypal!);
       return {
         ...paypal!,
@@ -468,7 +491,7 @@ class CloseAgent {
       tools: [
         AgentRuntime.declaration(
           'read_day',
-          'Raysto\'s record of the day: PayPal and cash captures, refunds, tips, unpaid tickets and unfinished PayPal checkouts.',
+          'Raysto\'s record of the day: PayPal and cash captures, refunds, tips, unpaid tickets, unfinished PayPal checkouts, and the day\'s books (expenses, bills, payouts, supplier deliveries, payment requests, net profit).',
           {},
         ),
         AgentRuntime.declaration(
@@ -509,7 +532,13 @@ class CloseAgent {
           case 'propose_close':
             final summary = _str(args, 'summary', max: 1200);
             final given = (args['gaps'] as List? ?? []).map(_object).toList();
-            final expected = [...(found ?? candidates(await readLedger(), await readPayPalDay(start, end)))];
+            final expected = [
+              ...(found ??
+                  candidates(
+                    await readLedger(),
+                    await readPayPalDay(start, end, account: account),
+                  )),
+            ];
             final gaps = <Json>[];
             for (final g in given) {
               final kind = _str(g, 'kind', choices: gapKinds);
@@ -540,7 +569,8 @@ class CloseAgent {
       _fail('ai_incomplete', 'The agent did not prepare the close.');
     }
     final dayFacts = await readLedger();
-    final paypalFacts = paypal ?? await readPayPalDay(start, end);
+    final paypalFacts =
+        paypal ?? await readPayPalDay(start, end, account: account);
     final fromPayPal = paypalFacts['source'] == 'paypal_transactions';
     final transactions = (paypalFacts['transactions'] as List).cast<Json>();
     final summary = {
@@ -554,9 +584,13 @@ class CloseAgent {
       'tipsMinor': dayFacts['tipsMinor'],
       'cashMinor': dayFacts['cashMinor'],
       'feesMinor': fromPayPal
-          ? transactions.fold<int>(0, (n, t) => n - (t['feeMinor'] as int? ?? 0))
+          ? transactions.fold<int>(
+              0,
+              (n, t) => n - (t['feeMinor'] as int? ?? 0),
+            )
           : 0,
       'currency': dayFacts['currency'],
+      if (dayFacts['books'] != null) 'books': dayFacts['books'],
       'via': paypalFacts['via'],
       if (paypalFacts['note'] != null) 'note': paypalFacts['note'],
       'summary': proposed!['summary'],
@@ -626,7 +660,10 @@ class CloseAgent {
               'Record PayPal capture ${g['ref']}',
               g['explanation'] as String,
               {'checkoutId': (g['proposedFix'] as Map)['checkoutId']},
-              evidence: {'transactionId': g['ref'], 'amountMinor': g['amountMinor']},
+              evidence: {
+                'transactionId': g['ref'],
+                'amountMinor': g['amountMinor'],
+              },
             ),
       ],
       trace: result.trace,

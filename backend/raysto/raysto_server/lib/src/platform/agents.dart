@@ -120,6 +120,16 @@ class AgentModule {
     'payment.uncertain': PaymentAgent.onCheckout,
     'payment.attention': PaymentAgent.onCheckout,
     'payment.refund_requested': ComplaintAgent.onRefundRequested,
+    // 0.16 (stream S3): a completed order uses stock by its recipes.
+    'order.completed': PurchasingModule.onOrderCompleted,
+    // 0.16 (stream S2): partner webhooks, the automatic dispatcher, and a
+    // cancelled order's driver freed.
+    'order.accepted': DeliveryModule.onAccepted,
+    'order.ready': DeliveryModule.onReady,
+    'order.cancelled': DeliveryModule.onCancelled,
+    'order.rejected': DeliveryModule.onCancelled,
+    'delivery.collected': DeliveryModule.onCollected,
+    'delivery.delivered': DeliveryModule.onDelivered,
   };
 
   static final Map<String, AgentCommand> commands = {

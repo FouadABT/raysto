@@ -1,6 +1,5 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
@@ -11,6 +10,10 @@ import { advanceOrder, type OrderApi } from "@/lib/connected/pending-moves";
 import { ContainerCard, ContainerDialog, CountUp, Reveal, useSnackbar, type SnackbarOptions } from "./m3";
 import { OrdersBoard, PickupCodeDialog, type BoardOrder } from "./orders-board";
 import { Icon, type IconName } from "./icons";
+import { RaystoGrid } from "./raysto-grid";
+import { countCol, dateCol, idCol, moneyCol, statusCol } from "@/lib/connected/grid-columns";
+import { StudioWidget, type StudioWidgetSpec } from "@/lib/connected/studio/studio-canvas";
+import { dayOf, major } from "@/lib/connected/studio/sources";
 import {
   agentCost,
   agentName,
@@ -342,11 +345,11 @@ export function OrdersSection({
     () => [
       { headerName: "Ticket", valueGetter: (p) => (p.data?.number ? `#${p.data.number}` : `Order ${p.data?.id}`), minWidth: 100, flex: 0.7, cellClass: "ops-cell-strong" },
       { headerName: "Channel", valueGetter: (p) => (p.data ? channelOf(p.data) : "") },
-      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 185 },
-      { field: "paymentStatus", headerName: "Payment", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 180 },
-      { field: "totalMinor", headerName: "Total", type: "rightAligned", valueFormatter: money(currencyCode) },
+      statusCol<OrderRow>("Status", "status", { minWidth: 185 }),
+      statusCol<OrderRow>("Payment", "paymentStatus", { minWidth: 180 }),
+      moneyCol<OrderRow>("Total", "totalMinor", currencyCode),
       { headerName: "Customer", minWidth: 140, valueGetter: (p) => (p.data ? customerOf(p.data) : "") },
-      { field: "createdAt", headerName: "Placed", minWidth: 160, valueFormatter: (p) => time(p.value), sort: "desc" },
+      dateCol<OrderRow>("Placed", "createdAt", { sort: "desc" }),
     ],
     [currencyCode],
   );
@@ -397,18 +400,18 @@ export function OrdersSection({
           ))}
         </div>
         {error && <p className="ops-error" role="alert">{error}</p>}
-        <div className="ops-grid tall">
-          <AgGridReact<OrderRow>
-            theme={gridTheme}
-            rowData={shown}
-            loading={!loaded && !error}
-            columnDefs={columns}
-            defaultColDef={defaults}
-            getRowId={(p) => String(p.data.id)}
-            onRowClicked={(e) => e.data && setSelected(e.data.id)}
-            rowSelection={{ mode: "singleRow", checkboxes: false, enableClickSelection: true }}
-          />
-        </div>
+        <RaystoGrid<OrderRow>
+          label="Orders"
+          rows={shown}
+          loading={!loaded && !error}
+          columns={columns}
+          getRowId={(p) => String(p.data.id)}
+          onRowClicked={(e) => e.data && setSelected(e.data.id)}
+          rowSelection={{ mode: "singleRow", checkboxes: false, enableClickSelection: true }}
+          csvName="orders"
+          emptyText={group === "All" && channel === "All" ? "No orders yet." : "No orders in this view."}
+          tall
+        />
         <div className="ops-row">
           <small>
             {shown.length} of {rows.length} loaded, newest first.
@@ -546,9 +549,9 @@ export function PaymentsSection({
   focus?: string;
   currencyCode: string;
 }) {
-  type Tab = "attempts" | "captures" | "refunds" | "cash";
+  type Tab = "attempts" | "captures" | "refunds" | "cash" | "byDay";
   const [tab, setTab] = useState<Tab>(
-    (["attempts", "captures", "refunds", "cash"] as const).includes(focus as Tab) ? (focus as Tab) : "captures",
+    (["attempts", "captures", "refunds", "cash", "byDay"] as const).includes(focus as Tab) ? (focus as Tab) : "captures",
   );
   const [onlyOpen, setOnlyOpen] = useState(focus === "attempts");
   const { data, error } = useLoad(async () => {
@@ -575,12 +578,26 @@ export function PaymentsSection({
     return visitId ? `Visit ${visitId}` : "";
   };
   const totals = collectionTotals(data?.collections ?? []);
+  // The week's collections for AG Studio's pivot (one currency: the venue's).
+  const byDay = useMemo(
+    () => ({
+      id: "payments",
+      data: (data?.collections ?? []).map((c) => ({
+        day: dayOf(c.createdAt),
+        method: c.method === "cash" ? "Cash" : "PayPal",
+        amount: major(c.amountMinor),
+        refunded: major(c.refundedMinor ?? 0),
+      })),
+    }),
+    [data],
+  );
   const attempts = data ? (onlyOpen ? unresolved(data.checkouts, new Date()) : data.checkouts) : [];
   const tabs: [Tab, string][] = [
     ["captures", "PayPal captures"],
     ["cash", "Cash"],
     ["refunds", "Refunds"],
     ["attempts", "Attempts"],
+    ["byDay", "By method and day"],
   ];
   // Zero totals while loading would read as "no money taken".
   if (!data) return <p className="ops-note">{error || "Loading payments…"}</p>;
@@ -614,54 +631,60 @@ export function PaymentsSection({
         )}
       </div>
       {error && <p className="ops-error" role="alert">{error}</p>}
-      <div className="ops-grid tall">
-        {tab === "attempts" ? (
-          <AgGridReact<CheckoutRow>
-            key="attempts"
-            theme={gridTheme}
-            rowData={attempts}
-            defaultColDef={defaults}
-            columnDefs={[
-              { field: "checkoutId", headerName: "Checkout", flex: 0.6 },
-              { field: "method", valueFormatter: (p) => (p.value === "paypal" ? "PayPal" : "Cash") },
-              { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill },
-              { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
-              { headerName: "For", valueGetter: (p) => forLabel(p.data?.orderId, p.data?.visitId) },
-              { field: "createdAt", headerName: "Started", valueFormatter: (p) => time(p.value) },
-            ]}
-          />
-        ) : tab === "refunds" ? (
-          <AgGridReact<RefundRow>
-            key="refunds"
-            theme={gridTheme}
-            rowData={data?.refunds ?? []}
-            defaultColDef={defaults}
-            columnDefs={[
-              { field: "id", headerName: "Refund", flex: 0.5 },
-              { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
-              { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill },
-              { field: "reason" },
-              { field: "providerRefundId", headerName: "PayPal refund id" },
-              { field: "createdAt", headerName: "Requested", valueFormatter: (p) => time(p.value) },
-            ]}
-          />
-        ) : (
-          <AgGridReact<CollectionRow>
-            key={tab}
-            theme={gridTheme}
-            rowData={(data?.collections ?? []).filter((c) => (tab === "cash" ? c.method === "cash" : c.method !== "cash"))}
-            defaultColDef={defaults}
-            columnDefs={[
-              { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
-              { field: "refundedMinor", headerName: "Refunded", type: "rightAligned", valueFormatter: money(currencyCode) },
-              { field: "state", headerName: "Ledger", valueFormatter: (p) => (p.value === "review" ? "Under review" : words(p.value)), cellRenderer: pill },
-              ...(tab === "captures" ? [{ field: "providerCaptureId" as const, headerName: "PayPal capture id", minWidth: 190 }] : []),
-              { headerName: "For", valueGetter: (p) => forLabel(p.data?.orderId, p.data?.visitId) },
-              { field: "createdAt", headerName: "Collected", valueFormatter: (p) => time(p.value), sort: "desc" },
-            ]}
-          />
-        )}
-      </div>
+      {tab === "byDay" ? (
+        <StudioWidget label="Payments by method and day" source={byDay} widget={paymentsPivot(currencyCode)} height={460} />
+      ) : tab === "attempts" ? (
+        <RaystoGrid<CheckoutRow>
+          key="attempts"
+          label="Checkout attempts"
+          rows={attempts}
+          csvName="checkout-attempts"
+          emptyText={onlyOpen ? "No unresolved checkout." : "No checkout this week."}
+          tall
+          columns={[
+            idCol<CheckoutRow>("Checkout", "checkoutId", { prefix: "#" }),
+            { field: "method", headerName: "Method", valueFormatter: (p) => (p.value === "paypal" ? "PayPal" : "Cash"), minWidth: 110 },
+            statusCol<CheckoutRow>("State", "state"),
+            moneyCol<CheckoutRow>("Amount", "amountMinor", currencyCode),
+            { headerName: "For", valueGetter: (p) => forLabel(p.data?.orderId, p.data?.visitId), minWidth: 150 },
+            dateCol<CheckoutRow>("Started", "createdAt", { sort: "desc" }),
+          ]}
+        />
+      ) : tab === "refunds" ? (
+        <RaystoGrid<RefundRow>
+          key="refunds"
+          label="Refunds"
+          rows={data?.refunds ?? []}
+          csvName="refunds"
+          emptyText="No refund this week."
+          tall
+          columns={[
+            idCol<RefundRow>("Refund", "id", { prefix: "#" }),
+            moneyCol<RefundRow>("Amount", "amountMinor", currencyCode),
+            statusCol<RefundRow>("State", "state"),
+            { field: "reason", headerName: "Reason", minWidth: 160 },
+            idCol<RefundRow>("PayPal refund id", "providerRefundId", { minWidth: 190 }),
+            dateCol<RefundRow>("Requested", "createdAt", { sort: "desc" }),
+          ]}
+        />
+      ) : (
+        <RaystoGrid<CollectionRow>
+          key={tab}
+          label={tab === "cash" ? "Cash collected" : "PayPal captures"}
+          rows={(data?.collections ?? []).filter((c) => (tab === "cash" ? c.method === "cash" : c.method !== "cash"))}
+          csvName={tab === "cash" ? "cash" : "paypal-captures"}
+          emptyText={tab === "cash" ? "No cash taken this week." : "No PayPal capture this week."}
+          tall
+          columns={[
+            moneyCol<CollectionRow>("Amount", "amountMinor", currencyCode),
+            moneyCol<CollectionRow>("Refunded", "refundedMinor", currencyCode),
+            statusCol<CollectionRow>("Ledger", "state", { label: (v) => (v === "review" ? "Under review" : words(v)) }),
+            ...(tab === "captures" ? [idCol<CollectionRow>("PayPal capture id", "providerCaptureId", { minWidth: 190 })] : []),
+            { headerName: "For", valueGetter: (p) => forLabel(p.data?.orderId, p.data?.visitId), minWidth: 150 },
+            dateCol<CollectionRow>("Collected", "createdAt", { sort: "desc" }),
+          ]}
+        />
+      )}
       <small>PayPal and cash are kept apart. Amounts under review are PayPal captures found on a released checkout.</small>
     </div>
   );
@@ -723,21 +746,13 @@ export function AgentsSection({
       { headerName: "Agent", valueGetter: (p) => (p.data ? agentName(p.data.agent) : ""), minWidth: 140 },
       { field: "title", headerName: "Task", minWidth: 180 },
       { field: "summary", headerName: "Outcome", flex: 2, minWidth: 260, tooltipField: "summary" },
-      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 110 },
-      {
-        headerName: "Time",
-        valueGetter: (p) => Number(p.data?.state?.ms ?? 0) / 1000,
-        valueFormatter: (p) => (p.value ? `${Number(p.value).toFixed(1)} s` : ""),
+      statusCol<AgentTaskRow>("Status", "status", { minWidth: 120 }),
+      countCol<AgentTaskRow>("Time", (t) => Number(t.state?.ms ?? 0) / 1000, {
+        format: (n) => (n ? `${n.toFixed(1)} s` : ""),
         minWidth: 100,
-      },
-      {
-        field: "chargedMicros",
-        headerName: "AI cost",
-        valueFormatter: (p) => agentCost(Number(p.value ?? 0)),
-        type: "rightAligned",
-        minWidth: 110,
-      },
-      { field: "createdAt", headerName: "When", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
+      }),
+      countCol<AgentTaskRow>("AI cost", "chargedMicros", { format: (n) => agentCost(Math.round(n)), minWidth: 110 }),
+      dateCol<AgentTaskRow>("When", "createdAt", { sort: "desc", minWidth: 150 }),
     ],
     [],
   );
@@ -800,17 +815,17 @@ export function AgentsSection({
           </ul>
         )
       ) : (
-        <div className="ops-grid tall">
-          <AgGridReact<AgentTaskRow>
-            key="agents-activity"
-            theme={gridTheme}
-            rowData={data.activity}
-            columnDefs={activityColumns}
-            defaultColDef={defaults}
-            getRowId={(p) => String(p.data.id)}
-            tooltipShowDelay={300}
-          />
-        </div>
+        <RaystoGrid<AgentTaskRow>
+          key="agents-activity"
+          label="What the agents did"
+          rows={data.activity}
+          columns={activityColumns}
+          getRowId={(p) => String(p.data.id)}
+          tooltipShowDelay={300}
+          csvName="agent-activity"
+          emptyText="The agents have not run yet."
+          tall
+        />
       )}
       <small className="ops-note">Agents prepare; people approve; PayPal moves the money.</small>
       <ContainerDialog
@@ -986,4 +1001,20 @@ export function AgentPanel({
       )}
     </Shell>
   );
+}
+
+/** Payments by day (rows) and method (columns), with totals: AG Studio's pivot. */
+function paymentsPivot(code: string): StudioWidgetSpec {
+  return {
+    type: "pivot-grid",
+    format: {
+      title: { text: `Collected this week by day and method (${code})`, enabled: true },
+      style: { grandTotalRow: { enabled: true }, totalColumns: true },
+    },
+    dataMapping: {
+      rows: [{ id: "payments.day" }],
+      columns: [{ id: "payments.method" }],
+      values: [{ id: "payments.amount", aggregation: "sum" }],
+    },
+  };
 }

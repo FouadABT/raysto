@@ -7,11 +7,23 @@ part of 'platform.dart';
 class JudgeModule {
   static const name = 'Atelier Café · Judges';
 
-  static int? get restaurantId => int.tryParse(
-    ProviderClients.environment()['RAYSTO_JUDGE_RESTAURANT_ID'] ?? '',
-  );
+  /// The second café of the judges' franchise demo, and its group. Both are
+  /// labelled sample: nothing about them is a real business.
+  static const secondName = 'Atelier Harbour · Sample';
+  static const groupName = 'Atelier Group · Sample';
 
-  static bool venue(int? tenant) => tenant != null && tenant == restaurantId;
+  static int? _id(String key) =>
+      int.tryParse(ProviderClients.environment()[key] ?? '');
+
+  static int? get restaurantId => _id('RAYSTO_JUDGE_RESTAURANT_ID');
+  static int? get secondRestaurantId => _id('RAYSTO_JUDGE_SECOND_RESTAURANT_ID');
+  static int? get groupId => _id('RAYSTO_JUDGE_GROUP_ID');
+  static int? get simulatorPartnerId => _id('RAYSTO_SIM_PARTNER_APP_ID');
+
+  /// Either judges' café: both keep their identity and start fresh daily.
+  static bool venue(int? tenant) =>
+      tenant != null &&
+      (tenant == restaurantId || tenant == secondRestaurantId);
 
   /// Refuses a change to the judges' café that only its owner may make.
   static Future<void> ownerOnly(Work w) async {
@@ -33,7 +45,15 @@ class JudgeModule {
     'timezone': 'America/New_York',
     'country': 'US',
     'languages': ['en', 'fr', 'ar'],
-    'modes': ['pickup'],
+    // Delivery (0.16): a 3 km zone around the café's corner of Manhattan, a
+    // flat fee, and a handover code the courier asks for at the door.
+    'modes': ['pickup', 'delivery'],
+    'deliveryZones': [
+      {'latitude': 40.7424, 'longitude': -74.0060, 'radiusKm': 3},
+    ],
+    'deliveryFeeMinor': 299,
+    'deliveryMinimumMinor': 800,
+    'deliveryProof': 'code',
     'hours': [
       for (var day = 1; day <= 7; day++) {'day': day, 'start': 0, 'end': 1440},
     ],
@@ -69,6 +89,21 @@ class JudgeModule {
         'translations': {'fr': 'Boissons', 'ar': 'المشروبات'},
       },
     ],
+  };
+
+  /// The second café returns to the first café's settings, by the harbour,
+  /// for pickup and dine-in only.
+  static Map<String, dynamic> get secondSettings => {
+    ...settings,
+    'address':
+        'PayPal Sandbox demo for hackathon judges · sample second café, '
+        'not a real place',
+    'modes': ['pickup', 'dineIn'],
+    'deliveryZones': [],
+    'deliveryFeeMinor': 0,
+    'deliveryMinimumMinor': 0,
+    'deliveryProof': 'none',
+    'dailyTargetMinor': 25000,
   };
 
   static Json _dish(
@@ -222,37 +257,43 @@ class JudgeModule {
     ),
   ];
 
-  static String? _queued, _tidied;
+  static final _queued = <String>{}, _tidied = <String>{};
 
-  /// Queues the daily reset at 09:00 UTC, night across the Americas, and an
-  /// hourly tidy so finished demo orders do not stay open in the kitchen.
+  /// Queues each café's daily reset at 09:00 UTC, night across the Americas,
+  /// and an hourly tidy so finished demo orders do not stay open in the
+  /// kitchen. The first café resets before the second: the group lives with
+  /// the first.
   static Future<void> schedule(Session s) async {
-    final rid = restaurantId;
     final now = _now();
-    if (rid == null) return;
     final day = now.toIso8601String().substring(0, 10);
     final hour = now.toIso8601String().substring(0, 13);
-    final jobs = [
-      if (now.hour >= 9 && _queued != '$rid:$day')
-        ('judge.reset', 'judge-reset:$rid:$day'),
-      if (_tidied != '$rid:$hour') ('judge.tidy', 'judge-tidy:$rid:$hour'),
-    ];
-    if (jobs.isEmpty) return;
-    await PlatformJob.db.insert(s, [
-      for (final (kind, key) in jobs)
-        PlatformJob(
-          restaurantId: rid,
-          kind: kind,
-          dedupeKey: key,
-          payloadJson: jsonEncode({'restaurantId': rid}),
-          state: 'pending',
-          attempts: 0,
-          availableAt: now,
-          createdAt: now,
-        ),
-    ], ignoreConflicts: true);
-    if (now.hour >= 9) _queued = '$rid:$day';
-    _tidied = '$rid:$hour';
+    // Only today's keys matter; older ones are dropped.
+    _queued.removeWhere((k) => !k.endsWith(day));
+    _tidied.removeWhere((k) => !k.endsWith(hour));
+    for (final rid in [restaurantId, secondRestaurantId].whereType<int>()) {
+      final jobs = [
+        if (now.hour >= 9 && !_queued.contains('$rid:$day'))
+          ('judge.reset', 'judge-reset:$rid:$day'),
+        if (!_tidied.contains('$rid:$hour'))
+          ('judge.tidy', 'judge-tidy:$rid:$hour'),
+      ];
+      if (jobs.isEmpty) continue;
+      await PlatformJob.db.insert(s, [
+        for (final (kind, key) in jobs)
+          PlatformJob(
+            restaurantId: rid,
+            kind: kind,
+            dedupeKey: key,
+            payloadJson: jsonEncode({'restaurantId': rid}),
+            state: 'pending',
+            attempts: 0,
+            availableAt: now,
+            createdAt: now,
+          ),
+      ], ignoreConflicts: true);
+      if (now.hour >= 9) _queued.add('$rid:$day');
+      _tidied.add('$rid:$hour');
+    }
   }
 
   /// A manager of the judges' café starts it fresh. Work from the last ten
@@ -521,35 +562,7 @@ class JudgeModule {
       );
     }
     final dupont = byName['Marché Dupont']!.id;
-    final stock = await StockItem.db.count(
-      s,
-      where: (t) => t.restaurantId.equals(rid),
-      transaction: w.tx,
-    );
-    if (stock == 0) {
-      const items = [
-        ('Flour T55', 'kg', 12.0, 120, 10.0),
-        ('Butter AOP', 'kg', 3.5, 980, 4.0),
-        ('Free-range eggs', 'pcs', 60.0, 32, 48.0),
-        ('Button mushrooms', 'kg', 1.5, 650, 2.0),
-        ('Arborio rice', 'kg', 6.0, 390, 3.0),
-        ('Espresso beans', 'kg', 2.0, 2200, 2.5),
-      ];
-      await StockItem.db.insert(s, [
-        for (final (name, unit, quantity, cost, low) in items)
-          StockItem(
-            restaurantId: rid,
-            name: name,
-            unit: unit,
-            quantity: quantity,
-            costMinor: cost,
-            supplierId: dupont,
-            lowAt: low,
-            version: 1,
-            updatedAt: _now(),
-          ),
-      ], transaction: w.tx);
-    }
+    final stockItems = await _seedStock(w, dupont);
 
     final expenses = await Expense.db.count(
       s,
@@ -611,12 +624,877 @@ class JudgeModule {
         ),
       ], transaction: w.tx);
     }
+    // 0.16: recipes, the three supplier orders, the four bills, the drivers,
+    // the simulator partner, the deposit pay link and the franchise group.
+    final recipes = await _seedRecipes(w, stockItems);
+    final supplierOrders = await _seedSupplierOrders(w, dupont, stockItems);
+    final bills = await _seedBills(w, email, supplierId: dupont);
+    final drivers = await _seedDrivers(w, email);
+    final partner = await _seedPartner(w);
+    final payLink = await _seedPayLink(w, email);
+    final group = await _seedGroup(w);
     return {
       'shifts': shifts.length,
       'catering': catering,
       'complaint': complaint,
       'dispute': dispute,
+      'stock': stockItems.length,
+      'recipes': recipes,
+      'supplierOrders': supplierOrders,
+      'bills': bills,
+      'drivers': drivers,
+      'partner': partner,
+      'payLink': payLink,
+      'group': group,
     };
+  }
+
+  /// Marks a seeded row: a name suffix, a note or a JSON flag, so a judge
+  /// can always tell sample data from what really happened.
+  static const sample = '· Sample';
+  static String sampleJson([Json extra = const {}]) =>
+      jsonEncode({'sample': true, ...extra});
+
+  /// The café's stock at the start of each day: by name, with par levels
+  /// and lead times for the supply planner. Three items start below their
+  /// low mark, so the planner always has a reorder to propose. A quantity
+  /// put back by the reset is an audited `adjust` movement, never a silent
+  /// overwrite.
+  static Future<Map<String, StockItem>> _seedStock(Work w, int? supplierId) async {
+    final s = w.s;
+    final rid = w.tenant;
+    const items = [
+      // name, unit, quantity, cost, low mark, par level, lead days
+      ('Flour T55', 'kg', 12.0, 120, 10.0, 30.0, 2),
+      ('Butter AOP', 'kg', 3.5, 980, 4.0, 10.0, 2),
+      ('Free-range eggs', 'pcs', 60.0, 32, 48.0, 180.0, 1),
+      ('Button mushrooms', 'kg', 1.5, 650, 2.0, 6.0, 1),
+      ('Arborio rice', 'kg', 6.0, 390, 3.0, 10.0, 3),
+      ('Espresso beans', 'kg', 2.0, 2200, 2.5, 6.0, 3),
+      ('Oranges', 'kg', 8.0, 210, 6.0, 20.0, 1),
+      ('Gruyère', 'kg', 1.2, 1800, 1.0, 4.0, 2),
+    ];
+    final existing = {
+      for (final x in await StockItem.db.find(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+        transaction: w.tx,
+      ))
+        x.name: x,
+    };
+    // One audited adjustment per item per reset.
+    final at = _now().toIso8601String();
+    final result = <String, StockItem>{};
+    for (final (name, unit, quantity, cost, low, par, lead) in items) {
+      var item = existing[name];
+      if (item == null) {
+        item = await StockItem.db.insertRow(
+          s,
+          StockItem(
+            restaurantId: rid,
+            name: name,
+            unit: unit,
+            quantity: quantity,
+            costMinor: cost,
+            supplierId: supplierId,
+            lowAt: low,
+            parLevel: par,
+            leadDays: lead,
+            version: 1,
+            updatedAt: _now(),
+          ),
+          transaction: w.tx,
+        );
+      } else {
+        final delta = quantity - item.quantity;
+        if (delta.abs() > 1e-9) {
+          await StockMovement.db.insert(s, [
+            StockMovement(
+              restaurantId: rid,
+              stockItemId: item.id!,
+              kind: 'adjust',
+              quantity: delta,
+              unitCostMinor: cost,
+              refType: 'judge.reset',
+              refId: at,
+              at: _now(),
+            ),
+          ], transaction: w.tx, ignoreConflicts: true);
+        }
+        item
+          ..quantity = quantity
+          ..costMinor = cost
+          ..lowAt = low
+          ..parLevel = par
+          ..leadDays = lead
+          ..supplierId ??= supplierId
+          ..version += 1
+          ..updatedAt = _now();
+        item = await StockItem.db.updateRow(s, item, transaction: w.tx);
+      }
+      result[name] = item;
+    }
+    return result;
+  }
+
+  /// What each dish uses from stock, so sales draw stock down and the
+  /// planner can forecast a stock-out. The granola bowl uses nothing stocked.
+  static const _recipes = <String, List<(String, double)>>{
+    'Butter croissant': [('Flour T55', 0.06), ('Butter AOP', 0.03)],
+    'Pain au chocolat': [('Flour T55', 0.06), ('Butter AOP', 0.03)],
+    'Croque monsieur': [('Flour T55', 0.1), ('Butter AOP', 0.01), ('Gruyère', 0.04)],
+    'Falafel wrap': [('Flour T55', 0.08)],
+    'Chicken club': [('Flour T55', 0.1), ('Free-range eggs', 1.0)],
+    'Quiche lorraine & green salad': [
+      ('Flour T55', 0.08),
+      ('Butter AOP', 0.03),
+      ('Free-range eggs', 3.0),
+      ('Gruyère', 0.03),
+    ],
+    'Mushroom risotto': [
+      ('Arborio rice', 0.09),
+      ('Button mushrooms', 0.12),
+      ('Butter AOP', 0.02),
+    ],
+    'Espresso': [('Espresso beans', 0.018)],
+    'Cappuccino': [('Espresso beans', 0.018)],
+    'Fresh orange juice': [('Oranges', 0.5)],
+  };
+
+  static Future<int> _seedRecipes(Work w, Map<String, StockItem> stock) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final products = {
+      for (final p in await MenuProduct.db.find(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+        orderBy: (t) => t.id,
+        transaction: w.tx,
+      ))
+        p.name.toLowerCase(): p,
+    };
+    final lines = <RecipeLine>[];
+    for (final MapEntry(key: dish, value: uses) in _recipes.entries) {
+      final product = products[dish.toLowerCase()];
+      if (product == null) continue;
+      for (final (item, quantity) in uses) {
+        final stockItem = stock[item];
+        if (stockItem == null) continue;
+        lines.add(
+          RecipeLine(
+            restaurantId: rid,
+            productId: product.id!,
+            stockItemId: stockItem.id!,
+            quantity: quantity,
+            updatedAt: _now(),
+          ),
+        );
+      }
+    }
+    // A recipe a manager already changed stays as they left it.
+    final added = await RecipeLine.db.insert(
+      s,
+      lines,
+      transaction: w.tx,
+      ignoreConflicts: true,
+    );
+    return added.length;
+  }
+
+  /// Three sample supplier orders to Marché Dupont: a draft as the planner
+  /// would propose it, one sent and waiting, and one received with a price
+  /// change on the butter. Re-made when missing; a judge's own drafts from
+  /// earlier days are removed, sent or received orders are kept.
+  static Future<int> _seedSupplierOrders(
+    Work w,
+    int? supplierId,
+    Map<String, StockItem> stock,
+  ) async {
+    final s = w.s;
+    final rid = w.tenant;
+    await SupplierOrder.db.deleteWhere(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.state.equals('draft') &
+          (t.updatedAt < _now().subtract(const Duration(minutes: 10))) &
+          (t.note.equals(null) | t.note.notLike('%Sample%')),
+      transaction: w.tx,
+    );
+    final have = await SupplierOrder.db.count(
+      s,
+      where: (t) => t.restaurantId.equals(rid) & t.note.like('%Sample%'),
+      transaction: w.tx,
+    );
+    if (have > 0 || supplierId == null) return 0;
+    final owner = await _owner(w);
+    Json line(String name, double qty, {double? received, int? receivedCost}) {
+      final item = stock[name]!;
+      return {
+        'stockItemId': item.id,
+        'name': item.name,
+        'unit': item.unit,
+        'qty': qty,
+        'unitCostMinor': item.costMinor,
+        'receivedQty': ?received,
+        'receivedUnitCostMinor': ?receivedCost,
+      };
+    }
+
+    int total(List<Json> lines) => lines.fold(
+      0,
+      (n, l) => n + ((l['qty'] as double) * (l['unitCostMinor'] as int)).round(),
+    );
+    final draft = [line('Espresso beans', 4.0), line('Butter AOP', 6.5)];
+    final sent = [line('Flour T55', 25.0), line('Free-range eggs', 120.0)];
+    final received = [
+      line('Button mushrooms', 6.0, received: 6.0, receivedCost: 650),
+      // The butter came in at 10.40, not 9.80: a 6% price change to flag.
+      line('Butter AOP', 10.0, received: 10.0, receivedCost: 1040),
+    ];
+    final orders = [
+      ('draft', draft, 'Sample draft: what the supply planner proposes', null, null),
+      (
+        'sent',
+        sent,
+        'Sample: sent to Marché Dupont, expected tomorrow',
+        _now().subtract(const Duration(hours: 20)),
+        null,
+      ),
+      (
+        'received',
+        received,
+        'Sample: received with a butter price change',
+        _now().subtract(const Duration(days: 3)),
+        _now().subtract(const Duration(days: 2)),
+      ),
+    ];
+    for (final (state, lines, note, sentAt, receivedAt) in orders) {
+      await SupplierOrder.db.insertRow(
+        s,
+        SupplierOrder(
+          restaurantId: rid,
+          supplierId: supplierId,
+          state: state,
+          linesJson: jsonEncode(lines),
+          totalMinor: total(lines),
+          currency: w.restaurant!.currency,
+          expectedAt: _now().add(const Duration(days: 1)),
+          sentAt: sentAt,
+          receivedAt: receivedAt,
+          note: note,
+          createdBy: owner,
+          version: 1,
+          createdAt: _now(),
+          updatedAt: _now(),
+        ),
+        transaction: w.tx,
+      );
+    }
+    return orders.length;
+  }
+
+  /// The café's four sample bills. Electricity last month was paid by bank
+  /// transfer; water waits, unpaid; the rent was paid elsewhere because the
+  /// landlord has no PayPal; the internet bill goes to a Sandbox PayPal
+  /// account, so paying it is a real Sandbox Payout. A judge's own unpaid
+  /// bills from earlier days are removed; anything paid stays.
+  ///
+  /// Two more rows make the Try cards work end to end: this month's
+  /// electricity is `expected` (the accountant's forecast, which the bill a
+  /// judge reads from the sample PDF replaces, taking over the vendor's
+  /// Sandbox PayPal email), and Marché Dupont's bill for the received
+  /// supplier order completes its 3-way match.
+  static Future<int> _seedBills(
+    Work w,
+    String Function(int) email, {
+    int? supplierId,
+  }) async {
+    final s = w.s;
+    final rid = w.tenant;
+    await Bill.db.deleteWhere(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.state.inSet({'review', 'approved', 'void'}) &
+          (t.updatedAt < _now().subtract(const Duration(minutes: 10))),
+      transaction: w.tx,
+    );
+    final today = _now();
+    final month = today.toIso8601String().substring(0, 7).replaceAll('-', '');
+    final paypal = email(1).isEmpty ? email(0) : email(1);
+    final bills = [
+      Bill(
+        restaurantId: rid,
+        vendor: 'Hudson Power & Light $sample',
+        category: 'electricity',
+        reference: 'HPL-$month-PREV',
+        amountMinor: 17680,
+        vatMinor: 1310,
+        currency: w.restaurant!.currency,
+        issuedAt: today.subtract(const Duration(days: 33)),
+        dueAt: today.subtract(const Duration(days: 19)),
+        periodFrom: today.subtract(const Duration(days: 63)),
+        periodTo: today.subtract(const Duration(days: 34)),
+        state: 'paidElsewhere',
+        payVia: 'elsewhere',
+        // The utility now takes PayPal: this month's bill can be paid there.
+        payeeEmail: email(0).isEmpty ? null : email(0),
+        recurring: 'monthly',
+        readJson: sampleJson({
+          'note': 'Sample: last month, paid by bank transfer before Raysto; '
+              'the utility also takes PayPal (a Sandbox account)',
+        }),
+        paidAt: today.subtract(const Duration(days: 23)),
+        version: 1,
+        createdAt: today,
+        updatedAt: today,
+      ),
+      Bill(
+        restaurantId: rid,
+        vendor: 'Metro Water $sample',
+        category: 'water',
+        reference: 'MW-$month',
+        amountMinor: 4120,
+        vatMinor: 0,
+        currency: w.restaurant!.currency,
+        issuedAt: today.subtract(const Duration(days: 9)),
+        dueAt: today.add(const Duration(days: 5)),
+        state: 'approved',
+        payVia: 'elsewhere',
+        recurring: 'monthly',
+        readJson: sampleJson({'note': 'Sample: the water company does not take PayPal'}),
+        version: 1,
+        createdAt: today,
+        updatedAt: today,
+      ),
+      Bill(
+        restaurantId: rid,
+        vendor: 'Harbour Properties $sample',
+        category: 'rent',
+        reference: 'RENT-$month',
+        amountMinor: 180000,
+        vatMinor: 0,
+        currency: w.restaurant!.currency,
+        issuedAt: today.subtract(const Duration(days: 4)),
+        dueAt: today.add(const Duration(days: 2)),
+        state: 'paidElsewhere',
+        payVia: 'elsewhere',
+        recurring: 'monthly',
+        readJson: sampleJson({
+          'note': 'Sample: paid by bank transfer; the landlord has no PayPal',
+        }),
+        paidAt: today.subtract(const Duration(days: 1)),
+        version: 1,
+        createdAt: today,
+        updatedAt: today,
+      ),
+      Bill(
+        restaurantId: rid,
+        vendor: 'Metro Fiber $sample',
+        category: 'internet',
+        reference: 'MF-${today.toIso8601String().substring(0, 10).replaceAll('-', '')}',
+        amountMinor: 5999,
+        vatMinor: 0,
+        currency: w.restaurant!.currency,
+        issuedAt: today.subtract(const Duration(days: 2)),
+        dueAt: today.add(const Duration(days: 7)),
+        state: 'approved',
+        payVia: paypal.isEmpty ? 'elsewhere' : 'paypal',
+        payeeEmail: paypal.isEmpty ? null : paypal,
+        recurring: 'monthly',
+        readJson: sampleJson({
+          'note': paypal.isEmpty
+              ? 'Sample: no Sandbox PayPal account configured for this payee'
+              : 'Sample: the payee is a PayPal Sandbox account, so paying it is a real Sandbox Payout',
+        }),
+        version: 1,
+        createdAt: today,
+        updatedAt: today,
+      ),
+    ];
+    final existing = {
+      for (final b in await Bill.db.find(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+        transaction: w.tx,
+      ))
+        if (b.vendor.endsWith(sample) &&
+            !{'void'}.contains(b.state))
+          b.category,
+    };
+    final missing = [
+      for (final b in bills)
+        if (!existing.contains(b.category) ||
+            // Once paid, the internet bill comes back unpaid each day so the
+            // next judge can pay it too.
+            (b.category == 'internet' && !await _unpaidSample(w, 'internet')))
+          b,
+    ];
+    var added = 0;
+    if (missing.isNotEmpty) {
+      await Bill.db.insert(s, missing, transaction: w.tx);
+      added += missing.length;
+    }
+    added += await _seedExpectedPower(w);
+    if (supplierId != null) added += await _seedSupplierBill(w, supplierId);
+    return added;
+  }
+
+  /// This month's electricity as the accountant expects it: same vendor,
+  /// same amount as last month, the vendor's Sandbox PayPal email. When a
+  /// judge's read of the sample PDF arrives it replaces this copy and keeps
+  /// the email, so paying it is a real Sandbox Payout. Not a debt: the
+  /// ledger ignores `expected` bills.
+  static Future<int> _seedExpectedPower(Work w) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final power = await Bill.db.find(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.category.equals('electricity') &
+          t.vendor.like('%$sample') &
+          t.state.notEquals('void'),
+      orderBy: (t) => t.id.desc(),
+      transaction: w.tx,
+    );
+    if (power.any((b) => {'expected', 'review', 'approved', 'paying'}.contains(b.state))) {
+      return 0;
+    }
+    final last = power.where((b) => b.recurring == 'monthly').firstOrNull;
+    if (last == null) return 0;
+    final base = last.dueAt ?? last.issuedAt ?? last.createdAt;
+    await Bill.db.insertRow(
+      s,
+      Bill(
+        restaurantId: rid,
+        vendor: last.vendor,
+        category: 'electricity',
+        amountMinor: last.amountMinor,
+        vatMinor: last.vatMinor,
+        currency: last.currency,
+        dueAt: base.add(const Duration(days: 30)),
+        state: 'expected',
+        payVia: last.payeeEmail == null ? 'elsewhere' : 'paypal',
+        payeeEmail: last.payeeEmail,
+        recurring: 'monthly',
+        recurringOfId: last.id,
+        readJson: sampleJson({
+          'expected': true,
+          'basis': 'Same as last month; the real bill replaces it when it arrives.',
+        }),
+        version: 1,
+        createdAt: _now(),
+        updatedAt: _now(),
+      ),
+      transaction: w.tx,
+    );
+    return 1;
+  }
+
+  /// Marché Dupont's bill for the received sample order, at the prices on
+  /// the delivery note: the butter at 10.40 a kilo against 9.80 ordered.
+  /// Waiting in review, so the supply planner's 3-way match has its third
+  /// paper. Re-made by each full reset, like the other unpaid bills.
+  static Future<int> _seedSupplierBill(Work w, int supplierId) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final received = await SupplierOrder.db.findFirstRow(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.state.equals('received') &
+          t.note.like('%Sample%'),
+      orderBy: (t) => t.id.desc(),
+      transaction: w.tx,
+    );
+    if (received == null) return 0;
+    final billed = await Bill.db.count(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.supplierOrderId.equals(received.id!) &
+          t.state.notEquals('void'),
+      transaction: w.tx,
+    );
+    if (billed > 0) return 0;
+    var amount = 0;
+    for (final l in (jsonDecode(received.linesJson) as List).cast<Json>()) {
+      final qty = ((l['receivedQty'] ?? l['qty']) as num).toDouble();
+      final unit = ((l['receivedUnitCostMinor'] ?? l['unitCostMinor']) as num).toDouble();
+      amount += (qty * unit).round();
+    }
+    final today = _now();
+    await Bill.db.insertRow(
+      s,
+      Bill(
+        restaurantId: rid,
+        vendor: 'Marché Dupont $sample',
+        category: 'supplier',
+        reference: 'MD-${received.id}',
+        amountMinor: amount,
+        vatMinor: 0,
+        currency: received.currency,
+        issuedAt: received.receivedAt ?? today,
+        dueAt: today.add(const Duration(days: 12)),
+        state: 'review',
+        payVia: 'elsewhere',
+        supplierId: supplierId,
+        supplierOrderId: received.id,
+        readJson: sampleJson({
+          'note': 'Sample: the supplier\'s bill for the received order; '
+              'the butter is billed at 10.40 a kilo, not the 9.80 ordered',
+        }),
+        version: 1,
+        createdAt: today,
+        updatedAt: today,
+      ),
+      transaction: w.tx,
+    );
+    return 1;
+  }
+
+  /// A judge's bill read from a sample file and since paid is kept, with
+  /// its PayPal batch, but released for the next judge: its file hash is
+  /// cleared and its reference marked, so reading the same sample again is
+  /// a new bill, not a duplicate of an earlier demo run; the reading task's
+  /// dedupe key is retired for the same reason. Money records stay as they
+  /// were. Runs with the hourly tidy for bills older than [before].
+  static Future<int> _releaseReadBills(Work w, DateTime before) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final read = await Bill.db.find(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.sourceMediaId.notEquals(null) &
+          t.contentSha.notEquals(null) &
+          t.state.inSet({'paid', 'paidElsewhere'}) &
+          (t.updatedAt < before),
+      transaction: w.tx,
+    );
+    for (final b in read) {
+      b
+        ..contentSha = null
+        ..reference = b.reference == null ? null : '${b.reference} (earlier demo run)'
+        ..readJson = jsonEncode({..._json(b.readJson), 'releasedAt': _now().toIso8601String()})
+        ..version += 1
+        ..updatedAt = _now();
+      await Bill.db.updateRow(s, b, transaction: w.tx);
+    }
+    final tasks = await AgentTask.db.find(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.dedupeKey.like('bill:$rid:%') &
+          t.dedupeKey.notLike('%:run%') &
+          t.status.inSet({'done', 'failed'}) &
+          (t.updatedAt < before),
+      transaction: w.tx,
+    );
+    for (final t in tasks) {
+      t.dedupeKey = '${t.dedupeKey}:run${t.id}';
+      await AgentTask.db.updateRow(s, t, transaction: w.tx);
+    }
+    return read.length;
+  }
+
+  static Future<bool> _unpaidSample(Work w, String category) async =>
+      await Bill.db.count(
+        w.s,
+        where: (t) =>
+            t.restaurantId.equals(w.tenant) &
+            t.category.equals(category) &
+            t.vendor.like('%$sample') &
+            t.state.inSet({'review', 'approved', 'paying'}),
+        transaction: w.tx,
+      ) >
+      0;
+
+  /// Three drivers: the published courier login, when the café has one,
+  /// and two simulated drivers with no login, labelled sample. Their
+  /// availability starts fresh each day.
+  static Future<int> _seedDrivers(Work w, String Function(int) email) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final courier = await Membership.db.findFirstRow(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.role.equals('courier') &
+          t.active.equals(true),
+      transaction: w.tx,
+    );
+    final existing = {
+      for (final d in await Driver.db.find(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+        transaction: w.tx,
+      ))
+        d.name: d,
+    };
+    final wanted = [
+      if (courier != null)
+        ('Courier (demo login)', courier.userId, 'bike', email(1).isEmpty ? null : email(1), 'offline'),
+      ('Sam $sample', null, 'bike', null, 'available'),
+      ('Ines $sample', null, 'scooter', null, 'available'),
+    ];
+    var added = 0;
+    for (final (name, userId, vehicle, payout, status) in wanted) {
+      final d = existing[name];
+      if (d == null) {
+        await Driver.db.insertRow(
+          s,
+          Driver(
+            restaurantId: rid,
+            kind: 'staff',
+            userId: userId,
+            name: name,
+            vehicle: vehicle,
+            payoutEmail: payout,
+            status: status,
+            lastSeenAt: status == 'available' ? _now() : null,
+            active: true,
+            version: 1,
+            createdAt: _now(),
+            updatedAt: _now(),
+          ),
+          transaction: w.tx,
+        );
+        added++;
+      } else if (userId == null) {
+        d
+          ..status = status
+          ..active = true
+          ..lastSeenAt = _now()
+          ..version += 1
+          ..updatedAt = _now();
+        await Driver.db.updateRow(s, d, transaction: w.tx);
+      }
+    }
+    return added;
+  }
+
+  /// The simulator partner, "Demo Delivery Co.", is created through
+  /// `partner.app.save` so its key is shown once and kept outside the
+  /// database (see `tool/judge_restaurant.cjs partner`). The reset only keeps
+  /// it named, marked as a simulator and switched on.
+  static Future<int> _seedPartner(Work w) async {
+    final id = simulatorPartnerId;
+    if (id == null) return 0;
+    final app = await PartnerApp.db.findById(w.s, id, transaction: w.tx);
+    if (app == null || app.restaurantId != w.tenant) return 0;
+    app
+      ..name = 'Demo Delivery Co. (simulator)'
+      ..simulator = true
+      ..active = true
+      ..version += 1
+      ..updatedAt = _now();
+    await PartnerApp.db.updateRow(w.s, app, transaction: w.tx);
+    return 1;
+  }
+
+  /// A catering deposit already asked for, so the receivables page has
+  /// something owed: a pay link (`link`, `open`) made the way
+  /// `request.create` makes one, so its QR code really opens PayPal Sandbox.
+  /// A judge's own links nobody opened (no checkout yet) are removed after
+  /// a while; anything opened or paid stays.
+  static Future<int> _seedPayLink(Work w, String Function(int) email) async {
+    final s = w.s;
+    final rid = w.tenant;
+    await PaymentRequest.db.deleteWhere(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.kind.equals('link') &
+          t.state.equals('open') &
+          t.checkoutIntentId.equals(null) &
+          t.payerName.notLike('%$sample') &
+          (t.createdAt < _now().subtract(const Duration(minutes: 10))),
+      transaction: w.tx,
+    );
+    final have = await PaymentRequest.db.count(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.payerName.like('%$sample') &
+          t.state.inSet({'draft', 'open', 'sent'}),
+      transaction: w.tx,
+    );
+    if (have > 0) return 0;
+    final catering = await CateringRequest.db.findFirstRow(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      orderBy: (t) => t.id.desc(),
+      transaction: w.tx,
+    );
+    // Whole seconds: the link's token is derived from the creation time.
+    final now = _now();
+    final created = DateTime.fromMillisecondsSinceEpoch(
+      now.millisecondsSinceEpoch ~/ 1000 * 1000,
+      isUtc: true,
+    );
+    var r = await PaymentRequest.db.insertRow(
+      s,
+      PaymentRequest(
+        restaurantId: rid,
+        kind: 'link',
+        payerName: 'Studio Lumen $sample',
+        payerEmail: email(0).isEmpty ? null : email(0),
+        description: 'Catering deposit · Friday lunch for 12 (sample)',
+        amountMinor: 3555,
+        currency: w.restaurant!.currency,
+        dueAt: created.add(const Duration(days: 2)),
+        state: 'open',
+        linkTokenHash: 'pending:${_uuid()}',
+        remindersSent: 0,
+        cateringRequestId: catering?.id,
+        createdBy: await _owner(w),
+        version: 1,
+        createdAt: created,
+        updatedAt: created,
+      ),
+      transaction: w.tx,
+    );
+    try {
+      r.linkTokenHash = _hash(PaymentRequestModule.token(r));
+      r = await PaymentRequest.db.updateRow(s, r, transaction: w.tx);
+    } on DomainError {
+      // No pay-link secret on this deployment: the request is listed, but
+      // its link cannot be opened until one is configured.
+    }
+    return 1;
+  }
+
+  /// The franchise demo: "Atelier Group · Sample" holds both judges' cafés.
+  /// The café's owner owns the group and its published manager is an area
+  /// manager, who may read the group's pages but changes nothing in a café
+  /// without that café's own membership. Uses `RAYSTO_JUDGE_GROUP_ID` when
+  /// set; otherwise the group the café already belongs to, or a new one.
+  static Future<int> _seedGroup(Work w) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final second = secondRestaurantId;
+    if (rid != restaurantId || second == null) return 0;
+    final owner = await _owner(w);
+    RestaurantGroup? group;
+    if (groupId != null) {
+      group = await RestaurantGroup.db.findById(s, groupId!, transaction: w.tx);
+    }
+    if (group == null) {
+      final link = await GroupVenue.db.findFirstRow(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+        transaction: w.tx,
+      );
+      if (link != null) {
+        group = await RestaurantGroup.db.findById(s, link.groupId, transaction: w.tx);
+      }
+    }
+    var created = 0;
+    group ??= await () async {
+      created = 1;
+      return RestaurantGroup.db.insertRow(
+        s,
+        RestaurantGroup(
+          name: groupName,
+          ownerUserId: owner,
+          currency: w.restaurant!.currency,
+          version: 1,
+          createdAt: _now(),
+          updatedAt: _now(),
+        ),
+        transaction: w.tx,
+      );
+    }();
+    if (group.name != groupName) {
+      group
+        ..name = groupName
+        ..version += 1
+        ..updatedAt = _now();
+      group = await RestaurantGroup.db.updateRow(s, group, transaction: w.tx);
+    }
+    final gid = group.id!;
+    await GroupVenue.db.insert(s, [
+      for (final venueId in [rid, second])
+        GroupVenue(
+          groupId: gid,
+          restaurantId: venueId,
+          attachedBy: owner,
+          attachedAt: _now(),
+        ),
+    ], transaction: w.tx, ignoreConflicts: true);
+    final managers = await Membership.db.find(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.role.equals('manager') &
+          t.active.equals(true),
+      transaction: w.tx,
+    );
+    await GroupMembership.db.insert(s, [
+      GroupMembership(
+        groupId: gid,
+        userId: owner,
+        role: 'owner',
+        active: true,
+        version: 1,
+        createdAt: _now(),
+      ),
+      for (final m in managers)
+        GroupMembership(
+          groupId: gid,
+          userId: m.userId,
+          role: 'areaManager',
+          active: true,
+          version: 1,
+          createdAt: _now(),
+        ),
+    ], transaction: w.tx, ignoreConflicts: true);
+    return created;
+  }
+
+  static Future<String> _owner(Work w) async {
+    final m = await Membership.db.findFirstRow(
+      w.s,
+      where: (t) =>
+          t.restaurantId.equals(w.tenant) &
+          t.role.equals('owner') &
+          t.active.equals(true),
+      transaction: w.tx,
+    );
+    return m?.userId ?? w.user;
+  }
+
+  /// The second café's back office: two staff, its own stock and two bills,
+  /// all sample. It sells nothing by itself, so the group pages compare a
+  /// busy café with a quiet one, honestly.
+  static Future<Json> seedSecond(Work w) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final suppliers = await Supplier.db.find(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      transaction: w.tx,
+    );
+    final supplier = suppliers.isNotEmpty
+        ? suppliers.first
+        : await Supplier.db.insertRow(
+            s,
+            Supplier(
+              restaurantId: rid,
+              name: 'Marché Dupont',
+              payoutEmail: 'supplier-harbour@example.com',
+              version: 1,
+              createdAt: _now(),
+            ),
+            transaction: w.tx,
+          );
+    final stock = await _seedStock(w, supplier.id);
+    final recipes = await _seedRecipes(w, stock);
+    final bills = await _seedBills(w, (_) => '');
+    return {'stock': stock.length, 'recipes': recipes, 'bills': bills};
   }
 
   /// Returns the café to its starting menu and settings. Nothing is deleted:
@@ -723,12 +1601,14 @@ class JudgeModule {
         await AgentAction.db.updateRow(s, a, transaction: w.tx);
         expired++;
       }
+      final readBills = menuOnly ? 0 : await _releaseReadBills(w, before);
       if (!full) {
         final result = {
           'released': released,
           'completed': completed,
           'cancelled': cancelled,
           'expired': expired,
+          'readBills': readBills,
         };
         if (result.values.any((n) => n > 0)) {
           await w.audit('judge.tidy', 'restaurant', rid, result);
@@ -736,17 +1616,20 @@ class JudgeModule {
         return result;
       }
 
+      final second = rid == secondRestaurantId;
       final policy = w.policy!;
+      final target = second ? secondSettings : settings;
       policy.settingsJson = jsonEncode(
         CatalogueModule.validateSettings({
           ..._json(policy.settingsJson),
-          ...settings,
+          ...target,
         }),
       );
       policy.version++;
       policy.updatedAt = _now();
       await RestaurantPolicy.db.updateRow(s, policy, transaction: w.tx);
-      w.restaurant!.name = name;
+      w.restaurant!.name = second ? secondName : name;
+      w.restaurant!.deliveryFeeMinor = target['deliveryFeeMinor'] as int;
       w.restaurant!.published = true;
       await Restaurant.db.updateRow(s, w.restaurant!, transaction: w.tx);
 
@@ -807,12 +1690,17 @@ class JudgeModule {
         transaction: w.tx,
       );
       await CatalogueModule.applyDraft(w, draft, merge: false);
-      final seeded = menuOnly ? const <String, dynamic>{} : await seed(w);
+      final seeded = menuOnly
+          ? const <String, dynamic>{}
+          : second
+          ? await seedSecond(w)
+          : await seed(w);
       final result = {
         'released': released,
         'completed': completed,
         'cancelled': cancelled,
         'expired': expired,
+        'readBills': readBills,
         'dishes': items.length,
         'menuVersion': policy.menuVersion,
         if (menuOnly) 'menuOnly': true,

@@ -58,6 +58,10 @@ test("every allowlisted query exists in the backend or is promised by the design
     ...names(source, /name == '([A-Za-z.]+)'/g),
     // Back-office queries (and the dashboard) are answered by BackOfficeModule.query.
     ...names(read("platform/backoffice.dart"), /^\s+case '([A-Za-z.]+)':/gm),
+    // 0.16 queries are answered by their modules through the chained fallback.
+    ...["group", "ledger", "accountant", "delivery", "partner", "purchasing", "studio_layout"].flatMap((m) => [
+      ...names(read(`platform/${m}.dart`), /^\s+case '([A-Za-z.]+)':/gm),
+    ]),
   ]);
   const promisedQueries = promised("Queries");
   for (const name of consoleQueries)

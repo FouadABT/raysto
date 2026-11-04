@@ -12,10 +12,12 @@ import {
 import { connectedAuth } from "@/lib/connected/firebase";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Membership } from "@/lib/connected/contracts";
+import type { GroupRef } from "@/lib/connected/group";
 import { judge, judgeLogin } from "@/lib/connected/judge";
 import { MotionRoot, setReduceMotion, useAppReduceMotion } from "@/lib/connected/motion";
 import { Icon } from "./icons";
 import { SnackbarProvider } from "./m3";
+import { GroupChoiceProvider, GroupSwitcher, useGroups, venuesInChoice, type GroupChoice } from "./group-switcher";
 
 const Workspace = dynamic(
   () => import("./operations-workspace").then((m) => m.OperationsWorkspace),
@@ -40,6 +42,8 @@ export function OperationsEntry() {
   const [busy, setBusy] = useState(true),
     [signedIn, setSignedIn] = useState(false);
   const [person, setPerson] = useState<{ name?: string | null; email?: string | null }>();
+  // 0.16: the groups `me` lists, for the group switcher.
+  const [groupRefs, setGroupRefs] = useState<GroupRef[]>([]);
   useEffect(() => {
     let active = true,
       unsubscribe = () => {},
@@ -80,7 +84,7 @@ export function OperationsEntry() {
           current = next;
           setBusy(true);
           void next
-            .query<{ memberships: Membership[] }>("me")
+            .query<{ memberships: Membership[]; groups?: GroupRef[] }>("me")
             .then((me) => {
               if (!active || current !== next) return;
               const allowed = me.memberships.filter((m) =>
@@ -88,6 +92,7 @@ export function OperationsEntry() {
               );
               setApi(next);
               setMemberships(allowed);
+              setGroupRefs(me.groups ?? []);
               setSelected(allowed[0]?.restaurantId);
               setError("");
             })
@@ -142,6 +147,7 @@ export function OperationsEntry() {
         onSignOut={leave}
         error={error}
         person={person}
+        groups={groupRefs}
       />
     );
   return (
@@ -371,6 +377,7 @@ export function ConsoleShell({
   error,
   person,
   workspace,
+  groups,
 }: {
   api: ConnectedApi;
   memberships: Membership[];
@@ -381,6 +388,8 @@ export function ConsoleShell({
   person?: { name?: string | null; email?: string | null };
   /** The development preview passes the workspace in directly (no dynamic import). */
   workspace?: typeof Workspace;
+  /** 0.16: the person's groups from `me`; the group switcher shows when there is one. */
+  groups?: GroupRef[];
 }) {
   const draft = useRef(false);
   const canLeave = () => !draft.current || window.confirm("Discard the unsent room message?");
@@ -398,6 +407,19 @@ export function ConsoleShell({
       onSelect(id);
     }
   };
+  // 0.16: the group switcher narrows the venue picker to the chosen group.
+  const groupState = useGroups(api, groups);
+  const pickGroup = (id: number | null) => {
+    const next = venuesInChoice(memberships, { ...groupState, groupId: id });
+    if (next.length && !next.some((m) => m.restaurantId === selected)) {
+      if (!canLeave()) return;
+      draft.current = false;
+      onSelect(next[0].restaurantId);
+    }
+    groupState.setGroupId(id);
+  };
+  const choice: GroupChoice = { ...groupState, setGroupId: pickGroup };
+  const venues = venuesInChoice(memberships, choice);
   const signOutNow = () => {
     if (canLeave()) {
       draft.current = false;
@@ -448,7 +470,8 @@ export function ConsoleShell({
       >
         <MenuIcon />
       </button>
-      <VenuePicker memberships={memberships} selected={selected} onSelect={select} className="in-bar" />
+      <GroupSwitcher choice={choice} className="in-bar" />
+      <VenuePicker memberships={venues} selected={selected} onSelect={select} className="in-bar" />
       <span className="ops-appbar-sandbox">
         <Icon name="paypal" size={16} />
         Sandbox
@@ -464,7 +487,8 @@ export function ConsoleShell({
               <Wordmark />
               <span className="ops-tag">THE RESTAURANT ROOM</span>
             </div>
-            <VenuePicker memberships={memberships} selected={selected} onSelect={select} className="in-side" />
+            <GroupSwitcher choice={choice} className="in-side" />
+            <VenuePicker memberships={venues} selected={selected} onSelect={select} className="in-side" />
             <div className="ops-shell-nav" ref={setNavTarget} />
             <ShellFoot onSignOut={signOutNow} />
           </aside>
@@ -477,7 +501,8 @@ export function ConsoleShell({
                     <MenuIcon close />
                   </button>
                 </div>
-                <VenuePicker memberships={memberships} selected={selected} onSelect={select} className="in-drawer" />
+                <GroupSwitcher choice={choice} className="in-drawer" />
+                <VenuePicker memberships={venues} selected={selected} onSelect={select} className="in-drawer" />
                 <div className="ops-shell-nav" ref={setDrawerTarget} />
                 <ShellFoot onSignOut={signOutNow} />
               </div>
@@ -489,18 +514,20 @@ export function ConsoleShell({
                 {error}
               </p>
             )}
-            <View
-              key={selected}
-              api={api}
-              tenant={selected}
-              navTarget={navTarget}
-              drawerNavTarget={drawerOpen ? drawerTarget : null}
-              appBarLead={lead}
-              person={person}
-              onDirty={(dirty) => {
-                draft.current = dirty;
-              }}
-            />
+            <GroupChoiceProvider value={choice}>
+              <View
+                key={selected}
+                api={api}
+                tenant={selected}
+                navTarget={navTarget}
+                drawerNavTarget={drawerOpen ? drawerTarget : null}
+                appBarLead={lead}
+                person={person}
+                onDirty={(dirty) => {
+                  draft.current = dirty;
+                }}
+              />
+            </GroupChoiceProvider>
           </div>
         </main>
       </SnackbarProvider>

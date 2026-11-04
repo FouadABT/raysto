@@ -12,6 +12,12 @@ part of 'connected_app.dart';
   'translator' => (c.tr('Translator'), Icons.translate),
   'marketing' => (c.tr('Marketing studio'), Icons.campaign_outlined),
   'reviews' => (c.tr('Review replies'), Icons.reviews_outlined),
+  // 0.16 (stream S1): the money coworkers.
+  'accountant' => (c.tr('Accountant'), Icons.account_balance_outlined),
+  'close' => (c.tr('Daily close'), Icons.fact_check_outlined),
+  'payroll' => (c.tr('Pay and tips'), Icons.groups_outlined),
+  'supplies' => (c.tr('Supplies agent'), Icons.inventory_2_outlined),
+  'expenses' => (c.tr('Expenses agent'), Icons.receipt_long_outlined),
   _ => (friendly(agent), Icons.auto_awesome),
 };
 

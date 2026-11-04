@@ -398,7 +398,8 @@ class OrderingModule {
         food < (w.settings['deliveryMinimumMinor'] as int)) {
       _fail('delivery_minimum', 'Delivery minimum has not been reached.');
     }
-    final fee = mode == 'delivery' ? w.settings['deliveryFeeMinor'] as int : 0;
+    // 0.16 (S2): a flat fee, or base + per km by the café's settings.
+    final fee = mode == 'delivery' ? DeliveryModule.fee(w.settings, address) : 0;
     final tip = _int(input, 'tipMinor', max: 100000, fallback: 0);
     if (fee > 0) {
       units.add({
@@ -992,9 +993,13 @@ class OrderingModule {
     },
     roles: {'owner', 'manager', 'kitchen'},
   );
+  // ---- Delivery (owner: stream S2; drivers and offers are in delivery.dart).
+
+  /// A dispatcher gives the job to a courier login or a driver card at once,
+  /// without an offer. Allowed until the order is collected.
   static Future<Json> assignCourier(Session s, PlatformCommand c) =>
       _mutate(s, c, 'delivery.assign', (w, d) async {
-        _keys(d, {'courierId'});
+        _keys(d, {'courierId', 'driverId'});
         final task = await DeliveryAssignment.db.findById(
           s,
           _id(c),
@@ -1007,20 +1012,36 @@ class OrderingModule {
         if (!{'unassigned', 'assigned', 'issue'}.contains(task.status)) {
           _fail('invalid_transition', 'Cannot reassign after collection.');
         }
+        if (task.fulfilledBy == 'partner') {
+          _fail('invalid_transition', 'The partner app delivers this order.');
+        }
         await _capable(w, 'dispatch');
-        final courier = _str(d, 'courierId', max: 100);
-        await _role(s, courier, w.tenant, {'courier'}, tx: w.tx);
-        task.courierId = courier;
-        task.status = 'assigned';
-        task.version++;
-        task.updatedAt = _now();
-        await DeliveryAssignment.db.updateRow(s, task, transaction: w.tx);
-        await w.notify(courier, 'delivery.assigned', {
-          'deliveryId': task.id,
-        }, 'delivery:${task.id}:${task.version}');
-        await w.audit('delivery.assigned', 'delivery', task.id);
-        return {'version': task.version};
+        final Driver driver;
+        if (d['driverId'] != null) {
+          driver = await DeliveryModule._driver(
+            w,
+            _int(d, 'driverId', min: 1),
+          );
+          if (driver.kind != 'staff' || !driver.active) {
+            _fail('driver_unavailable', '${driver.name} is not taking jobs.');
+          }
+        } else {
+          final courier = _str(d, 'courierId', max: 100);
+          await _role(s, courier, w.tenant, {'courier'}, tx: w.tx);
+          driver = await DeliveryModule.driverFor(w, courier);
+        }
+        final previous = task.driverId;
+        final (o, _) = await _order(w, task.orderId);
+        await DeliveryModule.assign(w, task, o, driver);
+        if (previous != null && previous != driver.id) {
+          await DeliveryModule.release(w, previous);
+        }
+        return {'version': task.version, 'driverId': driver.id};
       }, roles: _staff);
+
+  /// Collect, out for delivery, delivered, plus issues. When the café asks
+  /// for proof, a courier finishes with `delivery.proof` instead; a manager
+  /// may still mark it delivered here.
   static Future<Json> delivery(Session s, PlatformCommand c) => _mutate(
     s,
     c,
@@ -1039,6 +1060,9 @@ class OrderingModule {
       final member = await w.role({'owner', 'manager', 'courier'});
       if (member.role == 'courier' && task.courierId != w.user) {
         _fail('not_found', 'Delivery not found.');
+      }
+      if (task.fulfilledBy == 'partner') {
+        _fail('invalid_transition', 'The partner app reports this delivery.');
       }
       final (o, ctx) = await _order(w, task.orderId);
       final next = _str(
@@ -1087,14 +1111,29 @@ class OrderingModule {
             (o.status != 'ready' || !paymentCleared(o, ctx))) {
           _fail('not_ready', 'Order must be ready and paid before handoff.');
         }
+        if (next == 'delivered') {
+          final proof = (w.settings['deliveryProof'] as String?) ?? 'none';
+          if (proof != 'none' && member.role == 'courier') {
+            _fail(
+              'proof_required',
+              proof == 'code'
+                  ? 'Ask the customer for their 4-digit code.'
+                  : 'Take a photo of the order at the door.',
+            );
+          }
+          task.proofKind = proof == 'none' ? 'none' : 'manager';
+          await DeliveryModule.finish(w, task, o);
+          return {'version': task.version, 'status': task.status};
+        }
+        if (next == 'collected') task.pickedUpAt = _now();
         task.status = next;
-        o.status = next == 'delivered' ? 'delivered' : 'outForDelivery';
+        o.status = 'outForDelivery';
         await _changed(w, o, 'delivery.$next');
-      }
-      if (next == 'delivered') {
-        task.locationJson = null;
-        task.locationExpiresAt = null;
-        task.locationConsent = false;
+        final driver = task.driverId == null
+            ? null
+            : await Driver.db.findById(s, task.driverId!, transaction: w.tx);
+        final eta = DeliveryModule.estimate(w.settings, o, driver: driver);
+        if (eta['at'] != null) task.etaAt = DateTime.parse(eta['at'] as String);
       }
       task.version++;
       task.updatedAt = _now();
@@ -1103,9 +1142,14 @@ class OrderingModule {
       return {'version': task.version, 'status': task.status};
     },
   );
+
+  /// The courier's phone, in the foreground and with consent, while the
+  /// order is collected or on its way. Each position is also kept as a ping
+  /// for the map. A position does not bump the job's version, so a courier's
+  /// next step never conflicts with their own location updates.
   static Future<Json> location(Session s, PlatformCommand c) =>
       _mutate(s, c, 'delivery.location', (w, d) async {
-        _keys(d, {'consent', 'latitude', 'longitude'});
+        _keys(d, {'consent', 'latitude', 'longitude', 'accuracy'});
         final task = await DeliveryAssignment.db.findById(
           s,
           _id(c),
@@ -1123,18 +1167,39 @@ class OrderingModule {
           );
         }
         task.locationConsent = _bool(d, 'consent');
-        task.locationJson = task.locationConsent
-            ? jsonEncode({
-                'latitude': CatalogueModule.coordinate(d['latitude'], 90),
-                'longitude': CatalogueModule.coordinate(d['longitude'], 180),
-                'at': _now().toIso8601String(),
-              })
-            : null;
-        task.locationExpiresAt = task.locationConsent
-            ? _now().add(const Duration(minutes: 5))
-            : null;
-        task.version++;
+        if (task.locationConsent) {
+          final lat = CatalogueModule.coordinate(d['latitude'], 90);
+          final lng = CatalogueModule.coordinate(d['longitude'], 180);
+          double? accuracy;
+          if (d['accuracy'] != null) {
+            final raw = d['accuracy'];
+            if (raw is! num || !raw.isFinite || raw < 0 || raw > 100000) {
+              _fail('invalid_input', 'Invalid accuracy.');
+            }
+            accuracy = raw.toDouble();
+          }
+          task.locationJson = jsonEncode({
+            'latitude': lat,
+            'longitude': lng,
+            'at': _now().toIso8601String(),
+          });
+          task.locationExpiresAt = _now().add(const Duration(minutes: 5));
+          await DeliveryModule.ping(w, task, lat, lng, accuracy);
+        } else {
+          task.locationJson = null;
+          task.locationExpiresAt = null;
+          // Consent withdrawn: the trail is forgotten as well.
+          await DeliveryPing.db.deleteWhere(
+            s,
+            where: (t) => t.assignmentId.equals(task.id!),
+            transaction: w.tx,
+          );
+        }
+        task.updatedAt = _now();
         await DeliveryAssignment.db.updateRow(s, task, transaction: w.tx);
-        return {'expiresAt': task.locationExpiresAt?.toIso8601String()};
+        return {
+          'expiresAt': task.locationExpiresAt?.toIso8601String(),
+          'version': task.version,
+        };
       }, roles: {'courier'});
 }

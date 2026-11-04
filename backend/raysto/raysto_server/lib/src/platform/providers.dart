@@ -29,7 +29,17 @@ class ProviderClients {
           .split(',')
           .any((id) => int.tryParse(id.trim()) == tenant);
 
-  static Future<String> paypalReadToken() async {
+  /// A read token for the PayPal MCP server: the restaurant's own app when
+  /// [account] is given, else the shared Sandbox app.
+  static Future<String> paypalReadToken({PayPalAccount? account}) async {
+    if (account != null) {
+      final client = httpClient();
+      try {
+        return await _ownBearer(account, client);
+      } finally {
+        client.close();
+      }
+    }
     if (paypalEnvironment != 'sandbox' ||
         environment()['RAYSTO_SINGLE_MERCHANT_SANDBOX_ENABLED'] != 'true') {
       _fail('not_configured', 'Sandbox merchant reads are not enabled.');
@@ -131,11 +141,20 @@ class ProviderClients {
     String? merchant,
     bool billing = false,
     bool singleMerchant = false,
+    PayPalAccount? account,
   }) async {
     if (!path.startsWith('/') ||
         path.startsWith('//') ||
         path.contains('://')) {
       _fail('invalid_input', 'Invalid provider path.');
+    }
+    if (account != null) {
+      // A restaurant's own app speaks for itself: no partner headers, no
+      // assertion, and never Raysto's own billing.
+      if (billing) {
+        _fail('not_configured', 'Billing never uses a restaurant app.');
+      }
+      return _ownCall(account, method, path, body: body, requestId: requestId);
     }
     if (singleMerchant &&
         (billing ||
@@ -195,6 +214,193 @@ class ProviderClients {
     }
   }
 
+  // Own-app access tokens, per app and key version, dropped five minutes
+  // before PayPal expires them or on any failed call.
+  static final Map<String, (String, DateTime)> _ownTokens = {};
+  static void forgetOwnTokens() => _ownTokens.clear();
+
+  static String _basic(String id, String secret) =>
+      'Basic ${base64Encode(utf8.encode('$id:$secret'))}';
+
+  /// Asks PayPal for a token with keys an owner pasted. Only a yes from
+  /// PayPal counts: 400/401 mean the keys are wrong, anything else that
+  /// PayPal could not be asked. Returns the app id and expiry, never the keys.
+  static Future<Json> ownAppToken(String clientId, String secret) async {
+    if (paypalEnvironment != 'sandbox') {
+      _fail(
+        'not_configured',
+        'Own PayPal apps are Sandbox-only on this deployment.',
+      );
+    }
+    final client = httpClient();
+    try {
+      final r = await client
+          .send(
+            http.Request('POST', Uri.https(paypalHost, '/v1/oauth2/token'))
+              ..followRedirects = false
+              ..headers.addAll({
+                'Authorization': _basic(clientId, secret),
+                'Content-Type': 'application/x-www-form-urlencoded',
+              })
+              ..body = 'grant_type=client_credentials',
+          )
+          .timeout(const Duration(seconds: 25));
+      final bytes = await bounded(r, maxBytes: 65536);
+      if (r.statusCode == 400 || r.statusCode == 401) {
+        _fail(
+          'paypal_keys_invalid',
+          'PayPal Sandbox did not accept this Client ID and Secret. Copy both '
+              'again from the app\'s page on developer.paypal.com.',
+        );
+      }
+      if (r.statusCode < 200 || r.statusCode >= 300) {
+        _fail('provider_unavailable', 'PayPal could not be asked. Try again.');
+      }
+      final token = _json(utf8.decode(bytes), maxBytes: 65536);
+      _str(token, 'access_token', max: 16000);
+      return {
+        'appId': token['app_id'] is String ? token['app_id'] : null,
+        'expiresIn': token['expires_in'] is int ? token['expires_in'] : 0,
+      };
+    } on TimeoutException {
+      _fail('provider_unavailable', 'PayPal could not be asked. Try again.');
+    } on SocketException {
+      _fail('provider_unavailable', 'PayPal could not be asked. Try again.');
+    } finally {
+      client.close();
+    }
+  }
+
+  static Future<String> _ownBearer(PayPalAccount a, http.Client client) async {
+    final cached = _ownTokens[a._cacheKey];
+    if (cached != null && cached.$2.isAfter(_now())) return cached.$1;
+    if (paypalEnvironment != 'sandbox') {
+      _fail(
+        'not_configured',
+        'Own PayPal apps are Sandbox-only on this deployment.',
+      );
+    }
+    final token = await sendJson(
+      client,
+      http.Request('POST', Uri.https(paypalHost, '/v1/oauth2/token'))
+        ..followRedirects = false
+        ..headers.addAll({
+          'Authorization': _basic(a.clientId, a._secret),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        })
+        ..body = 'grant_type=client_credentials',
+    );
+    final value = _str(token, 'access_token', max: 16000);
+    final life = token['expires_in'] is int ? token['expires_in'] as int : 0;
+    if (life > 360) {
+      _ownTokens[a._cacheKey] = (
+        value,
+        _now().add(Duration(seconds: life - 300)),
+      );
+    }
+    return value;
+  }
+
+  static http.Request _ownRequest(
+    String method,
+    String path,
+    String bearer, {
+    Json? body,
+    String? requestId,
+  }) {
+    final req = http.Request(method, Uri.parse('https://$paypalHost$path'))
+      ..followRedirects = false;
+    req.headers.addAll({
+      'Authorization': 'Bearer $bearer',
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      'PayPal-Request-Id': ?requestId,
+    });
+    if (body != null) req.body = jsonEncode(body);
+    return req;
+  }
+
+  static Future<Json> _ownCall(
+    PayPalAccount a,
+    String method,
+    String path, {
+    Json? body,
+    String? requestId,
+  }) async {
+    final client = httpClient();
+    try {
+      final bearer = await _ownBearer(a, client);
+      return await sendJson(
+        client,
+        _ownRequest(method, path, bearer, body: body, requestId: requestId),
+      );
+    } on DomainError {
+      // A token PayPal no longer honours (keys rotated at PayPal) must not
+      // stick; the next call asks for a new one.
+      _ownTokens.remove(a._cacheKey);
+      rethrow;
+    } finally {
+      client.close();
+    }
+  }
+
+  /// One call with a restaurant's own app that reports PayPal's status and
+  /// error name instead of throwing: the feature checklist and the webhook
+  /// setup need to tell "not enabled" from "nothing there".
+  static Future<(int, Json)> ownRaw(
+    PayPalAccount a,
+    String method,
+    String path, {
+    Json? body,
+  }) async {
+    if (!path.startsWith('/') ||
+        path.startsWith('//') ||
+        path.contains('://')) {
+      _fail('invalid_input', 'Invalid provider path.');
+    }
+    final client = httpClient();
+    try {
+      final bearer = await _ownBearer(a, client);
+      final r = await client
+          .send(_ownRequest(method, path, bearer, body: body))
+          .timeout(const Duration(seconds: 25));
+      final bytes = await bounded(r);
+      Json decoded = {};
+      try {
+        if (bytes.isNotEmpty) {
+          decoded = _json(utf8.decode(bytes), maxBytes: 2097152);
+        }
+      } on FormatException {
+        decoded = {};
+      } on DomainError {
+        decoded = {};
+      }
+      if (r.statusCode == 401) _ownTokens.remove(a._cacheKey);
+      return (r.statusCode, decoded);
+    } finally {
+      client.close();
+    }
+  }
+
+  /// A PayPal call about one checkout, through the account it was taken with.
+  static Future<Json> paypalFor(
+    Session s,
+    CheckoutIntent i,
+    String method,
+    String path, {
+    Json? body,
+    String? requestId,
+    bool asMerchant = false,
+  }) async => paypal(
+    method,
+    path,
+    body: body,
+    requestId: requestId,
+    merchant: asMerchant ? i.merchantId : null,
+    singleMerchant: i.providerMode == 'singleMerchantSandbox',
+    account: await MerchantAppModule.forIntent(s, i),
+  );
+
   static Uri callback(String key) {
     final u = Uri.parse(required(key));
     if (u.scheme != 'https' ||
@@ -207,73 +413,88 @@ class ProviderClients {
   }
 
   // PayPal's page names the restaurant instead of the merchant account.
-  static Future<Json> createCheckout(CheckoutIntent i, {String? brand}) =>
-      paypal(
-        'POST',
-        '/v2/checkout/orders',
-        merchant: i.merchantId,
-        singleMerchant: i.providerMode == 'singleMerchantSandbox',
-        requestId: 'new-${i.providerRequestId}',
-        body: {
-          'intent': 'CAPTURE',
-          'purchase_units': [
-            {
-              'reference_id': 'raysto-v2:${i.id}',
-              'custom_id': 'raysto-v2:${i.id}',
-              'payee': {'merchant_id': i.merchantId},
-              'amount': {
-                'currency_code': i.currency,
-                'value': PayPalGateway.money(i.amountMinor),
-              },
-              if (i.commissionMinor > 0)
-                'payment_instruction': {
-                  'disbursement_mode': 'INSTANT',
-                  'platform_fees': [
-                    {
-                      'amount': {
-                        'currency_code': i.currency,
-                        'value': PayPalGateway.money(i.commissionMinor),
-                      },
-                      'payee': {
-                        'merchant_id': required('PAYPAL_PLATFORM_MERCHANT_ID'),
-                      },
-                    },
-                  ],
+  // An own app is the payee itself; until PayPal has told Raysto the
+  // account's id (the first order's payee), the payee is left implicit.
+  static Future<Json> createCheckout(
+    CheckoutIntent i, {
+    String? brand,
+    PayPalAccount? account,
+  }) => i.providerMode == 'ownApp' && account == null
+      ? _fail(
+          'merchant_unavailable',
+          'The café\'s own PayPal app is not connected.',
+        )
+      : paypal(
+          'POST',
+          '/v2/checkout/orders',
+          merchant: i.merchantId,
+          singleMerchant: i.providerMode == 'singleMerchantSandbox',
+          account: account,
+          requestId: 'new-${i.providerRequestId}',
+          body: {
+            'intent': 'CAPTURE',
+            'purchase_units': [
+              {
+                'reference_id': 'raysto-v2:${i.id}',
+                'custom_id': 'raysto-v2:${i.id}',
+                if (i.merchantId.isNotEmpty)
+                  'payee': {'merchant_id': i.merchantId},
+                'amount': {
+                  'currency_code': i.currency,
+                  'value': PayPalGateway.money(i.amountMinor),
                 },
-            },
-          ],
-          'payment_source': {
-            'paypal': {
-              'experience_context': {
-                'return_url': callback('PAYPAL_V2_RETURN_URL')
-                    .replace(
-                      queryParameters: {
-                        'v': '2',
-                        'checkoutId': '${i.id}',
-                        'restaurantId': '${i.restaurantId}',
+                if (i.commissionMinor > 0)
+                  'payment_instruction': {
+                    'disbursement_mode': 'INSTANT',
+                    'platform_fees': [
+                      {
+                        'amount': {
+                          'currency_code': i.currency,
+                          'value': PayPalGateway.money(i.commissionMinor),
+                        },
+                        'payee': {
+                          'merchant_id': required(
+                            'PAYPAL_PLATFORM_MERCHANT_ID',
+                          ),
+                        },
                       },
-                    )
-                    .toString(),
-                'cancel_url': callback('PAYPAL_V2_CANCEL_URL')
-                    .replace(
-                      queryParameters: {
-                        'v': '2',
-                        'checkoutId': '${i.id}',
-                        'restaurantId': '${i.restaurantId}',
-                      },
-                    )
-                    .toString(),
-                'user_action': 'PAY_NOW',
-                'shipping_preference': 'NO_SHIPPING',
-                if (brand != null && brand.trim().isNotEmpty)
-                  'brand_name': brand.trim().length > 127
-                      ? brand.trim().substring(0, 127)
-                      : brand.trim(),
+                    ],
+                  },
+              },
+            ],
+            'payment_source': {
+              'paypal': {
+                'experience_context': {
+                  'return_url': callback('PAYPAL_V2_RETURN_URL')
+                      .replace(
+                        queryParameters: {
+                          'v': '2',
+                          'checkoutId': '${i.id}',
+                          'restaurantId': '${i.restaurantId}',
+                        },
+                      )
+                      .toString(),
+                  'cancel_url': callback('PAYPAL_V2_CANCEL_URL')
+                      .replace(
+                        queryParameters: {
+                          'v': '2',
+                          'checkoutId': '${i.id}',
+                          'restaurantId': '${i.restaurantId}',
+                        },
+                      )
+                      .toString(),
+                  'user_action': 'PAY_NOW',
+                  'shipping_preference': 'NO_SHIPPING',
+                  if (brand != null && brand.trim().isNotEmpty)
+                    'brand_name': brand.trim().length > 127
+                        ? brand.trim().substring(0, 127)
+                        : brand.trim(),
+                },
               },
             },
           },
-        },
-      );
+        );
+
   /// Money out: one PayPal Payouts batch on the Sandbox business account,
   /// for staff tips, wages and suppliers. Never called without a person's
   /// approval; [batchId] is the idempotency key PayPal keeps.
@@ -283,6 +504,7 @@ class ProviderClients {
     required List<Json> items,
     String subject = 'Payment from the café',
     String note = '',
+    PayPalAccount? account,
   }) async {
     if (items.isEmpty || items.length > 500) {
       _fail('invalid_input', 'A payout batch holds 1–500 items.');
@@ -290,7 +512,8 @@ class ProviderClients {
     final r = await paypal(
       'POST',
       '/v1/payments/payouts',
-      singleMerchant: true,
+      singleMerchant: account == null,
+      account: account,
       requestId: 'payout-$batchId',
       body: {
         'sender_batch_header': {
@@ -320,14 +543,18 @@ class ProviderClients {
     };
   }
 
-  static Future<Json> readPayout(String providerBatchId) async {
+  static Future<Json> readPayout(
+    String providerBatchId, {
+    PayPalAccount? account,
+  }) async {
     if (!RegExp(r'^[A-Za-z0-9_-]{1,50}$').hasMatch(providerBatchId)) {
       _fail('invalid_input', 'Invalid payout batch id.');
     }
     final r = await paypal(
       'GET',
       '/v1/payments/payouts/$providerBatchId?page_size=500',
-      singleMerchant: true,
+      singleMerchant: account == null,
+      account: account,
     );
     final header = _object(r['batch_header']);
     final fees = _object(header['fees'] ?? {});
@@ -365,6 +592,7 @@ class ProviderClients {
     DateTime from,
     DateTime to, {
     int page = 1,
+    PayPalAccount? account,
   }) async {
     if (!to.isAfter(from) || to.difference(from).inDays > 31) {
       _fail('invalid_input', 'Transaction windows are 1 second to 31 days.');
@@ -375,7 +603,8 @@ class ProviderClients {
       'GET',
       '/v1/reporting/transactions?start_date=${iso(from)}&end_date=${iso(to)}'
           '&fields=transaction_info,cart_info&page_size=100&page=$page',
-      singleMerchant: true,
+      singleMerchant: account == null,
+      account: account,
     );
     return [
       for (final raw
@@ -393,15 +622,15 @@ class ProviderClients {
             'at': info['transaction_initiation_date'],
             'amountMinor': amount['value'] is String
                 ? PayPalGateway.parseMoney(
-                    (amount['value'] as String).replaceFirst('-', ''),
-                  ) *
+                        (amount['value'] as String).replaceFirst('-', ''),
+                      ) *
                       ((amount['value'] as String).startsWith('-') ? -1 : 1)
                 : null,
             'currency': amount['currency_code'],
             'feeMinor': fee['value'] is String
                 ? PayPalGateway.parseMoney(
-                    (fee['value'] as String).replaceFirst('-', ''),
-                  ) *
+                        (fee['value'] as String).replaceFirst('-', ''),
+                      ) *
                       ((fee['value'] as String).startsWith('-') ? -1 : 1)
                 : 0,
             'customId': info['custom_field'],
@@ -412,11 +641,12 @@ class ProviderClients {
     ];
   }
 
-  static Future<List<Json>> listDisputes() async {
+  static Future<List<Json>> listDisputes({PayPalAccount? account}) async {
     final r = await paypal(
       'GET',
       '/v1/customer/disputes?page_size=50',
-      singleMerchant: true,
+      singleMerchant: account == null,
+      account: account,
     );
     return [
       for (final raw in (r['items'] as List? ?? []).whereType<Map>())
@@ -424,12 +654,17 @@ class ProviderClients {
     ];
   }
 
-  static Future<Json> getDispute(String id) async {
+  static Future<Json> getDispute(String id, {PayPalAccount? account}) async {
     if (!RegExp(r'^[A-Za-z0-9_-]{1,50}$').hasMatch(id)) {
       _fail('invalid_input', 'Invalid dispute id.');
     }
     return _dispute(
-      await paypal('GET', '/v1/customer/disputes/$id', singleMerchant: true),
+      await paypal(
+        'GET',
+        '/v1/customer/disputes/$id',
+        singleMerchant: account == null,
+        account: account,
+      ),
     );
   }
 
@@ -492,6 +727,8 @@ class ProviderClients {
     Map<String, String> headers, {
     bool billing = false,
     bool singleMerchant = false,
+    PayPalAccount? account,
+    String? webhookId,
   }) async {
     final cert = Uri.tryParse(headers['paypal-cert-url'] ?? '');
     if (cert == null ||
@@ -509,19 +746,22 @@ class ProviderClients {
       '/v1/notifications/verify-webhook-signature',
       billing: billing,
       singleMerchant: singleMerchant,
+      account: account,
       body: {
         'auth_algo': headers['paypal-auth-algo'],
         'cert_url': cert.toString(),
         'transmission_id': headers['paypal-transmission-id'],
         'transmission_sig': headers['paypal-transmission-sig'],
         'transmission_time': headers['paypal-transmission-time'],
-        'webhook_id': required(
-          billing
-              ? 'PAYPAL_BILLING_WEBHOOK_ID'
-              : singleMerchant
-              ? 'PAYPAL_SANDBOX_WEBHOOK_ID'
-              : 'PAYPAL_PLATFORM_WEBHOOK_ID',
-        ),
+        'webhook_id': account != null
+            ? (webhookId ?? _fail('forbidden', 'Webhook is not registered.'))
+            : required(
+                billing
+                    ? 'PAYPAL_BILLING_WEBHOOK_ID'
+                    : singleMerchant
+                    ? 'PAYPAL_SANDBOX_WEBHOOK_ID'
+                    : 'PAYPAL_PLATFORM_WEBHOOK_ID',
+              ),
         'webhook_event': event,
       },
     );

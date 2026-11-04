@@ -20,13 +20,14 @@ import { duration, easing, MotionRoot, stagger, useFirstVisit, useReduce } from 
 import { AgentPanel } from "./business-sections";
 import { Icon, type IconName } from "./icons";
 import { CountUp, Stamp } from "./m3";
+import { TryCardsNew } from "./try-section-new";
 
 /** The café's clock: pickup times read as the café sees them. */
-const cafeZone = "America/New_York";
+export const cafeZone = "America/New_York";
 
 type Phase = "idle" | "running" | "done" | "failed";
 
-const message = (e: unknown) =>
+export const message = (e: unknown) =>
   e instanceof ApiFailure || e instanceof Error ? e.message : String(e);
 
 function wait(ms: number, signal: AbortSignal) {
@@ -44,7 +45,7 @@ function wait(ms: number, signal: AbortSignal) {
 }
 
 /** Reads until [done] holds, every [every] ms, for at most [limit] ms. */
-async function poll<T>(
+export async function poll<T>(
   read: () => Promise<T>,
   done: (value: T) => boolean,
   signal: AbortSignal,
@@ -62,7 +63,7 @@ async function poll<T>(
 }
 
 /** One demo's progress: what it is doing now and for how long. */
-function useDemo() {
+export function useDemo() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [step, setStep] = useState("");
   const [error, setError] = useState("");
@@ -103,7 +104,7 @@ function useDemo() {
 }
 type Demo = ReturnType<typeof useDemo>;
 
-function Progress({ demo }: { demo: Demo }) {
+export function Progress({ demo }: { demo: Demo }) {
   if (demo.phase === "running")
     return (
       <p className="ops-try-progress" role="status">
@@ -121,7 +122,7 @@ function Progress({ demo }: { demo: Demo }) {
   return null;
 }
 
-function Card({
+export function Card({
   n,
   icon,
   title,
@@ -168,7 +169,7 @@ function Card({
   );
 }
 
-function Chips({ items }: { items: (string | false | undefined)[] }) {
+export function Chips({ items }: { items: (string | false | undefined)[] }) {
   const shown = items.filter((v): v is string => !!v);
   if (!shown.length) return null;
   return (
@@ -184,7 +185,7 @@ const menuOf = async (api: ConnectedApi, tenant: number) =>
   (await api.query<{ menu: Dish[] }>("counter.menu", { restaurantId: tenant }))
     .menu;
 
-async function agentTask(
+export async function agentTask(
   api: ConnectedApi,
   tenant: number,
   id: number,
@@ -203,13 +204,13 @@ async function agentTask(
   return task;
 }
 
-const pendingOf = (task: Json) =>
+export const pendingOf = (task: Json) =>
   ((task.actions as AgentActionRow[] | undefined) ?? []).find(
     (a) => a.status === "pending",
   );
 
 /** Approval inside a card; the result line replaces it once decided. */
-function Approve({
+export function Approve({
   api,
   tenant,
   action,
@@ -233,9 +234,9 @@ function Approve({
 }
 
 /** How an approval ended, in words and in tone: only an executed action is "done". */
-type Decided = { text: string; tone: OutcomeTone };
+export type Decided = { text: string; tone: OutcomeTone };
 
-const decided = (state: string, executed: string, result?: Json): Decided => ({
+export const decided = (state: string, executed: string, result?: Json): Decided => ({
   tone: outcomeTone(state, result),
   text:
     state === "executed"
@@ -252,7 +253,7 @@ const decided = (state: string, executed: string, result?: Json): Decided => ({
 });
 
 /** The result line under an approval: a check only when it really ran. */
-function OutcomeLine({ outcome }: { outcome: Decided }) {
+export function OutcomeLine({ outcome }: { outcome: Decided }) {
   const icon: IconName = outcome.tone === "done" ? "check" : outcome.tone === "expired" ? "clock" : "alert";
   return (
     <p className={`ops-try-done${outcome.tone === "done" ? "" : ` ops-try-refused ops-try-${outcome.tone}`}`} role="status">
@@ -263,7 +264,7 @@ function OutcomeLine({ outcome }: { outcome: Decided }) {
 }
 
 /** A command that the backend does not offer yet reads as that, never as a result. */
-const unavailable = (e: unknown, what: string) => {
+export const unavailable = (e: unknown, what: string) => {
   const m = message(e);
   if (/not_found|Unknown operation|404|not allowed|forbidden path/i.test(m))
     return new Error(`${what} is not available on this deployment yet.`);
@@ -357,10 +358,10 @@ function MoneyOutcome({
   );
 }
 
-const money = (minor: unknown, code = "USD") => currency(Number(minor ?? 0), code);
+export const money = (minor: unknown, code = "USD") => currency(Number(minor ?? 0), code);
 
 /** A result total that counts up to its real value. */
-const counted = (minor: unknown, code = "USD") => (
+export const counted = (minor: unknown, code = "USD") => (
   <CountUp value={Math.round(Number(minor ?? 0))} format={(n) => currency(n, code)} />
 );
 
@@ -1511,6 +1512,7 @@ export function TrySection({ api, tenant }: { api: ConnectedApi; tenant: number 
           <MenuCard api={api} tenant={tenant} />
           <VoiceCard api={api} tenant={tenant} />
           <PhotoCard api={api} tenant={tenant} />
+          <TryCardsNew api={api} tenant={tenant} />
         </div>
       </div>
     </MotionRoot>

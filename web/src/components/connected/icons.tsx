@@ -34,6 +34,18 @@ const paths = {
   ledger: <><rect x="5" y="3.5" width="14" height="17" rx="2" /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" /><path d="M15.5 15.5l1.5 1.5 2.5-3" /></>,
   dispatch: <><circle cx="6.5" cy="17" r="2.5" /><circle cx="17.5" cy="17" r="2.5" /><path d="M9 17h6M13 6.5h3l2.5 8M11 10h4l-2 7" /><path d="M4 10h5" /></>,
   supplies: <><path d="M4 8l8-4.5L20 8v8l-8 4.5L4 16z" /><path d="M4 8l8 4.5L20 8M12 12.5V20.5" /></>,
+  // S4 (grids and the group): search, CSV download, copy, no, switch.
+  search: <><circle cx="10.5" cy="10.5" r="6" /><path d="m15 15 5.5 5.5" /></>,
+  download: <><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5" /><path d="M4.5 19.5h15" /></>,
+  copy: <><rect x="8.5" y="8.5" width="11" height="11" rx="2" /><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" /></>,
+  cross: <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />,
+  swap: <><path d="M4.5 8.5h14M15 5l3.5 3.5L15 12" /><path d="M19.5 15.5h-14M9 12l-3.5 3.5L9 19" /></>,
+  // End of S4.
+  // S1 (the accountant): upload, a QR code, send.
+  upload: <><path d="M12 15.5V4.5M7.5 9 12 4.5 16.5 9" /><path d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" /></>,
+  qr: <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5zM20 14v1.5M14 20h1.5" /></>,
+  send: <><path d="M20.5 3.5 10 14" /><path d="M20.5 3.5 14 20.5l-4-6.5-6.5-4z" /></>,
+  // End of S1.
 } as const;
 
 export type IconName = keyof typeof paths;

@@ -17,6 +17,7 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:image/image.dart' as img;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart' as jwt;
+import 'package:pointycastle/export.dart' as pc;
 import '../generated/protocol.dart';
 import '../services/firebase_services.dart';
 import '../services/paypal_gateway.dart';
@@ -70,6 +71,8 @@ part 'agent_dispatch.dart';
 part 'purchasing.dart';
 part 'agent_supplies_plan.dart';
 part 'studio_layout.dart';
+// 0.16 stream S6: each restaurant's own PayPal app.
+part 'merchant_app.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -384,6 +387,9 @@ class PlatformApi {
     'dispute.seed': DisputeAgent.seed,
     'merchant.connect': MoneyModule.connectMerchant,
     'merchant.refresh': MoneyModule.refreshMerchant,
+    'merchant.app.save': MerchantAppModule.save,
+    'merchant.app.check': MerchantAppModule.recheck,
+    'merchant.app.remove': MerchantAppModule.remove,
     'supply.receive': SuppliesAgent.receive,
     'expense.snap': ExpensesAgent.snap,
     'loyalty.run': LoyaltyAgent.start,

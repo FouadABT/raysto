@@ -46,7 +46,11 @@ class ExpensesAgent {
   /// PayPal's transaction list for a window, or why it is not available.
   /// Reporting needs Transaction Search on the Sandbox app and the
   /// deployment flag; without them the answer says so instead of guessing.
-  static Future<Json> paypalTransactions(DateTime from, DateTime to) async {
+  static Future<Json> paypalTransactions(
+    DateTime from,
+    DateTime to, {
+    PayPalAccount? account,
+  }) async {
     if (ProviderClients.environment()['RAYSTO_PAYPAL_REPORTING_ENABLED'] !=
         'true') {
       return {
@@ -61,7 +65,7 @@ class ExpensesAgent {
       if (Platform.environment['RAYSTO_PAYPAL_MCP_ENABLED'] == 'true') {
         client = PayPalMcpClient.configured(
           Platform.environment,
-          accessToken: ProviderClients.paypalReadToken,
+          accessToken: () => ProviderClients.paypalReadToken(account: account),
         );
         final r = await client.query('list_transactions', {
           'start_date': from.toUtc().toIso8601String(),
@@ -95,7 +99,11 @@ class ExpensesAgent {
       client?.close();
     }
     try {
-      final rows = await ProviderClients.listTransactions(from, to);
+      final rows = await ProviderClients.listTransactions(
+        from,
+        to,
+        account: account,
+      );
       return {
         'available': true,
         'source': 'paypal_rest',
@@ -178,7 +186,13 @@ class ExpensesAgent {
             'paypalTransactionId': {'type': 'STRING'},
             'explanation': {'type': 'STRING'},
           },
-          required: ['merchant', 'category', 'amountMinor', 'spentAt', 'explanation'],
+          required: [
+            'merchant',
+            'category',
+            'amountMinor',
+            'spentAt',
+            'explanation',
+          ],
         ),
       ],
       stopTool: 'propose_expense',
@@ -190,7 +204,14 @@ class ExpensesAgent {
             if (!to.isAfter(from) || to.difference(from).inDays > 31) {
               _fail('invalid_input', 'Ask for a window of up to 31 days.');
             }
-            return paypal = await paypalTransactions(from, to);
+            return paypal = await paypalTransactions(
+              from,
+              to,
+              account: await MerchantAppModule.forRestaurant(
+                s,
+                task.restaurantId,
+              ),
+            );
           case 'propose_expense':
             final amount = _int(args, 'amountMinor', min: 1, max: 100000000);
             final vat = _int(args, 'vatMinor', max: amount, fallback: 0);
@@ -211,7 +232,11 @@ class ExpensesAgent {
               'mediaId': mediaId,
               if (args['paypalTransactionId'] is String &&
                   (args['paypalTransactionId'] as String).trim().isNotEmpty)
-                'paypalTransactionId': _str(args, 'paypalTransactionId', max: 50),
+                'paypalTransactionId': _str(
+                  args,
+                  'paypalTransactionId',
+                  max: 50,
+                ),
             };
             final explanation = _str(args, 'explanation', max: 600);
             draft = AgentDraft(
@@ -266,9 +291,15 @@ class ExpensesAgent {
         _int(p, 'vatMinor', max: amount, fallback: 0);
         _str(p, 'category', choices: BackOfficeModule.expenseCategories);
         _date(p, 'spentAt');
-        final mediaId = p['mediaId'] == null ? null : _int(p, 'mediaId', min: 1);
+        final mediaId = p['mediaId'] == null
+            ? null
+            : _int(p, 'mediaId', min: 1);
         if (mediaId != null) {
-          final m = await MediaAsset.db.findById(w.s, mediaId, transaction: w.tx);
+          final m = await MediaAsset.db.findById(
+            w.s,
+            mediaId,
+            transaction: w.tx,
+          );
           if (m == null || m.restaurantId != w.tenant) {
             _fail('not_found', 'Receipt photo not found.');
           }

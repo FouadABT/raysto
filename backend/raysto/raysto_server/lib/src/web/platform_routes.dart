@@ -112,19 +112,26 @@ class PlatformRoute extends Route {
           final v = r.headers[k]?.first;
           if (v != null) headers[k] = v;
         }
-        if (!{
-          'webhooks/paypal-platform',
-          'webhooks/paypal-billing',
-          'webhooks/paypal-single-sandbox',
-        }.contains(path)) {
+        // 0.16 (S6): a restaurant's own PayPal app posts to its own opaque
+        // address; an unknown or retired address answers 404.
+        final app = RegExp(
+          r'^webhooks/paypal-app/([a-f0-9]{32})$',
+        ).firstMatch(path)?.group(1);
+        if (app == null &&
+            !{
+              'webhooks/paypal-platform',
+              'webhooks/paypal-billing',
+              'webhooks/paypal-single-sandbox',
+            }.contains(path)) {
           return jsonResponse(404, {'error': 'not_found'});
         }
         await PlatformWorker.inbox(
           s,
           event,
           headers,
-          billing: path.endsWith('billing'),
-          singleMerchant: path.endsWith('single-sandbox'),
+          billing: app == null && path.endsWith('billing'),
+          singleMerchant: app == null && path.endsWith('single-sandbox'),
+          appToken: app,
         );
         return jsonResponse(200, {'received': true});
       }

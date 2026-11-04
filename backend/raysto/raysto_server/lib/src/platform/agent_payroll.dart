@@ -32,7 +32,9 @@ class PayrollAgent {
         triggerRef: 'period:${_short(from)}',
         input: {'from': from.toIso8601String(), 'to': to.toIso8601String()},
       );
-      if (task == null) _fail('unavailable', 'The payroll agent is switched off.');
+      if (task == null) {
+        _fail('unavailable', 'The payroll agent is switched off.');
+      }
       return {'taskId': task.id};
     },
     roles: _managers,
@@ -45,7 +47,10 @@ class PayrollAgent {
     if (!AgentModule.enabled(agent)) return;
     final policies = await RestaurantPolicy.db.find(s, limit: 500);
     for (final policy in policies) {
-      final settings = {...CatalogueModule.defaults, ..._json(policy.settingsJson)};
+      final settings = {
+        ...CatalogueModule.defaults,
+        ..._json(policy.settingsJson),
+      };
       final zoneName = settings['timezone'];
       if (zoneName is! String) continue;
       final tz.Location zone;
@@ -55,7 +60,9 @@ class PayrollAgent {
         continue;
       }
       final local = tz.TZDateTime.from(_now(), zone);
-      final closeAt = settings['closeAt'] is int ? settings['closeAt'] as int : 1380;
+      final closeAt = settings['closeAt'] is int
+          ? settings['closeAt'] as int
+          : 1380;
       if (local.weekday != DateTime.monday ||
           local.hour * 60 + local.minute < closeAt) {
         continue;
@@ -166,7 +173,8 @@ class PayrollAgent {
       'tipPoolMinor': pool,
       'people': [
         for (final p in people.values)
-          if (p['held'] != true) {'recipientEmail': p['recipientEmail'], ...line(p)},
+          if (p['held'] != true)
+            {'recipientEmail': p['recipientEmail'], ...line(p)},
       ],
       // Worked, but cannot be paid through PayPal until an email is added.
       'held': [
@@ -191,13 +199,18 @@ class PayrollAgent {
 
   /// Splits the pool to the cent: by minutes worked, or equally. Rounding
   /// leftovers go to whoever worked most, then by email, so sums always match.
-  static Map<String, int> splitTips(int pool, List<Json> people, String policy) {
+  static Map<String, int> splitTips(
+    int pool,
+    List<Json> people,
+    String policy,
+  ) {
     final result = <String, int>{};
     if (pool <= 0 || people.isEmpty) return result;
     final weights = {
       for (final p in people)
-        p['recipientEmail'] as String:
-            policy == 'equal' ? 1 : max(0, p['minutes'] as int),
+        p['recipientEmail'] as String: policy == 'equal'
+            ? 1
+            : max(0, p['minutes'] as int),
     };
     final total = weights.values.fold<int>(0, (a, b) => a + b);
     if (total == 0) return result;
@@ -269,7 +282,12 @@ class PayrollAgent {
                   'wagesMinor': {'type': 'INTEGER'},
                   'note': {'type': 'STRING'},
                 },
-                'required': ['recipientEmail', 'tipMinor', 'wagesMinor', 'note'],
+                'required': [
+                  'recipientEmail',
+                  'tipMinor',
+                  'wagesMinor',
+                  'note',
+                ],
               },
             },
           },
@@ -314,7 +332,9 @@ class PayrollAgent {
         }
       },
     );
-    if (proposed == null) _fail('ai_incomplete', 'The agent did not prepare pay.');
+    if (proposed == null) {
+      _fail('ai_incomplete', 'The agent did not prepare pay.');
+    }
     final facts = await readWeekOnce();
     final people = (facts['people'] as List).cast<Json>();
     final held = (facts['held'] as List).cast<Json>();
@@ -378,7 +398,8 @@ class PayrollAgent {
                 recipientName: p['recipientName'] as String,
                 shiftIdsJson: jsonEncode(p['shiftIds']),
                 amountMinor: p[field] as int,
-                note: notes[p['recipientEmail']] ??
+                note:
+                    notes[p['recipientEmail']] ??
                     '${kind == 'tips' ? 'Tips' : 'Wages'} ${_short(from)} to ${_short(to)}',
                 state: 'proposed',
               ),
@@ -394,18 +415,34 @@ class PayrollAgent {
       );
       batches.add(batch);
     }
+    // 0.16 (stream S2): drivers are paid per delivery, in their own batch.
+    final drivers = await DeliveryModule.payBatch(
+      s,
+      task,
+      from,
+      to,
+      facts['currency'] as String,
+    );
+    if (drivers != null) batches.add(drivers);
+    final driverNote = drivers == null
+        ? null
+        : 'Drivers: ${_json(drivers.summaryJson)['summary']}';
     return AgentOutcome(
       batches.isEmpty
           ? [
               'No tips and no paid shifts this period; nothing to send.',
               ?heldNote,
             ].join(' ')
-          : summary,
+          : [summary, ?driverNote].join(' '),
       drafts: [
         for (final b in batches)
           AgentDraft(
             'payout.send',
-            '${b.kind == 'tips' ? 'Send the tips' : 'Pay wages'} '
+            '${switch (b.kind) {
+                  'tips' => 'Send the tips',
+                  'delivery' => 'Pay the drivers',
+                  _ => 'Pay wages',
+                }} '
                 '${PayPalGateway.money(b.totalMinor)} ${b.currency} '
                 'with PayPal',
             summary,
@@ -546,15 +583,20 @@ class PayrollAgent {
     );
     if (claim['state'] != 'sending') return claim;
     final batchId = claim['batchId'] as int;
+    // 0.16 (S6): the café's own PayPal app when it has one.
+    final account = await MerchantAppModule.forRestaurant(s, c.restaurantId!);
     Json sent;
     try {
       sent = await ProviderClients.createPayout(
+        account: account,
         batchId: claim['requestKey'] as String,
         currency: claim['currency'] as String,
         items: (claim['items'] as List).cast<Json>(),
-        subject: claim['kind'] == 'tips'
-            ? 'Your tips from the café'
-            : 'Your pay from the café',
+        subject: switch (claim['kind']) {
+          'tips' => 'Your tips from the café',
+          'delivery' => 'Your delivery pay from the café',
+          _ => 'Your pay from the café',
+        },
       );
     } catch (_) {
       await s.db.transaction((tx) async {
@@ -576,6 +618,7 @@ class PayrollAgent {
         ..summaryJson = jsonEncode({
           ..._json(b.summaryJson),
           'providerStatus': sent['status'],
+          'paypal': MerchantAppModule.route(account),
         })
         ..updatedAt = _now();
       await PayoutBatch.db.updateRow(s, b, transaction: w.tx);
@@ -607,11 +650,22 @@ class PayrollAgent {
   static Future<void> poll(Session s, int batchId, int attempt) async {
     final b = await PayoutBatch.db.findById(s, batchId);
     if (b == null || b.state != 'sent' || b.providerBatchId == null) return;
-    final read = await ProviderClients.readPayout(b.providerBatchId!);
+    final read = await ProviderClients.readPayout(
+      b.providerBatchId!,
+      account: await MerchantAppModule.forPayout(s, b),
+    );
     final status = '${read['status']}';
-    final done = {'SUCCESS': 'completed', 'DENIED': 'failed', 'CANCELED': 'failed'};
+    final done = {
+      'SUCCESS': 'completed',
+      'DENIED': 'failed',
+      'CANCELED': 'failed',
+    };
     await AgentModule.asAgent(s, b.restaurantId, (w) async {
-      final fresh = (await PayoutBatch.db.findById(s, batchId, transaction: w.tx))!;
+      final fresh = (await PayoutBatch.db.findById(
+        s,
+        batchId,
+        transaction: w.tx,
+      ))!;
       if (fresh.state != 'sent') return;
       final items = await PayoutItem.db.find(
         s,
@@ -630,8 +684,11 @@ class PayrollAgent {
           ..state = switch ('${r['status']}') {
             'SUCCESS' => 'completed',
             'UNCLAIMED' => 'unclaimed',
-            'FAILED' || 'BLOCKED' || 'RETURNED' || 'REFUNDED' || 'REVERSED' =>
-              'failed',
+            'FAILED' ||
+            'BLOCKED' ||
+            'RETURNED' ||
+            'REFUNDED' ||
+            'REVERSED' => 'failed',
             _ => 'sent',
           };
         await PayoutItem.db.updateRow(s, i, transaction: w.tx);

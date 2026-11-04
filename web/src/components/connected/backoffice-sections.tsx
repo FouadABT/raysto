@@ -7,7 +7,6 @@
  * the payment, and every outcome is a snackbar with PayPal's id.
  */
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
@@ -38,11 +37,15 @@ import {
   type PayoutBatch,
   type Shift,
 } from "@/lib/connected/backoffice";
-import { m3GridTheme } from "@/lib/connected/grid-theme";
+import { boolCol, countCol, dateCol, idCol, moneyCol, statusCol } from "@/lib/connected/grid-columns";
+import { StudioWidget, type StudioWidgetSpec } from "@/lib/connected/studio/studio-canvas";
+import { major } from "@/lib/connected/studio/sources";
+import { RaystoGrid } from "./raysto-grid";
 import { MotionRoot } from "@/lib/connected/motion";
 import { approvalNotice, heldOf, hourWindow, latestSent, payoutFor, peopleOf, spendShare, type Person } from "@/lib/connected/money-view";
 import { Icon } from "./icons";
-import { AgentPanel, defaults, money, pill, time, useLoad, words } from "./business-sections";
+import { PayPalAccountTab } from "./paypal-account";
+import { AgentPanel, pill, time, useLoad, words } from "./business-sections";
 import {
   AreaChart,
   BarRow,
@@ -55,7 +58,7 @@ import {
   useSnackbar,
 } from "./m3";
 
-export type MoneyTab = "close" | "pay" | "catering" | "refunds" | "expenses" | "customers" | "analytics";
+export type MoneyTab = "close" | "pay" | "catering" | "refunds" | "expenses" | "customers" | "analytics" | "paypal";
 const moneyTabs: [MoneyTab, string][] = [
   ["close", "Close the day"],
   ["pay", "Pay & tips"],
@@ -64,6 +67,8 @@ const moneyTabs: [MoneyTab, string][] = [
   ["expenses", "Expenses"],
   ["customers", "Customers"],
   ["analytics", "Analytics"],
+  // 0.16 (S6): which PayPal account the money goes through.
+  ["paypal", "PayPal account"],
 ];
 
 const fail = (e: unknown) => String(e instanceof Error ? e.message : e);
@@ -128,7 +133,7 @@ function useAct(onDone?: () => void) {
  * password, or Google), the server records the step-up, then the command runs.
  * The judges' café keeps its published password ready so it is one tap.
  */
-function StepUpAction({
+export function StepUpAction({
   api,
   tenant,
   label,
@@ -278,7 +283,7 @@ export function MoneySection({
             <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => setTab(t)}>{label}</button>
           ))}
         </div>
-        {tab === "close" ? <CloseTab key={tab} {...props} /> : tab === "pay" ? <PayTab key={tab} {...props} /> : tab === "catering" ? <CateringTab key={tab} {...props} /> : tab === "refunds" ? <RefundsTab key={tab} {...props} /> : tab === "expenses" ? <ExpensesTab key={tab} {...props} /> : tab === "customers" ? <CustomersTab key={tab} {...props} /> : <AnalyticsTab key={tab} {...props} />}
+        {tab === "close" ? <CloseTab key={tab} {...props} /> : tab === "pay" ? <PayTab key={tab} {...props} /> : tab === "catering" ? <CateringTab key={tab} {...props} /> : tab === "refunds" ? <RefundsTab key={tab} {...props} /> : tab === "expenses" ? <ExpensesTab key={tab} {...props} /> : tab === "customers" ? <CustomersTab key={tab} {...props} /> : tab === "paypal" ? <PayPalAccountTab key={tab} api={api} tenant={tenant} version={version} /> : <AnalyticsTab key={tab} {...props} />}
         <small className="ops-note">AI coworkers prepare the money matters; you approve; PayPal moves the money and its id is kept here.</small>
       </div>
     </KitRoot>
@@ -331,13 +336,13 @@ function CloseTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: Ta
   const delta = c ? closeDelta(c) : null;
   const columns = useMemo<ColDef<Close>[]>(
     () => [
-      { field: "day", headerName: "Day", minWidth: 120, sort: "desc" },
-      { headerName: "PayPal", type: "rightAligned", valueGetter: (p) => p.data?.summary.paypalCapturedMinor, valueFormatter: money(currencyCode) },
-      { headerName: "Raysto", type: "rightAligned", valueGetter: (p) => p.data?.summary.raystoCapturedMinor, valueFormatter: money(currencyCode) },
-      { headerName: "Cash", type: "rightAligned", valueGetter: (p) => p.data?.summary.cashMinor, valueFormatter: money(currencyCode) },
-      { headerName: "Refunds", type: "rightAligned", valueGetter: (p) => p.data?.summary.refundsMinor, valueFormatter: money(currencyCode) },
-      { headerName: "Gaps", valueGetter: (p) => p.data?.gaps.length ?? 0, flex: 0.5 },
-      { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 120 },
+      dateCol<Close>("Day", "day", { dayOnly: true, sort: "desc" }),
+      moneyCol<Close>("PayPal says", (c) => c.summary.paypalCapturedMinor, currencyCode),
+      moneyCol<Close>("Raysto says", (c) => c.summary.raystoCapturedMinor, currencyCode),
+      moneyCol<Close>("Cash", (c) => c.summary.cashMinor, currencyCode),
+      moneyCol<Close>("Refunds", (c) => c.summary.refundsMinor, currencyCode),
+      countCol<Close>("Gaps found", (c) => c.gaps.length),
+      statusCol<Close>("State", "state", { minWidth: 120 }),
     ],
     [currencyCode],
   );
@@ -395,9 +400,7 @@ function CloseTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: Ta
         <Proposals api={api} tenant={tenant} inbox={inbox} commands={["close.sign"]} onDone={refresh} />
       </div>
       <h2 className="ops-section-title">Past closes</h2>
-      <div className="ops-grid">
-        <AgGridReact<Close> theme={m3GridTheme} rowData={data?.past ?? []} loading={!data && !error} columnDefs={columns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} overlayNoRowsTemplate="No day has been closed yet." />
-      </div>
+      <RaystoGrid<Close> label="Closed days" rows={data?.past} loading={!data && !error} columns={columns} getRowId={(p) => String(p.data.id)} csvName="closes" emptyText="No day has been closed yet." />
     </>
   );
 }
@@ -417,13 +420,13 @@ function PayTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: TabP
   const last = latestSent(data?.payouts ?? []);
   const columns = useMemo<ColDef<PayoutBatch>[]>(
     () => [
-      { field: "createdAt", headerName: "Prepared", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
-      { field: "kind", valueFormatter: (p) => words(p.value), flex: 0.6 },
-      { headerName: "Period", valueGetter: (p) => `${String(p.data?.periodFrom ?? "").slice(0, 10)} → ${String(p.data?.periodTo ?? "").slice(0, 10)}`, minWidth: 190 },
-      { headerName: "People", valueGetter: (p) => p.data?.items?.length ?? 0, flex: 0.5, type: "rightAligned" },
-      { field: "totalMinor", headerName: "Total", type: "rightAligned", valueFormatter: money(currencyCode) },
-      { field: "state", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 120 },
-      { field: "providerBatchId", headerName: "PayPal batch id", minWidth: 170 },
+      dateCol<PayoutBatch>("Prepared", "createdAt", { sort: "desc", minWidth: 150 }),
+      { field: "kind", headerName: "Pays", valueFormatter: (p) => words(p.value), flex: 0.6 },
+      { headerName: "Period", valueGetter: (p) => `${String(p.data?.periodFrom ?? "").slice(0, 10)} to ${String(p.data?.periodTo ?? "").slice(0, 10)}`, minWidth: 200 },
+      countCol<PayoutBatch>("People", (b) => b.items?.length ?? 0, { flex: 0.5 }),
+      moneyCol<PayoutBatch>("Total", "totalMinor", currencyCode),
+      statusCol<PayoutBatch>("State", "state", { minWidth: 120 }),
+      idCol<PayoutBatch>("PayPal batch id", "providerBatchId", { minWidth: 180 }),
     ],
     [currencyCode],
   );
@@ -500,9 +503,7 @@ function PayTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: TabP
         </Reveal>
       )}
       <h2 className="ops-section-title">Payouts</h2>
-      <div className="ops-grid">
-        <AgGridReact<PayoutBatch> theme={m3GridTheme} rowData={data?.payouts ?? []} loading={!data && !error} columnDefs={columns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} overlayNoRowsTemplate="No payout yet. Run pay to prepare one." />
-      </div>
+      <RaystoGrid<PayoutBatch> label="Payouts" rows={data?.payouts} loading={!data && !error} columns={columns} getRowId={(p) => String(p.data.id)} csvName="payouts" emptyText="No payout yet. Run pay to prepare one." />
     </>
   );
 }
@@ -530,10 +531,10 @@ function CateringTab({ api, tenant, bo, currencyCode, inbox, refresh, version }:
     () => [
       { field: "customerName", headerName: "Customer", minWidth: 140, cellClass: "ops-cell-strong" },
       { field: "text", headerName: "Request", flex: 2, minWidth: 220, tooltipField: "text" },
-      { field: "eventAt", headerName: "Event", valueFormatter: (p) => time(p.value), minWidth: 150 },
-      { field: "totalMinor", headerName: "Quote", type: "rightAligned", valueFormatter: money(currencyCode) },
-      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 120 },
-      { field: "invoiceNumber", headerName: "PayPal invoice", minWidth: 150 },
+      dateCol<CateringRequest>("Event", "eventAt", { minWidth: 150 }),
+      moneyCol<CateringRequest>("Quote", "totalMinor", currencyCode),
+      statusCol<CateringRequest>("Status", "status", { minWidth: 120 }),
+      idCol<CateringRequest>("PayPal invoice", "invoiceNumber", { minWidth: 160 }),
     ],
     [currencyCode],
   );
@@ -608,9 +609,7 @@ function CateringTab({ api, tenant, bo, currencyCode, inbox, refresh, version }:
       </div>
       <Proposals api={api} tenant={tenant} inbox={inbox} commands={["invoice.send", "invoice.remind"]} onDone={refresh} />
       <h2 className="ops-section-title">Requests</h2>
-      <div className="ops-grid">
-        <AgGridReact<CateringRequest> theme={m3GridTheme} rowData={rows} loading={!data && !error} columnDefs={columns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} onRowClicked={(e) => e.data && setSelected(e.data.id)} rowSelection={{ mode: "singleRow", checkboxes: false, enableClickSelection: true }} overlayNoRowsTemplate="No catering request yet." tooltipShowDelay={300} />
-      </div>
+      <RaystoGrid<CateringRequest> label="Catering requests" rows={rows} loading={!data && !error} columns={columns} getRowId={(p) => String(p.data.id)} onRowClicked={(e) => e.data && setSelected(e.data.id)} rowSelection={{ mode: "singleRow", checkboxes: false, enableClickSelection: true }} csvName="catering" emptyText="No catering request yet." tooltipShowDelay={300} />
     </>
   );
 }
@@ -636,20 +635,20 @@ function RefundsTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: 
       { headerName: "Order", valueGetter: (p) => `Order ${p.data?.orderId}`, flex: 0.6, cellClass: "ops-cell-strong" },
       { field: "text", headerName: "Complaint", flex: 2, minWidth: 220, tooltipField: "text" },
       { headerName: "Agent proposes", valueGetter: (p) => (p.data?.proposal ? `${words(p.data.proposal.kind)} · ${currency(p.data.proposal.amountMinor, currencyCode)}` : ""), minWidth: 170 },
-      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 120 },
-      { field: "providerRefundId", headerName: "PayPal refund id", minWidth: 170 },
-      { field: "createdAt", headerName: "Opened", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
+      statusCol<Complaint>("Status", "status", { minWidth: 120 }),
+      idCol<Complaint>("PayPal refund id", "providerRefundId", { minWidth: 180 }),
+      dateCol<Complaint>("Opened", "createdAt", { sort: "desc", minWidth: 150 }),
     ],
     [currencyCode],
   );
   const disputeColumns = useMemo<ColDef<Dispute>[]>(
     () => [
-      { field: "providerDisputeId", headerName: "PayPal dispute", minWidth: 170, cellClass: "ops-cell-strong" },
-      { field: "reason", valueFormatter: (p) => words(p.value), minWidth: 160 },
-      { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
-      { field: "status", valueFormatter: (p) => words(p.value), cellRenderer: pill, minWidth: 130 },
+      idCol<Dispute>("PayPal dispute", "providerDisputeId", { minWidth: 180 }),
+      { field: "reason", headerName: "Reason", valueFormatter: (p) => words(p.value), minWidth: 160 },
+      moneyCol<Dispute>("Amount", "amountMinor", currencyCode),
+      statusCol<Dispute>("Status", "status", { minWidth: 130 }),
       { field: "replyText", headerName: "Draft reply", flex: 2, minWidth: 220, tooltipField: "replyText" },
-      { field: "createdAt", headerName: "Opened", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
+      dateCol<Dispute>("Opened", "createdAt", { sort: "desc", minWidth: 150 }),
     ],
     [currencyCode],
   );
@@ -692,18 +691,14 @@ function RefundsTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: 
         <Proposals api={api} tenant={tenant} inbox={inbox} commands={["payment.refund", "dispute.accept"]} onDone={refresh} />
       </div>
       <h2 className="ops-section-title">Complaints</h2>
-      <div className="ops-grid">
-        <AgGridReact<Complaint> theme={m3GridTheme} rowData={complaints} loading={!data && !error} columnDefs={complaintColumns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} overlayNoRowsTemplate="No complaint. Good." tooltipShowDelay={300} />
-      </div>
+      <RaystoGrid<Complaint> label="Complaints" rows={complaints} loading={!data && !error} columns={complaintColumns} getRowId={(p) => String(p.data.id)} csvName="complaints" emptyText="No complaint. Good." tooltipShowDelay={300} totals={false} />
       <div className="ops-bo-toolbar">
         <h2 className="ops-section-title">PayPal disputes</h2>
         <button className="ops-secondary" disabled={busy} onClick={() => void act(async () => { await api.command("dispute.sweep", tenant, {}); return "Asking PayPal for open disputes through the MCP server."; })}>
           <Icon name="paypal" size={18} />Check PayPal for disputes
         </button>
       </div>
-      <div className="ops-grid">
-        <AgGridReact<Dispute> theme={m3GridTheme} rowData={data?.disputes ?? []} loading={!data && !error} columnDefs={disputeColumns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} overlayNoRowsTemplate="No dispute on PayPal." tooltipShowDelay={300} />
-      </div>
+      <RaystoGrid<Dispute> label="PayPal disputes" rows={data?.disputes} loading={!data && !error} columns={disputeColumns} getRowId={(p) => String(p.data.id)} csvName="disputes" emptyText="No dispute on PayPal." tooltipShowDelay={300} />
     </>
   );
 }
@@ -725,12 +720,13 @@ function ExpensesTab({ api, tenant, bo, currencyCode, inbox, refresh, version }:
   }, [data]);
   const columns = useMemo<ColDef<Expense>[]>(
     () => [
-      { field: "spentAt", headerName: "Date", valueFormatter: (p) => String(p.value ?? "").slice(0, 10), sort: "desc", minWidth: 120 },
-      { field: "merchant", minWidth: 160, cellClass: "ops-cell-strong" },
-      { field: "category", minWidth: 130 },
-      { field: "amountMinor", headerName: "Amount", type: "rightAligned", valueFormatter: money(currencyCode) },
-      { field: "vatMinor", headerName: "VAT", type: "rightAligned", valueFormatter: money(currencyCode) },
-      { field: "paypalTransactionId", headerName: "In PayPal as", minWidth: 170 },
+      dateCol<Expense>("Date", "spentAt", { dayOnly: true, sort: "desc", minWidth: 130 }),
+      { field: "merchant", headerName: "Merchant", minWidth: 160, cellClass: "ops-cell-strong" },
+      { field: "category", headerName: "Category", valueFormatter: (p) => words(p.value), minWidth: 130 },
+      moneyCol<Expense>("Amount", "amountMinor", currencyCode),
+      moneyCol<Expense>("VAT", "vatMinor", currencyCode),
+      boolCol<Expense>("Found in PayPal", (x) => Boolean(x.paypalTransactionId), { labels: ["Matched in PayPal", "Not in PayPal"] }),
+      idCol<Expense>("PayPal transaction", "paypalTransactionId", { minWidth: 180 }),
     ],
     [currencyCode],
   );
@@ -781,9 +777,7 @@ function ExpensesTab({ api, tenant, bo, currencyCode, inbox, refresh, version }:
           <Proposals api={api} tenant={tenant} inbox={inbox} commands={["expense.record", "stock.receive"]} onDone={refresh} />
         </div>
       </div>
-      <div className="ops-grid">
-        <AgGridReact<Expense> theme={m3GridTheme} rowData={data ?? []} loading={!data && !error} columnDefs={columns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} overlayNoRowsTemplate="No expense recorded in the last 30 days." />
-      </div>
+      <RaystoGrid<Expense> label="Expenses" rows={data} loading={!data && !error} columns={columns} getRowId={(p) => String(p.data.id)} csvName="expenses" emptyText="No expense recorded in the last 30 days." />
     </>
   );
 }
@@ -793,20 +787,33 @@ function ExpensesTab({ api, tenant, bo, currencyCode, inbox, refresh, version }:
 function CustomersTab({ api, tenant, bo, currencyCode, inbox, refresh, version }: TabProps) {
   const { data, error } = useLoad(() => bo.customers(), [bo, version]);
   const { busy, note, act } = useAct(refresh);
-  const [view, setView] = useState<"cards" | "grid">("cards");
+  const [view, setView] = useState<"cards" | "grid" | "tags">("cards");
   const [open, setOpen] = useState<{ id: number; shown: boolean }>();
   const customers = data ?? [];
   const opened = customers.find((c) => c.id === open?.id);
   const columns = useMemo<ColDef<CustomerProfile>[]>(
     () => [
       { field: "displayName", headerName: "Customer", minWidth: 160, cellClass: "ops-cell-strong" },
-      { field: "visits", type: "rightAligned", flex: 0.5 },
-      { field: "spentMinor", headerName: "Spent", type: "rightAligned", valueFormatter: money(currencyCode) },
-      { field: "lastSeenAt", headerName: "Last seen", valueFormatter: (p) => time(p.value), sort: "desc", minWidth: 150 },
+      countCol<CustomerProfile>("Visits", "visits", { flex: 0.5 }),
+      moneyCol<CustomerProfile>("Spent with PayPal", "spentMinor", currencyCode),
+      dateCol<CustomerProfile>("Last seen", "lastSeenAt", { sort: "desc", minWidth: 150 }),
       { headerName: "Tags", valueGetter: (p) => (p.data?.tags ?? []).map(words).join(", "), minWidth: 160 },
-      { field: "couponCode", headerName: "Coupon", minWidth: 130 },
+      idCol<CustomerProfile>("Coupon", "couponCode", { minWidth: 140 }),
     ],
     [currencyCode],
+  );
+  // AG Studio's pivot: each customer under their first tag, so no one is counted twice.
+  const byTag = useMemo(
+    () => ({
+      id: "customers",
+      data: customers.map((c) => ({
+        tag: c.tags[0] ? words(c.tags[0]) : "Untagged",
+        customer: c.displayName,
+        visits: c.visits,
+        spent: major(c.spentMinor),
+      })),
+    }),
+    [customers],
   );
   return (
     <>
@@ -819,7 +826,7 @@ function CustomersTab({ api, tenant, bo, currencyCode, inbox, refresh, version }
       </div>
       {note && <p className="ops-note" role="status">{note}</p>}
       <Proposals api={api} tenant={tenant} inbox={inbox} commands={["coupon.create"]} onDone={refresh} />
-      <ViewSwitch label="Customers view" value={view} onChange={setView} options={[["cards", "Cards"], ["grid", "Grid"]]} />
+      <ViewSwitch label="Customers view" value={view} onChange={setView} options={[["cards", "Cards"], ["grid", "Grid"], ["tags", "By tag"]]} />
       {view === "cards" ? (
         customers.length === 0 ? (
           <Empty>{data ? "No customer profile yet. They appear as PayPal orders are paid." : "Loading customers…"}</Empty>
@@ -855,10 +862,10 @@ function CustomersTab({ api, tenant, bo, currencyCode, inbox, refresh, version }
             ))}
           </div>
         )
+      ) : view === "tags" ? (
+        <StudioWidget label="Customers by tag" source={byTag} widget={customersPivot(currencyCode)} height={480} />
       ) : (
-        <div className="ops-grid">
-          <AgGridReact<CustomerProfile> theme={m3GridTheme} rowData={customers} loading={!data && !error} columnDefs={columns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} overlayNoRowsTemplate="No customer profile yet. They appear as PayPal orders are paid." />
-        </div>
+        <RaystoGrid<CustomerProfile> label="Customers" rows={customers} loading={!data && !error} columns={columns} getRowId={(p) => String(p.data.id)} csvName="customers" emptyText="No customer profile yet. They appear as PayPal orders are paid." />
       )}
       {open && (
         <ContainerDialog layoutId={`customer-${open.id}`} open={open.shown} onClose={() => setOpen({ ...open, shown: false })} title={opened ? `${opened.displayName}, customer details` : "Customer details"}>
@@ -903,9 +910,9 @@ function AnalyticsTab({ bo, currencyCode, version }: TabProps) {
   const columns = useMemo<ColDef<Analytics["marginByDish"][number]>[]>(
     () => [
       { field: "name", headerName: "Dish", minWidth: 180, cellClass: "ops-cell-strong" },
-      { field: "priceMinor", headerName: "Price", type: "rightAligned", valueFormatter: money(code) },
-      { field: "costMinor", headerName: "Cost", type: "rightAligned", valueFormatter: money(code) },
-      { headerName: "Margin", type: "rightAligned", valueGetter: (p) => (p.data ? marginPercent(p.data) : null), valueFormatter: (p) => (p.value == null ? "—" : `${p.value}%`), sort: "asc" },
+      moneyCol<Analytics["marginByDish"][number]>("Price", "priceMinor", code, { total: false }),
+      moneyCol<Analytics["marginByDish"][number]>("Cost", "costMinor", code, { total: false }),
+      countCol<Analytics["marginByDish"][number]>("Margin", (d) => marginPercent(d), { total: false, format: (n) => `${n}%`, sort: "asc" }),
     ],
     [code],
   );
@@ -961,9 +968,7 @@ function AnalyticsTab({ bo, currencyCode, version }: TabProps) {
       </div>
       <h2 className="ops-section-title">Margin per dish</h2>
       <p className="ops-note">Price against the ingredient cost from the stock the supplies agent reads off delivery notes. Lowest margin first.</p>
-      <div className="ops-grid">
-        <AgGridReact theme={m3GridTheme} rowData={a?.marginByDish ?? []} loading={!data && !error} columnDefs={columns} defaultColDef={defaults} overlayNoRowsTemplate="No cost known yet. Costs come from delivery notes the supplies agent reads." />
-      </div>
+      <RaystoGrid label="Margin by dish" rows={a?.marginByDish} loading={!data && !error} columns={columns} csvName="margin-by-dish" totals={false} emptyText="No cost known yet. Costs come from delivery notes the supplies agent reads." />
     </>
   );
 }
@@ -1054,13 +1059,13 @@ function Team({
   const onShift = shifts.filter((s) => s.clockInAt && !s.clockOutAt).length;
   const columns = useMemo<ColDef<Shift>[]>(
     () => [
-      { field: "name", minWidth: 140, cellClass: "ops-cell-strong" },
-      { field: "role", valueFormatter: (p) => words(p.value), minWidth: 110 },
-      { field: "startsAt", headerName: "Starts", valueFormatter: (p) => time(p.value), sort: "asc", minWidth: 140 },
-      { field: "endsAt", headerName: "Ends", valueFormatter: (p) => time(p.value), minWidth: 140 },
-      { headerName: "Hours", type: "rightAligned", valueGetter: (p) => (p.data ? shiftHours(p.data) : 0), valueFormatter: (p) => Number(p.value).toFixed(2), flex: 0.5 },
-      { headerName: "Pay", type: "rightAligned", valueGetter: (p) => (p.data ? shiftPayMinor(p.data) : 0), valueFormatter: money(currencyCode), flex: 0.6, minWidth: 90 },
-      { headerName: "State", valueGetter: (p) => (p.data ? shiftState(p.data) : ""), valueFormatter: (p) => (p.value === "onShift" ? "On shift" : words(p.value)), cellRenderer: pill, minWidth: 110 },
+      { field: "name", headerName: "Person", minWidth: 140, cellClass: "ops-cell-strong" },
+      { field: "role", headerName: "Role", valueFormatter: (p) => words(p.value), minWidth: 110 },
+      dateCol<Shift>("Starts", "startsAt", { sort: "asc", minWidth: 140 }),
+      dateCol<Shift>("Ends", "endsAt", { minWidth: 140 }),
+      countCol<Shift>("Hours", (x) => shiftHours(x), { format: (n) => n.toFixed(2), flex: 0.5 }),
+      moneyCol<Shift>("Pay", (x) => shiftPayMinor(x), currencyCode, { flex: 0.6, minWidth: 100 }),
+      statusCol<Shift>("State", (x) => shiftState(x), { label: (v) => (v === "onShift" ? "On shift" : words(v)), minWidth: 110 }),
     ],
     [currencyCode],
   );
@@ -1164,9 +1169,7 @@ function Team({
         )
       ) : (
         <div className="ops-business with-panel">
-          <div className="ops-grid tall">
-            <AgGridReact<Shift> theme={m3GridTheme} rowData={shifts} loading={!data && !error} columnDefs={columns} defaultColDef={defaults} getRowId={(p) => String(p.data.id)} onRowClicked={(e) => e.data && edit(e.data)} rowSelection={{ mode: "singleRow", checkboxes: false, enableClickSelection: true }} overlayNoRowsTemplate="No shift this week. Add one, or let the copilot plan the roster." />
-          </div>
+          <RaystoGrid<Shift> label="Shifts" rows={shifts} loading={!data && !error} columns={columns} getRowId={(p) => String(p.data.id)} onRowClicked={(e) => e.data && edit(e.data)} rowSelection={{ mode: "singleRow", checkboxes: false, enableClickSelection: true }} csvName="shifts" emptyText="No shift this week. Add one, or let the copilot plan the roster." tall />
           <aside className="ops-side">
             {form ?? (
               <div className="ops-order">
@@ -1235,4 +1238,23 @@ function Team({
       <small className="ops-note">Hours feed the pay run in Money → Pay &amp; tips. The copilot proposes next week's roster from sales by hour; {agentName("copilot")} never changes a shift without you.</small>
     </div>
   );
+}
+
+/** Customers by first tag (rows) with spend and visits, totals per tag and overall: AG Studio's pivot. */
+function customersPivot(code: string): StudioWidgetSpec {
+  return {
+    type: "pivot-grid",
+    format: {
+      title: { text: `Customers by tag: spent with PayPal (${code}) and visits`, enabled: true },
+      style: { grandTotalRow: { enabled: true } },
+    },
+    dataMapping: {
+      rows: [{ id: "customers.tag" }, { id: "customers.customer" }],
+      columns: [],
+      values: [
+        { id: "customers.spent", aggregation: "sum" },
+        { id: "customers.visits", aggregation: "sum" },
+      ],
+    },
+  };
 }

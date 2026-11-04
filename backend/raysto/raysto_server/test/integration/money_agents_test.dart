@@ -307,7 +307,7 @@ void main() {
       expect(oranges['costMinor'], 210);
       final suppliers = (await read('suppliers'))['rows'] as List;
       expect((suppliers.single as Map)['payoutEmail'], 'supplier-dupont@business.example.com');
-      final delivery = ((await read('deliveries'))['rows'] as List).single as Map;
+      final delivery = ((await read('supply.deliveries'))['rows'] as List).single as Map;
       expect(delivery['state'], 'received');
       expect(delivery['totalMinor'], 47980);
     });

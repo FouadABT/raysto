@@ -1,0 +1,404 @@
+/* Dispatch (stream S2): the map, driver drop zones, the waiting jobs, partner
+   apps and the simulator. Everything else reuses the back-office classes. */
+.ops-dispatch {
+  display: grid;
+  gap: 18px;
+}
+
+.ops-dsp-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-dsp-facts li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--forest);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ops-dsp-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .ops-dsp-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ops-dsp-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.ops-dsp-head h2,
+.ops-dsp-head h3 {
+  margin: 0;
+}
+
+/* The map. Leaflet's own panes stay under the console's dialogs and menus. */
+.ops-map {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #e8ece6;
+  isolation: isolate;
+}
+.ops-map-loading {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.ops-map-canvas {
+  width: 100%;
+  height: 100%;
+  font: inherit;
+}
+.ops-map .leaflet-control-attribution {
+  font-size: 11px;
+}
+.ops-map-pin {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(-45deg);
+  background: var(--surface);
+  border: 2px solid var(--forest);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+}
+.ops-map-pin svg {
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+  fill: none;
+  stroke: var(--forest);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ops-map-pin.venue {
+  background: var(--forest);
+}
+.ops-map-pin.venue svg {
+  stroke: #fff;
+}
+.ops-map-pin.unassigned {
+  border-color: var(--warn);
+  background: var(--warn-bg);
+}
+.ops-map-pin.unassigned svg {
+  stroke: var(--warn);
+}
+.ops-map-pin.delivered {
+  border-color: var(--ok);
+  opacity: 0.75;
+}
+.ops-map-pin.issue {
+  border-color: var(--late);
+  background: var(--late-bg);
+}
+.ops-map-pin.driver {
+  border-radius: 50%;
+  transform: none;
+  background: var(--lime);
+  border-color: var(--lime-ink);
+}
+.ops-map-pin.driver svg {
+  transform: none;
+  stroke: var(--lime-ink);
+}
+.ops-map-pin.selected {
+  outline: 3px solid var(--lime);
+  outline-offset: 2px;
+}
+.ops-map-route.plan {
+  stroke: var(--forest);
+  opacity: 0.7;
+}
+.ops-map-route.live {
+  stroke: var(--forest);
+}
+
+/* Drivers: each card is a drop zone. */
+.ops-dsp-driver-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-dsp-driver {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+.ops-dsp-driver.takes {
+  border-style: dashed;
+}
+.ops-dsp-driver.over {
+  border-color: var(--forest);
+  border-style: solid;
+  background: var(--mint);
+  box-shadow: 0 0 0 3px var(--lime);
+}
+.ops-dsp-driver.offline {
+  opacity: 0.72;
+}
+.ops-dsp-driver-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.ops-dsp-driver-top small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+.ops-dsp-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--forest);
+  color: #fff;
+  font-weight: 700;
+}
+.ops-dsp-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+}
+.ops-dsp-answer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ops-root .ops-dsp-toggle {
+  justify-self: start;
+  min-height: 48px;
+}
+
+/* Jobs waiting for a driver. */
+.ops-dsp-queue {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-dsp-job {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.ops-dsp-job.selected {
+  border-color: var(--forest);
+}
+.ops-dsp-job-card {
+  display: grid;
+  gap: 6px;
+  cursor: grab;
+}
+.ops-dsp-job-card[draggable="false"] {
+  cursor: default;
+}
+.ops-dsp-job-card p {
+  margin: 0;
+}
+.ops-dsp-job-card small {
+  color: var(--muted);
+}
+.ops-dsp-job-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ops-dsp-job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ops-root .ops-dsp-job-actions button,
+.ops-root .ops-dsp-pick select {
+  min-height: 48px;
+}
+.ops-dsp-pick select {
+  max-width: 100%;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font: inherit;
+}
+.ops-dsp-suggestion {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--mint);
+}
+.ops-dsp-suggestion ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-inline-start: 20px;
+}
+.ops-dsp-suggestion li > * {
+  vertical-align: middle;
+}
+.ops-dsp-suggestion li {
+  display: list-item;
+}
+.ops-dsp-suggestion li > div {
+  display: inline-grid;
+  gap: 2px;
+  margin-inline-end: 8px;
+}
+.ops-dsp-suggestion small {
+  color: var(--muted);
+}
+
+/* Partner apps. */
+.ops-dsp-api ul {
+  display: grid;
+  gap: 6px;
+  padding-inline-start: 20px;
+}
+.ops-dsp-api code,
+.ops-dsp-dl code,
+.ops-dsp-secret code {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.ops-dsp-apps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 14px;
+}
+.ops-dsp-dl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 10px 0 14px;
+  font-size: 14px;
+}
+.ops-dsp-dl dt {
+  color: var(--muted);
+}
+.ops-dsp-dl dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ops-dsp-reveal {
+  display: grid;
+  gap: 10px;
+  border-color: var(--warn);
+  background: var(--warn-bg);
+}
+.ops-dsp-secret {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--surface);
+}
+.ops-dsp-secret span {
+  font-weight: 600;
+}
+.ops-root .ops-dsp-secret button {
+  justify-self: start;
+  min-height: 48px;
+}
+.ops-dsp-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+.ops-dsp-check input {
+  width: 20px;
+  height: 20px;
+}
+
+/* The simulator. */
+.ops-dsp-sim {
+  display: grid;
+  gap: 14px;
+}
+.ops-dsp-banner {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-weight: 700;
+}
+.ops-dsp-sim-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-dsp-sim-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+.ops-dsp-sim-list small {
+  display: block;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ops-dsp-driver {
+    transition: none;
+  }
+}

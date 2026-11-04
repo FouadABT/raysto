@@ -320,9 +320,10 @@ void main() {
         await Supplier.db.count(s, where: (t) => t.restaurantId.equals(rid)),
         2,
       );
+      // Eight stock items since 0.16 (oranges and Gruyère for the recipes).
       expect(
         await StockItem.db.count(s, where: (t) => t.restaurantId.equals(rid)),
-        6,
+        8,
       );
       expect(
         await Expense.db.count(s, where: (t) => t.restaurantId.equals(rid)),
@@ -337,6 +338,324 @@ void main() {
       );
       // No capture exists in this fixture, so no complaint is seeded.
       expect(result, containsPair('complaint', 0));
+    });
+
+    test('the 0.16 back office is seeded as labelled samples, once', () async {
+      final s = builder.build();
+      final rid = restaurant.id!;
+      for (final user in ['judge-courier']) {
+        await ActorProfile.db.insertRow(
+          s,
+          ActorProfile(
+            userId: user,
+            isGuest: false,
+            disabled: false,
+            dataJson: '{}',
+            version: 1,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
+      await Membership.db.insertRow(
+        s,
+        Membership(
+          restaurantId: rid,
+          userId: 'judge-courier',
+          role: 'courier',
+          active: true,
+        ),
+      );
+      // The franchise demo's second café, owned by the same owner.
+      final created = await IdentityModule.createRestaurant(
+        owner.build(),
+        PlatformCommand(
+          requestKey: key(),
+          dataJson: '{"name":"Harbour fixture","currency":"USD"}',
+        ),
+      );
+      final second = created['id'] as int;
+      final policy2 = (await RestaurantPolicy.db.findFirstRow(
+        s,
+        where: (t) => t.restaurantId.equals(second),
+      ))!;
+      policy2.settingsJson = jsonEncode({
+        ...jsonDecode(policy2.settingsJson) as Map,
+        'contactEmail': 'owner@example.com',
+      });
+      await RestaurantPolicy.db.updateRow(s, policy2);
+      await Membership.db.insertRow(
+        s,
+        Membership(
+          restaurantId: second,
+          userId: 'judge-manager',
+          role: 'manager',
+          active: true,
+        ),
+      );
+      ProviderClients.environment = () => {
+        ...Platform.environment,
+        'RAYSTO_JUDGE_RESTAURANT_ID': '$rid',
+        'RAYSTO_JUDGE_SECOND_RESTAURANT_ID': '$second',
+        'RAYSTO_JUDGE_PAYOUT_EMAILS':
+            'buyer-one@personal.example.com,buyer-two@personal.example.com',
+        'RAYSTO_PAY_LINK_SECRET': 'judge-test-pay-link-secret',
+      };
+
+      final first = await JudgeModule.reset(s, rid);
+      // The four bills, this month's expected electricity and the
+      // supplier's bill for the received order.
+      expect(first['bills'], 6);
+      expect(first['supplierOrders'], 3);
+      expect(first['drivers'], 3);
+      expect(first['group'], 1);
+      expect(first['payLink'], 1);
+      expect(first['recipes'], greaterThan(15));
+
+      // Every seeded row says it is a sample.
+      final bills = await Bill.db.find(s, where: (t) => t.restaurantId.equals(rid));
+      expect(bills, hasLength(6));
+      for (final b in bills) {
+        expect(b.vendor, endsWith(JudgeModule.sample));
+        expect(jsonDecode(b.readJson)['sample'], isTrue);
+      }
+      final byCategory = {
+        for (final b in bills.where((b) => b.state != 'expected')) b.category: b,
+      };
+      // This month's electricity is expected, with the vendor's Sandbox
+      // PayPal email, so the bill read from the sample PDF can take it over.
+      final expected = bills.singleWhere((b) => b.state == 'expected');
+      expect(expected.category, 'electricity');
+      expect(expected.recurringOfId, byCategory['electricity']!.id);
+      expect(expected.payVia, 'paypal');
+      expect(expected.payeeEmail, 'buyer-one@personal.example.com');
+      // The rent is paid elsewhere: the landlord has no PayPal.
+      expect(byCategory['rent']!.state, 'paidElsewhere');
+      expect(byCategory['rent']!.payeeEmail, isNull);
+      // The internet bill goes to a Sandbox account: paying it is a real Payout.
+      expect(byCategory['internet']!.payVia, 'paypal');
+      expect(byCategory['internet']!.payeeEmail, 'buyer-two@personal.example.com');
+      expect(byCategory['water']!.state, 'approved');
+      // Nothing claims a PayPal payment that did not happen.
+      expect(bills.where((b) => b.state == 'paid' || b.payoutBatchId != null), isEmpty);
+
+      final orders = await SupplierOrder.db.find(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+        orderBy: (t) => t.id,
+      );
+      expect([for (final o in orders) o.state], ['draft', 'sent', 'received']);
+      expect(orders.every((o) => o.note!.contains('Sample')), isTrue);
+      final received = jsonDecode(orders.last.linesJson) as List;
+      expect(
+        received.any((l) => l['receivedUnitCostMinor'] != l['unitCostMinor']),
+        isTrue,
+        reason: 'The received order carries a price change to flag.',
+      );
+      // Its bill, at the delivered prices, completes the 3-way match.
+      final supplierBill = byCategory['supplier']!;
+      expect(supplierBill.supplierOrderId, orders.last.id);
+      expect(supplierBill.state, 'review');
+      expect(supplierBill.amountMinor, 6 * 650 + 10 * 1040);
+
+      final drivers = await Driver.db.find(s, where: (t) => t.restaurantId.equals(rid));
+      expect(drivers.where((d) => d.userId == 'judge-courier'), hasLength(1));
+      expect(
+        drivers.where((d) => d.userId == null).every((d) => d.name.endsWith(JudgeModule.sample)),
+        isTrue,
+      );
+
+      final request = (await PaymentRequest.db.findFirstRow(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+      ))!;
+      expect(request.payerName, endsWith(JudgeModule.sample));
+      expect(request.kind, 'link');
+      expect(request.state, 'open');
+      // Made like request.create makes a link, so its QR code really opens.
+      expect(request.linkTokenHash, isNot(startsWith('pending:')));
+      expect(request.linkTokenHash, hasLength(64));
+
+      // The group: both cafés, the owner as owner, the manager as area manager.
+      final link = (await GroupVenue.db.findFirstRow(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+      ))!;
+      final group = (await RestaurantGroup.db.findById(s, link.groupId))!;
+      expect(group.name, JudgeModule.groupName);
+      expect(
+        {
+          for (final v in await GroupVenue.db.find(
+            s,
+            where: (t) => t.groupId.equals(group.id!),
+          ))
+            v.restaurantId,
+        },
+        {rid, second},
+      );
+      final members = {
+        for (final m in await GroupMembership.db.find(
+          s,
+          where: (t) => t.groupId.equals(group.id!),
+        ))
+          m.userId: m.role,
+      };
+      expect(members, {'judge-owner': 'owner', 'judge-manager': 'areaManager'});
+
+      // The second café resets like the first, under its own sample name.
+      final harbour = await JudgeModule.reset(s, second);
+      expect(harbour['dishes'], 11);
+      expect(harbour['bills'], 5);
+      final cafe2 = (await Restaurant.db.findById(s, second))!;
+      expect(cafe2.name, JudgeModule.secondName);
+      final cafe2Bills = await Bill.db.find(s, where: (t) => t.restaurantId.equals(second));
+      expect(cafe2Bills.where((b) => b.payVia == 'paypal'), isEmpty,
+          reason: 'The second café has no Sandbox payees.');
+
+      // The tidy keeps all of it; a second full reset adds nothing new.
+      final tidy = await JudgeModule.reset(s, rid, full: false);
+      expect(tidy.containsKey('bills'), isFalse);
+      final again = await JudgeModule.reset(s, rid);
+      expect(again['bills'], 0);
+      expect(again['group'], 0);
+      expect(again['supplierOrders'], 0);
+      expect(again['drivers'], 0);
+      expect(again['payLink'], 0);
+      expect(
+        await RestaurantGroup.db.count(s),
+        1,
+      );
+      expect(
+        await SupplierOrder.db.count(s, where: (t) => t.restaurantId.equals(rid)),
+        3,
+      );
+      expect(
+        await Driver.db.count(s, where: (t) => t.restaurantId.equals(rid)),
+        3,
+      );
+    });
+
+    test('the reset puts stock back with an audited adjustment and clears old unpaid bills', () async {
+      final s = builder.build();
+      final rid = restaurant.id!;
+      await JudgeModule.reset(s, rid);
+      final beans = (await StockItem.db.findFirstRow(
+        s,
+        where: (t) => t.restaurantId.equals(rid) & t.name.equals('Espresso beans'),
+      ))!;
+      beans.quantity = 9;
+      await StockItem.db.updateRow(s, beans);
+      // A judge's own bill, read yesterday and never paid, and one they paid.
+      final yesterday = now.subtract(const Duration(days: 1));
+      Bill bill(String state) => Bill(
+        restaurantId: rid,
+        vendor: 'A judge’s upload',
+        category: 'electricity',
+        amountMinor: 1000,
+        vatMinor: 0,
+        currency: 'USD',
+        state: state,
+        payVia: 'elsewhere',
+        readJson: '{}',
+        version: 1,
+        createdAt: yesterday,
+        updatedAt: yesterday,
+      );
+      final unpaid = await Bill.db.insertRow(s, bill('review'));
+      final settled = await Bill.db.insertRow(s, bill('paidElsewhere'));
+
+      await JudgeModule.reset(s, rid);
+      final after = (await StockItem.db.findById(s, beans.id!))!;
+      expect(after.quantity, 2.0);
+      expect(after.parLevel, 6.0);
+      final moves = await StockMovement.db.find(
+        s,
+        where: (t) => t.stockItemId.equals(beans.id!) & t.refType.equals('judge.reset'),
+      );
+      expect(moves, hasLength(1));
+      expect(moves.single.kind, 'adjust');
+      expect(moves.single.quantity, closeTo(-7, 1e-9));
+      expect(await Bill.db.findById(s, unpaid.id!), isNull);
+      expect(await Bill.db.findById(s, settled.id!), isNotNull);
+    });
+
+    test('the hourly tidy releases a paid bill read from a sample file, keeping the money record', () async {
+      final s = builder.build();
+      final rid = restaurant.id!;
+      await JudgeModule.reset(s, rid);
+      final earlier = now.subtract(const Duration(hours: 2));
+      final paid = await Bill.db.insertRow(
+        s,
+        Bill(
+          restaurantId: rid,
+          vendor: 'Hudson Power & Light · Sample',
+          category: 'electricity',
+          reference: 'HPL-2026-11-0417',
+          amountMinor: 19086,
+          vatMinor: 1414,
+          currency: 'USD',
+          state: 'paid',
+          payVia: 'paypal',
+          payeeEmail: 'buyer-one@personal.example.com',
+          sourceMediaId: 77,
+          contentSha: 'a' * 64,
+          payoutBatchId: 5,
+          readJson: '{"from":"agent"}',
+          paidAt: earlier,
+          version: 3,
+          createdAt: earlier,
+          updatedAt: earlier,
+        ),
+      );
+      final fresh = await Bill.db.insertRow(
+        s,
+        paid.copyWith(
+          id: null,
+          reference: 'HPL-FRESH',
+          contentSha: 'b' * 64,
+          updatedAt: now,
+        ),
+      );
+      await AgentTask.db.insertRow(
+        s,
+        AgentTask(
+          restaurantId: rid,
+          agent: 'accountant',
+          trigger: 'user',
+          dedupeKey: 'bill:$rid:77',
+          status: 'done',
+          title: 'Read a bill',
+          inputJson: '{}',
+          stateJson: '{}',
+          traceJson: '[]',
+          feature: 'agent.accountant',
+          reservedMicros: 0,
+          chargedMicros: 0,
+          version: 1,
+          createdAt: earlier,
+          updatedAt: earlier,
+        ),
+      );
+
+      final tidy = await JudgeModule.reset(s, rid, full: false);
+      expect(tidy['readBills'], 1);
+      final released = (await Bill.db.findById(s, paid.id!))!;
+      expect(released.contentSha, isNull);
+      expect(released.reference, 'HPL-2026-11-0417 (earlier demo run)');
+      // The money record is untouched.
+      expect(released.state, 'paid');
+      expect(released.amountMinor, 19086);
+      expect(released.payoutBatchId, 5);
+      expect(released.paidAt, isNotNull);
+      // A bill paid in the last hour is left as it is.
+      expect((await Bill.db.findById(s, fresh.id!))!.contentSha, 'b' * 64);
+      final task = (await AgentTask.db.findFirstRow(
+        s,
+        where: (t) => t.restaurantId.equals(rid) & t.agent.equals('accountant'),
+      ))!;
+      expect(task.dedupeKey, 'bill:$rid:77:run${task.id}');
+      // A second tidy has nothing more to release.
+      expect((await JudgeModule.reset(s, rid, full: false))['readBills'], 0);
     });
 
     test('restoring only the menu leaves orders and the back office', () async {

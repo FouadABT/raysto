@@ -15,4 +15,5 @@ Read `docs/product-direction.md` and `docs/MOBILE_APP_DESIGN_SYSTEM_GUIDELINES.m
 - Inactive/outgoing branches must not receive taps, focus, semantics navigation or tickers.
 - Check changes with `flutter analyze` and the relevant `flutter test` coverage. Render actual fonts/assets when reviewing layout. `tool/render_preview_test.dart` regenerates review PNGs explicitly with `--update-goldens`.
 - Validate native builds separately; widget screenshots do not establish physical-device performance, TalkBack/VoiceOver quality, or iOS back-gesture behavior.
+- Video and motion work follows `video/MOTION-GUIDE.md` (Remotion in `video/`, the `video-studio` skill and toolkit at `Desktop\video-studio`). Animated scenes are labelled diagrams; every PayPal id on screen is a real Sandbox id.
 - The user requested English communication from 25 October 2026 onward.

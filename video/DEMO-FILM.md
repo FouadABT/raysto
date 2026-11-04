@@ -1,30 +1,40 @@
-# RaystoDemo: the judges' demo film
+# RaystoDemo v2: the judges' demo film
 
-A 2 min 25 s, 1920×1080, 30 fps film of the judges' path, for the Devpost video field. The export is `../dist/raysto-demo-1080p.mp4`; a copy is served at https://rays.to/demo.mp4. The code lives in `src/demo/` with its own entry point.
+Under three minutes, 1920×1080, 30 fps, built around the money agents. The export is `../dist/raysto-demo-v2-1080p.mp4`; a copy is served at https://rays.to/demo.mp4 once published. The code lives in `src/demo/` with its own entry point (`src/demo/index.ts`). The first cut (2 November, five demos) is in git history.
 
 ## Story
 
-| Scene | What is on screen | Source |
-|---|---|---|
-| Hook, rule | "Lunch at a small café", then "AI coworkers prepare. You approve. PayPal moves the money." | Title cards |
-| rays.to | The judges' page, "Try it now", the console signing in | Recording |
-| 1 · Voice | A spoken counter order becomes ticket lines; lemonade flagged as not on the menu | Recording |
-| 2 · Menu | The menu agent reads a printed menu: 14 dishes, 3 new, 1 price change, soup held back; approved | Recording |
-| 3 · Order | "Two vegetarian lunches under $25…" → basket, one tap, PayPal's own approval page, capture `8DJ62510842222013`, ticket #9 | Recording |
-| 4 · Payments | The payments agent reads PayPal through MCP (`PAYER_ACTION_REQUIRED`), proposes the release, approved after the identity check | Recording |
-| 5 · Photo | Gemini draws the croque monsieur; scanned, approved | Recording |
-| Staff tablet | Counter, kitchen and agents screens | The app's screens rendered with demo data (`tool/render_staff_test.dart`), labelled as such |
-| Evidence, outro | 9 captures and a refund, 12/12 live AI evaluation, 326 automated tests, PayPal MCP; "Try it at rays.to" | Title cards |
+| Scene | Seconds (planned) | What is on screen | Source |
+|---|---|---|---|
+| Hook | 6 | "A small café. Its AI coworkers run the money. You approve. PayPal moves it." | Title card |
+| rays.to | 8 | The judges' page, one click into the console, nine demo cards | Recording |
+| 1 · Close the day | 18 | The close agent reads PayPal's transactions through MCP (or the ledger, and says so), explains the gaps, the manager signs off | Recording |
+| 2 · Pay the team | 22 | Clocked shifts → wages and tips as one batch → identity check → PayPal Payouts batch id | Recording |
+| 3 · Bill the caterer | 18 | One-line request → priced quote with a deposit → "Send the invoice"; if Invoicing is still off on the Sandbox app, the honest message is shown and the `catering_pending` line is used | Recording |
+| 4 · Settle a complaint | 20 | Complaint → kitchen ticket and PayPal capture via MCP → partial refund proposal → identity check → PayPal refund id | Recording |
+| 5 · Chase a payment | 14 | `PAYER_ACTION_REQUIRED` via MCP → release after approval | Recording |
+| 6 · Order in one sentence | 24 | Basket → one tap → PayPal's own page (trimmed past the login) → capture id and kitchen ticket | Recording |
+| 7–9 · Montage | 16 | Menu reading, the voice order, the dish photo | Recording |
+| Evidence | 10 | Fourteen coworkers; PayPal Orders, Payouts, Invoicing, Refunds, Transactions, Disputes; the MCP tool split; the run's real ids | Title card |
+| Outro | 5 | "Try it at rays.to" | Title card |
+
+## Honesty rules
+
+- Every product shot is a screen recording of the live judge path on production, PayPal Sandbox. The "PayPal Sandbox · recorded live, {date}" chip appears only on recorded scenes.
+- A cut faster than real time is waiting; the film badges it "sped up ×N" only when N ≥ 2 (a 1.4× trim is not sped up).
+- No app stills or mock-ups. The tablet PNGs in `public/demo/` are no longer used.
+- PayPal's login page is trimmed out; the buyer's email never appears.
+- The catering scene uses the `catering` narration only when the invoice was really sent in the recording; otherwise `catering_pending` (set `CATERING_LINE` in `Demo.tsx`).
+- The evidence card's ids (`STATS` in `Demo.tsx`) are replaced by the ids of the recording's own run.
 
 ## Footage provenance
 
-- Recorded on 2 November 2026 against production (rays.to, ops.rays.to with console 0.15.1, api.rays.to with backend 0.13.9, PayPal Sandbox) by a Playwright script at a 1280×720 viewport. The session's PayPal capture is `8DJ62510842222013`; see session 5 in `../docs/paypal-acceptance-2026-10-31.md`.
-- `public/demo/footage/` is not in git (large files). `main.webm` is the console session; `paypal.webm` is PayPal's approval page, trimmed to start at the review screen so the Sandbox buyer's login never appears.
-- `src/demo/footage.ts` is the edit list. Any cut faster than real time is waiting (Gemini or a page load), and the film labels it "sped up" with the real number of seconds.
+- Recorded by `record_demo_v2.cjs` (kept outside the repository: it reads the private Sandbox buyer file) at a 1280×720 viewport, device scale 1.5, into 1920×1080 WebM. `public/demo/footage/` is not in git (large files); `events.json` there holds the step marks.
+- `src/demo/footage.ts` is the edit list; `src/demo/narration.json` the spoken lines, which are also the captions.
 
 ## Audio
 
-- **Voice:** [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0), voice `af_heart`, generated offline; the lines are in `src/demo/narration.json` and appear as captions. To use a human recording of the same lines instead, put one WAV per line in `public/demo/voice/` with the same names and update the seconds in `src/demo/voice-timing.ts`; each scene stretches to fit its line.
+- **Voice:** [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0), voice `af_heart`, generated offline by `make_demo_voice.py`; a human recording of the same lines can replace the WAVs in `public/demo/voice/` (update `src/demo/voice-timing.ts`).
 - **Music:** "Gimme that Groove!" by Michael Ramir C., via Mixkit, under the Mixkit Stock Music Free License (see `AUDIO-LICENSES.md`), ducked under the voice.
 
 ## Rebuild
@@ -32,6 +42,6 @@ A 2 min 25 s, 1920×1080, 30 fps film of the judges' path, for the Devpost video
 ```sh
 ../.tooling/tts-venv/Scripts/python make_demo_voice.py af_heart
 npx remotion still src/demo/index.ts RaystoDemo out/demo-review/f.png --frame=900 --scale=0.5
-npx remotion render src/demo/index.ts RaystoDemo ../dist/raysto-demo-1080p.mp4 \
+npx remotion render src/demo/index.ts RaystoDemo ../dist/raysto-demo-v2-1080p.mp4 \
   --codec=h264 --crf=18 --concurrency=4 --pixel-format=yuv420p --audio-codec=aac --audio-bitrate=256k
 ```

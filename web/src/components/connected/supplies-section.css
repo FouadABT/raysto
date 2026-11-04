@@ -1,0 +1,202 @@
+/* Supplies (stream S3): the order and match tables, the delivery-note drop,
+   recipe lines. Everything else reuses the back-office classes. */
+.ops-supplies {
+  display: grid;
+  gap: 18px;
+}
+.ops-sup-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-inline-start: 6px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--late-bg);
+  color: var(--late);
+  font-size: 12px;
+  font-weight: 700;
+}
+.ops-sup-groups,
+.ops-sup-proposals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+.ops-sup-order-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ops-sup-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.ops-sup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.ops-sup-table th,
+.ops-sup-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  vertical-align: top;
+}
+.ops-sup-table thead th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.ops-sup-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.ops-sup-table tr.flagged > th {
+  box-shadow: inset 4px 0 0 var(--late);
+}
+.ops-sup-table input {
+  width: 7em;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  background: var(--md-sys-color-surface-container-lowest);
+}
+.ops-sup-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ops-sup-why {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
+  min-width: 14em;
+}
+.ops-sup-ai {
+  display: flex;
+  gap: 10px;
+  align-items: start;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--mint);
+  color: var(--ink);
+}
+.ops-sup-ai svg {
+  flex: none;
+  margin-top: 2px;
+}
+.ops-sup-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.ops-sup-totals > div {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.ops-sup-totals > div.flagged {
+  border-color: var(--late);
+  background: var(--late-bg);
+}
+.ops-sup-totals dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.ops-sup-totals dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.ops-sup-total {
+  margin: 12px 0 0;
+}
+.ops-sup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+  margin-top: 12px;
+}
+.ops-root .ops-sup-actions > button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ops-root .ops-sup-actions > .ops-secondary.danger {
+  border-color: var(--late);
+  color: var(--late);
+}
+.ops-sup-inline {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ops-sup-inline input,
+.ops-sup-inline select {
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 400;
+  background: var(--md-sys-color-surface-container-lowest);
+  max-width: 100%;
+}
+.ops-sup-lines {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-sup-lines li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7em auto 48px;
+  align-items: center;
+  gap: 8px;
+}
+.ops-sup-lines input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+}
+.ops-sup-lines input[aria-invalid="true"] {
+  border-color: var(--late);
+}
+.ops-sup-line-name {
+  overflow-wrap: anywhere;
+}
+.ops-supplies .ops-icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.ops-supplies .ops-icon-button:hover {
+  background: var(--mint);
+}
+.ops-sup-up {
+  color: var(--late);
+  font-weight: 700;
+}

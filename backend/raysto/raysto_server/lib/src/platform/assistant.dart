@@ -836,10 +836,13 @@ class AssistantModule {
             ? null
             : _int(args, 'checkoutId', min: 1),
       );
-      if (!ProviderClients.singleRestaurant(w.tenant) ||
-          i.providerMode != 'singleMerchantSandbox' ||
-          i.merchantId !=
-              ProviderClients.required('PAYPAL_SANDBOX_MERCHANT_ID') ||
+      // The shared Sandbox merchant, or (0.16, S6) the café's own app.
+      final shared =
+          ProviderClients.singleRestaurant(w.tenant) &&
+          i.providerMode == 'singleMerchantSandbox' &&
+          i.merchantId ==
+              ProviderClients.required('PAYPAL_SANDBOX_MERCHANT_ID');
+      if (!(shared || i.providerMode == 'ownApp') ||
           i.providerOrderId == null) {
         _fail(
           'payment_unavailable',
@@ -895,13 +898,15 @@ class AssistantModule {
     String source = 'paypal_mcp';
     String? fallback;
     PayPalMcpClient? client;
+    // The account the checkout was taken with (null: the shared Sandbox app).
+    final account = await MerchantAppModule.forIntent(s, intent);
     try {
       if (Platform.environment['RAYSTO_PAYPAL_MCP_ENABLED'] != 'true') {
         throw const McpFailure('mcp_disabled');
       }
       client = PayPalMcpClient.configured(
         Platform.environment,
-        accessToken: ProviderClients.paypalReadToken,
+        accessToken: () => ProviderClients.paypalReadToken(account: account),
       );
       response = await client.read(
         refund == null ? 'get_order' : 'get_refund',
@@ -916,7 +921,8 @@ class AssistantModule {
             ? '/v2/checkout/orders/${intent.providerOrderId}'
             : '/v2/payments/refunds/${refund.providerRefundId}',
         merchant: intent.merchantId,
-        singleMerchant: true,
+        singleMerchant: account == null,
+        account: account,
       );
     } finally {
       client?.close();

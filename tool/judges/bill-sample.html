@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hudson Power &amp; Light · Sample bill</title>
+<!-- The judges' sample electricity bill: rendered to web/public/judges/bill.pdf
+     (what the accountant reads) and bill.png (what the Try card shows) by
+     tool/judge_samples.cjs. A sample document, not issued by any utility. -->
+<style>
+  @page { size: Letter; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 "Segoe UI", Arial, sans-serif; color: #1d2b27; background: #ffffff; }
+  .page { width: 816px; min-height: 1056px; padding: 44px 52px; }
+  .sample { background: #fff4d6; color: #6b4b00; border: 1px solid #e8c766; border-radius: 6px; padding: 7px 12px; font-weight: 700; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; margin: 22px 0 18px; }
+  .brand { font-size: 28px; font-weight: 800; color: #0f4c3a; }
+  .brand small { display: block; font-size: 13px; font-weight: 500; color: #4a5a55; }
+  .due { text-align: right; border: 2px solid #0f4c3a; border-radius: 10px; padding: 12px 18px; min-width: 250px; }
+  .due b { display: block; font-size: 30px; color: #0f4c3a; }
+  .due span { font-size: 13px; color: #4a5a55; }
+  dl { display: grid; grid-template-columns: 190px 1fr; gap: 6px 14px; margin: 0 0 22px; font-size: 14px; }
+  dt { color: #4a5a55; }
+  dd { margin: 0; font-weight: 600; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: #0f4c3a; border-bottom: 2px solid #0f4c3a; padding-bottom: 6px; margin: 26px 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 8px 4px; border-bottom: 1px solid #dfe6e3; }
+  td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.total td { font-weight: 800; font-size: 17px; border-bottom: 0; border-top: 2px solid #1d2b27; }
+  .pay { display: flex; gap: 12px; margin-top: 10px; }
+  .pay span { border: 1px solid #c9d4d0; border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+  footer { margin-top: 40px; font-size: 12px; color: #6b7773; border-top: 1px solid #dfe6e3; padding-top: 10px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="sample">Sample bill · PayPal Sandbox demo for the Raysto hackathon · not a real utility</div>
+  <header>
+    <div class="brand">Hudson Power &amp; Light · Sample<small>Electricity service · Customer care (sample) 555-0142</small></div>
+    <div class="due"><span>Amount due by 24 Nov 2026</span><b>$190.86</b><span>Bill HPL-2026-11-0417</span></div>
+  </header>
+  <dl>
+    <dt>Customer</dt><dd>Atelier Café · Judges (sample)</dd>
+    <dt>Account number</dt><dd>HPL-0042-7731</dd>
+    <dt>Bill number (reference)</dt><dd>HPL-2026-11-0417</dd>
+    <dt>Billing period</dt><dd>1 Oct 2026 – 31 Oct 2026</dd>
+    <dt>Issue date</dt><dd>3 Nov 2026</dd>
+    <dt>Due date</dt><dd>24 Nov 2026</dd>
+    <dt>Usage</dt><dd>1,240 kWh (meter 58,210 → 59,450)</dd>
+  </dl>
+  <h2>Charges</h2>
+  <table>
+    <tr><td>Energy, 1,240 kWh × $0.1180</td><td>$146.32</td></tr>
+    <tr><td>Delivery charge</td><td>$21.40</td></tr>
+    <tr><td>Customer charge</td><td>$9.00</td></tr>
+    <tr><td>Subtotal</td><td>$176.72</td></tr>
+    <tr><td>Sales tax 8%</td><td>$14.14</td></tr>
+    <tr class="total"><td>Total due</td><td>$190.86</td></tr>
+  </table>
+  <h2>Ways to pay</h2>
+  <div class="pay"><span>PayPal</span><span>Bank transfer</span><span>Autopay</span></div>
+  <p>Last month: $176.80, paid on 12 Oct 2026. Thank you.</p>
+  <footer>Sample document generated for the Raysto PayPal Sandbox demo. It was not issued by any utility and asks for no real payment.</footer>
+</div>
+</body>
+</html>

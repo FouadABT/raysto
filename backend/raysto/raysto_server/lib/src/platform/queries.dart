@@ -145,6 +145,9 @@ class PlatformQueries {
                 'currency': item.currency,
               },
           ]);
+        case 'merchant.status':
+          // 0.16 stream S6: own PayPal app, partner connection, shared Sandbox.
+          return MerchantAppModule.status(s, w.tenant, w.user);
         case 'restaurant.manage':
           await w.role(_managers);
           final merchant = await MerchantConnection.db.findFirstRow(
@@ -376,28 +379,8 @@ class PlatformQueries {
                 .toList(),
           );
         case 'delivery.tracking':
-          final (o, ctx) = await OrderingModule._order(
-            w,
-            _int(d, 'orderId', min: 1),
-          );
-          if (o.customerId != w.user) await w.role(_managers);
-          final task = await DeliveryAssignment.db.findFirstRow(
-            s,
-            where: (t) => t.orderId.equals(o.id!),
-            transaction: tx,
-          );
-          if (task == null) _fail('not_found', 'Delivery not found.');
-          return {
-            'status': task.status,
-            'version': task.version,
-            'location':
-                task.locationConsent &&
-                    task.locationExpiresAt != null &&
-                    task.locationExpiresAt!.isAfter(_now()) &&
-                    task.locationJson != null
-                ? _json(task.locationJson!)
-                : null,
-          };
+          // 0.16 (S2): with the estimate, the map points and the code.
+          return DeliveryModule.tracking(w, d);
         case 'billing.history':
           await w.role({'owner'});
           final rows = await BillingHistory.db.find(
@@ -450,9 +433,27 @@ class PlatformQueries {
             limit: 100,
             transaction: tx,
           );
+          // Groups the person belongs to; the console shows a group switcher.
+          final groups = <Json>[];
+          for (final g in await GroupMembership.db.find(
+            s,
+            where: (t) => t.userId.equals(w.user) & t.active.equals(true),
+            limit: 50,
+            transaction: tx,
+          )) {
+            final group = await RestaurantGroup.db.findById(
+              s,
+              g.groupId,
+              transaction: tx,
+            );
+            if (group != null) {
+              groups.add({'id': group.id, 'name': group.name, 'role': g.role});
+            }
+          }
           return {
             'guest': actor.isGuest,
             'platformAdmin': !actor.isGuest && _platformAdmin(w.user),
+            'groups': groups,
             'profile': _json(actor.dataJson),
             'version': actor.version,
             'memberships': [
@@ -1248,23 +1249,26 @@ class PlatformQueries {
             return await GroupModule.query(w, name, d, limit, cursor, page) ??
                 _fail('not_found', 'Unknown query.');
           }
-          for (final module in <Future<Json?> Function(
-            Work,
-            String,
-            Json,
-            int,
-            int,
-            Json Function(List<Json>),
-          )>[
-            LedgerModule.query,
-            BillsModule.query,
-            PaymentRequestModule.query,
-            DeliveryModule.query,
-            PartnerModule.query,
-            PurchasingModule.query,
-            StudioLayoutModule.query,
-            BackOfficeModule.query,
-          ]) {
+          for (final module
+              in <
+                Future<Json?> Function(
+                  Work,
+                  String,
+                  Json,
+                  int,
+                  int,
+                  Json Function(List<Json>),
+                )
+              >[
+                LedgerModule.query,
+                BillsModule.query,
+                PaymentRequestModule.query,
+                DeliveryModule.query,
+                PartnerModule.query,
+                PurchasingModule.query,
+                StudioLayoutModule.query,
+                BackOfficeModule.query,
+              ]) {
             final result = await module(w, name, d, limit, cursor, page);
             if (result != null) return result;
           }
