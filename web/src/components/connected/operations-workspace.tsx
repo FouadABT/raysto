@@ -59,7 +59,11 @@ import { isJudgeVenue } from "@/lib/connected/judge";
 import type { IconName } from "./icons";
 
 type Place = Section | "floor" | "try";
-/** The console's sections, in navigation order; the judges' café adds Try Raysto first. */
+/**
+ * The console's sections, in navigation order. The scripted Try Raysto
+ * demos are not in the navigation: the demo café opens `?section=try` by
+ * URL (tool/judge_path_qa.cjs and our own checks use it).
+ */
 const places: readonly (readonly [Place, string, IconName])[] = [
   ["overview", "Overview", "overview"],
   ["orders", "Orders", "orders"],
@@ -75,12 +79,24 @@ const places: readonly (readonly [Place, string, IconName])[] = [
   ["floor", "Floor", "floor"],
 ];
 const tryPlace = ["try", "Try Raysto", "play"] as const;
+
+/**
+ * The section to open first: `?section=` when it names one (Try only on the
+ * demo café), else the Overview, where the AI Action Inbox waits.
+ */
+function firstPlace(judges: boolean): Place {
+  if (typeof window === "undefined") return "overview";
+  const asked = new URLSearchParams(window.location.search).get("section");
+  if (asked === "try") return judges ? "try" : "overview";
+  return places.some(([id]) => id === asked) ? (asked as Place) : "overview";
+}
 /**
  * Sections whose content holds an AG Grid or AG Studio: they change with a
  * plain fade, never a scale, because a transform on their ancestors breaks
- * the grid's measurements.
+ * the grid's measurements. The Overview holds a 30-day AG Studio.
  */
 const gridHeavy = new Set<Place>([
+  "overview",
   "orders",
   "payments",
   "agents",
@@ -284,10 +300,10 @@ export function OperationsWorkspace({
   const [error, setError] = useState(""),
     [delivery, setDelivery] = useState("Connecting");
   const [tab, setTab] = useState("tables");
-  // The whole business first; the table floor is one section among four.
-  // The judges' café opens on its five live demos.
+  // The whole business first: every café, the demo one included, opens on
+  // the Overview and its AI Action Inbox.
   const judges = isJudgeVenue(tenant);
-  const [section, setSection] = useState<Place>(judges ? "try" : "overview");
+  const [section, setSection] = useState<Place>(() => firstPlace(judges));
   const [focus, setFocus] = useState<string>();
   const [layout, setLayout] = useState<AgReportState<Registry>>();
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -638,8 +654,8 @@ export function OperationsWorkspace({
           </button>
         ),
     });
-  const navItems = judges ? [tryPlace, ...places] : places;
-  const title = navItems.find(([id]) => id === section)?.[1] ?? "Overview";
+  const navItems = places;
+  const title = [tryPlace, ...places].find(([id]) => id === section)?.[1] ?? "Overview";
   // One navigation, rendered into the sidebar (drawer or rail) and, while it
   // is open, the phone's modal drawer; each has its own sliding indicator.
   const renderNav = (layoutId: string) => (
@@ -681,7 +697,15 @@ export function OperationsWorkspace({
         <header className="ops-appbar">
           {appBarLead}
           <div className="ops-appbar-title">
-            <span className="ops-eyebrow">{snapshot.name}</span>
+            <span className="ops-appbar-venue">
+              <span className="ops-eyebrow">{snapshot.name}</span>
+              {judges && (
+                <span className="ops-demo-badge" title="A shared demo café: its records are sample data and its payments run in PayPal Sandbox.">
+                  Demo café
+                  <span className="m3-sr">: sample data, payments in PayPal Sandbox</span>
+                </span>
+              )}
+            </span>
             <h1>{title}</h1>
           </div>
           <div className="ops-appbar-actions">

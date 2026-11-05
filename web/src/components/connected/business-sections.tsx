@@ -860,40 +860,41 @@ export function paypalIdOf(result?: Json): string | undefined {
   return undefined;
 }
 
-export function AgentPanel({
+/**
+ * One proposal's decision through `agent.decide`: approve or turn it down.
+ * When the server asks for the identity check (a money action), `needsCheck`
+ * turns on; `confirm` re-authenticates, records the step-up and approves
+ * again with the same request key, so the approval resumes exactly once.
+ * `failure` keeps the last error as thrown, so a caller can tell "someone
+ * else already decided it" (a version conflict) from a refusal.
+ */
+export function useDecision({
   api,
   tenant,
   action,
   onDone,
-  inline = false,
-  variant,
   knownPassword = "",
 }: {
   api: ConnectedApi;
   tenant: number;
-  action: AgentActionRow;
-  /** The decided state, and the action's result (its error code and message when it failed). */
+  action: Pick<AgentActionRow, "id" | "version">;
   onDone: (state: string, result?: Json) => void;
-  /** Inside a card instead of the side column. */
-  inline?: boolean;
-  /** Where it sits: the side column (default), a card (`inline`) or a container-transform dialog. */
-  variant?: "side" | "inline" | "dialog";
-  /** The published judge password, so the identity check is one tap. */
   knownPassword?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  const [failure, setFailure] = useState<unknown>();
   const [needsCheck, setNeedsCheck] = useState(false);
   const [password, setPassword] = useState(knownPassword);
   const [passwordAccount, setPasswordAccount] = useState(true);
   // One request key per decision: retrying after the identity check resumes
   // the same approval instead of starting another.
   const [keys] = useState(() => ({ approve: crypto.randomUUID(), reject: crypto.randomUUID() }));
-  const chips = evidenceChips(action.evidence ?? {}, action.preview ?? {}, (minor, code) => currency(minor, code));
 
   async function decide(decision: "approve" | "reject") {
     setBusy(true);
     setNote("");
+    setFailure(undefined);
     try {
       const result = await api.command<Json>(
         "agent.decide",
@@ -921,6 +922,7 @@ export function AgentPanel({
       );
       onDone(state, result.result as Json | undefined);
     } catch (e) {
+      setFailure(e);
       setNote(String(e instanceof Error ? e.message : e));
     } finally {
       setBusy(false);
@@ -935,10 +937,51 @@ export function AgentPanel({
       setNeedsCheck(false);
       await decide("approve");
     } catch (e) {
+      setFailure(e);
       setNote(String(e instanceof Error ? e.message : e));
       setBusy(false);
     }
   }
+
+  /** Leaves the identity check without approving; nothing was sent. */
+  function cancelCheck() {
+    setNeedsCheck(false);
+    setNote("");
+    setPassword(knownPassword);
+  }
+
+  return { busy, note, failure, needsCheck, password, setPassword, passwordAccount, decide, confirm, cancelCheck };
+}
+
+export function AgentPanel({
+  api,
+  tenant,
+  action,
+  onDone,
+  inline = false,
+  variant,
+  knownPassword = "",
+}: {
+  api: ConnectedApi;
+  tenant: number;
+  action: AgentActionRow;
+  /** The decided state, and the action's result (its error code and message when it failed). */
+  onDone: (state: string, result?: Json) => void;
+  /** Inside a card instead of the side column. */
+  inline?: boolean;
+  /** Where it sits: the side column (default), a card (`inline`) or a container-transform dialog. */
+  variant?: "side" | "inline" | "dialog";
+  /** The published judge password, so the identity check is one tap. */
+  knownPassword?: string;
+}) {
+  const { busy, note, needsCheck, password, setPassword, passwordAccount, decide, confirm } = useDecision({
+    api,
+    tenant,
+    action,
+    onDone,
+    knownPassword,
+  });
+  const chips = evidenceChips(action.evidence ?? {}, action.preview ?? {}, (minor, code) => currency(minor, code));
 
   const place = variant ?? (inline ? "inline" : "side");
   const Shell = place === "side" ? "aside" : "div";

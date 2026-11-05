@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Json } from "@/lib/connected/contracts";
 import { backoffice, type Dashboard, type DashboardRange } from "@/lib/connected/backoffice";
-import { asRows, unresolved, type AgentActionRow, type CheckoutRow } from "@/lib/connected/business";
+import { asRows, unresolved, type CheckoutRow } from "@/lib/connected/business";
 import {
   channelName,
   deltaChip,
@@ -35,6 +35,8 @@ import {
 } from "./m3";
 import { Icon, type IconName } from "./icons";
 import { pill, useLoad, words, type Section } from "./business-sections";
+import { ActionInbox, useInbox } from "./action-inbox";
+import { OverviewStudio } from "./overview-studio";
 
 const RANGE_KEY = "raysto.overviewRange";
 
@@ -56,10 +58,13 @@ const kpis: readonly Kpi[] = [
 ];
 
 /**
- * The owner's Overview, on the `dashboard` query (docs/dashboard-contract.md).
- * Every figure is real: paid orders counted when they were placed. The judges'
- * café may add a sample series, drawn apart and labelled, never added to any
- * figure. It reloads when the workspace sees a real change (`revision`).
+ * The owner's Overview. First the AI Action Inbox (action-inbox.tsx): what
+ * the AI coworkers prepared, approved here, with four starters for new
+ * work. Then the figures, on the `dashboard` query
+ * (docs/dashboard-contract.md): every figure is real, paid orders counted
+ * when they were placed; a café may add a sample series, drawn apart and
+ * labelled, never added to any figure. Then 30 days of analytics on AG
+ * Studio. It reloads when the workspace sees a real change (`revision`).
  */
 export function OverviewSection({
   api,
@@ -90,18 +95,14 @@ export function OverviewSection({
     }
   }, [range]);
   const board = useLoad(() => backoffice(api, tenant).dashboard(range), [api, tenant, range, revision]);
-  // What waits for a person; it loads on its own so one failure never hides the other.
+  // The AI coworkers' proposals, at the top.
+  const inbox = useInbox(api, tenant, revision);
+  // PayPal attempts left open; it loads on its own so one failure never hides the other.
   const needs = useLoad(async () => {
-    const [inbox, checkouts] = await Promise.all([
-      api.query<Json>("agent.inbox", { restaurantId: tenant }).catch(() => ({ rows: [] })),
-      api.query<Json>("checkouts", { restaurantId: tenant, staff: true, order: "desc", limit: 100 }).catch(() => ({ rows: [] })),
-    ]);
-    const waiting = asRows<AgentActionRow>(inbox);
-    return {
-      proposals: waiting.length,
-      aboutMoney: waiting.filter((a) => a.risk === "money").length,
-      payments: unresolved(asRows<CheckoutRow>(checkouts), new Date()).length,
-    };
+    const checkouts = await api
+      .query<Json>("checkouts", { restaurantId: tenant, staff: true, order: "desc", limit: 100 })
+      .catch(() => ({ rows: [] }));
+    return { payments: unresolved(asRows<CheckoutRow>(checkouts), new Date()).length };
   }, [api, tenant, revision]);
 
   const d = board.data;
@@ -111,6 +112,8 @@ export function OverviewSection({
   const now = new Date();
   const zone = d?.timezone;
   const name = firstName(person?.name, person?.email, judges);
+  // The figures wait for the inbox above them, so nothing moves once they show.
+  const settled = inbox.loaded && !!needs.data;
 
   return (
     <div className="ops-ov" aria-busy={!d && !board.error}>
@@ -130,6 +133,16 @@ export function OverviewSection({
               "."
             )}
           </h2>
+        </div>
+      </header>
+
+      <ActionInbox api={api} tenant={tenant} inbox={inbox} timeZone={zone} />
+
+      {settled && <NeedsYou payments={needs.data?.payments ?? 0} requests={openRequests} open={open} />}
+
+      <header className="ops-ov-figures-head">
+        <div>
+          <h2 className="ops-ov-figures-title">The café at a glance</h2>
           <p className="ops-ov-basis">
             Paid sales, counted when ordered · {rangeWords(range)} compared with {previousWords(range)}
           </p>
@@ -144,15 +157,6 @@ export function OverviewSection({
         </div>
       </header>
 
-      <NeedsYou
-        proposals={needs.data?.proposals ?? 0}
-        aboutMoney={needs.data?.aboutMoney ?? 0}
-        payments={needs.data?.payments ?? 0}
-        requests={openRequests}
-        loaded={!!needs.data}
-        open={open}
-      />
-
       {board.error && !d ? (
         <section className="ops-ov-card ops-ov-failed" role="alert">
           <Icon name="alert" size={22} />
@@ -166,7 +170,7 @@ export function OverviewSection({
             Try again
           </button>
         </section>
-      ) : !d ? (
+      ) : !d || !settled ? (
         <div className="ops-skeleton" role="status" aria-label="Gathering the figures">
           <span className="hero" />
           <span />
@@ -174,35 +178,30 @@ export function OverviewSection({
           <span />
         </div>
       ) : (
-        <Figures d={d} range={range} money={money} short={short} open={open} />
+        <Figures
+          d={d}
+          range={range}
+          money={money}
+          short={short}
+          open={open}
+          analytics={<OverviewStudio api={api} tenant={tenant} currencyCode={code} />}
+        />
       )}
     </div>
   );
 }
 
+/** Other things that need a person: PayPal attempts left open and requests at the tables. Nothing when there are none. */
 function NeedsYou({
-  proposals,
-  aboutMoney,
   payments,
   requests,
-  loaded,
   open,
 }: {
-  proposals: number;
-  aboutMoney: number;
   payments: number;
   requests: number;
-  loaded: boolean;
   open: (section: Section | "floor", focus?: string) => void;
 }) {
   const chips: { label: string; icon: IconName; to: [Section | "floor", string?]; hot: boolean }[] = [];
-  if (proposals)
-    chips.push({
-      label: `${proposals} ${proposals === 1 ? "proposal waits" : "proposals wait"} for you${aboutMoney ? ` · ${aboutMoney} about money` : ""}`,
-      icon: "agents",
-      to: ["agents"],
-      hot: aboutMoney > 0,
-    });
   if (payments)
     chips.push({
       label: `${payments} PayPal ${payments === 1 ? "payment" : "payments"} to resolve`,
@@ -212,23 +211,16 @@ function NeedsYou({
     });
   if (requests)
     chips.push({ label: `${requests} service ${requests === 1 ? "request" : "requests"} at the tables`, icon: "bell", to: ["floor"], hot: false });
-  if (!loaded) return <div className="ops-ov-needs" aria-hidden="true" />;
+  if (chips.length === 0) return null;
   return (
-    <section className="ops-ov-needs" aria-label="Needs you">
-      {chips.length === 0 ? (
-        <span className="ops-ov-chip calm">
-          <Icon name="check" size={18} />
-          Nothing needs you right now
-        </span>
-      ) : (
-        chips.map((c) => (
-          <button key={c.label} type="button" className={`ops-ov-chip${c.hot ? " hot" : ""}`} onClick={() => open(c.to[0], c.to[1])}>
-            <Icon name={c.icon} size={18} />
-            {c.label}
-            <Icon name="arrow" size={16} />
-          </button>
-        ))
-      )}
+    <section className="ops-ov-needs" aria-label="Also needs you">
+      {chips.map((c) => (
+        <button key={c.label} type="button" className={`ops-ov-chip${c.hot ? " hot" : ""}`} onClick={() => open(c.to[0], c.to[1])}>
+          <Icon name={c.icon} size={18} />
+          {c.label}
+          <Icon name="arrow" size={16} />
+        </button>
+      ))}
     </section>
   );
 }
@@ -239,12 +231,15 @@ function Figures({
   money,
   short,
   open,
+  analytics,
 }: {
   d: Dashboard;
   range: DashboardRange;
   money: (n: number) => string;
   short: (n: number) => string;
   open: (section: Section | "floor", focus?: string) => void;
+  /** The 30-day AG Studio card, after the day's cards. */
+  analytics?: ReactNode;
 }) {
   const empty = noSales(d);
   const kitchen = kitchenTotal(d.kitchen);
@@ -402,6 +397,9 @@ function Figures({
           )}
         </Reveal>
       </section>
+
+      {/* AG Studio measures its box: no entrance transform around it. */}
+      {analytics}
 
       <Reveal index={0} inView visitKey="overview" as="section" className="ops-ov-card ops-ov-latest">
         <div className="ops-ov-card-head">

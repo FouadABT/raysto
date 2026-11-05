@@ -13,7 +13,7 @@ import { connectedAuth } from "@/lib/connected/firebase";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Membership } from "@/lib/connected/contracts";
 import type { GroupRef } from "@/lib/connected/group";
-import { judge, judgeLogin } from "@/lib/connected/judge";
+import { isJudgeVenue, judge, judgeLogin } from "@/lib/connected/judge";
 import { MotionRoot, setReduceMotion, useAppReduceMotion } from "@/lib/connected/motion";
 import { Icon } from "./icons";
 import { SnackbarProvider } from "./m3";
@@ -216,10 +216,10 @@ export function OperationsEntry() {
           >
             {judgeLogin() && (
               <div className="ops-judge-entry">
-                <span className="ops-eyebrow">HACKATHON JUDGES</span>
+                <span className="ops-eyebrow">DEMO CAFÉ</span>
                 <p>
-                  One click into the demo café: five live demos, PayPal
-                  Sandbox only.
+                  One click into a shared demo café, where AI coworkers prepare
+                  the work and you approve it. Payments run in PayPal Sandbox.
                 </p>
                 <button
                   type="button"
@@ -227,7 +227,7 @@ export function OperationsEntry() {
                   onClick={() => void login(false, true)}
                 >
                   <Icon name="play" size={18} />
-                  Try Raysto as a judge
+                  Open the demo café
                 </button>
               </div>
             )}
@@ -472,10 +472,13 @@ export function ConsoleShell({
       </button>
       <GroupSwitcher choice={choice} className="in-bar" />
       <VenuePicker memberships={venues} selected={selected} onSelect={select} className="in-bar" />
-      <span className="ops-appbar-sandbox">
-        <Icon name="paypal" size={16} />
-        Sandbox
-      </span>
+      {/* The rail hides the sidebar's Sandbox line; the demo café's badge says it there instead. */}
+      {!isJudgeVenue(selected) && (
+        <span className="ops-appbar-sandbox">
+          <Icon name="paypal" size={16} />
+          Sandbox
+        </span>
+      )}
     </>
   );
   return (

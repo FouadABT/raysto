@@ -209,6 +209,33 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* The venue's name, and on the shared demo café one discreet badge. */
+.ops-appbar-venue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ops-appbar-venue .ops-eyebrow {
+  min-width: 0;
+}
+.ops-demo-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: help;
+}
 .ops-root .ops-appbar h1 {
   margin-top: 2px;
   font-family: "Fraunces Variable", serif;
@@ -506,6 +533,26 @@
   flex-wrap: wrap;
   gap: 8px;
   min-height: 44px;
+}
+/* The figures' own header, under the AI Action Inbox: what they count, and the period. */
+.ops-ov-figures-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-top: 8px;
+}
+.ops-root .ops-ov-figures-title {
+  font-family: "Fraunces Variable", serif;
+  font-size: clamp(22px, 2.2vw, 28px);
+  font-weight: 450;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: var(--md-sys-color-on-surface);
+}
+.ops-root .ops-ov-figures-head .ops-ov-basis {
+  margin-top: 4px;
 }
 .ops-root :is(button, span).ops-ov-chip {
   display: inline-flex;
@@ -820,7 +867,8 @@
   }
 }
 @media (max-width: 599px) {
-  .ops-ov-head {
+  .ops-ov-head,
+  .ops-ov-figures-head {
     align-items: start;
   }
   .ops-segmented {

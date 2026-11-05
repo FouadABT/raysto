@@ -1,0 +1,757 @@
+/* The Overview's AI Action Inbox and its four starters. Material 3 tokens
+   from md-sys.css only; every control keeps a 48 px target, text wraps at
+   320 px and at 2x text, and nothing animates under reduced motion. */
+
+.ops-inbox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 16px;
+  align-items: start;
+}
+.ops-inbox-main,
+.ops-inbox-start {
+  min-width: 0;
+  border-radius: var(--raysto-shape-card, 24px);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
+}
+.ops-inbox-main {
+  padding: 20px 22px 10px;
+}
+
+/* ---------- Header ---------- */
+.ops-inbox-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+.ops-inbox-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-inbox-heading {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.ops-root .ops-inbox-heading h2 {
+  font-family: "Fraunces Variable", Georgia, serif;
+  font-size: 26px;
+  font-weight: 480;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+.ops-root .ops-inbox-heading p {
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.ops-inbox-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  font-size: 13px;
+  font-weight: 700;
+}
+.ops-inbox-count.busy {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+.ops-root .ops-inbox button.ops-inbox-refresh {
+  width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-root .ops-inbox button.ops-inbox-refresh:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+  color: var(--md-sys-color-on-surface);
+}
+.ops-root .ops-inbox-error {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  font-size: 14px;
+}
+
+/* ---------- The list ---------- */
+.ops-inbox-list {
+  position: relative;
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-inbox-li + .ops-inbox-li {
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+.ops-inbox-item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  margin: 4px -10px;
+  padding: 14px 10px;
+  border-radius: var(--md-sys-shape-corner-large);
+  transition: background-color var(--md-sys-motion-duration-medium4) var(--md-sys-motion-easing-standard);
+}
+/* What a starter just put here: a quiet lime wash for a few seconds. */
+.ops-inbox-item.fresh {
+  background: color-mix(in srgb, var(--md-sys-color-secondary-container) 38%, transparent);
+}
+.ops-inbox-avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+}
+.ops-inbox-item.money .ops-inbox-avatar {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-inbox-body {
+  min-width: 0;
+}
+.ops-inbox-top {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.ops-inbox-titles {
+  min-width: 0;
+}
+.ops-root .ops-inbox-meta {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-who {
+  color: var(--md-sys-color-primary);
+}
+.ops-root .ops-inbox-item h3 {
+  margin-top: 3px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.ops-inbox-amount {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  flex: none;
+  max-width: 46%;
+  text-align: right;
+}
+.ops-inbox-amount strong {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.ops-inbox-moves {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-moves svg {
+  flex: none;
+}
+.ops-inbox-moves.on {
+  color: var(--md-sys-color-primary);
+}
+.ops-root .ops-inbox-why {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+  /* The agent's reasons are what a person approves on: shown whole, never clamped. */
+  max-width: 72ch;
+}
+.ops-inbox-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-inbox-facts li {
+  padding: 4px 10px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ops-inbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 14px;
+}
+.ops-root .ops-inbox .ops-inbox-actions button,
+.ops-root .ops-inbox .ops-inbox-check button {
+  min-height: 48px;
+}
+.ops-root .ops-inbox button.ops-inbox-later {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--md-sys-color-primary);
+}
+.ops-root .ops-inbox button.ops-inbox-later:hover {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+}
+.ops-root .ops-inbox-hint {
+  flex: 1 1 180px;
+  font-size: 12.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-root .ops-inbox-failed {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--md-sys-color-on-error-container);
+}
+.ops-inbox-failed svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* ---------- The identity check: the payment step ---------- */
+.ops-inbox-check {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface);
+}
+.ops-inbox-check-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ops-root .ops-inbox-check > p {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.ops-root .ops-inbox-check-row label {
+  flex: 1 1 200px;
+  gap: 4px;
+}
+.ops-root .ops-inbox-check-row input {
+  width: 100%;
+}
+.ops-paypal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--raysto-sys-color-info-container);
+  color: var(--raysto-sys-color-info);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ---------- Outcomes ---------- */
+.ops-inbox-outcome {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 6px 10px 14px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+.ops-inbox-outcome > svg {
+  margin-top: 13px;
+}
+.ops-inbox-outcome > div,
+.ops-inbox-outcome > p {
+  min-width: 0;
+  padding: 10px 0;
+}
+.ops-root .ops-inbox-outcome p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: inherit;
+}
+.ops-inbox-outcome.done {
+  background: var(--raysto-sys-color-success-container);
+  color: var(--raysto-sys-color-success);
+}
+.ops-inbox-outcome:is(.refused, .failed) {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+.ops-inbox-outcome.handled {
+  background: var(--raysto-sys-color-info-container);
+  color: var(--raysto-sys-color-info);
+}
+.ops-root .ops-inbox .ops-inbox-outcome button.ops-inbox-later {
+  width: 48px;
+  padding: 0;
+  color: inherit;
+}
+.ops-inbox-id {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.ops-root .ops-inbox-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ops-spinner.small {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+/* ---------- Empty and loading ---------- */
+.ops-inbox-empty {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 26px 2px 20px;
+}
+.ops-inbox-empty-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-root .ops-inbox-empty h3 {
+  font-family: "Fraunces Variable", Georgia, serif;
+  font-size: 24px;
+  font-weight: 480;
+  letter-spacing: -0.01em;
+}
+.ops-root .ops-inbox-empty p {
+  max-width: 52ch;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-skeleton {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 10px;
+}
+.ops-inbox-skeleton span {
+  height: 92px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: linear-gradient(90deg, var(--md-sys-color-surface-container-low) 0%, var(--md-sys-color-surface-container) 50%, var(--md-sys-color-surface-container-low) 100%);
+  background-size: 200% 100%;
+  animation: ops-inbox-shimmer 1.4s linear infinite;
+}
+@keyframes ops-inbox-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.ops-root .ops-inbox button.ops-inbox-more {
+  width: 100%;
+  min-height: 48px;
+  margin: 4px 0 6px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--md-sys-color-primary);
+}
+
+/* ---------- A pay link ---------- */
+.ops-inbox-pay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface);
+}
+.ops-inbox-pay figure {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
+}
+.ops-inbox-pay figcaption {
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-pay-side {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.ops-root a.ops-inbox-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-weight: 700;
+  text-decoration: none;
+}
+.ops-inbox-buyer {
+  font-size: 13px;
+}
+.ops-inbox-buyer summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  color: var(--md-sys-color-primary);
+  cursor: pointer;
+}
+.ops-inbox-buyer dl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  margin: 0 0 4px;
+}
+.ops-inbox-buyer dt {
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-buyer dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ops-inbox-paidline {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ops-inbox-paidline > .ops-inbox-outcome {
+  flex: 1;
+}
+.ops-inbox-paidline .m3-stamp {
+  flex: none;
+  margin-top: 14px;
+}
+
+/* ---------- Starters ---------- */
+.ops-inbox-start {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 20px 14px 12px;
+}
+.ops-root .ops-inbox-start h3 {
+  padding: 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.ops-root .ops-inbox-start > p {
+  padding: 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-start ul {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ops-inbox-starter {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+  transition: border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+}
+.ops-inbox-starter:hover,
+.ops-inbox-starter.running {
+  border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, var(--md-sys-color-outline-variant));
+}
+.ops-root .ops-inbox .ops-inbox-starter button {
+  display: flex;
+  align-items: start;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  font-weight: 500;
+}
+.ops-root .ops-inbox .ops-inbox-starter button:hover {
+  border: 0;
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 4%, transparent);
+}
+/* Running: the row stays fully legible, only the button stops taking taps. */
+.ops-root .ops-inbox .ops-inbox-starter button:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+.ops-inbox-starter-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+}
+.ops-inbox-starter.running .ops-inbox-starter-icon {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.ops-inbox-starter-text {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.ops-inbox-starter-text strong {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.ops-inbox-starter-text span {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-starter-go {
+  display: grid;
+  place-items: center;
+  flex: none;
+  align-self: center;
+  width: 24px;
+  color: var(--md-sys-color-primary);
+}
+.ops-inbox-starter-state {
+  padding: 0 12px 0 64px;
+}
+.ops-root .ops-inbox-progress {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.ops-inbox-progress b {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: nowrap;
+}
+.ops-root .ops-inbox-starter-note {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: start;
+  gap: 4px 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.ops-inbox-starter-note > span {
+  flex: 1;
+  min-width: 0;
+}
+.ops-inbox-starter-note svg {
+  flex: none;
+  margin-top: 2px;
+}
+.ops-inbox-starter-note.done {
+  color: var(--raysto-sys-color-success);
+}
+.ops-inbox-starter-note.refused {
+  color: var(--md-sys-color-on-surface-variant);
+}
+.ops-inbox-starter-note.failed {
+  color: var(--md-sys-color-on-error-container);
+}
+
+/* ---------- Narrower screens ---------- */
+@media (max-width: 1279px) {
+  .ops-inbox {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ops-inbox-start ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+  }
+}
+@media (max-width: 719px) {
+  .ops-inbox-start ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 599px) {
+  .ops-inbox-main {
+    padding: 16px 14px 6px;
+  }
+  .ops-inbox-start {
+    padding: 16px 8px 8px;
+  }
+  .ops-root .ops-inbox-heading h2 {
+    font-size: 22px;
+  }
+  .ops-inbox-mark {
+    width: 40px;
+    height: 40px;
+  }
+  .ops-inbox-item {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+    margin: 2px -6px;
+    padding: 14px 6px;
+  }
+  .ops-inbox-avatar {
+    width: 34px;
+    height: 34px;
+  }
+  .ops-inbox-avatar svg {
+    width: 17px;
+    height: 17px;
+  }
+  .ops-inbox-top {
+    flex-direction: column;
+  }
+  .ops-inbox-amount {
+    justify-items: start;
+    max-width: none;
+    text-align: left;
+  }
+  .ops-inbox-actions > button {
+    flex: 1 1 auto;
+  }
+  .ops-inbox-starter-state {
+    padding-left: 12px;
+  }
+  .ops-inbox-empty {
+    align-items: start;
+  }
+}
+
+/* ---------- Reduced motion: final states, nothing moves ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ops-inbox-item {
+    transition: none;
+  }
+  .ops-inbox-skeleton span {
+    animation: none;
+  }
+}
+.ops-root[data-reduce-motion] .ops-inbox-item {
+  transition: none;
+}
+.ops-root[data-reduce-motion] .ops-inbox-skeleton span {
+  animation: none;
+}
+
+/* Wide: the starters stay in view beside a long inbox. */
+@media (min-width: 1280px) {
+  .ops-inbox-start {
+    position: sticky;
+    top: 112px;
+  }
+}
+
+/* Nothing waits: the starters are the one next action. */
+.ops-inbox.ops-inbox-is-empty .ops-inbox-start {
+  box-shadow: 0 0 0 2px var(--md-sys-color-secondary-container), var(--md-sys-elevation-level1);
+}

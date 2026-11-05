@@ -223,6 +223,16 @@ const agentNames: Record<string, string> = {
   translator: "Translator",
   marketing: "Marketing studio",
   reviews: "Review replies",
+  // The back office and 0.16 coworkers.
+  close: "Close agent",
+  payroll: "Payroll agent",
+  complaints: "Complaints agent",
+  disputes: "Disputes agent",
+  expenses: "Expenses agent",
+  loyalty: "Loyalty agent",
+  supplies: "Supply planner",
+  accountant: "AI accountant",
+  dispatch: "AI dispatcher",
 };
 export const agentName = (agent: string) => agentNames[agent] ?? agent;
 

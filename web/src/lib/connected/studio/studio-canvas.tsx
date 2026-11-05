@@ -45,13 +45,26 @@ export const studioOn = process.env.NEXT_PUBLIC_RAYSTO_STUDIO !== "off";
 const license = process.env.NEXT_PUBLIC_AG_STUDIO_LICENSE;
 if (license) AgStudioLicenseManager.setLicenseKey(license);
 
-/** Raysto's look inside Studio: the console's tokens, its font, 12 px corners. */
+/** Raysto's chart colours (`--raysto-chart-1…5` in md-sys.css), forest first. */
+const chartColors = ["#173f35", "#6a8f1f", "#b27a14", "#b5543a", "#5c7a8a"] as const;
+
+/** Raysto's look inside Studio: the console's tokens, its font, 12 px corners, its chart palette. */
 export const studioRaystoTheme = studioTheme.withParams({
   accentColor: "#173f35",
   backgroundColor: "#ffffff",
   foregroundColor: "#173e34",
   fontFamily: "var(--font-jakarta)",
   borderRadius: 12,
+  chartPaletteFills1Color: chartColors[0],
+  chartPaletteFills2Color: chartColors[1],
+  chartPaletteFills3Color: chartColors[2],
+  chartPaletteFills4Color: chartColors[3],
+  chartPaletteFills5Color: chartColors[4],
+  chartPaletteStrokes1Color: chartColors[0],
+  chartPaletteStrokes2Color: chartColors[1],
+  chartPaletteStrokes3Color: chartColors[2],
+  chartPaletteStrokes4Color: chartColors[3],
+  chartPaletteStrokes5Color: chartColors[4],
 });
 
 export type StudioState = AgReportState<AgDefaultRegistry>;

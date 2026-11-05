@@ -334,7 +334,7 @@ function GroupView({
             <small>
               Amounts in {cur}
               {currencies.length > 1 ? "; Studio shows one currency at a time and never adds two together." : "."}
-              {owner && !judges ? " Your layout is saved for you." : judges ? " Rearrange freely: the judges' café never saves a layout." : ""}
+              {owner && !judges ? " Your layout is saved for you." : judges ? " Rearrange freely: the demo café never saves a layout." : ""}
             </small>
           </div>
           <StudioCanvas

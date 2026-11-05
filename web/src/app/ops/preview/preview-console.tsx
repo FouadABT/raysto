@@ -16,18 +16,25 @@ import { accountantPreview } from "@/lib/connected/accountant-preview";
 import { dispatchPreview } from "@/lib/connected/dispatch-preview";
 // S6: the PayPal account, `?state=paypal` for a café on its own app.
 import { paypalAccountPreview } from "@/lib/connected/paypal-account";
+// The Overview's AI Action Inbox: `?state=inbox` and `?state=caught-up` (append-only).
+import { inboxPreview } from "@/lib/connected/inbox-preview";
+import { judge } from "@/lib/connected/judge";
 
 /**
  * Development only: the real console shell and workspace on a fixture API,
  * so the browser tests run without a backend or a sign-in. Nothing here can
- * send a command. `?state=failed` makes the dashboard query fail, and
- * `?state=empty` returns a café with no paid order yet.
+ * send a command to a server. `?state=failed` makes the dashboard query fail,
+ * and `?state=empty` returns a café with no paid order yet. `?demo=1` opens
+ * the preview as the shared demo café (its badge, and `?section=try`).
  */
 export function PreviewConsole({ week, today }: { week: Dashboard; today: Dashboard }) {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState("");
+  const [venue, setVenue] = useState(1);
   useEffect(() => {
-    setState(new URLSearchParams(window.location.search).get("state") ?? "");
+    const params = new URLSearchParams(window.location.search);
+    setState(params.get("state") ?? "");
+    if (params.get("demo") === "1" && judge.restaurantId > 0) setVenue(judge.restaurantId);
     setReady(true);
   }, []);
   const api = useMemo(() => fixtureApi({ week, today, state }), [week, today, state]);
@@ -35,8 +42,8 @@ export function PreviewConsole({ week, today }: { week: Dashboard; today: Dashbo
   return (
     <ConsoleShell
       api={api}
-      memberships={[{ restaurantId: 1, name: "Atelier Café · Preview", role: "owner" } as never]}
-      selected={1}
+      memberships={[{ restaurantId: venue, name: "Atelier Café · Preview", role: "owner" } as never]}
+      selected={venue}
       onSelect={() => {}}
       onSignOut={() => {}}
       person={{ name: "Fouad Preview", email: "preview@example.com" }}
@@ -95,6 +102,7 @@ function emptied(d: Dashboard): Dashboard {
 
 function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard; state: string }): ConnectedApi {
   const asOf = new Date().toISOString();
+  const inbox = inboxPreview(state, asOf);
   const orders = week.latest.map((o) => ({ ...o, restaurantId: 1, version: 1, visitId: null, pickupCode: null, address: null, lines: [] }));
   const queries: Record<string, (p: Json) => unknown> = {
     "operations.snapshot": (p) => ({
@@ -187,6 +195,9 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
     // ---- S6 PayPal account fixtures (append-only block) ----
     ...paypalAccountPreview(state),
     // ---- end S6 ----
+    // ---- AI Action Inbox fixtures, `?state=inbox` / `?state=caught-up` (append-only block) ----
+    ...inbox.queries,
+    // ---- end inbox ----
   };
   const api = {
     async query<T>(name: string, params: Json = {}) {
@@ -194,8 +205,12 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
       const handler = queries[name];
       return (handler ? handler(params) : { rows: [] }) as T;
     },
-    async command(): Promise<never> {
-      throw new ApiFailure("preview", "The preview does not send commands.");
+    // Only the inbox states answer a few commands, from fixtures; everything else is refused.
+    async command<T>(name: string, _restaurantId: number, data: Json = {}, options: { id?: number; version?: number } = {}): Promise<T> {
+      const handler = inbox.commands[name];
+      if (!handler) throw new ApiFailure("preview", "The preview does not send commands.");
+      await new Promise((r) => setTimeout(r, 120));
+      return handler(data, options) as T;
     },
     async typed(): Promise<never> {
       throw new ApiFailure("preview", "The preview does not send commands.");

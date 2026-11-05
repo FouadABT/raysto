@@ -21,7 +21,7 @@ const required = {
   'README.md': [/https:\/\/rays\.to/, /Enter the live demo/, /How PayPal and AI work together/, /## Proof/, /technical-overview\.md/],
   'docs/technical-overview.md': [/How PayPal is used/, /Tools used, and how/, /## The AI coworkers/],
   'docs/devpost-submission.md': [/https:\/\/rays\.to/, /Testing instructions/, /paypal-mcp-server/],
-  'docs/reviewer-guide.md': [/rays\.to/, /Try Raysto/],
+  'docs/reviewer-guide.md': [/rays\.to/, /AI Action Inbox/, /Enter the live demo/],
 };
 
 let failures = 0;
