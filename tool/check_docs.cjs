@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const docs = ['README.md', 'docs/devpost-submission.md', 'docs/reviewer-guide.md', 'docs/getting-started.md'];
+const docs = ['README.md', 'docs/devpost-submission.md', 'docs/reviewer-guide.md', 'docs/getting-started.md', 'docs/technical-overview.md'];
 const retired = [
   [/0\.11\.5/, 'an old app version'],
   [/no public APK/i, 'the APK is on the releases page'],
@@ -17,7 +17,9 @@ const retired = [
   [/\{\{[A-Z_]+\}\}/, 'an unfilled placeholder'],
 ];
 const required = {
-  'README.md': [/https:\/\/rays\.to/, /ops\.rays\.to\/ops\?judge=1/, /@rays\.to`/, /How PayPal is used/, /Tools used, and how/, /## Evidence/],
+  // Since 5 November the README is product-first; the detail lives in docs/technical-overview.md.
+  'README.md': [/https:\/\/rays\.to/, /Enter the live demo/, /How PayPal and AI work together/, /## Proof/, /technical-overview\.md/],
+  'docs/technical-overview.md': [/How PayPal is used/, /Tools used, and how/, /## The AI coworkers/],
   'docs/devpost-submission.md': [/https:\/\/rays\.to/, /Testing instructions/, /paypal-mcp-server/],
   'docs/reviewer-guide.md': [/rays\.to/, /Try Raysto/],
 };
