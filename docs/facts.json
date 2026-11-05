@@ -1,6 +1,6 @@
 {
  "about": "The one set of numbers every page states. web/tests/facts.test.ts checks README.md, docs/devpost-submission.md, docs/reviewer-guide.md and the judges page against it; the film captions are written from it.",
- "asOf": "2026-11-04",
+ "asOf": "2026-11-05",
  "startedOn": "24 October 2026",
  "firstCommit": "26 October 2026",
  "paypal": {
@@ -54,13 +54,13 @@
  "tests": {
   "backendUnit": 90,
   "backendIntegration": 181,
-  "consoleUnit": 148,
-  "consoleBrowser": 65,
+  "consoleUnit": 149,
+  "consoleBrowser": 68,
   "app": 241
  },
  "versions": {
   "backend": "0.16.1",
-  "console": "0.18.2",
+  "console": "0.18.3",
   "apk": "0.16.0",
   "apkBuild": "0.16.0+2200",
   "apkSha256": "6e3389a9f5d4dfa5b593905d2dff2fb24eaa6fc7fc27fadbafaee020de2422c8"

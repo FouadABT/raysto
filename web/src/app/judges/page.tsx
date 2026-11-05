@@ -3,9 +3,9 @@ import { JudgesPage } from "@/components/judges/judges-page";
 import "./judges.css";
 
 export const metadata: Metadata = {
-  title: { absolute: "Raysto · For hackathon judges" },
+  title: { absolute: "Raysto · The AI operating system for restaurants" },
   description:
-    "Raysto: AI coworkers run the café's money, people approve, PayPal moves it. Try nine live demos in three minutes, nothing to install.",
+    "AI coworkers prepare the work, you approve it, and PayPal moves the money. Bills paid, refunds settled and the team paid, in one system for restaurants and cafés.",
   robots: { index: true, follow: true },
 };
 

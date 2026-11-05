@@ -35,10 +35,15 @@ test("the judges' page constants are the facts", () => {
   assert.equal(evidence.backendIntegration, facts.tests.backendIntegration);
   assert.equal(evidence.startedOn, facts.startedOn);
   assert.equal(evidence.firstCommit, facts.firstCommit);
+});
+
+test("the product page at rays.to keeps proof backstage and says Sandbox once", () => {
+  // Since 5 November rays.to is a product page: the proof (ids, test counts)
+  // lives in the README and on Devpost, and the Sandbox note is in the footer.
   const page = read("web/src/components/judges/judges-page.tsx");
-  assert.match(page, /evidence\.captures/);
-  assert.match(page, /evidence\.backendIntegration/);
-  assert.doesNotMatch(page, /<strong>(9|151)<\/strong>/, "the evidence strip states its numbers through `evidence`");
+  assert.doesNotMatch(page, /\bevidence\.[a-zA-Z]|unit tests|integration tests|browser tests/);
+  assert.equal(page.match(/Sandbox/g)?.length ?? 0, 1, "one Sandbox note, in the footer");
+  assert.doesNotMatch(page, /For hackathon judges|FOR JUDGES/i);
 });
 
 test("the facts agree with themselves", () => {

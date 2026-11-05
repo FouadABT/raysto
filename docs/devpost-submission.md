@@ -97,7 +97,7 @@ The rules are enforced by the backend, not by prompts:
 - **Backend**: Serverpod 4 and PostgreSQL on AWS ([api.rays.to](https://api.rays.to/ready)), with a durable job queue and a separate lane for AI work so a slow model never delays a payment.
 - **Console and judges' page**: Next.js 16, React 19, AG Grid, AG Studio.
 - **Services**: Firebase Authentication, Gemini Developer API, PayPal Orders v2, Payouts, Invoicing, Transaction Search, Disputes, Webhooks and the MCP server.
-- **Tests**: backend 90 unit tests and 181 integration tests on an isolated database; console 148 unit tests and 65 browser tests; app 241 widget tests, all passing on 4 November.
+- **Tests**: backend 90 unit tests and 181 integration tests on an isolated database; console 149 unit tests and 68 browser tests; app 241 widget tests, all passing on 4 November.
 
 ### Verified live in PayPal Sandbox (31 October to 4 November 2026)
 

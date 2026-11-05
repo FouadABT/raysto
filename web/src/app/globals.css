@@ -659,6 +659,40 @@ img {
   padding: 24px;
   text-align: center;
 }
+.loading-mark {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--forest);
+  line-height: 1;
+}
+.loading-mark span {
+  color: #6a8f1f;
+}
+.loading-mark i {
+  display: inline-block;
+  margin-left: 6px;
+  font-style: normal;
+  color: #6a8f1f;
+  animation: loading-turn 2.4s linear infinite;
+}
+.loading-line {
+  margin: 0;
+  color: var(--muted, #5f6e65);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+@keyframes loading-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-mark i,
+  .skeleton:after {
+    animation: none;
+  }
+}
 .skeleton {
   width: 180px;
   height: 5px;
