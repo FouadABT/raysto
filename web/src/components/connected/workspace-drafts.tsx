@@ -64,13 +64,11 @@ export function WorkspaceDraftBoundary({
       const list = Array.from(
         root.current?.querySelectorAll("form") ?? [],
       ).filter((f) => !f.closest(".ops-finance") && !f.closest("[inert]"));
-      for (const form of list)
-        if (!forms.has(form))
-          forms.set(form, {
-            baseline: fingerprint(form),
-            dirty: false,
-            edits: 0,
-          });
+      for(const form of list){
+        const record=forms.get(form);
+        if(!record)forms.set(form,{baseline:fingerprint(form),dirty:false,edits:0});
+        else record.dirty=fingerprint(form)!==record.baseline;
+      }
       notify.current(list.some((f) => forms.get(f)?.dirty));
     };
     const observer = new MutationObserver(sync);
@@ -79,7 +77,7 @@ export function WorkspaceDraftBoundary({
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ["inert"],
+        attributeFilter: ["inert","value","checked","selected"],
       });
     sync();
     window.addEventListener("raysto:form-draft-change", sync);

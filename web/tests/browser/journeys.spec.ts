@@ -134,7 +134,7 @@ test("role guard and browser tabs share demo state", async ({
   ).toBeVisible();
   const guest = await context.newPage();
   await guest.goto("/r/olive-and-hearth");
-  await page.goto("/dashboard/menu");
+  await page.goto("/dashboard/menu",{waitUntil:"domcontentloaded"});
   await page
     .locator(".menu-admin-card")
     .filter({ hasText: "Burrata garden bowl" })

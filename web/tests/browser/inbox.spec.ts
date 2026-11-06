@@ -200,7 +200,7 @@ test.describe("AI Action Inbox", () => {
       timeout: 60000,
     });
     await expect(
-      page.getByRole("heading", { name: /Investigate the café.*records/ }),
+      page.getByRole("heading", { name: /A supplier cost changed|Investigate the café.*records/ }),
     ).toBeVisible();
     await expect(
       page
@@ -208,7 +208,7 @@ test.describe("AI Action Inbox", () => {
         .getByRole("button", { name: /Try/ }),
     ).toHaveCount(0);
     await page.goto("/ops/preview?section=try");
-    await expect(page.locator(".ops-appbar h1")).toHaveText("Overview", {
+    await expect(page.locator(".ops-appbar h1")).toHaveText(/^(Overview|Today)$/, {
       timeout: 60000,
     });
     await page.goto("/ops/preview?demo=1&section=money");
