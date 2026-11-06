@@ -8,15 +8,22 @@ const {chromium}=require(path.join(root,'web/node_modules/playwright'));
 const runLabel=process.env.RAYSTO_ACCEPTANCE_RUN??'';assert(/^[a-z0-9-]*$/.test(runLabel));
 const suffix=runLabel?'-'+runLabel:'';
 const privatePath=path.join(root,'.tooling/decision-sandbox'+suffix+'-private.json');
-const output=path.join(root,'docs/impact-innovation/integrated-sandbox'+suffix+'.json');
+const evidenceDir=process.env.RAYSTO_ACCEPTANCE_EVIDENCE_DIR??'docs/impact-innovation';
+assert(['docs/impact-innovation','docs/design-experience'].includes(evidenceDir));
+const output=path.join(root,evidenceDir,'integrated-sandbox'+suffix+'.json');
 const state=fs.existsSync(privatePath)?JSON.parse(fs.readFileSync(privatePath,'utf8')):{runId:crypto.randomUUID(),steps:{}};
 const report=fs.existsSync(output)?JSON.parse(fs.readFileSync(output,'utf8')):{provenance:'Authored USD sample records with actual PayPal Sandbox outcomes; not a restaurant pilot',events:[]};
 const save=()=>{fs.writeFileSync(privatePath,JSON.stringify(state,null,2));fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');};
 const record=(event,data)=>{report.events.push({at:new Date().toISOString(),event,...data});save();console.log(event);};
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function main(){
- const deployed=JSON.parse(fs.readFileSync(path.join(root,'docs/impact-innovation/backend-patch-deployment.json'),'utf8'));
- assert.equal(deployed.status,'deployed');report.sourceCommit=deployed.sourceCommit;report.backendVersion=deployed.version;report.runId=state.runId;
+ const deployed=JSON.parse(fs.readFileSync(path.join(root,evidenceDir,evidenceDir==='docs/design-experience'?'backend-deployment.json':'backend-patch-deployment.json'),'utf8'));
+ assert(['deployed','development-candidate-deployed'].includes(deployed.status));report.sourceCommit=deployed.sourceCommit;report.backendVersion=deployed.version??'0.17.0-dev.6';report.runId=state.runId;
+ if(evidenceDir==='docs/design-experience'){
+  const consoleRelease=JSON.parse(fs.readFileSync(path.join(root,evidenceDir,'console-deployment.json'),'utf8'));
+  assert.equal(consoleRelease.status,'development-candidate-deployed');
+  report.consoleSourceCommit=consoleRelease.sourceCommit;
+ }
  const s=await session('owner');assert.equal(s.restaurantId,5);
  const venue=await s.query('restaurant.manage');assert.equal(venue.currency,'USD');assert.equal(venue.settings.taxBps,0);
  async function step(label,name,data={},options={},raw=false){

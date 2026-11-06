@@ -1,0 +1,188 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Users\\fabat\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+      "C:\\Users\\fabat\\Desktop\\Raysto\\web\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "tests/browser/journeys.spec.ts",
+      "--grep",
+      "role guard",
+      "--reporter=list,json"
+    ],
+    "configFile": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\playwright.config.ts",
+    "rootDir": "C:/Users/fabat/Desktop/Raysto/web/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/fabat/Desktop/Raysto/web/test-results/offline-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/fabat/Desktop/Raysto/web/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\offline-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser",
+        "snapshotDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 45000,
+        "use": {
+          "baseURL": "http://127.0.0.1:3102",
+          "channel": "msedge",
+          "launchOptions": {},
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "only-on-failure",
+          "trace": "retain-on-failure"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3102",
+      "url": "http://127.0.0.1:3102",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "journeys.spec.ts",
+      "file": "journeys.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "role guard and browser tabs share demo state",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 62134,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\journeys.spec.ts",
+                        "column": 14,
+                        "line": 137
+                      },
+                      "message": "Error: page.goto: Test timeout of 45000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3102/dashboard/menu\", waiting until \"load\"\u001b[22m\n\n\n  135 |   const guest = await context.newPage();\n  136 |   await guest.goto(\"/r/olive-and-hearth\");\n> 137 |   await page.goto(\"/dashboard/menu\");\n      |              ^\n  138 |   await page\n  139 |     .locator(\".menu-admin-card\")\n  140 |     .filter({ hasText: \"Burrata garden bowl\" })\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\journeys.spec.ts:137:14"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:35:45.246Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\offline-final\\journeys-role-guard-and-browser-tabs-share-demo-state\\test-failed-2.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\offline-final\\journeys-role-guard-and-browser-tabs-share-demo-state\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\offline-final\\journeys-role-guard-and-browser-tabs-share-demo-state\\trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "aa09586c1d16412a1f00-1d2af192981ef4a179eb",
+          "file": "journeys.spec.ts",
+          "line": 122,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-06T18:35:41.587Z",
+    "duration": 96395.351,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

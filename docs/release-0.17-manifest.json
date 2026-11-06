@@ -1,35 +1,39 @@
 {
   "release": "Raysto 0.17 — Hackathon Edition",
   "status": "development-candidate-with-open-acceptance-gates",
-  "recordedAtUtc": "2026-11-06T14:44:28.779771+00:00",
+  "recordedAtUtc": "2026-11-06T20:24:27.334765+00:00",
   "baselineCommit": "44a3a78",
   "submissionCommit": null,
   "submissionTag": null,
   "backend": {
-    "version": "0.17.0-dev.5",
-    "artifact": "dist/raysto-backend-0.17.0-dev.5-binary-linux-amd64.tar.gz",
+    "version": "0.17.0-dev.6",
+    "artifact": "dist/raysto-backend-0.17.0-dev.6-binary-linux-amd64.tar.gz",
     "artifactKind": "binary-delta",
-    "baseRelease": "0.17.0-dev.4-20261106",
+    "baseRelease": "0.17.0-dev.5-20261106",
     "reusedLibrariesAndMigrationsSha256": "c6e858499d61af8e7a8e1fb519f89382a598ef1e4a24851bacc3bab7d59d23e2",
-    "sha256": "b791ccebdc183f36c51eb8bb6c287e37f9ed7ca234c3afbf27d31ab21b145dc4",
-    "binarySha256": "c8b509c650e25ff5a69864abdd8fd47164beeed197e255d50c4cde3e4a20d1ae",
-    "bytes": 8390195,
-    "image": "raysto-backend:0.17.0-dev.5-ec2",
+    "sha256": "fa409137de8e4b45a99295fc22206f77b72b64f31a04eeeb8a4200f9de49919e",
+    "binarySha256": "faedc30938a2001216e55a21c47a186fb5b444c10d23e156dcd4db6e066dac30",
+    "bytes": 8394425,
+    "image": "raysto-backend:0.17.0-dev.6-ec2",
     "configIncluded": false,
-    "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
-    "deployedRelease": "/opt/raysto/releases/0.17.0-dev.5-20261106",
-    "deployed": true,
-    "artifactBase": "docs/impact-innovation/backend-artifact-dev4.json"
+    "sourceCommit": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+    "deployedRelease": "/opt/raysto/releases/0.17.0-dev.6-20261106",
+    "deployed": true
   },
   "console": {
-    "version": "0.17.0-dev.5",
-    "sourceCommit": "36c4501bc710869b5b4aebce59c786a12b7a1d29",
-    "artifact": "dist/raysto-ops-0.17.0-dev.5-linux.tar.gz",
-    "sha256": "229a784507a6a6a8b9309a24acf82bdd8e782366236e13211c80526cf1dd30a6",
-    "bytes": 77859257,
+    "version": "0.17.0-dev.6",
+    "sourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+    "artifact": "dist/raysto-ops-0.17.0-dev.6-linux.tar.gz",
+    "sha256": "5485181004a127432f509c72f57dea5be8ad502b04913789ef83c8bc45df9c38",
+    "bytes": 77920975,
     "configIncluded": false,
-    "packageVersion": "0.1.0",
-    "deployedRelease": "/opt/raysto/ops/releases/0.17.0-dev.5-20261106",
+    "privateCredentialScan": "passed",
+    "featureFlags": {
+      "finance017": true,
+      "studio": true,
+      "connectedOnly": true
+    },
+    "deployedRelease": "/opt/raysto/ops/releases/0.17.0-dev.6-20261106",
     "deployed": true
   },
   "android": {
@@ -41,7 +45,8 @@
     "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
     "abi": "arm64-v8a",
     "physicalDeviceAccepted": false,
-    "physicalReview": "Explicitly deferred by Fouad on 6 November 2026"
+    "physicalReview": "Explicitly deferred by Fouad on 6 November 2026",
+    "url": "https://ops.rays.to/downloads/raysto-0.17.0-dev.3-2203-arm64.apk"
   },
   "migrations": [
     "20261105161345704",
@@ -59,7 +64,11 @@
     "reviewed-price-publication",
     "decision-and-outcome-evidence",
     "Studio-custom-widgets-and-agent-harness",
-    "native-owner-workspace"
+    "native-owner-workspace",
+    "focused-six-view-web-investigation",
+    "scoped-draft-and-navigation-recovery",
+    "responsive-compact-financial-analysis",
+    "private-owner-layout-persistence"
   ],
   "featureFlags": {
     "finance017": true,
@@ -215,11 +224,73 @@
       "log": ".tooling/test-tmp/decision-console-dev5-final-build.log",
       "logSha256": "dd2d4daa9dc9aaa38883bc206bd1ce01a7f6b7556190f1de248cc64231dc078d",
       "count": null
+    },
+    {
+      "id": "design-web-unit",
+      "status": "passed",
+      "count": 171,
+      "sourceCommit": "9dbf100e1bba14fcb0f833fcea56fc5116e738a3",
+      "log": ".tooling/test-tmp/design-unit-accepted.log",
+      "logSha256": "834cb85f80b5a975210f5acedecca084fccc999887cf5e21fc66068a68b068c5",
+      "note": "Before final Studio lifecycle correction; that correction has final type, browser and deployed acceptance."
+    },
+    {
+      "id": "design-types",
+      "status": "passed",
+      "count": null,
+      "sourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+      "log": ".tooling/test-tmp/design-studio-ready-types.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "design-linux-build",
+      "status": "passed",
+      "count": null,
+      "sourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+      "log": ".tooling/test-tmp/design-console-final-build.log",
+      "logSha256": "2f3a6cdde03b85aedc4084aa63679c64550cb4b898c1de6d06f55ca5d248f188"
+    },
+    {
+      "id": "design-studio-undo",
+      "status": "passed",
+      "count": 3,
+      "sourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+      "log": ".tooling/test-tmp/design-studio-approved.log",
+      "logSha256": "83f97beab8e6d9653fcd42a62930cfddfa91395400a5d8b05a1e3eda6d38a0ee"
+    },
+    {
+      "id": "design-performance",
+      "status": "passed-with-recorded-exception",
+      "count": 1,
+      "sourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+      "log": ".tooling/test-tmp/design-performance-final.log",
+      "logSha256": "910a370ccd1d7cbe0246bd5dc58cd990246b1718f2d1c3b80972e0a46c7f4680"
+    },
+    {
+      "id": "deployed-design-model-and-owner-layout",
+      "status": "passed-after-recorded-initial-failure",
+      "evidence": "docs/design-experience/live-workspace.json",
+      "sourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0"
+    },
+    {
+      "id": "design-offline-owner-synchronization",
+      "status": "passed-with-narrowed-test-scope",
+      "count": 1,
+      "evidence": "docs/design-experience/browser-offline-authorized.json",
+      "log": ".tooling/test-tmp/design-offline-authorized.log",
+      "logSha256": "b2723bb632110535eb55e13bfad26e5b695c78dba848623a22d534d25ed029db",
+      "note": "Management selected before guest tab; simultaneous role handoff with another tab remains outside acceptance."
+    },
+    {
+      "id": "design-public-apk",
+      "status": "passed",
+      "evidence": "docs/design-experience/public-apk.json"
     }
   ],
-  "evidenceIndex": "docs/impact-innovation/candidate-evidence.json",
+  "evidenceIndex": "docs/design-experience/candidate-evidence.json",
   "sandboxEvidence": [
-    "docs/impact-innovation/integrated-sandbox-dev5.json"
+    "docs/impact-innovation/integrated-sandbox-dev5.json",
+    "docs/design-experience/integrated-sandbox-design-dev6-20261106.json"
   ],
   "modelEvaluation": "docs/impact-innovation/actual-model-review.json",
   "ownersConfirmed": 0,
@@ -229,9 +300,19 @@
     "No consenting restaurant owners confirmed; no owner-impact, adoption or profit-improvement claim.",
     "First-attempt AI task delivery 12/14; a network-failed task was recovered read-only, bringing valid model results to 13/14. The 90% first-attempt target is not met.",
     "The current sample venue remains on legacy recorded-transactions basis; reviewed accounting cutover, complete earned-revenue history and seven-day business observations are unavailable.",
-    "Complete repeatable public judge fixture, cold reviewer acceptance and private-owner persistent-layout demonstration remain open.",
+    "Complete repeatable public judge fixture and unfamiliar-reviewer acceptance remain open. Private-owner persistence passed on this console candidate.",
     "AG Studio licensing through the end of judging remains unresolved.",
     "Actual uncertain-provider recovery/refund acceptance on this exact combination remains separate from scripted regression coverage.",
-    "Presentation work is excluded from this workstream."
-  ]
+    "Presentation work is excluded from this workstream.",
+    "Actual screen-reader review remains unverified.",
+    "Browser results combine a main sweep with targeted corrected reruns; source and first failures are retained.",
+    "A synthetic local development measurement observed a 154ms long task; no universal performance or controlled baseline-improvement claim."
+  ],
+  "candidateTag": "raysto-0.17-design-dev6",
+  "candidateApplicationSource": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "sourcePublication": {
+    "repository": "https://github.com/FouadABT/raysto",
+    "tag": "raysto-0.17-design-dev6",
+    "release": "https://github.com/FouadABT/raysto/releases/tag/raysto-0.17-design-dev6"
+  }
 }

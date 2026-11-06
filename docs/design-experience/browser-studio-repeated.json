@@ -1,0 +1,298 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Users\\fabat\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+      "C:\\Users\\fabat\\Desktop\\Raysto\\web\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "finance.spec.ts",
+      "--grep",
+      "saved comparison configures",
+      "--repeat-each",
+      "3",
+      "--reporter=list,json"
+    ],
+    "configFile": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\playwright.config.ts",
+    "rootDir": "C:/Users/fabat/Desktop/Raysto/web/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/fabat/Desktop/Raysto/web/test-results/design-studio-repeated",
+        "repeatEach": 3,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/fabat/Desktop/Raysto/web/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-studio-repeated",
+        "repeatEach": 3,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser",
+        "snapshotDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 45000,
+        "use": {
+          "baseURL": "http://127.0.0.1:3101",
+          "channel": "msedge",
+          "launchOptions": {},
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "only-on-failure",
+          "trace": "retain-on-failure"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3101",
+      "url": "http://127.0.0.1:3101",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "finance.spec.ts",
+      "file": "finance.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "saved comparison configures real Studio widgets and layout undo preserves the decision",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 70248,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\finance.spec.ts",
+                        "column": 68,
+                        "line": 190
+                      },
+                      "message": "Error: locator.click: Test timeout of 45000ms exceeded.\nBrowser logs:\n\n<launching> C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=C:\\Users\\fabat\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-FcjbC4 --remote-debugging-pipe --no-startup-window\n<launched> pid=53704\n[pid=53704][err] [53704:53912:1106/192606.668:ERROR:chrome\\browser\\task_manager\\providers\\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a \"Renderer\" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/40528867.\n[pid=53704][err] [53704:53980:1106/192609.416:ERROR:chrome\\elevation_service\\edge_elevation_service_browser_helper.cc:94] LaunchUpdateCmdElevatedAndWait:  hr = 80070002 with exit code: 32\n[pid=53704] <gracefully close start>\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'AG Studio restaurant finance' }).getByRole('button', { name: 'Undo layout change' })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled class=\"ops-btn secondary\">Undo layout change</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    91 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n\n  188 |     .getByRole(\"button\", { name: \"Close evidence\", exact: true })\n  189 |     .click();\n> 190 |   await studio.getByRole(\"button\", { name: \"Undo layout change\" }).click();\n      |                                                                    ^\n  191 |   await page.getByRole(\"button\", { name: \"03 Compare options\" }).click();\n  192 |   await expect(\n  193 |     page.getByRole(\"heading\", { name: /Lowest qualifying price/ }),\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\finance.spec.ts:190:68"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "STUDIO_DIAGNOSTIC { undo: [], page: \u001b[32m'costing'\u001b[39m }\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T19:26:04.469Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-studio-repeated\\finance-saved-comparison-c-21915-undo-preserves-the-decision\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-studio-repeated\\finance-saved-comparison-c-21915-undo-preserves-the-decision\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-studio-repeated\\finance-saved-comparison-c-21915-undo-preserves-the-decision\\trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-71d8ef4fb843ed29953c",
+          "file": "finance.spec.ts",
+          "line": 145,
+          "column": 5
+        },
+        {
+          "title": "saved comparison configures real Studio widgets and layout undo preserves the decision",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 61321,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 45000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\finance.spec.ts",
+                        "column": 68,
+                        "line": 190
+                      },
+                      "message": "Error: locator.click: Test timeout of 45000ms exceeded.\nBrowser logs:\n\n<launching> C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=C:\\Users\\fabat\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-YmLqkW --remote-debugging-pipe --no-startup-window\n<launched> pid=29084\n[pid=29084][err] [29084:47244:1106/192804.864:ERROR:chrome\\browser\\task_manager\\providers\\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a \"Renderer\" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/40528867.\n[pid=29084][err] [29084:34556:1106/192809.582:ERROR:chrome\\elevation_service\\edge_elevation_service_browser_helper.cc:94] LaunchUpdateCmdElevatedAndWait:  hr = 80070002 with exit code: 32\n[pid=29084] <gracefully close start>\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'AG Studio restaurant finance' }).getByRole('button', { name: 'Undo layout change' })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled class=\"ops-btn secondary\">Undo layout change</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    85 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n\n  188 |     .getByRole(\"button\", { name: \"Close evidence\", exact: true })\n  189 |     .click();\n> 190 |   await studio.getByRole(\"button\", { name: \"Undo layout change\" }).click();\n      |                                                                    ^\n  191 |   await page.getByRole(\"button\", { name: \"03 Compare options\" }).click();\n  192 |   await expect(\n  193 |     page.getByRole(\"heading\", { name: /Lowest qualifying price/ }),\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\finance.spec.ts:190:68"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "STUDIO_DIAGNOSTIC { undo: [], page: \u001b[32m'costing'\u001b[39m }\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T19:28:02.003Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-studio-repeated\\finance-saved-comparison-c-21915-undo-preserves-the-decision-repeat1\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-studio-repeated\\finance-saved-comparison-c-21915-undo-preserves-the-decision-repeat1\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-studio-repeated\\finance-saved-comparison-c-21915-undo-preserves-the-decision-repeat1\\trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-6df05ff53529e7da8193",
+          "file": "finance.spec.ts",
+          "line": 145,
+          "column": 5
+        },
+        {
+          "title": "saved comparison configures real Studio widgets and layout undo preserves the decision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11978,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T19:30:02.316Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-0b95dc38afeaa4df1120",
+          "file": "finance.spec.ts",
+          "line": 145,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-06T19:26:03.273Z",
+    "duration": 254816.00699999998,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

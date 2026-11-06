@@ -1,0 +1,24 @@
+{
+  "checkedAtUtc": "2026-11-06T19:35:53.662882+00:00",
+  "status": "development-candidate-deployed",
+  "release": "/opt/raysto/ops/releases/0.17.0-dev.6-20261106",
+  "previous": "/opt/raysto/ops/releases/0.17.0-dev.5-20261106",
+  "sourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "artifactSha256": "5485181004a127432f509c72f57dea5be8ad502b04913789ef83c8bc45df9c38",
+  "featureFlags": {
+    "RAYSTO_FINANCE_017_ENABLED": "true",
+    "RAYSTO_PRICING_ENABLED": "true",
+    "RAYSTO_STUDIO_AI_ENABLED": "true",
+    "RAYSTO_AGENT_PRICING_ENABLED": "true"
+  },
+  "judgeStoryEnabled": false,
+  "awharUnchanged": true,
+  "android": {
+    "version": "0.17.0-dev.3+2203",
+    "url": "https://ops.rays.to/downloads/raysto-0.17.0-dev.3-2203-arm64.apk",
+    "sha256": "4238f255155102b0bf9ecfacf9332eabc4ff6fe9f2367620050c175db8d968a6",
+    "physicalDeviceAccepted": false
+  },
+  "priorApkSha256": "6e3389a9f5d4dfa5b593905d2dff2fb24eaa6fc7fc27fadbafaee020de2422c8",
+  "acceptance": "Actual model, integrated provider and device gates remain separate"
+}

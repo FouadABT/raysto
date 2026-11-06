@@ -1,0 +1,10 @@
+{
+  "checkedAtUtc": "2026-11-06T19:37:44.026Z",
+  "provenance": "Actual deployed UI and Gemini on authored USD sample records; not an owner pilot",
+  "errors": [],
+  "backendSource": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+  "consoleSource": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "status": "failed",
+  "failure": "locator.waitFor: Timeout 110000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'AG Studio restaurant finance' }).getByRole('heading', { name: 'Ingredient evidence', exact: true }) to be visible\u001b[22m\n",
+  "diagnostic": "Failure screenshot caused a temporary 1px viewport and canvas reset. It cannot identify the pre-screenshot AI failure; see subsequent pre-capture DOM evidence."
+}

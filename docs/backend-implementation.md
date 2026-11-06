@@ -1,5 +1,7 @@
 # Raysto backend preparation
 
+**6 November 2026 — deployed 0.17 development candidate:** backend and web console `0.17.0-dev.6` are active; Android remains development-signed `0.17.0-dev.3+2203`, with physical review explicitly deferred. [Current design acceptance and limitations](design-experience/acceptance.md) and [the exact component manifest](release-0.17-manifest.json) supersede historical versions and blockers below. New pricing and Studio features are enabled; model/provider/reviewer acceptance is recorded separately. No restaurant pilot or full accrual cutover is claimed.
+
 **AI coworkers — 1 November 2026 (branch `hackathon/full-suite`, local commits not yet pushed):** the plan after the AI audit ([raysto-ai-audit-2026-11-01.md](audits/raysto-ai-audit-2026-11-01.md)) turns the assistant into agents that do real work and leave changes for a person to approve.
 
 - Foundations (backend 0.13.0, migration `20261101152217899`): `AgentTask` / `AgentAction`, a command registry for `agent.decide` (claim, run on the approver's own session, record), a service identity that can read and propose but never run a command, triggers from audits and sweeps, a separate AI worker lane (`raysto-ai`, 2 jobs at a time), and the `hackathon` budget stage ($100 split by feature, $5 per restaurant per day). App Agents tab and console Agents section.

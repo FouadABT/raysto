@@ -1,0 +1,533 @@
+{
+  "recordedAtUtc": "2026-11-06T20:24:27.485306+00:00",
+  "status": "deployed-development-candidate-with-explicit-open-gates",
+  "backendSource": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+  "consoleSource": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "androidSource": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+  "manifest": "docs/release-0.17-manifest.json",
+  "records": [
+    {
+      "path": "docs/design-experience/acceptance.md",
+      "sha256": "f7835d59319fa0e0710385f4acff771a63a3c910a5bcf38b5fc459869705beb1",
+      "bytes": 13341
+    },
+    {
+      "path": "docs/design-experience/backend-artifact-baseline.json",
+      "sha256": "962b3d56dee032074ad8f3b9ea875893773b103ed0505a658eb44f43de0a448c",
+      "bytes": 563,
+      "status": "historical-or-supporting-record"
+    },
+    {
+      "path": "docs/design-experience/backend-artifact.json",
+      "sha256": "44a08643ae34f099ee0a2e183ea1522fabb19fdd031c87765ff54fafb2e8e9cb",
+      "bytes": 563,
+      "status": "historical-or-supporting-record"
+    },
+    {
+      "path": "docs/design-experience/backend-deployment.json",
+      "sha256": "b25063ca7f2553105bdd2d735b1ec2e3ac03cb498fc9bcb4ef47592992f2c729",
+      "bytes": 773,
+      "status": "deployed"
+    },
+    {
+      "path": "docs/design-experience/browser-connected.json",
+      "sha256": "d27d502eb200f5868e2e4c320eb0ea26dec3b9e957f41fc9a5b385a75bcaa7c7",
+      "bytes": 135737,
+      "status": {
+        "startTime": "2026-11-06T18:11:49.248Z",
+        "duration": 1407200.369,
+        "expected": 92,
+        "skipped": 0,
+        "unexpected": 4,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-core-final.json",
+      "sha256": "952c4f1ee8d01fd875172b9854dfaf35bd6d8250a9dfdd4363e9986843e4eb00",
+      "bytes": 20726,
+      "status": {
+        "startTime": "2026-11-06T19:00:00.888Z",
+        "duration": 288757.888,
+        "expected": 12,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-inbox-recheck.json",
+      "sha256": "e6f3db7c07118aa268f777eb3488d739db1caa3d6cb837c1e70ace7f712c8477",
+      "bytes": 6918,
+      "status": {
+        "startTime": "2026-11-06T18:42:12.074Z",
+        "duration": 117204.893,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-motion.json",
+      "sha256": "be7ece7067beb502e261d72f2a602d1ae03a49eb4535e609f71f57edcb5840de",
+      "bytes": 4264,
+      "status": {
+        "startTime": "2026-11-06T18:35:41.586Z",
+        "duration": 92634.06700000001,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-authorized.json",
+      "sha256": "7e182fe09b37e613ab4ad29bf5d881e8411120a3548efecc0659fbfc2d6583d2",
+      "bytes": 4266,
+      "status": {
+        "startTime": "2026-11-06T20:16:57.566Z",
+        "duration": 145372.198,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-complete.json",
+      "sha256": "8fffd50ed25c5804485114c581f636cfa0b4de08b7dc09a86b6726f4ad3b43a7",
+      "bytes": 3114,
+      "status": {
+        "startTime": "2026-11-06T19:08:13.740Z",
+        "duration": 7792.360000000001,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-final-verified.json",
+      "sha256": "1754727fd28ebe556e133e78d64d88a447174dc387989719f6e978d50617236d",
+      "bytes": 8665,
+      "status": {
+        "startTime": "2026-11-06T20:06:04.034Z",
+        "duration": 147256.617,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-isolated.json",
+      "sha256": "fd5acab0d248844797d946103fe38a4aebbcc4579e3e0617e46cfe95dcaf12a2",
+      "bytes": 6857,
+      "status": {
+        "startTime": "2026-11-06T20:12:45.022Z",
+        "duration": 192716.08299999998,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-owner-accepted.json",
+      "sha256": "6e492ef20dc5fd715dca9261e0e3e9a93af63a1dbd4568f2c720367373f6fb02",
+      "bytes": 3118,
+      "status": {
+        "startTime": "2026-11-06T19:05:42.382Z",
+        "duration": 13618.619,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-owner-final-pass.json",
+      "sha256": "b2bc0c537893375358e86e7ce65a33fdd512309d907a9282c0c2a45fe078efdf",
+      "bytes": 6891,
+      "status": {
+        "startTime": "2026-11-06T19:15:55.378Z",
+        "duration": 92199.70000000001,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-owner-final.json",
+      "sha256": "1ad99099b3c193fb55d340f09cf46b817ea217727eed4a00aa39a6f7b6ed8ae1",
+      "bytes": 3108,
+      "status": {
+        "startTime": "2026-11-06T19:03:55.845Z",
+        "duration": 26043.059,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-owner-verified.json",
+      "sha256": "cefd3018068b971d6c5e01160705bf83447934a48af4cf926734ada1424704df",
+      "bytes": 8761,
+      "status": {
+        "startTime": "2026-11-06T19:10:00.234Z",
+        "duration": 97441.845,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-recheck.json",
+      "sha256": "c7bf986af24da603dbc1af91d3cd8231ecdef96a04933de634684ed5264f0765",
+      "bytes": 6402,
+      "status": {
+        "startTime": "2026-11-06T18:35:41.587Z",
+        "duration": 96395.351,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-role-accepted.json",
+      "sha256": "9a6c302e32bfd7f26606acfe1b20098c80ea35d7e67c544db0b2998e51e63824",
+      "bytes": 6549,
+      "status": {
+        "startTime": "2026-11-06T18:54:39.970Z",
+        "duration": 73330.682,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-role-final.json",
+      "sha256": "a58ce9d699b2fd8abf744ff56a95d7a7366b3da9cdcd0f978c67c16cd5f18544",
+      "bytes": 6456,
+      "status": {
+        "startTime": "2026-11-06T18:49:20.609Z",
+        "duration": 108676.06999999999,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline-settled.json",
+      "sha256": "8a85ea6f96eb88c0c91d10094d63d843d62adafb4a34e3c83822b525c88456b3",
+      "bytes": 8905,
+      "status": {
+        "startTime": "2026-11-06T19:26:32.069Z",
+        "duration": 203729.369,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-offline.json",
+      "sha256": "09b2dda6e29159cc14e73744743a6cd6051a9e7b60a0e5360edbc5a562190454",
+      "bytes": 14508,
+      "status": {
+        "startTime": "2026-11-06T18:10:11.166Z",
+        "duration": 370431.86600000004,
+        "expected": 8,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-performance-final.json",
+      "sha256": "5cbf317b95db37545a31aa9c68f2e1f4966203fcc6f5d33a7ac6ce36541f2fde",
+      "bytes": 4951,
+      "status": {
+        "startTime": "2026-11-06T20:03:01.651Z",
+        "duration": 36914.369,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-performance.json",
+      "sha256": "369d8e8455deb2cb350886b7d3c3dd0887dc61c48b45b35146c17b1a06868a2a",
+      "bytes": 5177,
+      "status": {
+        "startTime": "2026-11-06T19:59:23.608Z",
+        "duration": 8847.651,
+        "expected": 0,
+        "skipped": 1,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-recipe-undo.json",
+      "sha256": "a357a14df4333cca462839bb7e8a700db2cb625a5b599dc829bea59d9bf8f69b",
+      "bytes": 4507,
+      "status": {
+        "startTime": "2026-11-06T18:42:41.756Z",
+        "duration": 87164.777,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-approved.json",
+      "sha256": "51170ece28293effd4d6c59c152139385cab290106ec14f038d07785ce3f36ab",
+      "bytes": 6464,
+      "status": {
+        "startTime": "2026-11-06T19:59:05.372Z",
+        "duration": 264831.625,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-capture-corrected.json",
+      "sha256": "af5669d301f09a8e784f8069f74264a8ab81b964ed219cf6b66e49e6d52cb757",
+      "bytes": 8213,
+      "status": {
+        "startTime": "2026-11-06T19:54:22.701Z",
+        "duration": 327332.852,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-diagnose.json",
+      "sha256": "f71aeea951a9c6667d139ce7a62ab1d0f126d9a8adad92cd54b921b227f74209",
+      "bytes": 4285,
+      "status": {
+        "startTime": "2026-11-06T19:25:10.147Z",
+        "duration": 25422.911,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-events.json",
+      "sha256": "a1f2e063ada1465f2de30fb43d32f23c6122b7bb595c2207187e0d75fee91818",
+      "bytes": 4281,
+      "status": {
+        "startTime": "2026-11-06T19:33:16.369Z",
+        "duration": 49067.346,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-final.json",
+      "sha256": "1a3d97b06526edbdb82b0d3958f8570a0b3e3500e877e1ace7141bd85a82eccf",
+      "bytes": 12330,
+      "status": {
+        "startTime": "2026-11-06T19:34:25.737Z",
+        "duration": 181481.66999999998,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-ready.json",
+      "sha256": "6334aa2ccd921a0f1f1e70822f7b8ed1b034dc0dd647b5a1b8d4d3d8c04eea46",
+      "bytes": 10126,
+      "status": {
+        "startTime": "2026-11-06T19:19:29.933Z",
+        "duration": 160169.67,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-repeated.json",
+      "sha256": "f71ead32e2d1933a32ca633acc2a9cc9815130ccd37bb6d560212b64d7bf035d",
+      "bytes": 18501,
+      "status": {
+        "startTime": "2026-11-06T19:26:03.273Z",
+        "duration": 254816.00699999998,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-state.json",
+      "sha256": "260fc8e4252a63cb86731bfe1315697b70a74b53df06787252a087fbd0054398",
+      "bytes": 17888,
+      "status": {
+        "startTime": "2026-11-06T19:49:59.330Z",
+        "duration": 369993.914,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/browser-studio-undo-settled.json",
+      "sha256": "9a310e7b627ae17a7f8ef58fb9b3b85fbffa8e6124b4cc59e45dd892aadc9747",
+      "bytes": 11260,
+      "status": {
+        "startTime": "2026-11-06T19:13:39.033Z",
+        "duration": 207745.31399999998,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "path": "docs/design-experience/console-artifact-before-panel.json",
+      "sha256": "5358fb196ff0cb1a483f6a8fd49d26795634404e61da986b5412100950b36ee6",
+      "bytes": 744,
+      "status": "superseded-before-deployment"
+    },
+    {
+      "path": "docs/design-experience/console-artifact-before-readiness.json",
+      "sha256": "b8eb384f198df6f51c509392fe64d8c587233c573e53e16db83c37a170b22d9e",
+      "bytes": 748,
+      "status": "superseded-before-deployment"
+    },
+    {
+      "path": "docs/design-experience/console-artifact.json",
+      "sha256": "bbc81ddf910fe702d45c4271b61e1dc3f72332a2eff691d76455928bb8a478cd",
+      "bytes": 686,
+      "status": "historical-or-supporting-record"
+    },
+    {
+      "path": "docs/design-experience/console-deployment.json",
+      "sha256": "ae05a3f609cef4866e390b20ae2b44acf1aa240a47b69e975e912fa7195e2046",
+      "bytes": 1075,
+      "status": "development-candidate-deployed"
+    },
+    {
+      "path": "docs/design-experience/integrated-sandbox-design-dev6-20261106.json",
+      "sha256": "c12edc410b0a93b4a8a5e98bbc493e2d4a19c4b8c1e22a092fd1b8178058d306",
+      "bytes": 20230,
+      "status": "historical-or-supporting-record"
+    },
+    {
+      "path": "docs/design-experience/live-compatibility.json",
+      "sha256": "a30dda46ccf5b8c1d5b2560cd4a67cb16fe737f3c883e68a056f845eff3c115a",
+      "bytes": 225,
+      "status": "passed"
+    },
+    {
+      "path": "docs/design-experience/live-group-http.json",
+      "sha256": "c5b35c41d5dfa1aed5576d1e9f7ac2706465cc0a3ab9f15e4637a25645cd0833",
+      "bytes": 510,
+      "status": "passed"
+    },
+    {
+      "path": "docs/design-experience/live-workspace-failed.json",
+      "sha256": "b958d643ff378f4311b14e9743a9c17f9347d7e56cea32efbd00100de6230221",
+      "bytes": 565,
+      "status": "failed"
+    },
+    {
+      "path": "docs/design-experience/live-workspace-first-attempt.json",
+      "sha256": "8306f233549960ade3473b4dd67d556309cb4ce4a6ff5eb1a32bdca8a5362bee",
+      "bytes": 754,
+      "status": "failed"
+    },
+    {
+      "path": "docs/design-experience/live-workspace-local-debug-failed.json",
+      "sha256": "ecb0fa0d5958a360fcc159be00e5c1d7ba1e066467b17bee743dc8c0acee8f27",
+      "bytes": 604,
+      "status": "failed"
+    },
+    {
+      "path": "docs/design-experience/live-workspace.json",
+      "sha256": "d6a04c7ba6ca2915dc4bee7a6e8ca23e8a7c11a2f7e8a7e7360715056b6d16b3",
+      "bytes": 9744,
+      "status": "passed"
+    },
+    {
+      "path": "docs/design-experience/performance.json",
+      "sha256": "9561672f44d2fbd69f8c2968e35d08103922a1616db0db9b5d10b86bf00e21ef",
+      "bytes": 324,
+      "status": "historical-or-supporting-record"
+    },
+    {
+      "path": "docs/design-experience/public-apk.json",
+      "sha256": "1e8eb600bf9af17db77117f49f443e97af16992fb1e05618a42c1044708bf06a",
+      "bytes": 560,
+      "status": "historical-or-supporting-record"
+    },
+    {
+      "path": "docs/design-experience/restored-startup.json",
+      "sha256": "a8adb9c702bf60162dda014587bd35bf805a3e17a993516fff01c87da785d9f3",
+      "bytes": 561,
+      "status": "passed"
+    },
+    {
+      "path": "docs/design-experience/reviewer-checklist.md",
+      "sha256": "e188e2eed4c64068ed7a3161f7281c0d13521de8fb8b9c9ee5ef6ecea7eabad5",
+      "bytes": 1984
+    },
+    {
+      "path": "docs/design-experience/screenshots/deployed-comparison-desktop.png",
+      "sha256": "c7fdaabb0dbb82b500aa8f22f6e74e935870a9cee0d3abacc1407dc4088c18b6",
+      "bytes": 265976
+    },
+    {
+      "path": "docs/design-experience/screenshots/deployed-comparison-phone.png",
+      "sha256": "f2aaec0776af8f39e5a2e6c472c903489d007f4975614de219cd6a780dd7852a",
+      "bytes": 210975
+    },
+    {
+      "path": "docs/design-experience/screenshots/deployed-decision.png",
+      "sha256": "99a699a1996140254c8e1f71817c7ccf8a07d3a6d9747fefcfaab2f6dad8283f",
+      "bytes": 356784
+    },
+    {
+      "path": "docs/design-experience/screenshots/deployed-mobile-analysis.png",
+      "sha256": "1ec7b55edc47d089239212da6700fcdff8cda6beb71f3cc07bda19fd49f03635",
+      "bytes": 364063
+    },
+    {
+      "path": "docs/design-experience/workspace-contract.md",
+      "sha256": "b91ca799ca5a68a0e246ebfc9fd2f23fe6bb4ad8bca55482df5289974d9c05fd",
+      "bytes": 12043
+    }
+  ],
+  "publication": "GitHub prerelease asset record is generated after this frozen index; tag raysto-0.17-design-dev6.",
+  "externalGates": [
+    "two unfamiliar reviewers",
+    "actual screen-reader review",
+    "physical Android review deferred",
+    "restaurant owners confirmed: zero",
+    "Studio licence through end of judging",
+    "controlled comparative performance evidence"
+  ]
+}

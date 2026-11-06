@@ -1,6 +1,7 @@
 node_modules/
 .next/
 .next-finance-017/
+.next-guest-design/
 out/
 test-results/
 playwright-report/

@@ -1,0 +1,686 @@
+{
+  "provenance": "Authored USD sample records with actual PayPal Sandbox outcomes; not a restaurant pilot",
+  "events": [
+    {
+      "at": "2026-11-06T19:39:09.130Z",
+      "event": "document-reviewed",
+      "taskId": 3109,
+      "mediaId": 30,
+      "orderId": 13,
+      "totalMinor": 1100,
+      "currency": "USD",
+      "summary": "The delivery for \"Connected bowl ingredients - Sample\" arrived in full with 1.0 kg received and billed at the expected price of $11.00. There are no quantity or price discrepancies. You can proceed with approving the invoice and finalizing the receipt."
+    },
+    {
+      "at": "2026-11-06T19:39:12.364Z",
+      "event": "confirmed-cost",
+      "productId": 76,
+      "stockId": 20,
+      "billId": 26,
+      "costMinor": 385,
+      "previousCostMinor": 350,
+      "receiptIds": [
+        18
+      ],
+      "supplierEmailsSent": 0
+    },
+    {
+      "at": "2026-11-06T19:43:27.410Z",
+      "event": "price-published",
+      "comparisonId": 104,
+      "actionId": 155,
+      "decisionId": 106,
+      "fromMinor": 900,
+      "toMinor": 970,
+      "oldCheckoutAmountMinor": 900,
+      "duplicateState": "rejected",
+      "duplicateCode": "version_conflict",
+      "replayedRequestState": "executed"
+    },
+    {
+      "at": "2026-11-06T19:45:40.527Z",
+      "event": "collection-completed",
+      "orderId": 2659,
+      "checkoutId": 2664,
+      "amountMinor": 970,
+      "currency": "USD",
+      "state": "completed",
+      "duplicateCaptureState": "completed"
+    },
+    {
+      "at": "2026-11-06T19:47:16.790Z",
+      "event": "sample-order-fulfilled",
+      "orderId": 2659,
+      "provenance": "Simulated restaurant fulfillment of the authored sample order; collection is actual PayPal Sandbox.",
+      "observationStatus": "partial_period",
+      "orders": [
+        {
+          "orderId": 2659,
+          "state": "completed",
+          "acceptedAt": "2026-11-06T19:45:08.807383Z",
+          "earnedAt": null,
+          "units": 1,
+          "newPriceUnits": 1,
+          "frozenEarlierPriceUnits": 0,
+          "laterRevisionUnits": 0,
+          "unknownVersionUnits": 0,
+          "netRevenueMinor": null,
+          "consumptionCostMinor": 385,
+          "contributionMinor": null,
+          "refundAllocationUncertain": false,
+          "captures": [
+            {
+              "id": 2639,
+              "checkoutId": 2664,
+              "providerCaptureId": "9PP6471265636910M",
+              "amountMinor": 970,
+              "refundedMinor": 0,
+              "currency": "USD",
+              "state": "completed"
+            }
+          ],
+          "recipeSnapshotId": 108,
+          "costSnapshotId": 110,
+          "recipeVersions": [
+            1
+          ],
+          "recordedCreditMinor": 0,
+          "acceptedPricesMinor": [
+            970
+          ],
+          "period": null
+        }
+      ]
+    },
+    {
+      "at": "2026-11-06T19:48:01.176Z",
+      "event": "supplier-payment",
+      "billId": 26,
+      "batchId": 12,
+      "amountMinor": 1100,
+      "currency": "USD",
+      "state": "paid",
+      "providerBatchId": "7Q7ZS39C8WAXJ",
+      "payoutState": "completed",
+      "duplicateBatchId": 12
+    },
+    {
+      "at": "2026-11-06T19:49:06.344Z",
+      "event": "stale-comparison-refused",
+      "comparisonId": 104,
+      "code": "stale",
+      "priceUnchanged": true
+    },
+    {
+      "at": "2026-11-06T19:49:11.857Z",
+      "event": "unused-old-checkout-cancelled",
+      "checkoutId": 2663,
+      "orderId": 2658,
+      "historyPreserved": true
+    }
+  ],
+  "sourceCommit": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+  "backendVersion": "0.17.0-dev.6",
+  "runId": "633dc29d-7fba-4997-ac32-a2ac66c84d16",
+  "consoleSourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "outcome": {
+    "restaurantId": 5,
+    "currency": "USD",
+    "timezone": "America/New_York",
+    "calculationVersion": "replacement-cost-v1",
+    "dataRevision": "1174",
+    "asOf": "2026-11-06T19:49:15.300755Z",
+    "sample": true,
+    "truncated": false,
+    "comparisonId": 104,
+    "productId": 76,
+    "productName": "Connected decision bowl - Sample",
+    "choice": "propose",
+    "option": "recommended",
+    "reason": "prepared_for_review",
+    "note": "",
+    "actor": "01a19cfe-a9bb-7520-a3fe-9dc69d53d0de",
+    "at": "2026-11-06T19:43:20.254538Z",
+    "actionId": 155,
+    "scenarioId": 105,
+    "businessChanges": false,
+    "id": 106,
+    "version": 1,
+    "comparison": {
+      "restaurantId": 5,
+      "currency": "USD",
+      "timezone": "America/New_York",
+      "calculationVersion": "replacement-cost-v1",
+      "dataRevision": "1152",
+      "asOf": "2026-11-06T19:43:19.494159Z",
+      "sample": true,
+      "truncated": false,
+      "kind": "comparison",
+      "current": {
+        "priceMinor": 900,
+        "netPriceMinor": 900,
+        "grossPriceMinor": 900,
+        "costMinor": 385,
+        "feeMinor": 0,
+        "contributionMinor": 515,
+        "contributionBps": 5722
+      },
+      "recommended": {
+        "priceMinor": 970,
+        "netPriceMinor": 970,
+        "grossPriceMinor": 970,
+        "costMinor": 385,
+        "feeMinor": 0,
+        "contributionMinor": 585,
+        "contributionBps": 6031
+      },
+      "feasible": true,
+      "targetBps": 6000,
+      "targetMet": true,
+      "capMinor": 990,
+      "baselineUnits": 100,
+      "baselineContributionMinor": 51500,
+      "breakEvenUnits": 89,
+      "sensitivity": [
+        {
+          "volumeChangeBps": 0,
+          "units": 100,
+          "contributionMinor": 58500
+        },
+        {
+          "volumeChangeBps": -1000,
+          "units": 90,
+          "contributionMinor": 52650
+        },
+        {
+          "volumeChangeBps": -2000,
+          "units": 80,
+          "contributionMinor": 46800
+        }
+      ],
+      "assumptions": [
+        "Volume response is assumed, not predicted.",
+        "Contribution excludes shared overhead, wages and unrecorded costs.",
+        "Fee settings are estimates, not verified PayPal fees."
+      ],
+      "options": [
+        {
+          "key": "keep",
+          "priceMinor": 900,
+          "netPriceMinor": 900,
+          "grossPriceMinor": 900,
+          "costMinor": 385,
+          "feeMinor": 0,
+          "contributionMinor": 515,
+          "contributionBps": 5722,
+          "targetMet": false,
+          "violations": [
+            "contribution_target"
+          ],
+          "publishable": false,
+          "breakEvenUnits": 100,
+          "sensitivity": [
+            {
+              "volumeChangeBps": 0,
+              "units": 100,
+              "contributionMinor": 51500
+            },
+            {
+              "volumeChangeBps": -1000,
+              "units": 90,
+              "contributionMinor": 46350
+            },
+            {
+              "volumeChangeBps": -2000,
+              "units": 80,
+              "contributionMinor": 41200
+            }
+          ]
+        },
+        {
+          "key": "recommended",
+          "priceMinor": 970,
+          "netPriceMinor": 970,
+          "grossPriceMinor": 970,
+          "costMinor": 385,
+          "feeMinor": 0,
+          "contributionMinor": 585,
+          "contributionBps": 6031,
+          "targetMet": true,
+          "violations": [],
+          "publishable": true,
+          "breakEvenUnits": 89,
+          "sensitivity": [
+            {
+              "volumeChangeBps": 0,
+              "units": 100,
+              "contributionMinor": 58500
+            },
+            {
+              "volumeChangeBps": -1000,
+              "units": 90,
+              "contributionMinor": 52650
+            },
+            {
+              "volumeChangeBps": -2000,
+              "units": 80,
+              "contributionMinor": 46800
+            }
+          ]
+        }
+      ],
+      "keepPriceCostReductionMinor": 25,
+      "keepPriceTargetFeasibleWithNonnegativeCost": true,
+      "baselineDefinition": "Keep the current selling price using the current confirmed cost.",
+      "costReductionExplanation": "Required variable-cost reduction, not an available supplier or recipe saving.",
+      "inputs": {
+        "baselineUnits": 100,
+        "volumeChangeBps": -1000,
+        "maxIncreaseBps": 1000,
+        "candidatePriceMinor": null
+      },
+      "revision": 1,
+      "parentId": null,
+      "rootId": null,
+      "productId": 76,
+      "productName": "Connected decision bowl - Sample",
+      "productFingerprint": "7141d06e41fa21e8f1ecdb3e66300055b8f9897f8b4d2c43c95b4eb261931d16",
+      "policyVersion": 1,
+      "policy": {
+        "confirmed": true,
+        "targetBps": 6000,
+        "maxIncreaseBps": 1000,
+        "incrementMinor": 10,
+        "minimumMinor": 1,
+        "maximumMinor": 100000000,
+        "feeBps": 0,
+        "feeFixedMinor": 0,
+        "excludedProducts": []
+      },
+      "evidence": {
+        "productId": 76,
+        "name": "Connected decision bowl - Sample",
+        "priceMinor": 900,
+        "productVersion": 1,
+        "currency": "USD",
+        "available": true,
+        "recipeVersion": 1,
+        "recipe": {
+          "productId": 76,
+          "lines": [
+            {
+              "stockItemId": 20,
+              "quantityMicros": 350000000,
+              "unit": "g",
+              "yieldBps": 10000,
+              "packSizeMicros": 1000000,
+              "mode": "add"
+            }
+          ],
+          "packagingMinor": 0,
+          "packagingConfirmed": true
+        },
+        "modifierOptions": [],
+        "lines": [
+          {
+            "stockItemId": 20,
+            "quantityMicros": 350000000,
+            "unit": "g",
+            "yieldBps": 10000,
+            "packSizeMicros": 1000000,
+            "mode": "add",
+            "name": "Connected bowl ingredients - Sample",
+            "purchaseUnit": "kg",
+            "unitCostMinor": 1100,
+            "costMicros": 385000000,
+            "costMinor": 385,
+            "source": {
+              "type": "stockMovement",
+              "id": 18,
+              "at": "2026-11-06T19:39:09.272086Z"
+            },
+            "stockVersion": 3,
+            "receiptId": 18,
+            "receiptGroup": "supplyDelivery:3",
+            "previousReceiptId": 17,
+            "previousCostMicros": 350000000,
+            "previousUnitCostMinor": 1000
+          }
+        ],
+        "complete": true,
+        "missing": [],
+        "recipeIssues": [],
+        "replacementCostMinor": 385,
+        "netPriceMinor": 900,
+        "contributionMinor": 515,
+        "packagingMinor": 0,
+        "costBasis": "latest-confirmed-receipt",
+        "calculationVersion": "replacement-cost-v1",
+        "taxBps": 0,
+        "pricesIncludeTax": true,
+        "change": {
+          "complete": true,
+          "receiptGroup": "supplyDelivery:3",
+          "previousCostMinor": 350,
+          "currentCostMinor": 385,
+          "costIncreaseMinor": 35,
+          "previousContributionMinor": 550,
+          "assumption": "Current recipe and selling price, comparing the latest receipt group with its previous confirmed costs. This is not observed historical contribution.",
+          "sourceReferences": [
+            {
+              "type": "stockMovement",
+              "id": 18,
+              "previousId": 17
+            }
+          ]
+        },
+        "excludedCosts": [
+          "Shared wages",
+          "Rent and utilities",
+          "Payment fees unless configured in a scenario"
+        ],
+        "fingerprint": "7141d06e41fa21e8f1ecdb3e66300055b8f9897f8b4d2c43c95b4eb261931d16"
+      },
+      "volumeBasis": "owner-assumption",
+      "periodBasis": "per-baseline-units",
+      "expiresAt": "2026-11-06T19:58:19.494174Z",
+      "changes": [],
+      "id": 104
+    },
+    "approval": {
+      "id": 155,
+      "status": "executed",
+      "approvedBy": "01a19cfe-a9bb-7520-a3fe-9dc69d53d0de",
+      "decidedAt": "2026-11-06T19:43:21.843330Z"
+    },
+    "publication": {
+      "productId": 76,
+      "fromMinor": 900,
+      "toMinor": 970,
+      "version": 2,
+      "menuVersion": 42,
+      "scenarioId": 105,
+      "comparisonId": 104,
+      "option": "recommended",
+      "actionId": 155,
+      "approvedBy": "01a19cfe-a9bb-7520-a3fe-9dc69d53d0de",
+      "restoresHistoryId": null,
+      "effectiveAt": "2026-11-06T19:43:21.871257Z",
+      "id": 107
+    },
+    "observationStatus": "partial_period",
+    "before": {
+      "from": "2026-10-30T04:00:00.000Z",
+      "to": "2026-11-06T05:00:00.000Z",
+      "orders": 0,
+      "units": 0,
+      "costedOrders": 0,
+      "knownNetRevenueMinor": 0,
+      "knownConsumptionCostMinor": 0,
+      "unknownRevenueOrders": 0,
+      "unknownCostOrders": 0,
+      "newPriceUnits": 0,
+      "frozenEarlierPriceUnits": 0,
+      "laterRevisionUnits": 0,
+      "unknownVersionUnits": 0,
+      "supportedAccountingPeriod": false,
+      "complete": false,
+      "contributionMinor": null
+    },
+    "after": {
+      "from": "2026-11-07T05:00:00.000Z",
+      "to": "2026-11-14T05:00:00.000Z",
+      "observedThrough": null,
+      "elapsedCompleteDays": 0,
+      "orders": 0,
+      "units": 0,
+      "costedOrders": 0,
+      "knownNetRevenueMinor": 0,
+      "knownConsumptionCostMinor": 0,
+      "unknownRevenueOrders": 0,
+      "unknownCostOrders": 0,
+      "newPriceUnits": 0,
+      "frozenEarlierPriceUnits": 0,
+      "laterRevisionUnits": 0,
+      "unknownVersionUnits": 0,
+      "supportedAccountingPeriod": false,
+      "complete": false,
+      "contributionMinor": null
+    },
+    "orders": [
+      {
+        "orderId": 2659,
+        "state": "completed",
+        "acceptedAt": "2026-11-06T19:45:08.807383Z",
+        "earnedAt": null,
+        "units": 1,
+        "newPriceUnits": 1,
+        "frozenEarlierPriceUnits": 0,
+        "laterRevisionUnits": 0,
+        "unknownVersionUnits": 0,
+        "netRevenueMinor": null,
+        "consumptionCostMinor": 385,
+        "contributionMinor": null,
+        "refundAllocationUncertain": false,
+        "captures": [
+          {
+            "id": 2639,
+            "checkoutId": 2664,
+            "providerCaptureId": "9PP6471265636910M",
+            "amountMinor": 970,
+            "refundedMinor": 0,
+            "currency": "USD",
+            "state": "completed"
+          }
+        ],
+        "recipeSnapshotId": 108,
+        "costSnapshotId": 110,
+        "recipeVersions": [
+          1
+        ],
+        "recordedCreditMinor": 0,
+        "acceptedPricesMinor": [
+          970
+        ],
+        "period": null
+      }
+    ],
+    "ordersTruncated": false,
+    "matchedOrderCount": 1,
+    "unknownCompletionCount": 1,
+    "supplierPayments": [
+      {
+        "billId": 26,
+        "state": "paid",
+        "amountMinor": 1100,
+        "currency": "USD",
+        "batchState": "completed",
+        "providerBatchId": "7Q7ZS39C8WAXJ",
+        "items": [
+          {
+            "id": 20,
+            "state": "completed",
+            "amountMinor": 1100,
+            "providerItemId": "AGQ24AZ542HN6"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      "Descriptive observations do not establish that a price change caused a demand or profit change.",
+      "The publication day is excluded. Full before/after periods use seven complete local days.",
+      "Capture amounts cover their checkout, not this dish alone. Collections are separate from earned revenue.",
+      "Contribution excludes payment fees and shared overhead. Historical costs use consumption snapshots and recorded packaging assumptions.",
+      "The preceding period lacks a complete supported accounting basis; historical comparison is incomplete.",
+      "Some completed orders lack an earned timestamp and cannot be placed in a daily comparison.",
+      "Unallocated refunds and missing historical costs remain unknown. Availability, seasonality and other unrecorded changes may affect outcomes."
+    ]
+  },
+  "finance": {
+    "restaurantId": 5,
+    "currency": "USD",
+    "timezone": "America/New_York",
+    "calculationVersion": "replacement-cost-v1",
+    "dataRevision": "1174",
+    "asOf": "2026-11-06T19:49:16.516139Z",
+    "sample": true,
+    "truncated": false,
+    "from": "2026-10-06T19:49:16.270749Z",
+    "to": "2026-11-06T19:49:16.270749Z",
+    "basis": "legacy-recorded-transactions",
+    "cutoverAt": null,
+    "effectiveFrom": "2026-10-06T19:49:16.270749Z",
+    "partialPeriod": false,
+    "basisLabel": "Recorded collections and recognized costs",
+    "netSalesMinor": 3097365,
+    "recognizedCostsMinor": 2929892,
+    "operatingResultMinor": null,
+    "recordedResultMinor": 167473,
+    "recordedCashMovementMinor": 268682,
+    "recordedCashPositionMinor": null,
+    "payablesMinor": null,
+    "receivablesMinor": null,
+    "customerDepositsMinor": null,
+    "collectedMoneyMinor": null,
+    "payablesMovementMinor": -7561,
+    "receivablesMovementMinor": 0,
+    "customerDepositsMovementMinor": 0,
+    "balanced": true,
+    "accounts": [
+      {
+        "account": "5000",
+        "name": "Cost of goods",
+        "debitMinor": 990372,
+        "creditMinor": 0,
+        "balanceMinor": 990372
+      },
+      {
+        "account": "1010",
+        "name": "Cash and bank",
+        "debitMinor": 3195815,
+        "creditMinor": 2541350,
+        "balanceMinor": 654465
+      },
+      {
+        "account": "4000",
+        "name": "Sales",
+        "debitMinor": 0,
+        "creditMinor": 3101000,
+        "balanceMinor": 3101000
+      },
+      {
+        "account": "2200",
+        "name": "Tips owed to staff",
+        "debitMinor": 0,
+        "creditMinor": 112775,
+        "balanceMinor": 112775
+      },
+      {
+        "account": "6020",
+        "name": "Wages",
+        "debitMinor": 1715200,
+        "creditMinor": 0,
+        "balanceMinor": 1715200
+      },
+      {
+        "account": "4090",
+        "name": "Refunds",
+        "debitMinor": 7190,
+        "creditMinor": 0,
+        "balanceMinor": -7190
+      },
+      {
+        "account": "2000",
+        "name": "Payables",
+        "debitMinor": 220066,
+        "creditMinor": 212505,
+        "balanceMinor": -7561
+      },
+      {
+        "account": "6100",
+        "name": "Utilities",
+        "debitMinor": 21792,
+        "creditMinor": 0,
+        "balanceMinor": 21792
+      },
+      {
+        "account": "6190",
+        "name": "Other expenses",
+        "debitMinor": 7367,
+        "creditMinor": 0,
+        "balanceMinor": 7367
+      },
+      {
+        "account": "2110",
+        "name": "VAT paid",
+        "debitMinor": 2003,
+        "creditMinor": 0,
+        "balanceMinor": -2003
+      },
+      {
+        "account": "6110",
+        "name": "Rent",
+        "debitMinor": 180000,
+        "creditMinor": 0,
+        "balanceMinor": 180000
+      },
+      {
+        "account": "6000",
+        "name": "PayPal fees",
+        "debitMinor": 9162,
+        "creditMinor": 0,
+        "balanceMinor": 9162
+      },
+      {
+        "account": "1000",
+        "name": "PayPal balance",
+        "debitMinor": 21515,
+        "creditMinor": 407298,
+        "balanceMinor": -385783
+      },
+      {
+        "account": "6140",
+        "name": "Internet and phone",
+        "debitMinor": 5999,
+        "creditMinor": 0,
+        "balanceMinor": 5999
+      },
+      {
+        "account": "1100",
+        "name": "Receivables",
+        "debitMinor": 3555,
+        "creditMinor": 3555,
+        "balanceMinor": 0
+      },
+      {
+        "account": "4200",
+        "name": "Catering and payment requests",
+        "debitMinor": 0,
+        "creditMinor": 3555,
+        "balanceMinor": 3555
+      },
+      {
+        "account": "1200",
+        "name": "Inventory",
+        "debitMinor": 3300,
+        "creditMinor": 1298,
+        "balanceMinor": 2002
+      }
+    ],
+    "estimated": true,
+    "complete": false,
+    "issues": [],
+    "limitations": [
+      "Accrual cutover has not been accepted. This is not an accrual operating-profit statement.",
+      "Balances shown here are period movements; opening balances are included only when the cutover is in the selected period.",
+      "Recorded cash is not a verified bank balance."
+    ]
+  },
+  "acceptance": {
+    "connectedEvidence": true,
+    "fullAccrualAgreement": false,
+    "reason": "Existing sample venue remains on legacy recorded-transactions basis; no reviewed opening balances were invented.",
+    "physicalAndroidReview": "deferred",
+    "ownerPilotCount": 0
+  }
+}

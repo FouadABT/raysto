@@ -1,0 +1,270 @@
+{
+  "uiOrigin": "https://ops.rays.to",
+  "checkedAtUtc": "2026-11-06T19:54:50.386Z",
+  "provenance": "Actual deployed UI and Gemini on authored USD sample records; not an owner pilot",
+  "errors": [],
+  "backendSource": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+  "consoleSource": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "analysis": {
+    "taskId": 3120,
+    "source": "gemini",
+    "summary": "At the current selling price of $9.00 with a confirmed cost of $3.85, the House lunch bowl yields a contribution of $5.15 per unit (57.22% contribution margin). At 100 baseline units, baseline contribution is $515.00.\n\nBy keeping the $9.00 price, you give up meeting the owner target contribution policy of 60.00%. The option fails to meet the target because the 57.22% contribution margin falls short of 60.00%. To hit the 60.00% target while keeping the $9.00 price, variable costs would require an unconfirmed reduction of $0.25 per unit. Note that contribution excludes shared wages, rent, utilities, and unrecorded costs.",
+    "comparison": null,
+    "presentation": null
+  },
+  "challengeAnalysis": {
+    "taskId": 3119,
+    "source": "gemini",
+    "summary": "With a 5% maximum price increase limit (500 Bps), the price cap for House lunch bowl · Decision sample is $9.45. Under this cap, no recommended option meets the 60% target contribution margin (6000 Bps), so the target is not feasible.\n\nRecorded Cause: Stock movement #10 increased ingredient cost by $0.35 from previous cost $3.50 to $3.85.\n\nCurrent Metrics: Selling price is $9.00, cost is $3.85, and contribution is $5.15 (57.22% contribution margin).\n\nOwner Assumptions: Baseline of 100 units with an assumed volume change of -10.00% (-1000 Bps). Contribution excludes shared overhead, wages, and payment fees.\n\nThe view is configured side-by-side with comparison and evidence widgets, placing cost before contribution.",
+    "comparison": {
+      "restaurantId": 5,
+      "currency": "USD",
+      "timezone": "America/New_York",
+      "calculationVersion": "replacement-cost-v1",
+      "dataRevision": "1175",
+      "asOf": "2026-11-06T19:56:06.436064Z",
+      "sample": true,
+      "truncated": false,
+      "kind": "comparison",
+      "current": {
+        "priceMinor": 900,
+        "netPriceMinor": 900,
+        "grossPriceMinor": 900,
+        "costMinor": 385,
+        "feeMinor": 0,
+        "contributionMinor": 515,
+        "contributionBps": 5722
+      },
+      "recommended": null,
+      "feasible": false,
+      "targetBps": 6000,
+      "targetMet": false,
+      "capMinor": 945,
+      "baselineUnits": 100,
+      "baselineContributionMinor": 51500,
+      "breakEvenUnits": null,
+      "sensitivity": [
+        {
+          "volumeChangeBps": 0,
+          "units": 100,
+          "contributionMinor": null
+        },
+        {
+          "volumeChangeBps": -1000,
+          "units": 90,
+          "contributionMinor": null
+        },
+        {
+          "volumeChangeBps": -2000,
+          "units": 80,
+          "contributionMinor": null
+        }
+      ],
+      "assumptions": [
+        "Volume response is assumed, not predicted.",
+        "Contribution excludes shared overhead, wages and unrecorded costs.",
+        "Fee settings are estimates, not verified PayPal fees."
+      ],
+      "options": [
+        {
+          "key": "keep",
+          "priceMinor": 900,
+          "netPriceMinor": 900,
+          "grossPriceMinor": 900,
+          "costMinor": 385,
+          "feeMinor": 0,
+          "contributionMinor": 515,
+          "contributionBps": 5722,
+          "targetMet": false,
+          "violations": [
+            "contribution_target"
+          ],
+          "publishable": false,
+          "breakEvenUnits": 100,
+          "sensitivity": [
+            {
+              "volumeChangeBps": 0,
+              "units": 100,
+              "contributionMinor": 51500
+            },
+            {
+              "volumeChangeBps": -1000,
+              "units": 90,
+              "contributionMinor": 46350
+            },
+            {
+              "volumeChangeBps": -2000,
+              "units": 80,
+              "contributionMinor": 41200
+            }
+          ]
+        }
+      ],
+      "keepPriceCostReductionMinor": 25,
+      "keepPriceTargetFeasibleWithNonnegativeCost": true,
+      "baselineDefinition": "Keep the current selling price using the current confirmed cost.",
+      "costReductionExplanation": "Required variable-cost reduction, not an available supplier or recipe saving.",
+      "inputs": {
+        "baselineUnits": 100,
+        "volumeChangeBps": -1000,
+        "maxIncreaseBps": 500,
+        "candidatePriceMinor": null
+      },
+      "revision": 2,
+      "parentId": 112,
+      "rootId": 112,
+      "productId": 72,
+      "productName": "House lunch bowl · Decision sample",
+      "productFingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3",
+      "policyVersion": 1,
+      "policy": {
+        "confirmed": true,
+        "targetBps": 6000,
+        "maxIncreaseBps": 1000,
+        "incrementMinor": 10,
+        "minimumMinor": 1,
+        "maximumMinor": 100000000,
+        "feeBps": 0,
+        "feeFixedMinor": 0,
+        "excludedProducts": []
+      },
+      "evidence": {
+        "productId": 72,
+        "name": "House lunch bowl · Decision sample",
+        "priceMinor": 900,
+        "productVersion": 2,
+        "currency": "USD",
+        "available": false,
+        "recipeVersion": 1,
+        "recipe": {
+          "productId": 72,
+          "lines": [
+            {
+              "stockItemId": 17,
+              "quantityMicros": 350000000,
+              "unit": "g",
+              "yieldBps": 10000,
+              "packSizeMicros": 1000000,
+              "mode": "add"
+            }
+          ],
+          "packagingMinor": 0,
+          "packagingConfirmed": true
+        },
+        "modifierOptions": [],
+        "lines": [
+          {
+            "stockItemId": 17,
+            "quantityMicros": 350000000,
+            "unit": "g",
+            "yieldBps": 10000,
+            "packSizeMicros": 1000000,
+            "mode": "add",
+            "name": "Bowl ingredients · Decision sample",
+            "purchaseUnit": "kg",
+            "unitCostMinor": 1100,
+            "costMicros": 385000000,
+            "costMinor": 385,
+            "source": {
+              "type": "stockMovement",
+              "id": 10,
+              "at": "2026-11-06T04:40:50.292091Z"
+            },
+            "stockVersion": 3,
+            "receiptId": 10,
+            "receiptGroup": "supplierOrder:7:2",
+            "previousReceiptId": 9,
+            "previousCostMicros": 350000000,
+            "previousUnitCostMinor": 1000
+          }
+        ],
+        "complete": true,
+        "missing": [],
+        "recipeIssues": [],
+        "replacementCostMinor": 385,
+        "netPriceMinor": 900,
+        "contributionMinor": 515,
+        "packagingMinor": 0,
+        "costBasis": "latest-confirmed-receipt",
+        "calculationVersion": "replacement-cost-v1",
+        "taxBps": 0,
+        "pricesIncludeTax": true,
+        "change": {
+          "complete": true,
+          "receiptGroup": "supplierOrder:7:2",
+          "previousCostMinor": 350,
+          "currentCostMinor": 385,
+          "costIncreaseMinor": 35,
+          "previousContributionMinor": 550,
+          "assumption": "Current recipe and selling price, comparing the latest receipt group with its previous confirmed costs. This is not observed historical contribution.",
+          "sourceReferences": [
+            {
+              "type": "stockMovement",
+              "id": 10,
+              "previousId": 9
+            }
+          ]
+        },
+        "excludedCosts": [
+          "Shared wages",
+          "Rent and utilities",
+          "Payment fees unless configured in a scenario"
+        ],
+        "fingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3"
+      },
+      "volumeBasis": "owner-assumption",
+      "periodBasis": "per-baseline-units",
+      "expiresAt": "2026-11-06T20:11:06.436080Z",
+      "changes": [
+        {
+          "field": "maxIncreaseBps",
+          "from": 1000,
+          "to": 500
+        }
+      ],
+      "id": 113,
+      "version": 1,
+      "valid": true
+    },
+    "presentation": {
+      "arrangement": "side-by-side",
+      "columns": [
+        "name",
+        "price",
+        "cost",
+        "contribution",
+        "complete"
+      ],
+      "widgets": [
+        "comparison",
+        "evidence"
+      ],
+      "completeness": "all",
+      "sort": "name"
+    }
+  },
+  "decision": {
+    "id": 115,
+    "comparisonId": 113,
+    "choice": "defer"
+  },
+  "mobileAnalysis": {
+    "taskId": 3120,
+    "source": "gemini",
+    "summary": "At the current selling price of $9.00 with a confirmed cost of $3.85, the House lunch bowl yields a contribution of $5.15 per unit (57.22% contribution margin). At 100 baseline units, baseline contribution is $515.00.\n\nBy keeping the $9.00 price, you give up meeting the owner target contribution policy of 60.00%. The option fails to meet the target because the 57.22% contribution margin falls short of 60.00%. To hit the 60.00% target while keeping the $9.00 price, variable costs would require an unconfirmed reduction of $0.25 per unit. Note that contribution excludes shared wages, rent, utilities, and unrecorded costs.",
+    "comparison": null,
+    "presentation": null
+  },
+  "ownerLayout": {
+    "persisted": true,
+    "restoredAfterReload": true,
+    "separateFromPublicManager": true,
+    "originalLayoutPresent": false
+  },
+  "status": "passed",
+  "manualReviewBoundary": true,
+  "ownerPolicyUnchanged": true,
+  "receiptDrill": true,
+  "layoutUndoPreservedComparison": true,
+  "nativeDeviceAcceptance": "deferred"
+}

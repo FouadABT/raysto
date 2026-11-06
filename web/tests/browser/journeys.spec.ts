@@ -132,12 +132,12 @@ test("role guard and browser tabs share demo state", async ({
   await expect(
     page.getByRole("heading", { name: "A different workspace" }),
   ).toBeVisible();
+  await owner(page);
   const guest = await context.newPage();
   await guest.goto("/r/olive-and-hearth");
   await expect(
     guest.getByRole("button", { name: "Add Burrata garden bowl", exact: true }),
   ).toBeVisible();
-  await owner(page);
   await page.goto("/dashboard/menu", { waitUntil: "domcontentloaded" });
   await page
     .locator(".menu-admin-card")

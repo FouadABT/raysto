@@ -1,5 +1,9 @@
 # Reviewer guide
 
+**6 November2026 — current development candidate:** [follow a cost investigation](https://ops.rays.to/ops?judge=1&section=finance&tab=investigate&guided=1) in backend/console0.17.0-dev.6. Select **House lunch bowl · Decision sample**, inspect **Cost evidence**, then **Compare options** with an explicit volume assumption. Use **Analytical workspace** to challenge/configure the comparison; record a decision separately from preparing publication. **Decisions & outcomes** distinguishes projections, approvals and recorded events. [Exact versions, actual-model/Sandbox evidence and open acceptance gates](design-experience/acceptance.md). Public managers have session-local layouts; persistent owner layouts use a private authorized account. Restaurant recruitment remains zero; native physical review is deferred.
+
+The operational instructions below describe the earlier demo path and remain secondary entry points. A PayPal success is established by its recorded provider outcome, not a redirect or an AI message.
+
 Raysto is the AI operating system for restaurants: AI coworkers prepare the money work, a person approves it, and PayPal moves the money. Everything a reviewer can touch runs on PayPal Sandbox.
 
 ## The two-minute path (browser only)

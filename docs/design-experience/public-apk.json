@@ -1,0 +1,18 @@
+{
+  "checkedAtUtc": "2026-11-06T20:22:41.484Z",
+  "tlsVerification": "Native Node TLS, no validation override",
+  "results": [
+    {
+      "url": "https://rays.to/raysto.apk",
+      "bytes": 48354033,
+      "sha256": "4238f255155102b0bf9ecfacf9332eabc4ff6fe9f2367620050c175db8d968a6",
+      "matchesManifest": true
+    },
+    {
+      "url": "https://ops.rays.to/downloads/raysto-0.17.0-dev.3-2203-arm64.apk",
+      "bytes": 48354033,
+      "sha256": "4238f255155102b0bf9ecfacf9332eabc4ff6fe9f2367620050c175db8d968a6",
+      "matchesManifest": true
+    }
+  ]
+}

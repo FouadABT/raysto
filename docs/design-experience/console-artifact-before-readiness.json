@@ -1,0 +1,21 @@
+{
+  "version": "0.17.0-dev.6",
+  "sourceCommit": "9dbf100e1bba14fcb0f833fcea56fc5116e738a3",
+  "artifact": "dist/raysto-ops-0.17.0-dev.6-before-readiness-linux.tar.gz",
+  "sha256": "481cbce441535f1539205311da4a36dccfc50ff628193f2e9cce31febd6395c6",
+  "bytes": 77921679,
+  "configIncluded": false,
+  "privateCredentialScan": "passed",
+  "featureFlags": {
+    "finance017": true,
+    "studio": true,
+    "connectedOnly": true
+  },
+  "android": {
+    "version": "0.17.0-dev.3+2203",
+    "url": "https://ops.rays.to/downloads/raysto-0.17.0-dev.3-2203-arm64.apk",
+    "sha256": "4238f255155102b0bf9ecfacf9332eabc4ff6fe9f2367620050c175db8d968a6",
+    "physicalDeviceAccepted": false
+  },
+  "status": "superseded-before-deployment"
+}

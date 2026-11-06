@@ -1,0 +1,18 @@
+{
+  "dataset": "500/1000 synthetic records",
+  "browser": "Edge",
+  "conditions": "local dev server; fonts warm; no network throttle",
+  "metrics": {
+    "longTasks": [
+      57,
+      154,
+      85,
+      83
+    ],
+    "inputFrames": [
+      52.59999996423721,
+      23.100000023841858,
+      17.399999976158142
+    ]
+  }
+}

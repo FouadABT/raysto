@@ -183,7 +183,6 @@ test("saved comparison configures real Studio widgets and layout undo preserves 
       exact: true,
     }),
   ).toBeVisible();
-  await studio.screenshot({ path: "test-results/finance/decision-studio.png" });
   await page
     .getByRole("button", { name: "Close evidence", exact: true })
     .click();

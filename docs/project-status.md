@@ -1,5 +1,7 @@
 # Project status
 
+**6 November 2026 — deployed 0.17 development candidate:** backend and web console `0.17.0-dev.6` are active; Android remains development-signed `0.17.0-dev.3+2203`, with physical review explicitly deferred. [Current design acceptance and limitations](design-experience/acceptance.md) and [the exact component manifest](release-0.17-manifest.json) supersede historical versions and blockers below. New pricing and Studio features are enabled; model/provider/reviewer acceptance is recorded separately. No restaurant pilot or full accrual cutover is claimed.
+
 Snapshot: **27 October 2026**. Android candidate `0.11.5+2014`; backend/console patch `0.11.6`. The [candidate report](release-candidate-2026-10-27.md) records current checks and blockers; [Road to 10/10](road-to-10-10.md) preserves earlier evidence and the recovery procedure. The connected console is at [ops.rays.to](https://ops.rays.to/ops).
 
 | Area | Implemented and observed | Remaining acceptance |

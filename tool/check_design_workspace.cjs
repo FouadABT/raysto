@@ -1,0 +1,92 @@
+/** Actual deployed UI + bounded model acceptance. Sample records; no publication or money execution. */
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {root,session}=require('./decision_api.cjs');
+const {chromium}=require(path.join(root,'web/node_modules/playwright'));
+const folder=path.join(root,'docs/design-experience');
+const origin=process.env.RAYSTO_UI_ACCEPTANCE_ORIGIN??'https://ops.rays.to';assert(['https://ops.rays.to','http://127.0.0.1:3101'].includes(origin));
+const localDiagnostic=origin.startsWith('http://127.');
+const ownerCredentials=JSON.parse(fs.readFileSync(path.join(root,'backend/.secrets/judge-accounts.json'),'utf8')).users.owner;
+const safeError=value=>String(value).replaceAll(ownerCredentials.email,'[private account]').replaceAll(ownerCredentials.password,'[redacted]');
+const stablePolicy=p=>Object.fromEntries(['version','confirmed','targetBps','maxIncreaseBps','incrementMinor','minimumMinor','maximumMinor','feeBps','feeFixedMinor','excludedProducts'].map(k=>[k,p[k]]));
+async function main(){
+ const report={uiOrigin:origin,checkedAtUtc:new Date().toISOString(),provenance:'Actual deployed UI and Gemini on authored USD sample records; not an owner pilot',errors:[]};
+ const browser=await chromium.launch({channel:'msedge',headless:true});let page;
+ try{
+  const backend=JSON.parse(fs.readFileSync(path.join(folder,'backend-deployment.json'),'utf8'));
+  const consoleRelease=JSON.parse(fs.readFileSync(path.join(folder,'console-deployment.json'),'utf8'));
+  report.backendSource=backend.sourceCommit;report.consoleSource=consoleRelease.sourceCommit;
+  const api=await session('manager');const originalPolicy=await api.query('pricing.policy');
+  page=await browser.newPage({viewport:{width:1440,height:1000}});page.on('pageerror',e=>report.errors.push(e.message));page.on('console',m=>{if(m.text().startsWith('STUDIO_'))console.log(m.text());});
+  page.on('response',response=>{if(response.url().includes('studio.turn'))console.log('studio.turn response',response.status());});
+   page.on('response',async response=>{if(response.url().includes('finance.analysis')&&response.ok())try{const raw=await response.json(),data=raw.data??raw;if(data.source)report.analysis={taskId:data.taskId,source:data.source,summary:data.summary,comparison:data.comparison,presentation:data.presentation};}catch{}});
+  await page.goto(origin+'/ops?judge=1&section=finance',{waitUntil:'domcontentloaded',timeout:60000});
+  await page.getByLabel('Inspect a dish').waitFor({timeout:60000});await page.getByLabel('Inspect a dish').selectOption('72');
+  await page.getByRole('button',{name:'03 Compare options'}).click();
+  await page.getByLabel('Assumed baseline units').fill('100');
+  await page.getByRole('button',{name:'Compare options',exact:true}).click();
+  await page.getByRole('heading',{name:'Lowest qualifying price',exact:true}).waitFor({timeout:30000});
+  const initialId=Number(new URL(page.url()).searchParams.get('comparison'));assert(initialId>0);
+  await page.getByRole('button',{name:'04 Analytical workspace'}).click();
+  const studio=page.getByRole('region',{name:'AG Studio restaurant finance'});
+  await studio.getByRole('button',{name:'Financial analyst',exact:true}).click();
+  await studio.getByRole('textbox',{name:'Message input'}).fill('Use a five-percent increase limit for this comparison. Show the comparison beside ingredient evidence, with cost before contribution.');
+  await studio.getByRole('button',{name:/Send/}).click();
+  await studio.getByRole('heading',{name:'Ingredient evidence',exact:true}).waitFor({timeout:110000});
+  assert.equal(report.analysis?.source,'gemini','An actual Gemini result is required, not fallback or fixture output.');
+  report.challengeAnalysis=structuredClone(report.analysis);
+  const next=report.analysis.comparison;assert(next&&next.id!==initialId);assert.equal(next.inputs.maxIncreaseBps,500);
+  assert.equal(Number(new URL(page.url()).searchParams.get('comparison')),next.id,'An AI revision must update the URL rather than rehydrate its parent.');
+  assert.deepEqual(stablePolicy(await api.query('pricing.policy')),stablePolicy(originalPolicy),'A case-specific challenge cannot change owner policy.');
+  const receiptId=next.evidence.lines.find(line=>line.source?.id)?.source.id;assert(receiptId);
+  await studio.getByRole('button',{name:`Open receipt #${receiptId}`,exact:true}).click();
+  await page.getByRole('dialog',{name:'Confirmed receipt evidence'}).waitFor();await page.getByRole('button',{name:'Close evidence',exact:true}).click();
+  await studio.getByRole('button',{name:'Undo layout change',exact:true}).click();
+  await page.getByRole('button',{name:'03 Compare options'}).click();
+  await page.getByLabel('Increase limit (%)').waitFor();assert.equal(await page.getByLabel('Increase limit (%)').inputValue(),'5');
+  await page.getByLabel('Decision reason').selectOption('timing');
+  await page.getByRole('button',{name:'Defer decision',exact:true}).click();
+  await page.getByText('Decision recorded. The menu is unchanged.',{exact:true}).waitFor();
+  const decisions=(await api.query('pricing.decisions')).rows;const decision=decisions.find(d=>d.comparisonId===next.id&&d.choice==='defer');assert(decision);
+  report.decision={id:decision.id,comparisonId:next.id,choice:decision.choice};
+  await page.getByRole('button',{name:'05 Decisions & outcomes'}).click();
+  await page.getByRole('button',{name:new RegExp('House lunch bowl.*defer')}).first().click();
+  await page.getByRole('region',{name:'Recorded decision outcome'}).waitFor();
+  fs.mkdirSync(path.join(folder,'screenshots'),{recursive:true});
+  await page.screenshot({path:path.join(folder,'screenshots/deployed-decision.png'),fullPage:true});
+  await page.getByRole('button',{name:'01 Choose a dish'}).click();await page.getByRole('button',{name:'Owner pricing policy'}).click();
+  await page.getByText('Only an owner can change this policy.',{exact:false}).waitFor();assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isEnabled(),false);
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await page.setViewportSize({width:390,height:844});await page.getByLabel('Investigation view').selectOption('studio');
+  await page.getByRole('button',{name:'Financial analyst',exact:true}).click();
+  await page.getByLabel('Your question').fill('Keep this price. Explain what I would give up.');
+  await page.getByRole('button',{name:'Ask the financial analyst',exact:true}).click();
+  await page.getByRole('article',{name:'Financial explanation'}).waitFor({timeout:110000});
+  assert.equal(report.analysis?.source,'gemini');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+  await page.screenshot({path:path.join(folder,'screenshots/deployed-mobile-analysis.png'),fullPage:true});
+  report.mobileAnalysis=structuredClone(report.analysis);
+  const ownerApi=await session('owner'),layoutScope={scope:`venue:${ownerApi.restaurantId}`,section:'finance'};
+  const originalLayout=await ownerApi.query('studio.layout',layoutScope),managerLayout=await api.query('studio.layout',layoutScope);
+  const ownerPage=await browser.newPage({viewport:{width:1440,height:1000}});
+  await ownerPage.goto(`${origin}/ops?section=finance&tab=studio&product=72&comparison=${next.id}`,{waitUntil:'domcontentloaded',timeout:60000});
+  await ownerPage.getByLabel('Email',{exact:true}).fill(ownerCredentials.email);
+  await ownerPage.getByLabel('Password',{exact:true}).fill(ownerCredentials.password);
+  await ownerPage.getByRole('button',{name:'Sign in',exact:true}).click();
+  const ownerStudio=ownerPage.getByRole('region',{name:'AG Studio restaurant finance'});
+  await ownerStudio.getByRole('button',{name:'Compare beside ingredient evidence',exact:true}).waitFor({timeout:60000});
+  await ownerStudio.getByRole('button',{name:'Compare beside ingredient evidence',exact:true}).click();
+  let persisted;for(let i=0;i<15;i++){persisted=await ownerApi.query('studio.layout',layoutScope);if(persisted.state?.selectedPageId==='decision'&&persisted.version!==originalLayout.version)break;await new Promise(r=>setTimeout(r,1000));}
+  assert.equal(persisted.state?.selectedPageId,'decision');
+  await ownerPage.reload();await ownerPage.getByRole('heading',{name:'Ingredient evidence',exact:true}).waitFor({timeout:60000});
+  assert.deepEqual(await api.query('studio.layout',layoutScope),managerLayout,'The public manager must not change or load the private owner layout.');
+  report.ownerLayout={persisted:true,restoredAfterReload:true,separateFromPublicManager:true,originalLayoutPresent:!!originalLayout.state};
+  if(originalLayout.state){const current=await ownerApi.query('studio.layout',layoutScope);await ownerApi.command('studio.layout.save',{...layoutScope,state:originalLayout.state},{version:current.version});report.ownerLayout.previousLayoutRestored=true;}
+  await ownerPage.close();
+  assert.deepEqual(report.errors,[]);
+  report.status='passed';report.manualReviewBoundary=true;report.ownerPolicyUnchanged=true;report.receiptDrill=true;report.layoutUndoPreservedComparison=true;report.nativeDeviceAcceptance='deferred';
+  fs.writeFileSync(path.join(folder,localDiagnostic?'live-workspace-local-debug.json':'live-workspace.json'),JSON.stringify(report,null,2)+'\n');
+  console.log(JSON.stringify({status:report.status,backendSource:report.backendSource,consoleSource:report.consoleSource,decision:report.decision,modelTask:report.analysis.taskId}));
+ }catch(error){if(page)report.visibleFailure=safeError((await page.locator('body').innerText().catch(()=>''))).slice(-6000);report.status='failed';report.failure=safeError(error.message).slice(0,400);if(page)await page.screenshot({path:path.join(root,'.tooling/design-live-failure.png')}).catch(()=>{});fs.writeFileSync(path.join(folder,localDiagnostic?'live-workspace-local-debug-failed.json':'live-workspace-failed.json'),JSON.stringify(report,null,2)+'\n');console.error(report.failure);process.exitCode=1;}
+ finally{await browser.close();}
+}
+main().catch(error=>{console.error(safeError(error.message));process.exitCode=1;});

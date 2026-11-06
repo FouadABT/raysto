@@ -1,0 +1,3747 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Users\\fabat\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+      "C:\\Users\\fabat\\Desktop\\Raysto\\web\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--reporter=list,json",
+      "tests/browser/accountant.spec.ts",
+      "tests/browser/console.spec.ts",
+      "tests/browser/design-workspace.spec.ts",
+      "tests/browser/dispatch.spec.ts",
+      "tests/browser/finance.spec.ts",
+      "tests/browser/group.spec.ts",
+      "tests/browser/inbox.spec.ts",
+      "tests/browser/landing.spec.ts",
+      "tests/browser/orders.spec.ts",
+      "tests/browser/paypal-account.spec.ts",
+      "tests/browser/supplies.spec.ts",
+      "tests/browser/try-new.spec.ts"
+    ],
+    "configFile": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\playwright.config.ts",
+    "rootDir": "C:/Users/fabat/Desktop/Raysto/web/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/fabat/Desktop/Raysto/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/fabat/Desktop/Raysto/web/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser",
+        "snapshotDir": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 45000,
+        "use": {
+          "baseURL": "http://127.0.0.1:3101",
+          "channel": "msedge",
+          "launchOptions": {},
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "only-on-failure",
+          "trace": "retain-on-failure"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3101",
+      "url": "http://127.0.0.1:3101",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "accountant.spec.ts",
+      "file": "accountant.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Accountant",
+          "file": "accountant.spec.ts",
+          "line": 26,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Overview: the figures, the rules' findings and a way to each",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8870,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:11:55.593Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fdb64ee68f1e9e9cee7d-a8a519b7f2db556e175e",
+              "file": "accountant.spec.ts",
+              "line": 27,
+              "column": 7
+            },
+            {
+              "title": "Bills: the drop zone, PayPal ids and proofs, and a bill's detail with its next step",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8973,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:12:06.321Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fdb64ee68f1e9e9cee7d-dd9622373af8c26c65be",
+              "file": "accountant.spec.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "Requests: a pay link's QR code and the PayPal capture of a paid one",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8526,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:12:15.329Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fdb64ee68f1e9e9cee7d-c3822addbe2d9a4fefc6",
+              "file": "accountant.spec.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "P&L, cash flow, aging and VAT render with their plain grids",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 15154,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:12:23.896Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fdb64ee68f1e9e9cee7d-58c33c505f02b6c8b02d",
+              "file": "accountant.spec.ts",
+              "line": 125,
+              "column": 7
+            },
+            {
+              "title": "a 320 px phone at twice the text size keeps every figure and action",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 15229,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:12:39.090Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fdb64ee68f1e9e9cee7d-8fbdffd991ae3f52712a",
+              "file": "accountant.spec.ts",
+              "line": 165,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "console.spec.ts",
+      "file": "console.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Shell and Overview",
+          "file": "console.spec.ts",
+          "line": 19,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Overview at 1440 px, motion no-preference",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 15092,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:12:54.405Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-5a3c097b88ad5e09db3a",
+              "file": "console.spec.ts",
+              "line": 25,
+              "column": 11
+            },
+            {
+              "title": "Overview at 1440 px, motion reduce",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9958,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:13:09.623Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-2c9d1448b9d2bf6b8f62",
+              "file": "console.spec.ts",
+              "line": 25,
+              "column": 11
+            },
+            {
+              "title": "Overview at 390 px, motion no-preference",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13294,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:13:19.613Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-62f5a51b307471998be7",
+              "file": "console.spec.ts",
+              "line": 25,
+              "column": 11
+            },
+            {
+              "title": "Overview at 390 px, motion reduce",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11093,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:13:32.941Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-21c2fd4e458830e700e7",
+              "file": "console.spec.ts",
+              "line": 25,
+              "column": 11
+            },
+            {
+              "title": "with reduced motion the real figures are there in the first frame, fully opaque",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7332,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:13:44.080Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-988e53af93d515b76c31",
+              "file": "console.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "the Overview does not shift its layout while it animates",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11231,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:13:51.460Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-2a595e1f17fa934aebdf",
+              "file": "console.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "screen readers hear the comparison as words",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9142,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:14:02.729Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-7f0b869ccbe265bd707f",
+              "file": "console.spec.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "the sample history is labelled and drawn apart from the real line",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7396,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:14:11.911Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-a40002fa7de23e243419",
+              "file": "console.spec.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "the period buttons switch the figures",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8871,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:14:19.407Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-f6dbc70b542392777858",
+              "file": "console.spec.ts",
+              "line": 115,
+              "column": 7
+            },
+            {
+              "title": "a dashboard the backend cannot serve reads as an honest error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4745,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:14:28.310Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-ee2b2860d0aee85aa77d",
+              "file": "console.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "a café with no paid order draws no chart",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7065,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:14:33.100Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-742214de766bcf9f2868",
+              "file": "console.spec.ts",
+              "line": 145,
+              "column": 7
+            },
+            {
+              "title": "keyboard: the navigation drawer at 1440 px",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9466,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:14:40.202Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-68590dc4582b5fe318d7",
+              "file": "console.spec.ts",
+              "line": 156,
+              "column": 7
+            },
+            {
+              "title": "keyboard: the navigation rail at 1024 px",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11396,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:14:49.700Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-a911ea4b8e12e3db75ba",
+              "file": "console.spec.ts",
+              "line": 180,
+              "column": 7
+            },
+            {
+              "title": "keyboard: the phone's modal drawer opens, traps focus and closes with Esc",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10123,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:15:01.121Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-e4aa1bd8473b5c02da62",
+              "file": "console.spec.ts",
+              "line": 196,
+              "column": 7
+            },
+            {
+              "title": "the console's own reduce-motion switch",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:15:11.274Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-3e148639c17bc3f4f82a",
+              "file": "console.spec.ts",
+              "line": 224,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "money",
+          "file": "console.spec.ts",
+          "line": 246,
+          "column": 6,
+          "specs": [
+            {
+              "title": "every Money tab and Team render at 1440 px, motion no-preference",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 31303,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:15:21.633Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-81298877c125ac1950e4",
+              "file": "console.spec.ts",
+              "line": 276,
+              "column": 11
+            },
+            {
+              "title": "every Money tab and Team render at 1440 px, motion reduce",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 24110,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:15:52.963Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-9385bbc1a465343d140a",
+              "file": "console.spec.ts",
+              "line": 276,
+              "column": 11
+            },
+            {
+              "title": "every Money tab and Team render at 390 px, motion no-preference",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 33722,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:16:17.116Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-4ba9f6ae0faaffc400f6",
+              "file": "console.spec.ts",
+              "line": 276,
+              "column": 11
+            },
+            {
+              "title": "every Money tab and Team render at 390 px, motion reduce",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 19362,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:16:50.881Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-cd3bfb7017e07f61e05e",
+              "file": "console.spec.ts",
+              "line": 276,
+              "column": 11
+            },
+            {
+              "title": "Analytics draws paid sales per day with the sample labelled apart",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11037,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:17:10.275Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-7c825470936c06543a71",
+              "file": "console.spec.ts",
+              "line": 309,
+              "column": 7
+            },
+            {
+              "title": "with reduced motion a count-up shows its final value at once",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8387,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:17:21.373Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-8855ad5da92cb6864fff",
+              "file": "console.spec.ts",
+              "line": 321,
+              "column": 7
+            },
+            {
+              "title": "a refused command reads as a note on the card, never as a result",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13499,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:17:29.815Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-de3f12d6da80123265b3",
+              "file": "console.spec.ts",
+              "line": 332,
+              "column": 7
+            },
+            {
+              "title": "a payout list row without lines never crashes Team or the pay run, and held staff are named",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14849,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:17:43.401Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-d21162b8c00a5feabc0c",
+              "file": "console.spec.ts",
+              "line": 345,
+              "column": 7
+            },
+            {
+              "title": "Team switches between cards and the grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12125,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:17:58.281Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ef58feb76c0befb42c6d-2ea2a2ccc6a669e33673",
+              "file": "console.spec.ts",
+              "line": 367,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "design-workspace.spec.ts",
+      "file": "design-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "all owner destinations reflow at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 70990,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:18:10.472Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-4c67557c9cb5f7ffd41b",
+          "file": "design-workspace.spec.ts",
+          "line": 25,
+          "column": 7
+        },
+        {
+          "title": "all owner destinations reflow at 320px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 48588,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:19:21.497Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-2a77224133a32a2d5022",
+          "file": "design-workspace.spec.ts",
+          "line": 25,
+          "column": 7
+        },
+        {
+          "title": "navigation, refresh, Back and draft recovery preserve the approved context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15975,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:20:10.120Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-4ea7ab87f906c5f2b4a6",
+          "file": "design-workspace.spec.ts",
+          "line": 57,
+          "column": 5
+        },
+        {
+          "title": "a report failure leaves costing usable and loading does not imply zero",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7560,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:20:26.122Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-31a865cd070aead78142",
+          "file": "design-workspace.spec.ts",
+          "line": 97,
+          "column": 5
+        },
+        {
+          "title": "inventory analysis agrees with its loaded rows and starts without editor panels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8455,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:20:33.721Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-d63b17fc2a280b688f8c",
+          "file": "design-workspace.spec.ts",
+          "line": 115,
+          "column": 5
+        },
+        {
+          "title": "non-finance form drafts are guarded on navigation and modal dismissal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8001,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:20:42.220Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-9086cfc5d655e8bb1231",
+          "file": "design-workspace.spec.ts",
+          "line": 134,
+          "column": 5
+        },
+        {
+          "title": "guided entry places the useful control in view and keyboard focus returns from evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7612,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:20:50.250Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-f769497b15301b4ec39d",
+          "file": "design-workspace.spec.ts",
+          "line": 155,
+          "column": 5
+        },
+        {
+          "title": "synthetic workload keeps interaction feedback measurable and contains enlarged text",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6700,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:20:57.887Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "warm-local-workload",
+                      "contentType": "application/json",
+                      "body": "ewogICJkYXRhc2V0IjogIjUwMC8xMDAwIHN5bnRoZXRpYyByZWNvcmRzIiwKICAiYnJvd3NlciI6ICJFZGdlIiwKICAiY29uZGl0aW9ucyI6ICJsb2NhbCBkZXYgc2VydmVyOyBmb250cyB3YXJtOyBubyBuZXR3b3JrIHRocm90dGxlIiwKICAibWV0cmljcyI6IHsKICAgICJsb25nVGFza3MiOiBbCiAgICAgIDExMywKICAgICAgODYsCiAgICAgIDc4CiAgICBdLAogICAgImlucHV0RnJhbWVzIjogWwogICAgICAzNS40MDAwMDAwMzU3NjI3OSwKICAgICAgMTgsCiAgICAgIDIyLjEwMDAwMDAyMzg0MTg1OAogICAgXQogIH0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-52da4f1d8dcddf2dafb4",
+          "file": "design-workspace.spec.ts",
+          "line": 179,
+          "column": 5
+        },
+        {
+          "title": "every supported owner tab restores a valid selected route",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 144435,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:21:04.717Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-ed04a2f9e8e664b5d25f",
+          "file": "design-workspace.spec.ts",
+          "line": 276,
+          "column": 5
+        },
+        {
+          "title": "focused investigation at 1280px preserves controls and readable labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7200,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:23:29.176Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-f840eec63cfece569e29",
+          "file": "design-workspace.spec.ts",
+          "line": 298,
+          "column": 7
+        },
+        {
+          "title": "focused investigation at 1024px preserves controls and readable labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6350,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:23:36.404Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-87a71b9bea6793e7e4ce",
+          "file": "design-workspace.spec.ts",
+          "line": 298,
+          "column": 7
+        },
+        {
+          "title": "focused investigation at 768px preserves controls and readable labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7228,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:23:42.779Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-9f32c52369ace1020007",
+          "file": "design-workspace.spec.ts",
+          "line": 298,
+          "column": 7
+        },
+        {
+          "title": "focused investigation at 390px preserves controls and readable labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11278,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:23:50.031Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-553152076d8f6cd0fd5d",
+          "file": "design-workspace.spec.ts",
+          "line": 298,
+          "column": 7
+        },
+        {
+          "title": "rapid motion transitions exclude outgoing content and app reduced motion remains live",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 11840,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.ops-place[inert]')\nExpected: \u001b[32m\"true\"\u001b[39m\nTimeout: 500ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" locator('.ops-place[inert]') with timeout 500ms\u001b[22m\n\u001b[2m  - waiting for locator('.ops-place[inert]')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.ops-place[inert]')\nExpected: \u001b[32m\"true\"\u001b[39m\nTimeout: 500ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" locator('.ops-place[inert]') with timeout 500ms\u001b[22m\n\u001b[2m  - waiting for locator('.ops-place[inert]')\u001b[22m\n\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\design-workspace.spec.ts:375:26",
+                    "location": {
+                      "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\design-workspace.spec.ts",
+                      "column": 26,
+                      "line": 375
+                    },
+                    "snippet": "  373 |     .click();\n  374 |   const outgoing = page.locator(\".ops-place[inert]\");\n> 375 |   await expect(outgoing).toHaveAttribute(\"aria-hidden\", \"true\", {\n      |                          ^\n  376 |     timeout: 500,\n  377 |   });\n  378 |   await page.getByRole(\"button\", { name: \"Team\", exact: true }).click();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\design-workspace.spec.ts",
+                        "column": 26,
+                        "line": 375
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.ops-place[inert]')\nExpected: \u001b[32m\"true\"\u001b[39m\nTimeout: 500ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" locator('.ops-place[inert]') with timeout 500ms\u001b[22m\n\u001b[2m  - waiting for locator('.ops-place[inert]')\u001b[22m\n\n\n  373 |     .click();\n  374 |   const outgoing = page.locator(\".ops-place[inert]\");\n> 375 |   await expect(outgoing).toHaveAttribute(\"aria-hidden\", \"true\", {\n      |                          ^\n  376 |     timeout: 500,\n  377 |   });\n  378 |   await page.getByRole(\"button\", { name: \"Team\", exact: true }).click();\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\design-workspace.spec.ts:375:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:24:01.340Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-workspace-rapid-mot-12bc4-reduced-motion-remains-live\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-workspace-rapid-mot-12bc4-reduced-motion-remains-live\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\design-workspace-rapid-mot-12bc4-reduced-motion-remains-live\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\design-workspace.spec.ts",
+                    "column": 26,
+                    "line": 375
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "dd2af4982c58646e918e-9fca81ec9a09bf8ef9ad",
+          "file": "design-workspace.spec.ts",
+          "line": 334,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "dispatch.spec.ts",
+      "file": "dispatch.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dispatch",
+          "file": "dispatch.spec.ts",
+          "line": 52,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the map credits OpenStreetMap and shows the café, the doors and a driver",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9718,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:24:38.079Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-b7b4c078b11cf127d816",
+              "file": "dispatch.spec.ts",
+              "line": 53,
+              "column": 7
+            },
+            {
+              "title": "dragging a job onto a driver sends exactly one offer after the Undo window",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16385,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:24:49.147Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-0270a8ac02c971eeeaf4",
+              "file": "dispatch.spec.ts",
+              "line": 79,
+              "column": 7
+            },
+            {
+              "title": "Undo keeps the offer from being sent",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14567,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:25:05.569Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-896c74bb72b5daf0b2a4",
+              "file": "dispatch.spec.ts",
+              "line": 101,
+              "column": 7
+            },
+            {
+              "title": "an offline driver is not a drop zone, and the keyboard can offer too",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8512,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:25:20.175Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-dbd174f6eba5f2de69b7",
+              "file": "dispatch.spec.ts",
+              "line": 113,
+              "column": 7
+            },
+            {
+              "title": "partner apps show only the key's prefix, and the log of calls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8136,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:25:28.752Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-ed4fd75f979ee4dc4db2",
+              "file": "dispatch.spec.ts",
+              "line": 130,
+              "column": 7
+            },
+            {
+              "title": "the simulator keeps its banner and drives the partner API through the console server",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9459,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:25:36.910Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-06225a63e7bb888e74de",
+              "file": "dispatch.spec.ts",
+              "line": 153,
+              "column": 7
+            },
+            {
+              "title": "without the simulator configured, the page says so",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6982,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:25:46.407Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-ee8381da231931b85233",
+              "file": "dispatch.spec.ts",
+              "line": 209,
+              "column": 7
+            },
+            {
+              "title": "no page error at 390 px with reduced motion",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9047,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:25:53.426Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "44ce6bc104ceddc3ecac-4da60775b597005fb20a",
+              "file": "dispatch.spec.ts",
+              "line": 233,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "finance.spec.ts",
+      "file": "finance.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Today uses the shared financial summary and keeps its accounting basis visible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6018,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:26:02.534Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-a37afc8e0ce01ea1ab0d",
+          "file": "finance.spec.ts",
+          "line": 11,
+          "column": 5
+        },
+        {
+          "title": "receipt evidence, unknown costs and dirty recipe guard",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11988,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:26:08.578Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-8ef443e600038ceb21b8",
+          "file": "finance.spec.ts",
+          "line": 36,
+          "column": 5
+        },
+        {
+          "title": "Studio custom widget cross-filters its related grid",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10647,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:26:20.617Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-33670250f98d5b60106c",
+          "file": "finance.spec.ts",
+          "line": 94,
+          "column": 5
+        },
+        {
+          "title": "narrow financial workspace keeps the decision and evidence readable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6837,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:26:31.295Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-67bb17d5246e4386f24b",
+          "file": "finance.spec.ts",
+          "line": 122,
+          "column": 5
+        },
+        {
+          "title": "saved comparison configures real Studio widgets and layout undo preserves the decision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15563,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T18:26:38.155Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d1b0b311adfe43979fc-71d8ef4fb843ed29953c",
+          "file": "finance.spec.ts",
+          "line": 145,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "group.spec.ts",
+      "file": "group.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Group",
+          "file": "group.spec.ts",
+          "line": 32,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the switcher above the venue picker narrows it to the group's venues",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8364,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:26:54.229Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fffb772da385012f6740-260238d796686a9946a7",
+              "file": "group.spec.ts",
+              "line": 33,
+              "column": 7
+            },
+            {
+              "title": "Studio pages, with no watermark and no licence error; money stays per currency",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16464,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:27:02.667Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fffb772da385012f6740-fc98bf7daa36c8e7dcb7",
+              "file": "group.spec.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "the totals row follows the quick search",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9972,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:27:19.157Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fffb772da385012f6740-fbbedff05caef962e765",
+              "file": "group.spec.ts",
+              "line": 122,
+              "column": 7
+            },
+            {
+              "title": "templates and transfers say plainly that the preview sends nothing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9211,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:27:29.155Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fffb772da385012f6740-60a1d9e0fc8734a0fd5f",
+              "file": "group.spec.ts",
+              "line": 157,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "inbox.spec.ts",
+      "file": "inbox.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AI Action Inbox",
+          "file": "inbox.spec.ts",
+          "line": 26,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the demo café lands on the Overview, inbox first, with one Demo café badge and no Try in the navigation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9783,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:27:38.795Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-90d5917ae3a0a979b979",
+              "file": "inbox.spec.ts",
+              "line": 27,
+              "column": 7
+            },
+            {
+              "title": "approving a payout shows PayPal's batch id; a refund's id arrives when PayPal confirms",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14610,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:27:48.670Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-827fd804a52be7db0947",
+              "file": "inbox.spec.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "Not now turns a proposal down; one someone else decided first reads as already handled",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7620,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:28:03.313Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-0026bad361a26c1102b6",
+              "file": "inbox.spec.ts",
+              "line": 95,
+              "column": 7
+            },
+            {
+              "title": "an empty inbox says so, and its starters put real work in it",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13158,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:28:10.956Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-3847b4503386bd5fd0d1",
+              "file": "inbox.spec.ts",
+              "line": 126,
+              "column": 7
+            },
+            {
+              "title": "Try is out of the navigation but opens by URL on the demo café, and only there",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 21234,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Investigate the café.*records/ })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: /Investigate the café.*records/ }) with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Investigate the café.*records/ })\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Investigate the café.*records/ })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: /Investigate the café.*records/ }) with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Investigate the café.*records/ })\u001b[22m\n\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts:204:7",
+                        "location": {
+                          "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts",
+                          "column": 7,
+                          "line": 204
+                        },
+                        "snippet": "  202 |     await expect(\n  203 |       page.getByRole(\"heading\", { name: /Investigate the café.*records/ }),\n> 204 |     ).toBeVisible();\n      |       ^\n  205 |     await expect(\n  206 |       page\n  207 |         .locator(\".ops-shell-side .ops-sections\")"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts",
+                            "column": 7,
+                            "line": 204
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Investigate the café.*records/ })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: /Investigate the café.*records/ }) with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Investigate the café.*records/ })\u001b[22m\n\n\n  202 |     await expect(\n  203 |       page.getByRole(\"heading\", { name: /Investigate the café.*records/ }),\n> 204 |     ).toBeVisible();\n      |       ^\n  205 |     await expect(\n  206 |       page\n  207 |         .locator(\".ops-shell-side .ops-sections\")\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts:204:7"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:28:24.134Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\inbox-AI-Action-Inbox-Try--b5c1b-he-demo-café-and-only-there\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\inbox-AI-Action-Inbox-Try--b5c1b-he-demo-café-and-only-there\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\inbox-AI-Action-Inbox-Try--b5c1b-he-demo-café-and-only-there\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts",
+                        "column": 7,
+                        "line": 204
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-008b71f94d40e9b7e450",
+              "file": "inbox.spec.ts",
+              "line": 195,
+              "column": 7
+            },
+            {
+              "title": "at 360 px the inbox fits without sideways scrolling, at 2x text too",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6332,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts:232:28",
+                        "location": {
+                          "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts",
+                          "column": 28,
+                          "line": 232
+                        },
+                        "snippet": "  230 |           () => document.documentElement.scrollWidth <= window.innerWidth + 1,\n  231 |         );\n> 232 |       expect(await fits()).toBe(true);\n      |                            ^\n  233 |       for (const b of await page.locator(\".ops-inbox button:visible\").all()) {\n  234 |         const box = await b.boundingBox();\n  235 |         expect(box!.height).toBeGreaterThanOrEqual(48);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts",
+                            "column": 28,
+                            "line": 232
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  230 |           () => document.documentElement.scrollWidth <= window.innerWidth + 1,\n  231 |         );\n> 232 |       expect(await fits()).toBe(true);\n      |                            ^\n  233 |       for (const b of await page.locator(\".ops-inbox button:visible\").all()) {\n  234 |         const box = await b.boundingBox();\n  235 |         expect(box!.height).toBeGreaterThanOrEqual(48);\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts:232:28"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:29:03.323Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\inbox-AI-Action-Inbox-at-3-25f96-ys-scrolling-at-2x-text-too\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\inbox-AI-Action-Inbox-at-3-25f96-ys-scrolling-at-2x-text-too\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\inbox-AI-Action-Inbox-at-3-25f96-ys-scrolling-at-2x-text-too\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\inbox.spec.ts",
+                        "column": 28,
+                        "line": 232
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-e73881a24d41c594ac22",
+              "file": "inbox.spec.ts",
+              "line": 221,
+              "column": 9
+            },
+            {
+              "title": "at 320 px the inbox fits without sideways scrolling, at 2x text too",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10070,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:29:22.273Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-04cd733546116167d690",
+              "file": "inbox.spec.ts",
+              "line": 221,
+              "column": 9
+            },
+            {
+              "title": "with reduced motion the inbox is there in the first frame, fully opaque",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4568,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:29:33.170Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-027c26cd684fc512442f",
+              "file": "inbox.spec.ts",
+              "line": 257,
+              "column": 7
+            },
+            {
+              "title": "the 30-day analytics open on AG Studio once scrolled to",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11211,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:29:37.769Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c9086cbe786fc8171a5a-d14971e98a928e28ea58",
+              "file": "inbox.spec.ts",
+              "line": 271,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "landing.spec.ts",
+      "file": "landing.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "the product page at rays.to",
+          "file": "landing.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "offers the investigation and workspace with visible Sandbox limits",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5595,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:29:49.512Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4e5b49d369fd48ca0656-7c62792a101c8d0db3b1",
+              "file": "landing.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "fits a 320 px phone without sideways scrolling",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2891,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:29:55.282Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4e5b49d369fd48ca0656-cd7194db4890d1031757",
+              "file": "landing.spec.ts",
+              "line": 34,
+              "column": 7
+            },
+            {
+              "title": "keeps the diagram still for anyone who asks for less motion",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2727,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:29:58.193Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4e5b49d369fd48ca0656-0f58ad698b7bcee5e23b",
+              "file": "landing.spec.ts",
+              "line": 46,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "orders.spec.ts",
+      "file": "orders.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "orders",
+          "file": "orders.spec.ts",
+          "line": 25,
+          "column": 6,
+          "specs": [
+            {
+              "title": "a drag to the next column sends one transition, with the version the board saw, after 5 s",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13719,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:30:00.963Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "de3f15501f825e0a6f88-52b37a928aaf17c7abbd",
+              "file": "orders.spec.ts",
+              "line": 31,
+              "column": 7
+            },
+            {
+              "title": "Undo sends nothing and puts the card back",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12856,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:30:14.710Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "de3f15501f825e0a6f88-fb1cd6751bc24590577c",
+              "file": "orders.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "a drop on a column that is not next snaps back and sends nothing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11221,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:30:27.597Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "de3f15501f825e0a6f88-84b0cfdb10f1a5325d18",
+              "file": "orders.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "the Move button works from the keyboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10663,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:30:38.876Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "de3f15501f825e0a6f88-db28e45044cc2991fc49",
+              "file": "orders.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "an online pickup is handed over against its code, at once",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5542,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:30:49.594Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "de3f15501f825e0a6f88-5ba3b1918043dad3fe76",
+              "file": "orders.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "delivery at ready has no drop target and says why",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4412,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:30:55.197Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "de3f15501f825e0a6f88-a178013aa3f0c14b1c23",
+              "file": "orders.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "an approved money proposal confirms with the PayPal id and no Undo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8306,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:30:59.642Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "de3f15501f825e0a6f88-f6ad82885f2062de8565",
+              "file": "orders.spec.ts",
+              "line": 88,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "paypal-account.spec.ts",
+      "file": "paypal-account.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "PayPal account",
+          "file": "paypal-account.spec.ts",
+          "line": 24,
+          "column": 6,
+          "specs": [
+            {
+              "title": "own app: masked client, checklist, what to switch on, and the partner note",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6852,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:31:08.074Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3be3ccae7d906aae907d-83b0e2107be5cd12ae71",
+              "file": "paypal-account.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "a 320 px phone shows the shared Sandbox account without sideways scrolling",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11909,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:31:14.952Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3be3ccae7d906aae907d-e61fff54909f56749cef",
+              "file": "paypal-account.spec.ts",
+              "line": 63,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "supplies.spec.ts",
+      "file": "supplies.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Supplies",
+          "file": "supplies.spec.ts",
+          "line": 32,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Inventory: cover, low stock and the stock grid with words beside the colours",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8480,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:31:26.932Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab1e0e6de72ccaed5036-2a6fc032409fb2b220ed",
+              "file": "supplies.spec.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "Purchasing: the orders, a draft from the forecast, and an order's receipt",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12359,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:31:35.435Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab1e0e6de72ccaed5036-d111c85f98400484a40d",
+              "file": "supplies.spec.ts",
+              "line": 63,
+              "column": 7
+            },
+            {
+              "title": "Receive: the 3-way match shows each variance in words and colour",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11225,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:31:47.844Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab1e0e6de72ccaed5036-7c397c203cbfdddc1541",
+              "file": "supplies.spec.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "Suppliers, Recipes and Waste",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 29271,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('region', { name: 'Waste log' }).getByText('Whole milk')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('region', { name: 'Waste log' }).getByText('Whole milk') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('region', { name: 'Waste log' }).getByText('Whole milk')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('region', { name: 'Waste log' }).getByText('Whole milk')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('region', { name: 'Waste log' }).getByText('Whole milk') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('region', { name: 'Waste log' }).getByText('Whole milk')\u001b[22m\n\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\supplies.spec.ts:159:7",
+                        "location": {
+                          "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\supplies.spec.ts",
+                          "column": 7,
+                          "line": 159
+                        },
+                        "snippet": "  157 |     await expect(\n  158 |       page.getByRole(\"region\", { name: \"Waste log\" }).getByText(\"Whole milk\"),\n> 159 |     ).toBeVisible();\n      |       ^\n  160 |     await page\n  161 |       .getByLabel(\"Item\")\n  162 |       .selectOption({ label: \"Oranges (18 kg on hand)\" });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\supplies.spec.ts",
+                            "column": 7,
+                            "line": 159
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('region', { name: 'Waste log' }).getByText('Whole milk')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('region', { name: 'Waste log' }).getByText('Whole milk') with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('region', { name: 'Waste log' }).getByText('Whole milk')\u001b[22m\n\n\n  157 |     await expect(\n  158 |       page.getByRole(\"region\", { name: \"Waste log\" }).getByText(\"Whole milk\"),\n> 159 |     ).toBeVisible();\n      |       ^\n  160 |     await page\n  161 |       .getByLabel(\"Item\")\n  162 |       .selectOption({ label: \"Oranges (18 kg on hand)\" });\n    at C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\supplies.spec.ts:159:7"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:31:59.098Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\supplies-Supplies-Suppliers-Recipes-and-Waste\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\supplies-Supplies-Suppliers-Recipes-and-Waste\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\test-results\\supplies-Supplies-Suppliers-Recipes-and-Waste\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\fabat\\Desktop\\Raysto\\web\\tests\\browser\\supplies.spec.ts",
+                        "column": 7,
+                        "line": 159
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ab1e0e6de72ccaed5036-4d32ffd30f9858a731f5",
+              "file": "supplies.spec.ts",
+              "line": 128,
+              "column": 7
+            },
+            {
+              "title": "at 390 px with reduced motion nothing scrolls sideways",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13148,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:32:54.655Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab1e0e6de72ccaed5036-46ef142ac9c5dbed97a2",
+              "file": "supplies.spec.ts",
+              "line": 171,
+              "column": 9
+            },
+            {
+              "title": "at 320 px with reduced motion nothing scrolls sideways",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12291,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:33:08.975Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab1e0e6de72ccaed5036-774a270cd2f75ec32bd8",
+              "file": "supplies.spec.ts",
+              "line": 171,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "try-new.spec.ts",
+      "file": "try-new.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Try cards 10–14",
+          "file": "try-new.spec.ts",
+          "line": 18,
+          "column": 6,
+          "specs": [
+            {
+              "title": "10: the accountant reads the bill and PayPal Payouts pays it only after approval",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12512,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:33:21.313Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-b909f9c93451ae31eff5",
+              "file": "try-new.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "11: the month's books, VAT and the flagged capture with its PayPal id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7928,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:33:33.862Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-a302a3b6f4d105c80869",
+              "file": "try-new.spec.ts",
+              "line": 35,
+              "column": 7
+            },
+            {
+              "title": "12: a pay link with its QR code, marked paid only when PayPal's capture arrives",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10737,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:33:41.820Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-c385cffd102e33c3c69f",
+              "file": "try-new.spec.ts",
+              "line": 48,
+              "column": 7
+            },
+            {
+              "title": "13: a simulator order, the dispatcher's ranking, the offer and the signed webhooks",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10174,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:33:52.586Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-6e85d571f9f46332b3f7",
+              "file": "try-new.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "13: without the simulator the card says so and uses the waiting delivery",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7207,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:34:02.795Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-12fdee604864e7ed2fb4",
+              "file": "try-new.spec.ts",
+              "line": 76,
+              "column": 7
+            },
+            {
+              "title": "14: the forecast, the proposed order and the 3-way match with the butter's price",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5032,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:34:10.030Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-f9429b4afd1aa13a3bed",
+              "file": "try-new.spec.ts",
+              "line": 85,
+              "column": 7
+            },
+            {
+              "title": "on a deployment without the 0.16 commands every card says so, and nothing reads as done",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6407,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:34:15.098Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-884936924066a7dd8955",
+              "file": "try-new.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "all five run without a page error at 1440 px, reduced motion",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11124,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:34:21.529Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-e5a39b9f891b8040ef1c",
+              "file": "try-new.spec.ts",
+              "line": 120,
+              "column": 9
+            },
+            {
+              "title": "all five run without a page error at 390 px, reduced motion",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10455,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-06T18:34:32.680Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a3e3c6b938bb04007256-7068e223d8f253ff9683",
+              "file": "try-new.spec.ts",
+              "line": 120,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-06T18:11:49.248Z",
+    "duration": 1407200.369,
+    "expected": 92,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}
