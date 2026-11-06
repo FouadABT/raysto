@@ -171,7 +171,7 @@ export function FinanceStudio({ api, tenant, products, scenario, productId, summ
       id: 'raysto-finance', name: 'Raysto financial analyst', tools: () => [open,configure], maxTurns: 2,
       run: async function* (input, ctx): AsyncIterable<AgAiEvent> {
         if (input.messages.at(-1)?.role === 'tool') {
-          yield { type: 'TEXT_MESSAGE_CHUNK', delta: 'The evidence view is ready. Dashboard changes do not approve any business action.' }; return;
+          yield { type: 'TEXT_MESSAGE_CHUNK', messageId: `ready-${input.runId}`, role: 'assistant', delta: 'The evidence view is ready. Dashboard changes do not approve any business action.' }; return;
         }
         const question = input.messages.findLast(m => m.role === 'user');
         if (!question || question.role !== 'user') return;
@@ -202,7 +202,7 @@ export function FinanceStudio({ api, tenant, products, scenario, productId, summ
         pendingView.current={api:current.api,tokens:[current.token,JSON.stringify(newToken)],signal:ctx.signal};
         if (result.scenario) scope.current.onScenario?.(result.scenario);
         if(result.comparison) scope.current.onComparison?.(result.comparison);
-        yield { type: 'TEXT_MESSAGE_CHUNK', delta: result.summary ?? 'Read the linked evidence.' };
+        yield { type: 'TEXT_MESSAGE_CHUNK', messageId: `analysis-${task.taskId}`, role: 'assistant', delta: result.summary ?? 'Read the linked evidence.' };
         const call = `view-${task.taskId}`;
         yield { type: 'TOOL_CALL_START', toolCallId: call, toolCallName: result.presentation?'raysto_configure_decision_view':'raysto_open_finance_view' };
         yield { type: 'TOOL_CALL_ARGS', toolCallId: call, delta: JSON.stringify(result.presentation?decisionView(result.presentation):{ view: result.view }) };
