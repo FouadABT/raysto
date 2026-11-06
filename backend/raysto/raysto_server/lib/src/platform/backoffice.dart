@@ -301,6 +301,15 @@ class BackOfficeModule {
         version: 0,
         updatedAt: _now(),
       );
+      if (Finance017.active && row.id != null) {
+        final stockId = row.id!;
+        final tracked = await StockMovement.db.count(s, where: (t) => t.restaurantId.equals(w.tenant) &
+          t.stockItemId.equals(stockId), transaction: w.tx);
+        if (tracked > 0 && (d['unit'] != row.unit || _amount(d, 'quantity') != row.quantity ||
+            _int(d, 'costMinor', max: 10000000) != row.costMinor)) {
+          _fail('tracked_stock', 'Use a recorded count for quantity and a confirmed receipt for purchase cost. A tracked stock unit cannot be changed in place.');
+        }
+      }
       row
         ..name = _str(d, 'name', max: 120)
         ..unit = _str(
@@ -698,6 +707,7 @@ class BackOfficeModule {
                 'merchant': x.merchant,
                 'paypalTransactionId': x.paypalTransactionId,
                 'taskId': x.taskId,
+                if (JudgeHistory.expense(x)) 'sample': true,
               },
           ],
           'nextCursor': null,
@@ -903,13 +913,16 @@ class BackOfficeModule {
           : o.fulfillment;
       byChannel[channel] = (byChannel[channel] ?? 0) + o.totalMinor;
     }
+    // PayPal's own captures: a cash collection at the till ("cash:…") is
+    // neither captured by PayPal nor charged a PayPal fee.
     final captures = await PaymentCapture.db.find(
       s,
       where: (t) =>
           t.restaurantId.equals(w.tenant) &
           (t.createdAt >= from) &
           (t.createdAt <= to) &
-          t.state.equals('completed'),
+          t.state.equals('completed') &
+          t.providerCaptureId.notLike('cash:%'),
       limit: 20000,
       transaction: tx,
     );

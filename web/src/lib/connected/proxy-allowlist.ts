@@ -1,7 +1,9 @@
+import { finance017Commands, finance017Queries } from './finance';
 // Names the operations console may send through the same-origin proxy. The
 // backend still authorizes every call; this keeps the proxy from relaying
 // anything the console does not use (for example platform admin commands).
 export const consoleQueries = new Set([
+  ...finance017Queries,
   "me",
   "operations.snapshot",
   "operations.threads",
@@ -20,6 +22,7 @@ export const consoleQueries = new Set([
   "counter.menu",
   "media",
   "menu.drafts",
+  "menu.manage",
   "checkout",
   // The back office (docs/back-office-design.md §3).
   "backoffice.close",
@@ -40,6 +43,7 @@ export const consoleQueries = new Set([
 
 /** Back-office names from the design; the drift test accepts these until the backend ships them. */
 export const backofficeCommands = new Set([
+  ...finance017Commands,
   "close.run",
   "close.sign",
   "payroll.run",
@@ -168,6 +172,7 @@ export const consoleCommands = new Set([
   // The "Try Raysto" demos: read a menu photo, draw a dish, ask the payments
   // agent, order by sentence and pay in PayPal Sandbox, start fresh.
   "menu.snap",
+  "menu.save",
   "menu.photo",
   "payment.check",
   "quote.create",
@@ -205,6 +210,7 @@ export const merchantCommands = new Set([
 export const merchantQueries = new Set(["merchant.status"]);
 
 for (const name of phase16Commands) consoleCommands.add(name);
+for (const name of finance017Commands) consoleCommands.add(name);
 for (const name of merchantCommands) consoleCommands.add(name);
 for (const name of merchantQueries) consoleQueries.add(name);
 for (const name of phase16Queries) consoleQueries.add(name);

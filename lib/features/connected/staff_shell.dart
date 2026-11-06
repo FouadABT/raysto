@@ -18,13 +18,13 @@ class StaffShell extends StatefulWidget {
 class _StaffShellState extends State<StaffShell> {
   late Json membership = widget.initial ?? widget.memberships.first;
   int index = 0;
+  final _bodyAnchor = GlobalKey(debugLabel: 'staff-workspace');
   LiveContext get live => widget.live.forMembership(membership);
 
   List<(DockDestination, Widget)> branches(BuildContext context) {
     final l = live;
     // A phone dock holds six places at most before labels break: there a
     // manager reaches the kitchen board from More (Today shows its counts).
-    final phone = MediaQuery.sizeOf(context).width < 840;
     return [
       // Owners and managers start on the day: sales, kitchen, team.
       if (l.manager)
@@ -63,7 +63,7 @@ class _StaffShellState extends State<StaffShell> {
           ),
           CounterScreen(live: l),
         ),
-      if (l.manager && !phone)
+      if (l.manager)
         (
           DockDestination(
             context.tr('Kitchen'),
@@ -117,16 +117,18 @@ class _StaffShellState extends State<StaffShell> {
   Widget build(BuildContext context) {
     final items = branches(context);
     final i = index.clamp(0, items.length - 1);
-    final body = RetainedBranches(
-      key: ValueKey(membership['restaurantId']),
-      index: i,
-      children: [for (final b in items) b.$2],
+    final body = KeyedSubtree(
+      key: _bodyAnchor,
+      child: RetainedBranches(
+        key: ValueKey(membership['restaurantId']),
+        index: i,
+        children: [for (final b in items) b.$2],
+      ),
     );
     // Tablets get a side rail, so the counter and the boards keep their height.
     return LayoutBuilder(
-      builder: (context, box) => box.maxWidth >= 840
-          ? wide(items, i, body)
-          : narrow(items, i, body),
+      builder: (context, box) =>
+          box.maxWidth >= 840 ? wide(items, i, body) : narrow(items, i, body),
     );
   }
 
@@ -145,16 +147,24 @@ class _StaffShellState extends State<StaffShell> {
         ),
       );
 
-  Widget narrow(List<(DockDestination, Widget)> items, int i, Widget body) =>
-      Scaffold(
-        body: body,
-        bottomNavigationBar: RaystoAdaptiveDock(
-          index: i,
-          onChanged: (v) => setState(() => index = v),
-          options: [for (final b in items) b.$1],
-          navigateLabel: context.tr('Navigate'),
-        ),
-      );
+  Widget narrow(List<(DockDestination, Widget)> items, int i, Widget body) {
+    // Keep every branch mounted in a stable position. Only navigation changes
+    // at the breakpoint; moving to a rail must not erase a draft or change tabs.
+    final visible = [
+      for (var n = 0; n < items.length; n++)
+        if (!live.manager || items[n].$2 is! KitchenBoard) n,
+    ];
+    final selected = visible.indexOf(i);
+    return Scaffold(
+      body: body,
+      bottomNavigationBar: RaystoAdaptiveDock(
+        index: selected < 0 ? visible.length - 1 : selected,
+        onChanged: (v) => setState(() => index = visible[v]),
+        options: [for (final n in visible) items[n].$1],
+        navigateLabel: context.tr('Navigate'),
+      ),
+    );
+  }
 }
 
 Widget staffMore(
@@ -208,6 +218,16 @@ Widget staffMore(
         subtitle: c.tr('Sales, kitchen load, pickups and PayPal payments.'),
       ),
     ...staffTiles(c, live),
+    if ((live.manager || live.role == 'accountant') &&
+        d['finance017Enabled'] == true)
+      tile(
+        c.tr('Sales and margins'),
+        Icons.analytics_outlined,
+        () => push(c, FinanceWorkspace(live: live)),
+        subtitle: c.tr(
+          'Recipe costs, financial evidence and reviewed price scenarios.',
+        ),
+      ),
     AppButton(
       label: c.tr('Switch to customer mode'),
       icon: Icons.person_outline,
@@ -238,7 +258,8 @@ class StaffRail extends StatelessWidget {
       child: SafeArea(
         right: false,
         child: SizedBox(
-          width: 108,
+          width: (108 * MediaQuery.textScalerOf(context).scale(12.5) / 12.5)
+              .clamp(108.0, 176.0),
           child: Column(
             children: [
               const SizedBox(height: 20),

@@ -75,6 +75,7 @@ typedef AgentTrigger =
 /// propose, never run a command itself.
 class AgentModule {
   static const names = {
+    'pricing',
     'menu',
     'images',
     'orders',
@@ -98,6 +99,7 @@ class AgentModule {
 
   /// Agents register their handlers here as they are built.
   static final Map<String, AgentHandler> handlers = {
+    'pricing': Finance017.analyze,
     PaymentAgent.agent: PaymentAgent.run,
     CloseAgent.agent: CloseAgent.run,
     PayrollAgent.agent: PayrollAgent.run,
@@ -133,6 +135,7 @@ class AgentModule {
   };
 
   static final Map<String, AgentCommand> commands = {
+    'menu.price.apply': Finance017.priceCommand,
     // 0.16 anchor.
     ...AccountantAgent.commands,
     ...DispatchAgent.commands,
@@ -594,7 +597,7 @@ class AgentModule {
         }
         try {
           final prepared = await command.prepare(w, draft.payload);
-          await AgentAction.db.insertRow(
+          final action = await AgentAction.db.insertRow(
             s,
             AgentAction(
               restaurantId: task.restaurantId,
@@ -616,6 +619,14 @@ class AgentModule {
             ),
             transaction: w.tx,
           );
+          if (draft.command == 'menu.price.apply') {
+            await FinanceDecisions.proposed(
+              w,
+              draft.payload,
+              action,
+              actor: task.requestedBy,
+            );
+          }
         } on DomainError catch (e) {
           trace.add({'skipped': draft.command, 'code': e.code});
         }

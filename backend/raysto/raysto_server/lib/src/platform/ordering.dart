@@ -317,6 +317,7 @@ class OrderingModule {
         'lineKey': lineKey,
         'productId': product.id,
         'productVersion': product.version,
+        'basePriceMinor': product.priceMinor,
         'name': product.name,
         'quantity': count,
         'unitPriceMinor': unitPrice,
@@ -669,6 +670,7 @@ class OrderingModule {
         await AssistantProposal.db.updateRow(s, proposal, transaction: w.tx);
       }
       await PriceQuote.db.updateRow(s, q, transaction: w.tx);
+      await Finance017.freezeOrder(w, order, snapshot);
       await w.audit('order.submitted', 'order', order.id);
       if (!counter) {
         await w.notify(w.user, 'order.created', {

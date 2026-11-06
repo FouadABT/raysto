@@ -36,6 +36,7 @@ migrate_working_dir/
 /build/
 /coverage/
 /dist/
+/test-results/
 /.tooling/
 /backend/.env
 /backend/.secrets/

@@ -961,7 +961,8 @@ class DeliveryModule {
 
   /// Deliveries per driver for the payroll agent's `delivery` batch:
   /// `driverPayPerDeliveryMinor` × deliveries handed over in the period.
-  /// Drivers without a PayPal email are held and named, like staff.
+  /// Drivers without a PayPal email are held and named, like staff. A
+  /// delivery a PayPal batch already paid is not paid again.
   static Future<Json> driverPay(
     Session s,
     int restaurantId,
@@ -980,8 +981,16 @@ class DeliveryModule {
           (t.deliveredAt < to),
       limit: 10000,
     );
+    final paid = await PayrollAgent.paidSoFar(
+      s,
+      restaurantId,
+      'delivery',
+      from,
+      to,
+    );
+    final owed = done.where((a) => !paid.whole.contains(a.id)).toList();
     final byDriver = <int, List<int>>{};
-    for (final a in done) {
+    for (final a in owed) {
       (byDriver[a.driverId!] ??= []).add(a.id!);
     }
     final people = <Json>[], held = <Json>[];
@@ -1003,7 +1012,9 @@ class DeliveryModule {
     }
     return {
       'rateMinor': rate,
-      'deliveries': done.length,
+      'deliveries': owed.length,
+      'alreadyPaidDeliveries': done.length - owed.length,
+      'paidBatches': paid.batches,
       'people': people,
       'held': held,
     };
@@ -1052,6 +1063,7 @@ class DeliveryModule {
           summaryJson: jsonEncode({
             'source': 'deliveries',
             'rateMinor': rate,
+            'paidBatches': pay['paidBatches'],
             'deliveries': pay['deliveries'],
             'people': people.length,
             'summary':
@@ -1149,7 +1161,7 @@ class DeliveryModule {
       'position': p == null
           ? null
           : {'latitude': p.lat, 'longitude': p.lng, 'at': p.at.toIso8601String()},
-      'sample': x.name.endsWith(JudgeModule.sample),
+      'sample': JudgeModule.sampleDriver(x),
     };
   }
 

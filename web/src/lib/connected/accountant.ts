@@ -118,6 +118,11 @@ export interface PnlRow {
   amountMinor: number;
 }
 export interface PnlPage {
+  basis?: string;
+  effectiveFrom?: string;
+  partialPeriod?: boolean;
+  complete?: boolean;
+  issues?: string[];
   from: string;
   to: string;
   currency: string;

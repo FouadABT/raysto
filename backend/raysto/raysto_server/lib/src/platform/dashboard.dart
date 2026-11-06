@@ -10,7 +10,6 @@ part of 'platform.dart';
 class DashboardModule {
   static const ranges = {'today', '7d', '30d'};
   static const basis = 'paidOrdersByCreatedAt';
-  static const sampleLabel = 'Sample history · illustrative, not sales';
   static const _kitchen = ['submitted', 'accepted', 'preparing', 'ready'];
   static const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   static const _months = [
@@ -194,10 +193,12 @@ class DashboardModule {
           : open.map((o) => now.difference(o.createdAt).inMinutes).reduce(max),
     };
 
+    // Newest by when they were placed: an order stored later (a judges'
+    // café's history is topped up each morning) is not newer for that.
     final newest = await PurchaseOrder.db.find(
       s,
       where: (t) => t.restaurantId.equals(w.tenant),
-      orderBy: (t) => t.id.desc(),
+      orderByList: (t) => [t.createdAt.desc(), t.id.desc()],
       limit: 8,
       transaction: tx,
     );
@@ -273,13 +274,10 @@ class DashboardModule {
         'dailyTargetMinor': (w.settings['dailyTargetMinor'] as int?) ?? 0,
         'todayMinor': todaySales,
       },
-      'sample': range != 'today' && JudgeModule.sampleHistory(w.tenant)
-          ? sample(
-              starts,
-              label,
-              (w.settings['dailyTargetMinor'] as int?) ?? 0,
-            )
-          : null,
+      // Retired in 0.16.2: the judges' cafés now store their sample history
+      // as real rows (JudgeHistory), so every figure above already reads it
+      // and every page agrees. Kept, always null, for the contract's shape.
+      'sample': null,
     };
   }
 
@@ -374,42 +372,5 @@ class DashboardModule {
                 : (b['hours'] as double).compareTo(a['hours'] as double);
           });
     return people.take(5).toList();
-  }
-
-  /// A fixed weekly pattern, labelled and never stored. Each weekday sits
-  /// between 40% and 90% of the daily target (or $120–$270 without one),
-  /// nudged per week so a month does not repeat exactly, with orders at
-  /// about $15 each. It exists only so the judges' café charts have a
-  /// café-sized shape; no figure comes from it.
-  static Json sample(
-    List<tz.TZDateTime> starts,
-    String Function(tz.TZDateTime) label,
-    int dailyTargetMinor,
-  ) {
-    // Where each weekday falls between the low and high ends, Mon..Sun.
-    const shape = [0.10, 0.20, 0.40, 0.55, 0.80, 1.00, 0.60];
-    const nudge = [0.0, -0.05, 0.05, -0.02, 0.03];
-    final low = dailyTargetMinor > 0 ? dailyTargetMinor * 0.40 : 12000;
-    final high = dailyTargetMinor > 0 ? dailyTargetMinor * 0.90 : 27000;
-    return {
-      'label': sampleLabel,
-      'points': [
-        for (var i = 0; i < starts.length; i++)
-          () {
-            final week = (starts.length - 1 - i) ~/ 7 % nudge.length;
-            final at = (shape[starts[i].weekday - 1] + nudge[week]).clamp(
-              0.0,
-              1.0,
-            );
-            final sales = (low + (high - low) * at).round();
-            return {
-              'start': starts[i].toUtc().toIso8601String(),
-              'label': label(starts[i]),
-              'salesMinor': sales,
-              'orders': max(1, (sales / 1500).round()),
-            };
-          }(),
-      ],
-    };
   }
 }

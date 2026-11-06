@@ -21,6 +21,7 @@ abstract class StockMovement
     required this.kind,
     required this.quantity,
     this.unitCostMinor,
+    this.purchaseUnit,
     required this.refType,
     required this.refId,
     required this.at,
@@ -34,6 +35,7 @@ abstract class StockMovement
     required String kind,
     required double quantity,
     int? unitCostMinor,
+    String? purchaseUnit,
     required String refType,
     required String refId,
     required DateTime at,
@@ -48,6 +50,7 @@ abstract class StockMovement
       kind: jsonSerialization['kind'] as String,
       quantity: (jsonSerialization['quantity'] as num).toDouble(),
       unitCostMinor: jsonSerialization['unitCostMinor'] as int?,
+      purchaseUnit: jsonSerialization['purchaseUnit'] as String?,
       refType: jsonSerialization['refType'] as String,
       refId: jsonSerialization['refId'] as String,
       at: _is.DateTimeJsonExtension.fromJson(jsonSerialization['at']),
@@ -72,6 +75,8 @@ abstract class StockMovement
 
   int? unitCostMinor;
 
+  String? purchaseUnit;
+
   String refType;
 
   String refId;
@@ -93,6 +98,7 @@ abstract class StockMovement
     String? kind,
     double? quantity,
     int? unitCostMinor,
+    String? purchaseUnit,
     String? refType,
     String? refId,
     DateTime? at,
@@ -108,6 +114,7 @@ abstract class StockMovement
       'kind': kind,
       'quantity': quantity,
       if (unitCostMinor != null) 'unitCostMinor': unitCostMinor,
+      if (purchaseUnit != null) 'purchaseUnit': purchaseUnit,
       'refType': refType,
       'refId': refId,
       'at': at.toJson(),
@@ -158,6 +165,7 @@ class _StockMovementImpl extends StockMovement {
     required String kind,
     required double quantity,
     int? unitCostMinor,
+    String? purchaseUnit,
     required String refType,
     required String refId,
     required DateTime at,
@@ -169,6 +177,7 @@ class _StockMovementImpl extends StockMovement {
          kind: kind,
          quantity: quantity,
          unitCostMinor: unitCostMinor,
+         purchaseUnit: purchaseUnit,
          refType: refType,
          refId: refId,
          at: at,
@@ -186,6 +195,7 @@ class _StockMovementImpl extends StockMovement {
     String? kind,
     double? quantity,
     Object? unitCostMinor = _Undefined,
+    Object? purchaseUnit = _Undefined,
     String? refType,
     String? refId,
     DateTime? at,
@@ -198,6 +208,7 @@ class _StockMovementImpl extends StockMovement {
       kind: kind ?? this.kind,
       quantity: quantity ?? this.quantity,
       unitCostMinor: unitCostMinor is int? ? unitCostMinor : this.unitCostMinor,
+      purchaseUnit: purchaseUnit is String? ? purchaseUnit : this.purchaseUnit,
       refType: refType ?? this.refType,
       refId: refId ?? this.refId,
       at: at ?? this.at,
@@ -233,6 +244,12 @@ class StockMovementUpdateTable extends _is.UpdateTable<StockMovementTable> {
     table.unitCostMinor,
     value,
   );
+
+  _is.ColumnValue<String, String> purchaseUnit(String? value) =>
+      _is.ColumnValue(
+        table.purchaseUnit,
+        value,
+      );
 
   _is.ColumnValue<String, String> refType(String value) => _is.ColumnValue(
     table.refType,
@@ -279,6 +296,10 @@ class StockMovementTable extends _is.Table<int?> {
       'unitCostMinor',
       this,
     );
+    purchaseUnit = _is.ColumnString(
+      'purchaseUnit',
+      this,
+    );
     refType = _is.ColumnString(
       'refType',
       this,
@@ -309,6 +330,8 @@ class StockMovementTable extends _is.Table<int?> {
 
   late final _is.ColumnInt unitCostMinor;
 
+  late final _is.ColumnString purchaseUnit;
+
   late final _is.ColumnString refType;
 
   late final _is.ColumnString refId;
@@ -325,6 +348,7 @@ class StockMovementTable extends _is.Table<int?> {
     kind,
     quantity,
     unitCostMinor,
+    purchaseUnit,
     refType,
     refId,
     at,

@@ -41,6 +41,8 @@ const known = (name: string, backend: Set<string>, promisedSet: Set<string>, lis
 test("every allowlisted command exists in the backend or is promised by the design", () => {
   const commands = new Set([
     ...names(read("platform/platform.dart"), /^\s+'([A-Za-z.]+)': [A-Z]\w+\.\w+,/gm),
+    ...names(read("platform/finance_decisions.dart"), /^\s+'([a-z]+(?:\.[a-zA-Z]+)+)':/gm),
+    ...["finance_017", "judge_story_017"].flatMap(m => [...names(read(`platform/${m}.dart`).match(/commands\s*=\s*\{([\s\S]*?)\n  \};/)?.[1] ?? '', /'([A-Za-z.]+)':/g)]),
     ...names(read("web/platform_routes.dart"), /^\s+case '([A-Za-z.]+)':/gm),
   ]);
   const promisedCommands = promised("Commands");
@@ -56,6 +58,8 @@ test("every allowlisted query exists in the backend or is promised by the design
   const queries = new Set([
     ...names(source, /^\s+case '([A-Za-z.]+)':/gm),
     ...names(source, /name == '([A-Za-z.]+)'/g),
+    ...names(read("platform/finance_017.dart").match(/queryNames = \{([\s\S]*?)\};/)?.[1] ?? '', /'([A-Za-z.]+)'/g),
+    ...names(read("platform/finance_decisions.dart").match(/queries = \{([\s\S]*?)\};/)?.[1] ?? '', /'([A-Za-z.]+)'/g),
     // Back-office queries (and the dashboard) are answered by BackOfficeModule.query.
     ...names(read("platform/backoffice.dart"), /^\s+case '([A-Za-z.]+)':/gm),
     // 0.16 queries are answered by their modules through the chained fallback.

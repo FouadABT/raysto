@@ -86,29 +86,32 @@ class Runtime implements LiveRuntime {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
-Widget host(Widget child, {double scale = 1, String locale = 'en'}) =>
-    MotionScope(
-      reducedMotion: true,
-      child: MaterialApp(
-        theme: AppTheme.light,
-        locale: Locale(locale),
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(scale),
-            disableAnimations: true,
-          ),
-          child: child!,
-        ),
-        home: child,
-      ),
-    );
+Widget host(
+  Widget child, {
+  double scale = 1,
+  String locale = 'en',
+  ThemeData? theme,
+}) => MotionScope(
+  reducedMotion: true,
+  child: MaterialApp(
+    theme: theme ?? AppTheme.light,
+    locale: Locale(locale),
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(scale), disableAnimations: true),
+      child: child!,
+    ),
+    home: child,
+  ),
+);
 
 Widget today(TodayApi api) => TodayBoard(
   live: LiveContext(Runtime(api), restaurantId: 5, role: 'owner'),
@@ -123,6 +126,63 @@ Future<void> size(WidgetTester tester, Size s) async {
 }
 
 void main() {
+  testWidgets(
+    'dark Today headings and empty kitchen chips retain readable contrast',
+    (tester) async {
+      await size(tester, const Size(320, 800));
+      await tester.pumpWidget(
+        host(today(TodayApi(empty: true)), theme: AppTheme.dark, scale: 2),
+      );
+      await tester.pumpAndSettle();
+      double contrast(Color foreground, Color background) {
+        final a = foreground.computeLuminance(),
+            b = background.computeLuminance();
+        return a > b ? (a + .05) / (b + .05) : (b + .05) / (a + .05);
+      }
+
+      final title = tester.widget<Text>(
+        find.descendant(of: find.byType(AppBar), matching: find.text('Today')),
+      );
+      expect(
+        contrast(title.style!.color!, AppTheme.dark.colorScheme.surface),
+        greaterThanOrEqualTo(4.5),
+      );
+      final greeting = tester.widget<RichText>(
+        find
+            .descendant(
+              of: find.byType(Greeting),
+              matching: find.byType(RichText),
+            )
+            .first,
+      );
+      final span = greeting.text as TextSpan;
+      expect(
+        contrast(span.style!.color!, AppTheme.dark.colorScheme.surface),
+        greaterThanOrEqualTo(4.5),
+      );
+      await tester.ensureVisible(find.text('Kitchen live'));
+      await tester.pumpAndSettle();
+      for (final pill in find.byType(AppPill).evaluate()) {
+        final parent = find.byWidget(pill.widget);
+        final background = tester.widget<DecoratedBox>(
+          find
+              .descendant(of: parent, matching: find.byType(DecoratedBox))
+              .first,
+        );
+        final text = tester.widget<RichText>(
+          find.descendant(of: parent, matching: find.byType(RichText)).first,
+        );
+        expect(
+          contrast(
+            text.text.style!.color!,
+            (background.decoration as BoxDecoration).color!,
+          ),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
+      expect(tester.takeException(), isNull);
+    },
+  );
   group('dashboard words', () {
     test('greetings follow the hour', () {
       expect(greetingFor(8), 'Good morning');
@@ -152,7 +212,10 @@ void main() {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(host(today(TodayApi()), scale: 2));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Good evening', findRichText: true), findsWidgets);
+    expect(
+      find.textContaining('Good evening', findRichText: true),
+      findsWidgets,
+    );
     expect(find.textContaining('Fouad', findRichText: true), findsWidgets);
     expect(find.text('21.50 USD'), findsWidgets);
     // The hero reads as one value to assistive technology.
@@ -167,28 +230,29 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('a tablet shows the trend with the labelled sample beside the kitchen', (
-    tester,
-  ) async {
-    await size(tester, const Size(1280, 800));
-    final api = TodayApi();
-    await tester.pumpWidget(host(today(api)));
-    await tester.pumpAndSettle();
-    expect(find.text('KITCHEN LIVE'), findsOneWidget);
-    expect(find.byType(RaystoDonut), findsOneWidget);
-    await tester.tap(find.text('7 days'));
-    await tester.pumpAndSettle();
-    expect(api.ranges.last, '7d');
-    expect(find.byType(RaystoAreaChart), findsOneWidget);
-    // The sample is always named as such, never shown as sales.
-    expect(find.text('Sample · not real sales'), findsOneWidget);
-    expect(find.text('195.30 USD'), findsWidgets);
-    final kitchen = tester.getTopLeft(find.text('KITCHEN LIVE'));
-    final hero = tester.getTopLeft(find.textContaining('Paid sales ·'));
-    expect(kitchen.dx, greaterThan(hero.dx));
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox());
-  });
+  testWidgets(
+    'a tablet shows the trend with the labelled sample beside the kitchen',
+    (tester) async {
+      await size(tester, const Size(1280, 800));
+      final api = TodayApi();
+      await tester.pumpWidget(host(today(api)));
+      await tester.pumpAndSettle();
+      expect(find.text('KITCHEN LIVE'), findsOneWidget);
+      expect(find.byType(RaystoDonut), findsOneWidget);
+      await tester.tap(find.text('7 days'));
+      await tester.pumpAndSettle();
+      expect(api.ranges.last, '7d');
+      expect(find.byType(RaystoAreaChart), findsOneWidget);
+      // The sample is always named as such, never shown as sales.
+      expect(find.text('Sample · not real sales'), findsOneWidget);
+      expect(find.text('195.30 USD'), findsWidgets);
+      final kitchen = tester.getTopLeft(find.text('KITCHEN LIVE'));
+      final hero = tester.getTopLeft(find.textContaining('Paid sales ·'));
+      expect(kitchen.dx, greaterThan(hero.dx));
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets('with no paid order yet it says so and draws no chart', (
     tester,
@@ -197,7 +261,10 @@ void main() {
     await tester.pumpWidget(host(today(TodayApi(empty: true))));
     await tester.pumpAndSettle();
     expect(find.text('No paid orders in this period yet.'), findsOneWidget);
-    expect(find.text('When a paid order comes in, it shows here.'), findsOneWidget);
+    expect(
+      find.text('When a paid order comes in, it shows here.'),
+      findsOneWidget,
+    );
     expect(find.byType(RaystoAreaChart), findsNothing);
     expect(find.byType(RaystoSparkline), findsNothing);
     expect(find.byType(RaystoDonut), findsNothing);

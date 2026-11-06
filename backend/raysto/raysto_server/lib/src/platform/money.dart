@@ -748,8 +748,9 @@ class MoneyModule {
   static Future<void> _settle(
     Work w,
     CheckoutIntent i,
-    String providerCapture,
-  ) async {
+    String providerCapture, {
+    Json? providerEvidence,
+  }) async {
     if (i.state == 'completed') return;
     if ({'cancelled', 'failed'}.contains(i.state)) {
       _fail(
@@ -779,6 +780,21 @@ class MoneyModule {
       ),
       transaction: w.tx,
     );
+    if (Finance017.active && providerEvidence != null) {
+      final fee = PayPalGateway.reportedCaptureFee(
+        providerEvidence,
+        i.currency,
+        i.amountMinor,
+      );
+      if (fee != null) {
+        await Finance017.put(w, 'captureFeeEvidence', '${capture.id}', {
+          'providerCaptureId': providerCapture,
+          'currency': i.currency,
+          'amountMinor': fee,
+          'source': 'paypal-capture-response',
+        }, immutable: true);
+      }
+    }
     final orders = <int>{};
     for (final a in allocations) {
       final b = (await BillCharge.db.findById(
@@ -1022,7 +1038,12 @@ class MoneyModule {
             );
           }
           if (p['status'] == 'COMPLETED') {
-            await _settle(w, current, _str(p, 'id', max: 50));
+            await _settle(
+              w,
+              current,
+              _str(p, 'id', max: 50),
+              providerEvidence: p,
+            );
           } else if ({'DECLINED', 'FAILED'}.contains(p['status'])) {
             await _release(w, current, 'failed');
           } else {

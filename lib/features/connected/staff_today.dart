@@ -69,37 +69,37 @@ class _TodayBoardState extends State<TodayBoard> {
   );
 
   Widget _tablet(Dashboard dash, Widget greeting, Widget picker) => _stack([
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 16,
-            runSpacing: 12,
-            children: [greeting, picker],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: _stack([
-                  HeroSales(dashboard: dash),
-                  if (dash.hasSales) SalesTrend(dashboard: dash),
-                  if (dash.hasSales) Trends(dashboard: dash, wide: true),
-                  LatestOrders(live: widget.live, dashboard: dash),
-                ]),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                flex: 2,
-                child: _stack([
-                  KitchenLive(dashboard: dash),
-                  if (dash.channels.isNotEmpty) ChannelMix(dashboard: dash),
-                  if (dash.staff.isNotEmpty) TeamBoard(dashboard: dash),
-                ]),
-              ),
-            ],
-          ),
-        ]);
+    Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 16,
+      runSpacing: 12,
+      children: [greeting, picker],
+    ),
+    Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 3,
+          child: _stack([
+            HeroSales(dashboard: dash),
+            if (dash.hasSales) SalesTrend(dashboard: dash),
+            if (dash.hasSales) Trends(dashboard: dash, wide: true),
+            LatestOrders(live: widget.live, dashboard: dash),
+          ]),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          flex: 2,
+          child: _stack([
+            KitchenLive(dashboard: dash),
+            if (dash.channels.isNotEmpty) ChannelMix(dashboard: dash),
+            if (dash.staff.isNotEmpty) TeamBoard(dashboard: dash),
+          ]),
+        ),
+      ],
+    ),
+  ]);
 
   /// A phone: one figure, the kitchen, then the details below the fold.
   Widget _phone(Dashboard dash, Widget greeting, Widget picker) => _stack([
@@ -146,7 +146,8 @@ class Dashboard {
   ].fold(0, (n, s) => n + kitchenCount(s));
   List<Json> get latest => records(raw['latest']);
   List<Json> get staff => records(raw['staff']);
-  int get target => (obj(raw['target'])['dailyTargetMinor'] as num? ?? 0).toInt();
+  int get target =>
+      (obj(raw['target'])['dailyTargetMinor'] as num? ?? 0).toInt();
   int get todaySales => (obj(raw['target'])['todayMinor'] as num? ?? 0).toInt();
   Json? get sample => raw['sample'] is Map ? obj(raw['sample']) : null;
 
@@ -204,7 +205,13 @@ class Greeting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = AppType.style(26, weight: FontWeight.w700, height: 1.2);
+    final foreground = Theme.of(context).colorScheme.onSurface;
+    final base = AppType.style(
+      26,
+      weight: FontWeight.w700,
+      height: 1.2,
+      color: foreground,
+    );
     final hello = context.tr(greetingFor(hour));
     return Semantics(
       header: true,
@@ -216,7 +223,10 @@ class Greeting extends StatelessWidget {
             children: [
               TextSpan(text: name == null ? hello : '$hello, '),
               if (name != null)
-                TextSpan(text: name, style: AppType.emphasis(28)),
+                TextSpan(
+                  text: name,
+                  style: AppType.emphasis(28, color: foreground),
+                ),
             ],
           ),
         ),
@@ -346,11 +356,13 @@ class KitchenChips extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final s in const ['submitted', 'accepted', 'preparing', 'ready'])
-              AppPill(
-                label: '${statusLabel(context, s)} ${d.kitchenCount(s)}',
-                color: d.kitchenCount(s) > 0 ? null : AppColors.mint,
-              ),
+            for (final s in const [
+              'submitted',
+              'accepted',
+              'preparing',
+              'ready',
+            ])
+              AppPill(label: '${statusLabel(context, s)} ${d.kitchenCount(s)}'),
             if (d.inKitchen > 0)
               AppPill(
                 icon: Icons.schedule,
@@ -445,11 +457,10 @@ class KitchenLive extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     '${d.kitchenCount(s)}',
-                    style: AppType.style(
-                      15,
-                      weight: FontWeight.w700,
-                      color: on,
-                    ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                    style: AppType.style(15, weight: FontWeight.w700, color: on)
+                        .copyWith(
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                   ),
                 ],
               ),
@@ -518,7 +529,11 @@ class Trends extends StatelessWidget {
     final theme = Theme.of(context);
     final items = [
       ('Orders', 'orders', (num v) => '${v.round()}'),
-      ('Average ticket', 'averageTicket', (num v) => money(v.round(), d.currency)),
+      (
+        'Average ticket',
+        'averageTicket',
+        (num v) => money(v.round(), d.currency),
+      ),
       ('Tips', 'tips', (num v) => money(v.round(), d.currency)),
     ];
     Widget item((String, String, String Function(num)) t) {
@@ -533,7 +548,11 @@ class Trends extends StatelessWidget {
               value: d.value(key),
               format: format,
               semanticsLabel: context.tr(label),
-              style: AppType.style(24, weight: FontWeight.w700),
+              style: AppType.style(
+                24,
+                weight: FontWeight.w700,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
             Text(
               '${deltaWords(context, d.value(key), d.previous(key))} · '
@@ -545,7 +564,8 @@ class Trends extends StatelessWidget {
             const SizedBox(height: 10),
             RaystoSparkline(
               values: d.series(key),
-              semanticLabel: '${context.tr(label)} · ${rangeName(context, d.range)}',
+              semanticLabel:
+                  '${context.tr(label)} · ${rangeName(context, d.range)}',
             ),
           ],
         ),
@@ -638,7 +658,10 @@ class TeamBoard extends StatelessWidget {
                         alignment: WrapAlignment.spaceBetween,
                         spacing: 8,
                         children: [
-                          Text('${p['name']}', style: theme.textTheme.titleSmall),
+                          Text(
+                            '${p['name']}',
+                            style: theme.textTheme.titleSmall,
+                          ),
                           Text(
                             '${p['ordersMoved']} ${context.tr('orders')} · '
                             '${p['hours']} ${context.tr('h')}',

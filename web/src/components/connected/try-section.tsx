@@ -21,6 +21,7 @@ import { AgentPanel } from "./business-sections";
 import { Icon, type IconName } from "./icons";
 import { CountUp, Stamp } from "./m3";
 import { TryCardsNew } from "./try-section-new";
+import { JudgeStory017 } from './judge-story-017';
 
 /** The café's clock: pickup times read as the café sees them. */
 export const cafeZone = "America/New_York";
@@ -1462,6 +1463,7 @@ function PhotoCard({ api, tenant }: { api: ConnectedApi; tenant: number }) {
 export function TrySection({ api, tenant }: { api: ConnectedApi; tenant: number }) {
   const [resetting, setResetting] = useState(false);
   const [note, setNote] = useState("");
+  if (process.env.NEXT_PUBLIC_RAYSTO_FINANCE_017 === 'on') return <JudgeStory017 api={api} tenant={tenant} />;
   async function reset() {
     setResetting(true);
     setNote("");
@@ -1480,10 +1482,10 @@ export function TrySection({ api, tenant }: { api: ConnectedApi; tenant: number 
         <section className="ops-try-intro">
           <div>
             <span className="ops-eyebrow">TRY RAYSTO · NINE LIVE DEMOS, MONEY FIRST</span>
-            <h2>AI coworkers run the café&rsquo;s money. You approve. PayPal moves it.</h2>
+            <h2>Investigate the café&rsquo;s records. Review decisions and payment outcomes.</h2>
             <p>
-              Each card runs the real product on this demo café: Gemini models, the PayPal MCP server, PayPal Payouts,
-              Invoicing, Refunds and Sandbox checkout. No real money moves, and nothing changes until you approve it.
+              Explore the workflows available on this demo café. Supported payment actions use PayPal Sandbox.
+              Each outcome must be checked against its recorded provider state. Invoicing and Transaction Search are not part of the required journey.
             </p>
           </div>
           <div className="ops-try-intro-side">

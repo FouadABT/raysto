@@ -12,6 +12,8 @@ export class ApiFailure extends Error {
 
 /** Backend credentials live in this instance only, never local/session storage. */
 export class ConnectedApi {
+  /** Opaque instance scope lets private workspaces discard cached UI on identity change. */
+  readonly scopeKey = crypto.randomUUID();
   private token?: string;
   private exchange?: Promise<void>;
   private ended = false;

@@ -19,6 +19,7 @@ import { paypalAccountPreview } from "@/lib/connected/paypal-account";
 // The Overview's AI Action Inbox: `?state=inbox` and `?state=caught-up` (append-only).
 import { inboxPreview } from "@/lib/connected/inbox-preview";
 import { judge } from "@/lib/connected/judge";
+import { financePreview } from '@/lib/connected/finance-preview';
 
 /**
  * Development only: the real console shell and workspace on a fixture API,
@@ -197,6 +198,7 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
     // ---- end S6 ----
     // ---- AI Action Inbox fixtures, `?state=inbox` / `?state=caught-up` (append-only block) ----
     ...inbox.queries,
+    ...financePreview(asOf),
     // ---- end inbox ----
   };
   const api = {

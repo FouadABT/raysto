@@ -148,5 +148,114 @@ void main() {
       expect(read['paypalCapturedMinor'], 990);
       expect(jsonEncode(read), isNot(contains('"error"')));
     });
+
+    test('a cash refund leaves the till, and a judges\' café\'s sample rows say so', () async {
+      final s = builder.build();
+      final rid = world.restaurant.id!;
+      final now = DateTime.now().toUtc();
+      // Cash at the till, one item handed back in cash; the requestKey of a
+      // judges' café's stored history marks it as a sample.
+      Future<void> cash(String key, int amount, {int refund = 0, DateTime? spent}) async {
+        final i = await CheckoutIntent.db.insertRow(
+          s,
+          CheckoutIntent(
+            restaurantId: rid,
+            userId: world.ownerId,
+            requestKey: key,
+            requestHash: 'h',
+            providerRequestId: key,
+            merchantId: 'cash',
+            state: 'completed',
+            method: 'cash',
+            currency: 'USD',
+            amountMinor: amount,
+            commissionMinor: 0,
+            commissionBps: 0,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        final c = await PaymentCapture.db.insertRow(
+          s,
+          PaymentCapture(
+            restaurantId: rid,
+            checkoutId: i.id!,
+            providerCaptureId: 'cash:$key',
+            amountMinor: amount,
+            refundedMinor: refund,
+            currency: 'USD',
+            state: 'completed',
+            createdAt: now,
+          ),
+        );
+        if (refund > 0) {
+          await PaymentRefund.db.insertRow(
+            s,
+            PaymentRefund(
+              restaurantId: rid,
+              captureId: c.id!,
+              requestKey: '$key:refund',
+              providerRefundId: 'cash-refund:$key',
+              allocationJson: '{"allocations":[]}',
+              amountMinor: refund,
+              commissionMinor: 0,
+              reason: 'Handed back at the counter',
+              state: 'completed',
+              createdBy: world.ownerId,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+        }
+      }
+
+      await cash('till-1', 1500, refund: 400);
+      await cash('sample:$rid:2026-10-14:001', 2000, refund: 300);
+      final j = await world.read('ledger.journal');
+      expect(j['balanced'], isTrue);
+      final totals = {for (final t in (j['totals'] as List).cast<Map>()) t['account']: t};
+      expect(totals['1010']!['debitMinor'], 3500);
+      expect(totals['1010']!['creditMinor'], 700, reason: 'cash refunds leave the till');
+      expect(totals['4090']!['debitMinor'], 700);
+      expect(totals.containsKey('1000'), isFalse, reason: 'no PayPal money moved');
+      expect(totals.containsKey('6000'), isFalse, reason: 'no PayPal fee on cash');
+      final rows = (j['rows'] as List).cast<Map>();
+      Map source(String type, String provider) => rows
+          .firstWhere(
+            (l) =>
+                (l['source'] as Map)['type'] == type &&
+                (l['source'] as Map)['providerId'] == provider,
+          )['source'] as Map;
+      expect(source('capture', 'cash:till-1').containsKey('sample'), isFalse);
+      expect(source('refund', 'cash-refund:till-1').containsKey('sample'), isFalse);
+      expect(source('capture', 'cash:sample:$rid:2026-10-14:001')['sample'], isTrue);
+      expect(source('refund', 'cash-refund:sample:$rid:2026-10-14:001')['sample'], isTrue);
+
+      // A seeded cost on a judges' café carries the flag too; a person's
+      // expense of the same kind does not.
+      world.env['RAYSTO_JUDGE_RESTAURANT_ID'] = '$rid';
+      final spent = now.subtract(const Duration(hours: 3));
+      for (final created in [spent, now]) {
+        await Expense.db.insertRow(
+          s,
+          Expense(
+            restaurantId: rid,
+            category: 'staff',
+            amountMinor: 44800,
+            currency: 'USD',
+            vatMinor: 0,
+            spentAt: spent,
+            merchant: JudgeHistory.payroll,
+            createdAt: created,
+          ),
+        );
+      }
+      final expenses = [
+        for (final l in ((await world.read('ledger.journal'))['rows'] as List).cast<Map>())
+          if ((l['source'] as Map)['type'] == 'expense' && l['account'] == '6020') l['source'] as Map,
+      ];
+      expect(expenses, hasLength(2));
+      expect(expenses.where((x) => x['sample'] == true), hasLength(1));
+    });
   });
 }

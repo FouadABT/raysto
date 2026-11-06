@@ -5,8 +5,9 @@ part of 'platform.dart';
 /// refund, a payout, an expense, a bill, a payment request, a commission, a
 /// stock movement) into balanced lines; [LedgerModule.journal] gathers the
 /// facts of a window and maps them. Nothing is posted twice and nothing is
-/// stored except the manual facts a person enters (LedgerAdjustment), so the
-/// close, the P&L and the group views read the same truth.
+/// The prospective management policy also freezes business-event inputs in
+/// FinanceRecord. Both policies use this journal, so the close and reports
+/// share one calculation without rewriting provider history.
 class LedgerModule {
   /// Commands registered in PlatformApi.commands (platform.dart, 0.16 anchor).
   static final Map<String, Future<Json> Function(Session, PlatformCommand)>
@@ -24,9 +25,12 @@ class LedgerModule {
     '1100': 'Receivables',
     '1200': 'Inventory',
     '2000': 'Payables',
+    '2050': 'Goods received, not invoiced',
     '2100': 'VAT collected',
     '2110': 'VAT paid',
     '2200': 'Tips owed to staff',
+    '2250': 'Wages payable',
+    '2300': 'Customer deposits',
     '3000': 'Owner equity',
     '4000': 'Sales',
     '4010': 'Delivery fees',
@@ -116,12 +120,22 @@ class LedgerModule {
       'id': fact['id'],
       if (fact['providerId'] != null) 'providerId': fact['providerId'],
       if (fact['estimated'] == true) 'estimated': true,
+      // A judges' café's stored sample history (JudgeHistory).
+      if (fact['sample'] == true) 'sample': true,
+      if (fact['evidence'] is Map) 'evidence': fact['evidence'],
+      if (fact['issues'] is List) 'issues': fact['issues'],
     },
   };
 
   /// The journal lines of one money fact. Pure: the same fact always gives
   /// the same lines, and their debits always equal their credits.
   static List<Json> ledgerFor(Json fact) {
+    if (fact['type'] == 'management') {
+      final entries = (fact['entries'] as List).cast<Json>();
+      if (!FinanceAccounting.validEntries(entries)) _fail('unbalanced', 'Stored financial evidence does not balance.');
+      return [for (final e in entries) _line(fact, e['account'] as String,
+        debit: e['debitMinor'] as int, credit: e['creditMinor'] as int)];
+    }
     int n(String k) => (fact[k] as int?) ?? 0;
     final amount = n('amountMinor');
     if (amount == 0) return const [];
@@ -145,6 +159,8 @@ class LedgerModule {
           if (tip != 0) _line(fact, '2200', credit: tip),
         ];
       case 'refund':
+        // A cash sale is refunded from the till, not from PayPal.
+        return pair('4090', fact['method'] == 'cash' ? '1010' : '1000');
       case 'reversal':
         return pair('4090', '1000');
       case 'fee':
@@ -201,7 +217,32 @@ class LedgerModule {
       (amountMinor * 349 / 10000).round() + 49;
 
   /// Every money fact between [from] and [to], ready for [ledgerFor].
-  static Future<List<Json>> facts(Work w, DateTime from, DateTime to) async {
+  static Future<List<Json>> facts(Work w, DateTime from, DateTime to, {String? basis}) async {
+    if (basis != null && !{'legacy-recorded-transactions', FinanceAccounting.basis}.contains(basis)) {
+      _fail('invalid_input', 'Choose a supported accounting basis.');
+    }
+    final meta = await basisMetadata(w, from, to, basis: basis);
+    if (meta['basis'] == FinanceAccounting.basis) {
+      return FinanceAccounting.facts(w, DateTime.parse(meta['effectiveFrom'] as String), to);
+    }
+    return legacyFacts(w, from, to);
+  }
+
+  static Future<Json> basisMetadata(Work w, DateTime from, DateTime to, {String? basis}) async {
+    final p = Finance017.active ? await FinanceAccounting.policy(w) : null;
+    final cutover = p == null ? null : DateTime.parse(_json(p.payloadJson)['cutoverAt'] as String);
+    if (basis == FinanceAccounting.basis && cutover == null) _fail('policy_required', 'Review the accounting cutover first.');
+    if (basis == FinanceAccounting.basis && cutover != null && (from.isBefore(cutover) || !to.isAfter(cutover))) {
+      _fail('unsupported_period', 'Select a period entirely after the cutover, or use the legacy basis.');
+    }
+    final management = basis != 'legacy-recorded-transactions' && cutover != null && to.isAfter(cutover);
+    return {'basis': management ? FinanceAccounting.basis : 'legacy-recorded-transactions',
+      'cutoverAt': cutover?.toIso8601String(),
+      'effectiveFrom': management && from.isBefore(cutover) ? cutover.toIso8601String() : from.toIso8601String(),
+      'partialPeriod': management && from.isBefore(cutover)};
+  }
+
+  static Future<List<Json>> legacyFacts(Work w, DateTime from, DateTime to) async {
     final s = w.s;
     final tx = w.tx;
     final rid = w.tenant;
@@ -295,6 +336,7 @@ class LedgerModule {
         'deliveryMinor': delivery,
         'vatMinor': request == null ? max(0, kinds['_vat'] ?? 0) : 0,
         if (request != null) 'requestId': request.id,
+        if (JudgeHistory.capture(c)) 'sample': true,
       });
       if (c.state == 'reversed' && c.amountMinor > c.refundedMinor) {
         out.add({
@@ -323,11 +365,35 @@ class LedgerModule {
       orderBy: (t) => t.id,
       transaction: tx,
     );
+    // How each refunded capture was paid: a cash refund leaves the till.
+    final refunded = refunds.isEmpty
+        ? const <int, PaymentCapture>{}
+        : {
+            for (final c in await PaymentCapture.db.find(
+              s,
+              where: (t) => t.id.inSet(<int>{for (final r in refunds) r.captureId}),
+              transaction: tx,
+            ))
+              c.id!: c,
+          };
+    final refundMethods = refunded.isEmpty
+        ? const <int, String>{}
+        : {
+            for (final i in await CheckoutIntent.db.find(
+              s,
+              where: (t) =>
+                  t.id.inSet(<int>{for (final c in refunded.values) c.checkoutId}),
+              transaction: tx,
+            ))
+              i.id!: i.method,
+          };
     for (final r in refunds) {
       out.add({
         ...base('refund', r.id, r.updatedAt, memo: r.reason),
         'providerId': r.providerRefundId,
         'amountMinor': r.amountMinor,
+        'method': refundMethods[refunded[r.captureId]?.checkoutId] ?? 'paypal',
+        if (JudgeHistory.refund(r)) 'sample': true,
       });
     }
 
@@ -388,6 +454,7 @@ class LedgerModule {
         'amountMinor': e.amountMinor,
         'vatMinor': e.vatMinor,
         'paypal': e.paypalTransactionId != null,
+        if (JudgeHistory.expense(e)) 'sample': true,
       });
     }
 
@@ -513,8 +580,8 @@ class LedgerModule {
   }
 
   /// The journal of a window: every line, and whether it balances.
-  static Future<List<Json>> journal(Work w, DateTime from, DateTime to) async => [
-    for (final f in await facts(w, from, to)) ...ledgerFor(f),
+  static Future<List<Json>> journal(Work w, DateTime from, DateTime to, {String? basis}) async => [
+    for (final f in await facts(w, from, to, basis: basis)) ...ledgerFor(f),
   ];
 
   /// Totals by account: debit, credit and the balance the account's side
@@ -569,10 +636,19 @@ class LedgerModule {
     };
   }
 
+  static Json quality(List<Json> lines) {
+    final issues = lines.expand((l) => ((l['source'] as Json)['issues'] as List?) ?? const []).toSet().toList();
+    return {'complete': issues.isEmpty, 'issues': issues};
+  }
+
   /// One local calendar day's books for the daily close.
   static Future<Json> dayBooks(Work w, DateTime from, DateTime to) async {
     final f = await facts(w, from, to);
     final lines = [for (final x in f) ...ledgerFor(x)];
+    final metadata = await basisMetadata(w, from, to);
+    if (metadata['basis'] == FinanceAccounting.basis) {
+      return {...metadata, ...managementClose(f)};
+    }
     int sum(bool Function(Json) test) =>
         f.where(test).fold<int>(0, (n, x) => n + ((x['amountMinor'] as int?) ?? 0));
     final payouts = <String, int>{};
@@ -587,6 +663,7 @@ class LedgerModule {
     }
     final p = pnl(lines);
     return {
+      ...metadata,
       'expensesMinor': sum((x) => x['type'] == 'expense'),
       'billsRecognisedMinor': sum((x) => x['type'] == 'bill'),
       'billsPaidElsewhereMinor': sum((x) => x['type'] == 'billPaidElsewhere'),
@@ -599,6 +676,58 @@ class LedgerModule {
       'cashInMinor': cashIn,
       'cashOutMinor': cashOut,
       'netProfitMinor': p['netMinor'],
+      'operatingResultMinor': null,
+      'resultLabel': 'Recorded result under legacy recognition',
+      'balanced': balanced(lines),
+    };
+  }
+
+  /// Daily-close counters come from the same immutable journal inputs as the
+  /// summary. Opening balances are positions, never cash movement or income.
+  static Json managementClose(List<Json> facts) {
+    final movementFacts = facts.where(
+      (f) => (f['evidence'] as Json?)?['type'] != 'reviewedOpening',
+    ).toList();
+    final lines = [for (final f in movementFacts) ...ledgerFor(f)];
+    final totalsByAccount = totals(lines);
+    int debit(String account) => totalsByAccount[account]?['debitMinor'] as int? ?? 0;
+    int credit(String account) => totalsByAccount[account]?['creditMinor'] as int? ?? 0;
+    int selected(String prefix, String account, {bool credited = false}) =>
+        movementFacts.where((f) => '${f['id']}'.startsWith(prefix))
+            .expand(ledgerFor).where((l) => l['account'] == account)
+            .fold<int>(0, (n, l) => n + (l[credited ? 'creditMinor' : 'debitMinor'] as int));
+    final payouts = <String, int>{};
+    for (final f in movementFacts.where((f) => '${f['id']}'.startsWith('payoutItem:'))) {
+      final evidence = f['evidence'] as Json;
+      final amount = ledgerFor(f).where((l) => l['account'] == '1000')
+          .fold<int>(0, (n, l) => n + (l['creditMinor'] as int));
+      final kind = evidence['kind'] as String? ?? 'unclassified';
+      payouts[kind] = (payouts[kind] ?? 0) + amount;
+    }
+    final issues = facts.expand((f) => (f['issues'] as List?) ?? const []).toSet().toList();
+    final p = pnl(lines);
+    return {
+      'expensesMinor': selected('expense:', '1000', credited: true) + selected('expense:', '1010', credited: true),
+      'billsRecognisedMinor': selected('bill:', '2000', credited: true),
+      'billsVoidedMinor': selected('billVoid:', '2000'),
+      'billsPaidElsewhereMinor': selected('billSettlement:', '1010', credited: true),
+      'payoutsMinor': payouts,
+      'supplierDeliveriesMinor': selected('receipt:', '1200'),
+      'requestsIssuedMinor': null,
+      'requestsPaidMinor': null,
+      'requestCountersAvailable': false,
+      'commissionsMinor': debit('6010') - credit('6010'),
+      'feesEstimatedMinor': movementFacts.where((f) => f['estimated'] == true)
+          .expand(ledgerFor).where((l) => l['account'] == '6000')
+          .fold<int>(0, (n, l) => n + (l['debitMinor'] as int) - (l['creditMinor'] as int)),
+      'cashInMinor': debit('1000') + debit('1010'),
+      'cashOutMinor': credit('1000') + credit('1010'),
+      'netProfitMinor': p['netMinor'], // Old-client compatibility.
+      'recordedResultMinor': p['netMinor'],
+      'operatingResultMinor': issues.isEmpty ? p['netMinor'] : null,
+      'resultLabel': 'Operating result on recorded management basis',
+      'complete': issues.isEmpty,
+      'issues': issues,
       'balanced': balanced(lines),
     };
   }
@@ -655,8 +784,9 @@ class LedgerModule {
       case 'ledger.journal':
         await w.role(roles);
         final (from, to) = window(w.settings, d);
-        final lines = await journal(w, from, to);
+        final lines = await journal(w, from, to, basis: d['basis'] as String?);
         return {
+          ...await basisMetadata(w, from, to, basis: d['basis'] as String?),
           'from': from.toIso8601String(),
           'to': to.toIso8601String(),
           'currency': w.restaurant!.currency,
@@ -673,7 +803,7 @@ class LedgerModule {
       case 'ledger.pnl':
         await w.role(roles);
         final (from, to) = window(w.settings, d, defaultDays: 92);
-        final lines = await journal(w, from, to);
+        final lines = await journal(w, from, to, basis: d['basis'] as String?);
         final byMonth = <String, Json>{};
         for (final l in lines) {
           final a = l['account'] as String;
@@ -693,10 +823,12 @@ class LedgerModule {
                   : (l['debitMinor'] as int) - (l['creditMinor'] as int));
         }
         return {
+          ...await basisMetadata(w, from, to, basis: d['basis'] as String?),
           'from': from.toIso8601String(),
           'to': to.toIso8601String(),
           'currency': w.restaurant!.currency,
           ...pnl(lines),
+          ...quality(lines),
           'rows': byMonth.values.toList()
             ..sort((a, b) => '${a['month']}${a['account']}'.compareTo('${b['month']}${b['account']}')),
           'feesEstimated': lines.any(
@@ -711,7 +843,7 @@ class LedgerModule {
       case 'ledger.vat':
         await w.role(roles);
         final (from, to) = window(w.settings, d, defaultDays: 92);
-        final lines = await journal(w, from, to);
+        final lines = await journal(w, from, to, basis: d['basis'] as String?);
         final months = <String, Json>{};
         var collected = 0, paid = 0;
         for (final l in lines) {
@@ -737,6 +869,7 @@ class LedgerModule {
           row['dueMinor'] = (row['collectedMinor'] as int) - (row['paidMinor'] as int);
         }
         return {
+          ...await basisMetadata(w, from, to, basis: d['basis'] as String?),
           'from': from.toIso8601String(),
           'to': to.toIso8601String(),
           'currency': w.restaurant!.currency,
@@ -920,6 +1053,8 @@ class LedgerModule {
         'rows': rows,
         'nextCursor': rows.length == limit ? rows.last['id'] : null,
       };
+      if (Finance017.queryNames.contains(name)) return Finance017.query(w, name, d);
+      if (name == 'judge.story') return JudgeStory017.status(w);
       return await query(w, name, d, limit, cursor, page) ??
           await BillsModule.query(w, name, d, limit, cursor, page) ??
           await PaymentRequestModule.query(w, name, d, limit, cursor, page) ??

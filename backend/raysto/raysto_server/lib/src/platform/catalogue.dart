@@ -384,8 +384,11 @@ class CatalogueModule {
           (d['name'] != w.restaurant!.name ||
               settings.keys.any(
                 (k) =>
-                    !{'preparationMinutes', 'slotCapacity', 'coupons'}
-                        .contains(k) &&
+                    !{
+                      'preparationMinutes',
+                      'slotCapacity',
+                      'coupons',
+                    }.contains(k) &&
                     jsonEncode(settings[k]) != jsonEncode(prior[k]),
               ))) {
         await JudgeModule.ownerOnly(w);
@@ -403,10 +406,62 @@ class CatalogueModule {
           where: (t) => t.restaurantId.equals(w.tenant),
           transaction: w.tx,
         );
-        if (existing != null) {
+        // Cost and finance records also fix their currency before the first
+        // order. Disabling the new feature must not unlock their history.
+        final hasFinance =
+            existing != null ||
+            await FinanceRecord.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0 ||
+            await StockItem.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0 ||
+            await Bill.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0 ||
+            await Expense.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0 ||
+            await PayoutBatch.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0 ||
+            await PaymentRequest.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0 ||
+            await StaffShift.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0 ||
+            await LedgerAdjustment.db.count(
+                  s,
+                  where: (t) => t.restaurantId.equals(w.tenant),
+                  transaction: w.tx,
+                ) >
+                0;
+        if (hasFinance) {
           _fail(
             'currency_locked',
-            'Currency cannot change after an order has been recorded.',
+            'Currency cannot change after orders, costs or financial records have been recorded. Keep currencies separate.',
           );
         }
         await w.role({'owner'});

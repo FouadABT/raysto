@@ -300,6 +300,10 @@ void main() {
     await tester.dragUntilVisible(find.text('Reorder 12 kg'), list, const Offset(0, -300));
     await tester.dragUntilVisible(find.text('Covered'), list, const Offset(0, -300));
     await tester.dragUntilVisible(find.text('Approve the draft order'), list, const Offset(0, 300));
+    // dragUntilVisible stops at the first visible pixel. At 2x text the
+    // button centre can still be outside the viewport, so reveal it fully.
+    await tester.ensureVisible(find.text('Approve the draft order'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Approve the draft order'));
     await tester.pumpAndSettle();
     final decide = api.sent.single;

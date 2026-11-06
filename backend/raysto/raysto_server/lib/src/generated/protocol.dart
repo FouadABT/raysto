@@ -68,6 +68,7 @@ import 'platform/dining_waitlist.dart' as _iwj3dyxh;
 import 'platform/dispute_case.dart' as _izlzkb82;
 import 'platform/driver.dart' as _igoqq3m2;
 import 'platform/expense.dart' as _iy07qj3d;
+import 'platform/finance_record.dart' as _ieblwxan;
 import 'platform/floor_layout.dart' as _ijsenvl9;
 import 'platform/group_membership.dart' as _ii07u2gn;
 import 'platform/group_venue.dart' as _ij2wakuq;
@@ -173,6 +174,7 @@ export 'platform/dining_waitlist.dart';
 export 'platform/dispute_case.dart';
 export 'platform/driver.dart';
 export 'platform/expense.dart';
+export 'platform/finance_record.dart';
 export 'platform/floor_layout.dart';
 export 'platform/group_membership.dart';
 export 'platform/group_venue.dart';
@@ -4593,6 +4595,126 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'spentAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'raysto_finance_record',
+      dartName: 'FinanceRecord',
+      schema: 'public',
+      module: 'raysto',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'restaurantId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'kind',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'recordKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'payloadJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'raysto_finance_record_fk_0',
+          columns: ['restaurantId'],
+          referenceTable: 'raysto_restaurant',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'finance_record_key',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'kind',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'recordKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'finance_record_page',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'restaurantId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'kind',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'id',
             ),
           ],
           type: 'btree',
@@ -9503,6 +9625,12 @@ class Protocol extends _is.DatabaseSerializationManager {
           dartType: 'int?',
         ),
         _isp.ColumnDefinition(
+          name: 'purchaseUnit',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
           name: 'refType',
           columnType: _isp.ColumnType.text,
           isNullable: false,
@@ -10697,6 +10825,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iy07qj3d.Expense) {
       return _iy07qj3d.Expense.fromJson(data) as T;
     }
+    if (t == _ieblwxan.FinanceRecord) {
+      return _ieblwxan.FinanceRecord.fromJson(data) as T;
+    }
     if (t == _ijsenvl9.FloorLayout) {
       return _ijsenvl9.FloorLayout.fromJson(data) as T;
     }
@@ -11032,6 +11163,10 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iy07qj3d.Expense?>()) {
       return (data != null ? _iy07qj3d.Expense.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ieblwxan.FinanceRecord?>()) {
+      return (data != null ? _ieblwxan.FinanceRecord.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_ijsenvl9.FloorLayout?>()) {
       return (data != null ? _ijsenvl9.FloorLayout.fromJson(data) : null) as T;
     }
@@ -11356,6 +11491,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _izlzkb82.DisputeCase => 'DisputeCase',
       _igoqq3m2.Driver => 'Driver',
       _iy07qj3d.Expense => 'Expense',
+      _ieblwxan.FinanceRecord => 'FinanceRecord',
       _ijsenvl9.FloorLayout => 'FloorLayout',
       _ii07u2gn.GroupMembership => 'GroupMembership',
       _ij2wakuq.GroupVenue => 'GroupVenue',
@@ -11522,6 +11658,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Driver';
       case _iy07qj3d.Expense():
         return 'Expense';
+      case _ieblwxan.FinanceRecord():
+        return 'FinanceRecord';
       case _ijsenvl9.FloorLayout():
         return 'FloorLayout';
       case _ii07u2gn.GroupMembership():
@@ -11804,6 +11942,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'Expense') {
       return deserialize<_iy07qj3d.Expense>(data['data']);
+    }
+    if (dataClassName == 'FinanceRecord') {
+      return deserialize<_ieblwxan.FinanceRecord>(data['data']);
     }
     if (dataClassName == 'FloorLayout') {
       return deserialize<_ijsenvl9.FloorLayout>(data['data']);
@@ -12100,6 +12241,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _igoqq3m2.Driver.t;
       case _iy07qj3d.Expense:
         return _iy07qj3d.Expense.t;
+      case _ieblwxan.FinanceRecord:
+        return _ieblwxan.FinanceRecord.t;
       case _ijsenvl9.FloorLayout:
         return _ijsenvl9.FloorLayout.t;
       case _ii07u2gn.GroupMembership:

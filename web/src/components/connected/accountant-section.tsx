@@ -320,8 +320,10 @@ function PnlTab({ ac, currencyCode, version }: TabProps) {
       <div className="ops-kpis compact">
         <Kpi label="Revenue"><Cash minor={data?.revenueMinor ?? 0} code={code} /></Kpi>
         <Kpi label="Costs"><Cash minor={data?.costsMinor ?? 0} code={code} /></Kpi>
-        <Kpi label="Profit" alert={(data?.netMinor ?? 0) < 0}><Cash minor={data?.netMinor ?? 0} code={code} /></Kpi>
+        <Kpi label={data?.basis === 'management-accrual-v1' && data?.complete !== false ? 'Operating result' : 'Recorded result'} alert={(data?.netMinor ?? 0) < 0}><Cash minor={data?.netMinor ?? 0} code={code} /></Kpi>
       </div>
+      <p className="ops-note">{data?.basis === 'management-accrual-v1' ? 'Management basis from the reviewed cutover; only recorded revenue and costs are included.' : 'Legacy recognition basis; this recorded result is not an accrual operating result.'}{data?.partialPeriod && ` This report starts at ${data.effectiveFrom}; earlier records use the legacy basis.`}</p>
+      {data?.complete === false && <p className="ops-note" role="status">Incomplete financial evidence: {data.issues?.join(' ')}</p>}
       {data?.feesEstimated && (
         <p className="ops-note ops-acc-estimate">
           PayPal fees are estimates (3.49% + 0.49 a payment) until Transaction Search is enabled on the Sandbox app; payout fees are PayPal&apos;s own.

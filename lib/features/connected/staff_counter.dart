@@ -525,6 +525,7 @@ class _CounterScreenState extends State<CounterScreen> {
             style: AppType.style(
               MediaQuery.sizeOf(context).width >= 700 ? 30 : 24,
               weight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           actions: [
@@ -573,12 +574,14 @@ class _CounterScreenState extends State<CounterScreen> {
                       // The till: white, set apart by a hairline, always in view.
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerLowest,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerLowest,
                           border: BorderDirectional(
                             start: BorderSide(
-                              color: Theme.of(context).colorScheme.outlineVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outlineVariant,
                             ),
                           ),
                         ),
@@ -748,9 +751,10 @@ class _CounterScreenState extends State<CounterScreen> {
                                     ),
                                     if (count > 0)
                                       Container(
-                                        margin: const EdgeInsetsDirectional.only(
-                                          start: 6,
-                                        ),
+                                        margin:
+                                            const EdgeInsetsDirectional.only(
+                                              start: 6,
+                                            ),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 8,
                                           vertical: 3,
@@ -799,7 +803,9 @@ class _CounterScreenState extends State<CounterScreen> {
                                           Icons.add,
                                           size: 18,
                                           color: locked
-                                              ? theme.colorScheme.onSurfaceVariant
+                                              ? theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant
                                               : AppColors.white,
                                         ),
                                       ),

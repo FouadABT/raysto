@@ -1,3 +1,7 @@
+// A judges' café reset stores a month of sample history.
+@Timeout(Duration(minutes: 3))
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:raysto_server/src/generated/protocol.dart';
@@ -8,8 +12,8 @@ import 'test_tools/serverpod_test_tools.dart';
 
 // Isolated Raysto test database only. The owner's dashboard: paid sales by
 // the café's own days and hours, the period before, the kitchen now, the
-// target, and the judges' labelled sample history, which never touches a
-// real figure.
+// target, and, on a judges' café, the stored sample history every other page
+// reads too.
 void main() {
   withServerpod('The owner dashboard', (builder, endpoints) {
     late TestSessionBuilder owner, waiter;
@@ -300,74 +304,90 @@ void main() {
       }
     });
 
-    test(
-      'the sample is the judges\' café\'s only, labelled, and never a figure',
-      () async {
-        final at = midnight(1).add(const Duration(hours: 12));
-        await order(at, total: 2150, tip: 200);
-        final day = BackOfficeModule.localDay({
-          'timezone': 'America/New_York',
-        }, at);
-        Future<(Json, Json, Json, Json)> snapshot() async {
-          final s = builder.build();
-          return (
-            await read('7d'),
-            await read('today'),
-            await BackOfficeModule.read(
-              owner.build(),
-              restaurantId: restaurant.id!,
-              name: 'analytics',
-              d: {
-                'from': midnight(6).toUtc().toIso8601String(),
-                'to': midnight(-1).toUtc().toIso8601String(),
-              },
-            ),
-            await CloseAgent.readDay(s, restaurant.id!, day),
-          );
-        }
+    test('the on-the-fly sample is retired, even where it was once switched on', () async {
+      await order(midnight(1).add(const Duration(hours: 12)), total: 2150, tip: 200);
+      ProviderClients.environment = () => {
+        ...Platform.environment,
+        'RAYSTO_JUDGE_RESTAURANT_ID': '${restaurant.id}',
+        'RAYSTO_JUDGE_SAMPLE_HISTORY': 'true',
+      };
+      for (final range in ['today', '7d', '30d']) {
+        final d = await read(range);
+        expect(d.containsKey('sample'), isTrue, reason: 'the contract keeps the field');
+        expect(d['sample'], isNull, reason: range);
+      }
+      expect((((await read('7d'))['kpis'] as Json)['sales'] as Json)['value'], 2150);
+    });
 
-        ProviderClients.environment = () => {
-          ...Platform.environment,
-          'RAYSTO_JUDGE_SAMPLE_HISTORY': 'true',
-        };
-        final (otherVenue, _, _, _) = await snapshot();
-        expect(otherVenue['sample'], isNull);
-
-        ProviderClients.environment = () => {
-          ...Platform.environment,
-          'RAYSTO_JUDGE_RESTAURANT_ID': '${restaurant.id}',
-        };
-        final (off7, offToday, offAnalytics, offClose) = await snapshot();
-        expect(off7['sample'], isNull);
-
-        ProviderClients.environment = () => {
-          ...Platform.environment,
-          'RAYSTO_JUDGE_RESTAURANT_ID': '${restaurant.id}',
-          'RAYSTO_JUDGE_SAMPLE_HISTORY': 'true',
-        };
-        final (on7, onToday, onAnalytics, onClose) = await snapshot();
-        final sample = on7['sample'] as Json;
-        expect(sample['label'], DashboardModule.sampleLabel);
-        expect(sample['points'], hasLength(7));
-        expect(
-          [for (final p in (sample['points'] as List).cast<Json>()) p['start']],
-          [for (final p in (on7['points'] as List).cast<Json>()) p['start']],
+    test('a judges\' café: the dashboard, analytics, ledger and close read the same stored month', () async {
+      final s = builder.build();
+      ProviderClients.environment = () => {
+        ...Platform.environment,
+        'RAYSTO_JUDGE_RESTAURANT_ID': '${restaurant.id}',
+      };
+      await JudgeModule.reset(s, restaurant.id!);
+      for (final range in ['7d', '30d']) {
+        final d = await read(range);
+        final kpis = d['kpis'] as Json;
+        final sales = (kpis['sales'] as Json)['value'] as int;
+        final tips = (kpis['tips'] as Json)['value'] as int;
+        final orders = (kpis['orders'] as Json)['value'] as int;
+        expect(sales, greaterThan(0), reason: range);
+        expect(d['sample'], isNull);
+        // Cafe-sized tickets.
+        expect(sales / orders, inInclusiveRange(1400, 2200), reason: range);
+        // Today is a judge's own: the history never reaches it.
+        final points = (d['points'] as List).cast<Json>();
+        expect(points.last['salesMinor'], 0, reason: range);
+        expect(points.first['salesMinor'], greaterThan(0), reason: range);
+        // The ledger over the same window: every sale was cash at the till,
+        // so what the till took is the dashboard's sales, and the sales
+        // account is the same less the tips owed to the team.
+        final journal = await LedgerModule.read(
+          owner.build(),
+          restaurantId: restaurant.id!,
+          name: 'ledger.journal',
+          d: {'from': d['from'], 'to': d['to']},
         );
-        expect(onToday['sample'], isNull);
-        // Café-sized: $120–$270 a day without a target, about $15 an order.
-        for (final p in (sample['points'] as List).cast<Json>()) {
-          expect(p['salesMinor'], inInclusiveRange(12000, 27000));
-          expect(p['orders'], ((p['salesMinor'] as int) / 1500).round());
-        }
-        // Every real figure is the same with the sample on or off.
-        Json strip(Json d) => {...d}..remove('sample');
-        expect(jsonEncode(strip(on7)), jsonEncode(strip(off7)));
-        expect(jsonEncode(onToday), jsonEncode(offToday));
-        expect(jsonEncode(onAnalytics), jsonEncode(offAnalytics));
-        expect(jsonEncode(onClose), jsonEncode(offClose));
-        expect(((on7['kpis'] as Json)['sales'] as Json)['value'], 2150);
-      },
-    );
+        expect(journal['balanced'], isTrue);
+        final totals = {
+          for (final t in (journal['totals'] as List).cast<Map>()) t['account']: t,
+        };
+        expect(totals['1010']!['debitMinor'], sales, reason: range);
+        expect(totals['4000']!['creditMinor'], sales - tips, reason: range);
+        expect(totals['2200']!['creditMinor'], tips, reason: range);
+        // Never a PayPal figure: no PayPal money, no PayPal fee.
+        expect(totals.containsKey('1000'), isFalse, reason: range);
+        expect(totals.containsKey('6000'), isFalse, reason: range);
+        final analytics = await BackOfficeModule.read(
+          owner.build(),
+          restaurantId: restaurant.id!,
+          name: 'analytics',
+          d: {'from': d['from'], 'to': d['to']},
+        );
+        expect(analytics['salesMinor'], sales, reason: range);
+        expect(analytics['orders'], orders, reason: range);
+        expect(analytics['tipsMinor'], tips, reason: range);
+        expect(analytics['paypalCapturedMinor'], 0, reason: range);
+        expect(analytics['feesMinor'], 0, reason: range);
+      }
+      // The close of a day of the history reads the same till.
+      final week = await read('7d');
+      final day = (week['points'] as List).cast<Json>()[3];
+      final close = await CloseAgent.readDay(
+        s,
+        restaurant.id!,
+        BackOfficeModule.localDay({'timezone': 'America/New_York'}, DateTime.parse(day['start'] as String)),
+      );
+      expect(close['cashMinor'], day['salesMinor']);
+      expect(close['paypalCapturedMinor'], 0);
+      expect((close['books'] as Map)['cashInMinor'], day['salesMinor']);
+      // The latest orders are the newest placed, whenever they were stored.
+      final latest = (week['latest'] as List).cast<Json>();
+      expect(latest, hasLength(8));
+      final placed = [for (final o in latest) DateTime.parse(o['createdAt'] as String)];
+      expect(placed, [...placed]..sort((a, b) => b.compareTo(a)));
+    });
 
     test('the response has exactly the contract\'s fields', () async {
       final s = builder.build();
@@ -399,11 +419,6 @@ void main() {
           createdAt: DateTime.now().toUtc(),
         ),
       );
-      ProviderClients.environment = () => {
-        ...Platform.environment,
-        'RAYSTO_JUDGE_RESTAURANT_ID': '${restaurant.id}',
-        'RAYSTO_JUDGE_SAMPLE_HISTORY': 'true',
-      };
       final d = await read('7d');
       final fixture =
           jsonDecode(
@@ -413,6 +428,11 @@ void main() {
               )
               as Json;
       void same(dynamic a, dynamic b, String path) {
+        // Retired in 0.16.2 and always null; the fixture keeps its old shape.
+        if (path == 'dashboard.sample') {
+          expect(a, isNull);
+          return;
+        }
         if (b is Map) {
           expect(a, isA<Map>(), reason: path);
           expect((a as Map).keys.toSet(), b.keys.toSet(), reason: path);

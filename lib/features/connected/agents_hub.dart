@@ -77,8 +77,7 @@ Widget agentsPage(LiveContext live) => DataPage(
       ),
     if (live.manager) ...[
       AppSectionTitle(title: c.tr('What the agents did')),
-      if (records(d['activity']).isEmpty)
-        Text(c.tr('No agent work yet.')),
+      if (records(d['activity']).isEmpty) Text(c.tr('No agent work yet.')),
       for (final t in records(d['activity'])) agentTaskTile(c, t),
     ],
   ],
@@ -206,12 +205,19 @@ class _AgentActionCardState extends State<AgentActionCard> {
     });
     try {
       var result = await live.api.submit(pending!);
-      if ({'reauthentication_required', 'mfa_required'}.contains(result['needs'])) {
+      if ({
+        'reauthentication_required',
+        'mfa_required',
+      }.contains(result['needs'])) {
         if (!mounted) return;
         final ok = await verifyIdentity(context, live.runtime);
         if (!ok) {
           if (mounted) {
-            setState(() => note = context.tr('Approval paused until you confirm it is you.'));
+            setState(
+              () => note = context.tr(
+                'Approval paused until you confirm it is you.',
+              ),
+            );
           }
           return;
         }
@@ -221,9 +227,12 @@ class _AgentActionCardState extends State<AgentActionCard> {
       final message = switch (result['state']) {
         'executed' => context.tr('Done.'),
         'rejected' => context.tr('Dismissed.'),
-        'stale' => context.tr('Things changed since the agent looked. It will check again.'),
+        'stale' => context.tr(
+          'Things changed since the agent looked. It will check again.',
+        ),
         'expired' => context.tr('This suggestion expired.'),
-        'failed' => '${obj(result['result'])['message'] ?? context.tr('It could not be completed.')}',
+        'failed' =>
+          '${obj(result['result'])['message'] ?? context.tr('It could not be completed.')}',
         _ => context.tr('Approved.'),
       };
       // Money cannot be undone, so no Undo: the PayPal id is the receipt.
@@ -288,7 +297,12 @@ class _AgentActionCardState extends State<AgentActionCard> {
           const SizedBox(height: 10),
           Text(
             '${a['title']}',
-            style: AppType.style(19, weight: FontWeight.w700, height: 1.3),
+            style: AppType.style(
+              19,
+              weight: FontWeight.w700,
+              height: 1.3,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           if (preview['mediaId'] is int) ...[
             const SizedBox(height: 10),
@@ -320,7 +334,9 @@ class _AgentActionCardState extends State<AgentActionCard> {
             runSpacing: 8,
             children: [
               AppButton(
-                label: money ? context.tr('Approve and confirm') : context.tr('Approve'),
+                label: money
+                    ? context.tr('Approve and confirm')
+                    : context.tr('Approve'),
                 icon: Icons.check,
                 busy: busy && decision == 'approve',
                 expanded: false,
@@ -394,10 +410,7 @@ Widget agentTaskTile(BuildContext c, Json t) {
     leading: Icon(icon),
     title: Text('${t['title']}'),
     subtitle: Text(
-      [
-        name,
-        if (t['summary'] != null) '${t['summary']}',
-      ].join(' · '),
+      [name, if (t['summary'] != null) '${t['summary']}'].join(' · '),
       maxLines: 3,
       overflow: TextOverflow.ellipsis,
     ),
@@ -526,9 +539,8 @@ Future<void> askForPhotos(
       'provider': provider,
     }, restaurantId: live.restaurantId);
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(started)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(started)));
     }
   });
 }

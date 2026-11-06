@@ -753,6 +753,7 @@ class GroupModule {
               'name': v.name,
               'currency': v.currency,
               'role': role?.role,
+              'demo': JudgeModule.venue(v.id),
             });
           }
           rows.add({

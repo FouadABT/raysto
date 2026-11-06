@@ -246,7 +246,7 @@ function PhoneAnalytics({ page, sources, code }: { page: AnalyticsPage; sources:
   return (
     <div className="ops-ov-phone">
       <p className="ops-ov-phone-line">
-        In {money(inMinor)} · out {money(Math.abs(outMinor))} · <strong>profit {money(inMinor + outMinor)}</strong>
+        In {money(inMinor)} · out {money(Math.abs(outMinor))} · <strong>net cash movement {money(inMinor + outMinor)}</strong>
       </p>
       <BarRow
         title="Money in and out by account, last 30 days"

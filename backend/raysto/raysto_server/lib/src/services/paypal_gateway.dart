@@ -140,6 +140,27 @@ class PayPalGateway {
     return int.parse(parts[0]) * 100 + int.parse(parts[1]);
   }
 
+  /// Use only the fee reported for this capture in its own currency. An
+  /// absent/foreign/malformed breakdown remains unavailable, never zero.
+  static int? reportedCaptureFee(
+    Map<String, dynamic> capture,
+    String currency,
+    int grossMinor,
+  ) {
+    final breakdown = capture['seller_receivable_breakdown'];
+    if (breakdown is! Map) return null;
+    final fee = breakdown['paypal_fee'];
+    if (fee is! Map ||
+        fee['currency_code'] != currency ||
+        fee['value'] is! String) {
+      return null;
+    }
+    final value = fee['value'] as String;
+    if (!RegExp(r'^\d{1,8}\.\d{2}$').hasMatch(value)) return null;
+    final amount = parseMoney(value);
+    return amount <= grossMinor ? amount : null;
+  }
+
   Future<Map<String, dynamic>> create(PurchaseOrder order, String requestId) =>
       createCheckout(
         reference: order.id.toString(),

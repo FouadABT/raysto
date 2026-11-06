@@ -13,7 +13,7 @@ import { connectedAuth } from "@/lib/connected/firebase";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Membership } from "@/lib/connected/contracts";
 import type { GroupRef } from "@/lib/connected/group";
-import { isJudgeVenue, judge, judgeLogin } from "@/lib/connected/judge";
+import { isJudgeVenue, judge, judgeLogin, markDemoVenues } from "@/lib/connected/judge";
 import { MotionRoot, setReduceMotion, useAppReduceMotion } from "@/lib/connected/motion";
 import { Icon } from "./icons";
 import { SnackbarProvider } from "./m3";
@@ -90,6 +90,7 @@ export function OperationsEntry() {
               const allowed = me.memberships.filter((m) =>
                 ["owner", "manager"].includes(m.role),
               );
+              markDemoVenues(me.memberships.filter((m) => m.demo).map((m) => m.restaurantId));
               setApi(next);
               setMemberships(allowed);
               setGroupRefs(me.groups ?? []);

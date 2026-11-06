@@ -200,7 +200,9 @@ Future<void> advanceOrder(
 }) async {
   String? code;
   // An app pickup is handed over against the code on the customer's phone.
-  if (next == 'collected' && o.origin != 'counter' && o.fulfillment == 'pickup') {
+  if (next == 'collected' &&
+      o.origin != 'counter' &&
+      o.fulfillment == 'pickup') {
     code = await askPickupCode(c);
     if (code == null || !c.mounted) return;
   }
@@ -340,6 +342,7 @@ class OrderCard extends StatelessWidget {
                           26,
                           weight: FontWeight.w700,
                           height: 1.1,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       Text(
@@ -365,7 +368,10 @@ class OrderCard extends StatelessWidget {
                     color: o.paid ? status?.success : status?.warning,
                   ),
                   if (o.customerLabel != null)
-                    AppPill(label: o.customerLabel!, icon: Icons.person_outline),
+                    AppPill(
+                      label: o.customerLabel!,
+                      icon: Icons.person_outline,
+                    ),
                 ],
               ),
               const SizedBox(height: 14),
@@ -443,9 +449,14 @@ class OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     money(o.totalMinor, o.currency),
-                    style: AppType.style(19, weight: FontWeight.w700).copyWith(
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                    style:
+                        AppType.style(
+                          19,
+                          weight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ).copyWith(
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                   ),
                   if (next != null && canAdvance(live, o, next))
                     AppButton(

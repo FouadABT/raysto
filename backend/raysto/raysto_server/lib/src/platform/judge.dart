@@ -7,10 +7,12 @@ part of 'platform.dart';
 class JudgeModule {
   static const name = 'Atelier Café · Judges';
 
-  /// The second café of the judges' franchise demo, and its group. Both are
-  /// labelled sample: nothing about them is a real business.
-  static const secondName = 'Atelier Harbour · Sample';
-  static const groupName = 'Atelier Group · Sample';
+  /// The second café of the judges' franchise demo, and its group. Nothing
+  /// about them is a real business: both cafés are demo cafés ([venue], the
+  /// `demo` flag the console reads), and the console shows one "Demo café"
+  /// badge rather than a suffix on every name.
+  static const secondName = 'Atelier Harbour';
+  static const groupName = 'Atelier Group';
 
   static int? _id(String key) =>
       int.tryParse(ProviderClients.environment()[key] ?? '');
@@ -41,7 +43,7 @@ class JudgeModule {
   /// The settings the café returns to. Open all day for judges in any zone.
   /// Its contact email stays as the owner set it.
   static final settings = <String, dynamic>{
-    'address': 'PayPal Sandbox demo for hackathon judges · not a real café',
+    'address': 'Demo café · Hudson Street, New York',
     'timezone': 'America/New_York',
     'country': 'US',
     'languages': ['en', 'fr', 'ar'],
@@ -69,7 +71,8 @@ class JudgeModule {
     'taxBps': 0,
     'pricesIncludeTax': true,
     // The day's goal the dashboard's ring shows; a setting, not a result.
-    'dailyTargetMinor': 30000,
+    // About a usual day of the stored 30-day history (JudgeHistory).
+    'dailyTargetMinor': 100000,
     'agents': {},
     'menuCategories': [
       {
@@ -95,15 +98,13 @@ class JudgeModule {
   /// for pickup and dine-in only.
   static Map<String, dynamic> get secondSettings => {
     ...settings,
-    'address':
-        'PayPal Sandbox demo for hackathon judges · sample second café, '
-        'not a real place',
+    'address': 'Demo café · by the harbour, New York',
     'modes': ['pickup', 'dineIn'],
     'deliveryZones': [],
     'deliveryFeeMinor': 0,
     'deliveryMinimumMinor': 0,
     'deliveryProof': 'none',
-    'dailyTargetMinor': 25000,
+    'dailyTargetMinor': 65000,
   };
 
   static Json _dish(
@@ -320,13 +321,6 @@ class JudgeModule {
     );
   }
 
-  /// Whether the dashboard may draw its labelled sample history for this
-  /// restaurant: only the judges' café, and only when
-  /// `RAYSTO_JUDGE_SAMPLE_HISTORY` is on. The sample is never stored.
-  static bool sampleHistory(int? tenant) =>
-      venue(tenant) &&
-      ProviderClients.environment()['RAYSTO_JUDGE_SAMPLE_HISTORY'] == 'true';
-
   /// The Sandbox buyer accounts standing in as the team's PayPal emails,
   /// from `RAYSTO_JUDGE_PAYOUT_EMAILS` (comma-separated). Never hardcoded.
   static List<String> get payoutEmails =>
@@ -338,9 +332,10 @@ class JudgeModule {
 
   /// What a judge finds in the back office: a team on shift this week, a
   /// catering request, a complaint on a paid order, a seeded dispute,
-  /// suppliers, stock, last week's expenses and two regulars. Shifts are
-  /// re-made each day; the rest is added only when missing, and the hourly
-  /// tidy never touches any of it.
+  /// suppliers, stock, last week's expenses, two regulars and the stored
+  /// month of sample history (JudgeHistory). Shifts are re-made each day,
+  /// except those whose wages PayPal already paid; the rest is added only
+  /// when missing, and the hourly tidy never touches any of it.
   static Future<Json> seed(Work w) async {
     final s = w.s;
     final rid = w.tenant;
@@ -355,22 +350,39 @@ class JudgeModule {
       today.day,
     ).subtract(Duration(days: today.weekday - 1));
 
+    // Shifts are re-made each day, except a shift whose wages PayPal Payouts
+    // already paid: it stays as it was, so a later pay run knows it is paid
+    // and never pays the same week's wages again.
+    final paid = await PayrollAgent.paidShiftIds(w);
     await StaffShift.db.deleteWhere(
       s,
-      where: (t) => t.restaurantId.equals(rid),
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          (paid.isEmpty ? Constant.bool(true) : t.id.notInSet(paid)),
       transaction: w.tx,
     );
+    final kept = {
+      for (final x in await StaffShift.db.find(
+        s,
+        where: (t) => t.restaurantId.equals(rid),
+        transaction: w.tx,
+      ))
+        '${x.name}@${x.startsAt.microsecondsSinceEpoch}',
+    };
     const team = [
       ('Nadia', 'floor', 1600, 9, 17),
       ('Omar', 'kitchen', 1800, 8, 16),
       ('Lina', 'manager', 2200, 10, 18),
     ];
     final shifts = <StaffShift>[];
+    var week = 0;
     for (var day = 0; day < 6; day++) {
       final date = monday.add(Duration(days: day));
       for (final (i, (name, role, rate, from, to)) in team.indexed) {
         final startsAt = tz.TZDateTime(zone, date.year, date.month, date.day, from).toUtc();
         final endsAt = tz.TZDateTime(zone, date.year, date.month, date.day, to).toUtc();
+        week++;
+        if (kept.contains('$name@${startsAt.microsecondsSinceEpoch}')) continue;
         final past = endsAt.isBefore(_now());
         final onNow = startsAt.isBefore(_now()) && !past;
         shifts.add(
@@ -392,7 +404,9 @@ class JudgeModule {
         );
       }
     }
-    await StaffShift.db.insert(s, shifts, transaction: w.tx);
+    if (shifts.isNotEmpty) {
+      await StaffShift.db.insert(s, shifts, transaction: w.tx);
+    }
 
     // Each reset starts the catering demo again: a request that was quoted
     // but never sent (or whose send failed) is withdrawn and asked afresh.
@@ -452,12 +466,14 @@ class JudgeModule {
     );
     PaymentCapture? capture;
     if (openComplaints == 0) {
+      // Never a sample sale: those were paid in cash and nobody complained.
       final paid = await PurchaseOrder.db.find(
         s,
         where: (t) =>
             t.restaurantId.equals(rid) &
             t.paymentStatus.equals('paid') &
-            t.status.notInSet({'cancelled', 'rejected', 'expired'}),
+            t.status.notInSet({'cancelled', 'rejected', 'expired'}) &
+            t.requestKey.notLike('${JudgeHistory.keyPrefix}%'),
         orderBy: (t) => t.createdAt,
         limit: 50,
         transaction: w.tx,
@@ -465,7 +481,10 @@ class JudgeModule {
       for (final o in paid.reversed) {
         final checkout = await CheckoutIntent.db.findFirstRow(
           s,
-          where: (t) => t.orderId.equals(o.id!) & t.state.equals('completed'),
+          where: (t) =>
+              t.orderId.equals(o.id!) &
+              t.state.equals('completed') &
+              t.method.equals('paypal'),
           transaction: w.tx,
         );
         if (checkout == null) continue;
@@ -564,12 +583,23 @@ class JudgeModule {
     final dupont = byName['Marché Dupont']!.id;
     final stockItems = await _seedStock(w, dupont);
 
-    final expenses = await Expense.db.count(
+    // Last week's two receipts, added once. Like every seeded cost they are
+    // recorded at the moment they were spent (JudgeHistory.expense) and
+    // carry no PayPal id: neither was a PayPal transaction.
+    final receipts = await Expense.db.count(
       s,
-      where: (t) => t.restaurantId.equals(rid),
+      where: (t) =>
+          t.restaurantId.equals(rid) &
+          t.mediaId.equals(null) &
+          t.taskId.equals(null) &
+          ((t.merchant.equals('Marché Dupont') & t.amountMinor.equals(47980)) |
+              (t.merchant.equals('Greenline Cleaning Supplies') &
+                  t.amountMinor.equals(7956))),
       transaction: w.tx,
     );
-    if (expenses == 0) {
+    if (receipts == 0) {
+      final food = _now().subtract(const Duration(days: 6));
+      final cleaning = _now().subtract(const Duration(days: 4));
       await Expense.db.insert(s, [
         Expense(
           restaurantId: rid,
@@ -577,9 +607,9 @@ class JudgeModule {
           amountMinor: 47980,
           currency: w.restaurant!.currency,
           vatMinor: 0,
-          spentAt: _now().subtract(const Duration(days: 6)),
+          spentAt: food,
           merchant: 'Marché Dupont',
-          createdAt: _now(),
+          createdAt: food,
         ),
         Expense(
           restaurantId: rid,
@@ -587,10 +617,9 @@ class JudgeModule {
           amountMinor: 7956,
           currency: w.restaurant!.currency,
           vatMinor: 589,
-          spentAt: _now().subtract(const Duration(days: 4)),
+          spentAt: cleaning,
           merchant: 'Greenline Cleaning Supplies',
-          paypalTransactionId: '7XK40217PL338',
-          createdAt: _now(),
+          createdAt: cleaning,
         ),
       ], transaction: w.tx);
     }
@@ -633,8 +662,10 @@ class JudgeModule {
     final partner = await _seedPartner(w);
     final payLink = await _seedPayLink(w, email);
     final group = await _seedGroup(w);
+    // The 30 days before today, stored: sales, tips, refunds and costs.
+    final history = await JudgeHistory.seed(w);
     return {
-      'shifts': shifts.length,
+      'shifts': week,
       'catering': catering,
       'complaint': complaint,
       'dispute': dispute,
@@ -646,14 +677,83 @@ class JudgeModule {
       'partner': partner,
       'payLink': payLink,
       'group': group,
+      'history': history,
     };
   }
 
-  /// Marks a seeded row: a name suffix, a note or a JSON flag, so a judge
-  /// can always tell sample data from what really happened.
-  static const sample = '· Sample';
+  /// Marks a seeded row so a judge, and code, can always tell sample data
+  /// from what really happened: a JSON flag ([sampleJson]), a note ("Sample:
+  /// …" on a supplier order or a refund, "(sample)" on a pay link), a
+  /// `sample:` request key (JudgeHistory), or, for the few rows with no room
+  /// for either (drivers, the group, the second café), being one of the
+  /// seed's own names on a demo café ([sampleDriver], [venue]). Names carry
+  /// no suffix any more: the console shows one "Demo café" badge.
   static String sampleJson([Json extra = const {}]) =>
       jsonEncode({'sample': true, ...extra});
+
+  /// The suffix seeded names carried until 0.16.2; the reset takes it off
+  /// rows that still have it, in place.
+  static const legacySuffix = '· Sample';
+  static String plain(String name) => name.endsWith(legacySuffix)
+      ? name.substring(0, name.length - legacySuffix.length).trimRight()
+      : name;
+
+  /// The two simulated drivers, who have no login.
+  static const sampleDrivers = {'Sam', 'Ines'};
+  static bool sampleDriver(Driver d) =>
+      venue(d.restaurantId) &&
+      d.userId == null &&
+      d.partnerAppId == null &&
+      sampleDrivers.contains(plain(d.name));
+
+  /// A bill the seed made (its JSON says so).
+  static bool _sampleBill(Bill b) => _json(b.readJson)['sample'] == true;
+  static const _sampleBillJson = '%"sample":true%';
+
+  /// The seeded bills' vendors.
+  static const _power = 'Hudson Power & Light';
+
+  /// The seeded pay link's note: its description ends "(sample)".
+  static const _sampleLink = '%(sample)';
+
+  /// Takes the legacy suffix off the café's bill vendors and payers' names.
+  /// A row a judge touched in the last ten minutes is left until later.
+  static Future<int> _renameLegacy(Work w) async {
+    final s = w.s;
+    final rid = w.tenant;
+    final quiet = _now().subtract(const Duration(minutes: 10));
+    var renamed = 0;
+    for (final b in await Bill.db.find(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) & t.vendor.like('%$legacySuffix'),
+      transaction: w.tx,
+    )) {
+      if (!_sampleBill(b) && b.state != 'expected' && b.updatedAt.isAfter(quiet)) {
+        continue;
+      }
+      b
+        ..vendor = plain(b.vendor)
+        ..version += 1
+        ..updatedAt = _now();
+      await Bill.db.updateRow(s, b, transaction: w.tx);
+      renamed++;
+    }
+    for (final r in await PaymentRequest.db.find(
+      s,
+      where: (t) =>
+          t.restaurantId.equals(rid) & t.payerName.like('%$legacySuffix'),
+      transaction: w.tx,
+    )) {
+      r
+        ..payerName = plain(r.payerName)
+        ..version += 1
+        ..updatedAt = _now();
+      await PaymentRequest.db.updateRow(s, r, transaction: w.tx);
+      renamed++;
+    }
+    return renamed;
+  }
 
   /// The café's stock at the start of each day: by name, with par levels
   /// and lead times for the supply planner. Three items start below their
@@ -912,6 +1012,7 @@ class JudgeModule {
   }) async {
     final s = w.s;
     final rid = w.tenant;
+    await _renameLegacy(w);
     await Bill.db.deleteWhere(
       s,
       where: (t) =>
@@ -926,7 +1027,7 @@ class JudgeModule {
     final bills = [
       Bill(
         restaurantId: rid,
-        vendor: 'Hudson Power & Light $sample',
+        vendor: _power,
         category: 'electricity',
         reference: 'HPL-$month-PREV',
         amountMinor: 17680,
@@ -952,7 +1053,7 @@ class JudgeModule {
       ),
       Bill(
         restaurantId: rid,
-        vendor: 'Metro Water $sample',
+        vendor: 'Metro Water',
         category: 'water',
         reference: 'MW-$month',
         amountMinor: 4120,
@@ -970,7 +1071,7 @@ class JudgeModule {
       ),
       Bill(
         restaurantId: rid,
-        vendor: 'Harbour Properties $sample',
+        vendor: 'Harbour Properties',
         category: 'rent',
         reference: 'RENT-$month',
         amountMinor: 180000,
@@ -991,7 +1092,7 @@ class JudgeModule {
       ),
       Bill(
         restaurantId: rid,
-        vendor: 'Metro Fiber $sample',
+        vendor: 'Metro Fiber',
         category: 'internet',
         reference: 'MF-${today.toIso8601String().substring(0, 10).replaceAll('-', '')}',
         amountMinor: 5999,
@@ -1019,9 +1120,7 @@ class JudgeModule {
         where: (t) => t.restaurantId.equals(rid),
         transaction: w.tx,
       ))
-        if (b.vendor.endsWith(sample) &&
-            !{'void'}.contains(b.state))
-          b.category,
+        if (_sampleBill(b) && b.state != 'void') b.category,
     };
     final missing = [
       for (final b in bills)
@@ -1049,16 +1148,20 @@ class JudgeModule {
   static Future<int> _seedExpectedPower(Work w) async {
     final s = w.s;
     final rid = w.tenant;
-    final power = await Bill.db.find(
-      s,
-      where: (t) =>
-          t.restaurantId.equals(rid) &
-          t.category.equals('electricity') &
-          t.vendor.like('%$sample') &
-          t.state.notEquals('void'),
-      orderBy: (t) => t.id.desc(),
-      transaction: w.tx,
-    );
+    // The utility's bills, however the AI read its name ("HUDSON POWER &
+    // LIGHT", or the sample PDF's "Hudson Power & Light · Sample").
+    final power = [
+      for (final b in await Bill.db.find(
+        s,
+        where: (t) =>
+            t.restaurantId.equals(rid) &
+            t.category.equals('electricity') &
+            t.state.notEquals('void'),
+        orderBy: (t) => t.id.desc(),
+        transaction: w.tx,
+      ))
+        if (BillsModule._vendorKey(b.vendor) == BillsModule._vendorKey(_power)) b,
+    ];
     if (power.any((b) => {'expected', 'review', 'approved', 'paying'}.contains(b.state))) {
       return 0;
     }
@@ -1130,7 +1233,7 @@ class JudgeModule {
       s,
       Bill(
         restaurantId: rid,
-        vendor: 'Marché Dupont $sample',
+        vendor: 'Marché Dupont',
         category: 'supplier',
         reference: 'MD-${received.id}',
         amountMinor: amount,
@@ -1206,15 +1309,16 @@ class JudgeModule {
         where: (t) =>
             t.restaurantId.equals(w.tenant) &
             t.category.equals(category) &
-            t.vendor.like('%$sample') &
+            t.readJson.like(_sampleBillJson) &
             t.state.inSet({'review', 'approved', 'paying'}),
         transaction: w.tx,
       ) >
       0;
 
   /// Three drivers: the published courier login, when the café has one,
-  /// and two simulated drivers with no login, labelled sample. Their
-  /// availability starts fresh each day.
+  /// and two simulated drivers with no login ([sampleDrivers]). Their
+  /// availability starts fresh each day. A driver still named with the old
+  /// suffix ("Sam · Sample") is renamed in place, never duplicated.
   static Future<int> _seedDrivers(Work w, String Function(int) email) async {
     final s = w.s;
     final rid = w.tenant;
@@ -1226,19 +1330,45 @@ class JudgeModule {
           t.active.equals(true),
       transaction: w.tx,
     );
-    final existing = {
-      for (final d in await Driver.db.find(
-        s,
-        where: (t) => t.restaurantId.equals(rid),
-        transaction: w.tx,
-      ))
-        d.name: d,
-    };
+    final existing = <String, Driver>{};
+    for (final d in await Driver.db.find(
+      s,
+      where: (t) => t.restaurantId.equals(rid),
+      orderBy: (t) => t.id,
+      transaction: w.tx,
+    )) {
+      final name = plain(d.name);
+      if (name == d.name) {
+        existing[name] = d;
+        continue;
+      }
+      if (existing.containsKey(name) ||
+          await Driver.db.count(
+                s,
+                where: (t) => t.restaurantId.equals(rid) & t.name.equals(name),
+                transaction: w.tx,
+              ) >
+              0) {
+        // Its plain twin already exists: retire the old copy, keep its jobs.
+        d
+          ..active = false
+          ..status = 'offline'
+          ..version += 1
+          ..updatedAt = _now();
+        await Driver.db.updateRow(s, d, transaction: w.tx);
+        continue;
+      }
+      d
+        ..name = name
+        ..version += 1
+        ..updatedAt = _now();
+      existing[name] = await Driver.db.updateRow(s, d, transaction: w.tx);
+    }
     final wanted = [
       if (courier != null)
         ('Courier (demo login)', courier.userId, 'bike', email(1).isEmpty ? null : email(1), 'offline'),
-      ('Sam $sample', null, 'bike', null, 'available'),
-      ('Ines $sample', null, 'scooter', null, 'available'),
+      ('Sam', null, 'bike', null, 'available'),
+      ('Ines', null, 'scooter', null, 'available'),
     ];
     var added = 0;
     for (final (name, userId, vehicle, payout, status) in wanted) {
@@ -1310,7 +1440,7 @@ class JudgeModule {
           t.kind.equals('link') &
           t.state.equals('open') &
           t.checkoutIntentId.equals(null) &
-          t.payerName.notLike('%$sample') &
+          t.description.notLike(_sampleLink) &
           (t.createdAt < _now().subtract(const Duration(minutes: 10))),
       transaction: w.tx,
     );
@@ -1318,7 +1448,7 @@ class JudgeModule {
       s,
       where: (t) =>
           t.restaurantId.equals(rid) &
-          t.payerName.like('%$sample') &
+          t.description.like(_sampleLink) &
           t.state.inSet({'draft', 'open', 'sent'}),
       transaction: w.tx,
     );
@@ -1340,7 +1470,7 @@ class JudgeModule {
       PaymentRequest(
         restaurantId: rid,
         kind: 'link',
-        payerName: 'Studio Lumen $sample',
+        payerName: 'Studio Lumen',
         payerEmail: email(0).isEmpty ? null : email(0),
         description: 'Catering deposit · Friday lunch for 12 (sample)',
         amountMinor: 3555,
@@ -1467,9 +1597,9 @@ class JudgeModule {
     return m?.userId ?? w.user;
   }
 
-  /// The second café's back office: two staff, its own stock and two bills,
-  /// all sample. It sells nothing by itself, so the group pages compare a
-  /// busy café with a quiet one, honestly.
+  /// The second café's back office: its own stock, its bills and its own
+  /// stored sample history (a quieter café than the first, with two staff),
+  /// so the group pages compare a busy café with a quiet one.
   static Future<Json> seedSecond(Work w) async {
     final s = w.s;
     final rid = w.tenant;
@@ -1494,7 +1624,13 @@ class JudgeModule {
     final stock = await _seedStock(w, supplier.id);
     final recipes = await _seedRecipes(w, stock);
     final bills = await _seedBills(w, (_) => '');
-    return {'stock': stock.length, 'recipes': recipes, 'bills': bills};
+    final history = await JudgeHistory.seed(w);
+    return {
+      'stock': stock.length,
+      'recipes': recipes,
+      'bills': bills,
+      'history': history,
+    };
   }
 
   /// Returns the café to its starting menu and settings. Nothing is deleted:
@@ -1510,6 +1646,9 @@ class JudgeModule {
   }) async {
     if (!venue(rid)) {
       _fail('forbidden', 'Only the judges’ café starts fresh.');
+    }
+    if (JudgeStory017.active) {
+      await AgentModule.asAgent(s, rid, JudgeStory017.beforeReset);
     }
     final before = _now().subtract(quiet);
     var released = 0;
@@ -1544,6 +1683,7 @@ class JudgeModule {
       _fail('not_found', 'The judges’ café has no owner.');
     }
     return MoneyModule.locked(s, rid, owner.userId, (w) async {
+      await JudgeStory017.finishReset(w);
       var completed = 0, cancelled = 0, expired = 0;
       final orders = menuOnly
           ? <PurchaseOrder>[]

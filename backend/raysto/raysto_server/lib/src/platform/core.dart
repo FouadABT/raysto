@@ -38,6 +38,7 @@ class Work {
     );
     await ConversationModule.businessEvent(this, kind, type, id);
     await AgentModule.onAudit(this, kind, type, id, details);
+    await FinanceAccounting.observe(this, kind, type, id);
   }
 
   Future<void> job(

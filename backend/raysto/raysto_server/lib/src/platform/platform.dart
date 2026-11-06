@@ -23,6 +23,8 @@ import '../services/firebase_services.dart';
 import '../services/paypal_gateway.dart';
 import '../services/paypal_mcp_client.dart';
 import '../services/gemini_transport.dart';
+import '../services/restaurant_costing.dart';
+import '../services/financial_narrative.dart';
 
 part 'core.dart';
 part 'identity.dart';
@@ -55,6 +57,7 @@ part 'agent_catering.dart';
 part 'agent_complaints.dart';
 part 'agent_disputes.dart';
 part 'judge.dart';
+part 'judge_history.dart';
 part 'backoffice.dart';
 part 'dashboard.dart';
 part 'agent_close.dart';
@@ -73,6 +76,11 @@ part 'agent_supplies_plan.dart';
 part 'studio_layout.dart';
 // 0.16 stream S6: each restaurant's own PayPal app.
 part 'merchant_app.dart';
+part 'finance_017.dart';
+part 'finance_decisions.dart';
+part 'finance_outcomes.dart';
+part 'finance_accounting.dart';
+part 'judge_story_017.dart';
 
 typedef Json = Map<String, dynamic>;
 final _random = Random.secure();
@@ -298,6 +306,8 @@ class PlatformApi {
 
   static final Map<String, Future<Json> Function(Session, PlatformCommand)>
   commands = {
+    ...Finance017.commands,
+    ...JudgeStory017.commands,
     // 0.16 anchor: each module fills its own map; nothing else goes here.
     ...GroupModule.commands,
     ...BillsModule.commands,

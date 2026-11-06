@@ -148,7 +148,11 @@ class _KitchenBoardState extends State<KitchenBoard> {
                           Expanded(
                             child: Text(
                               '${c.tr(title)} · ${rows.length}',
-                              style: AppType.style(19, weight: FontWeight.w700),
+                              style: AppType.style(
+                                19,
+                                weight: FontWeight.w700,
+                                color: Theme.of(c).colorScheme.onSurface,
+                              ),
                             ),
                           ),
                         ],

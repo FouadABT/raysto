@@ -440,6 +440,7 @@ class PurchasingModule {
           kind: kind,
           quantity: quantity,
           unitCostMinor: unitCostMinor ?? item.costMinor,
+          purchaseUnit: item.unit,
           refType: refType,
           refId: refId,
           at: _now(),
@@ -515,6 +516,7 @@ class PurchasingModule {
       if (rows.isNotEmpty) {
         await RecipeLine.db.insert(s, rows, transaction: w.tx);
       }
+      await Finance017.legacyRecipeSaved(w, productId);
       await w.audit('recipe.saved', 'product', productId, {
         'lines': rows.length,
       });
@@ -597,6 +599,7 @@ class PurchasingModule {
     if (type != 'order' || id == null) return;
     final order = await PurchaseOrder.db.findById(w.s, id, transaction: w.tx);
     if (order == null || order.restaurantId != w.tenant) return;
+    if (await Finance017.consumeOrder(w, order)) return;
     final products = {for (final l in order.lines) l.productId};
     if (products.isEmpty) return;
     final recipes = await RecipeLine.db.find(

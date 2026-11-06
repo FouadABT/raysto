@@ -23,6 +23,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../backend/live_runtime.dart';
 import '../../app/navigation.dart';
 import '../../backend/platform_api.dart';
+import '../../backend/finance_contracts.dart';
 import '../../design_system/design_system.dart';
 import '../../l10n/app_localizations.dart';
 import '../scanning/qr_camera_screen.dart';
@@ -58,6 +59,8 @@ part 'osm_map.dart';
 part 'group_today.dart';
 // 0.16 stream S6: the café's PayPal account, read-only on the phone.
 part 'paypal_account.dart';
+part 'finance_workspace.dart';
+part 'price_comparison.dart';
 
 typedef Json = Map<String, dynamic>;
 Json obj(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : {};
@@ -404,7 +407,11 @@ class _DataPageState extends State<DataPage> with WidgetsBindingObserver {
           : Text(
               widget.title,
               style: widget.large
-                  ? AppType.style(wide ? 30 : 24, weight: FontWeight.w700)
+                  ? AppType.style(
+                      wide ? 30 : 24,
+                      weight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    )
                   : null,
             ),
       actions: [

@@ -37,6 +37,8 @@ import { Icon, type IconName } from "./icons";
 import { pill, useLoad, words, type Section } from "./business-sections";
 import { ActionInbox, useInbox } from "./action-inbox";
 import { OverviewStudio } from "./overview-studio";
+import { currency } from '@/lib/connected/contracts';
+import type { FinancialSummary } from '@/lib/connected/finance';
 
 const RANGE_KEY = "raysto.overviewRange";
 
@@ -137,6 +139,8 @@ export function OverviewSection({
       </header>
 
       <ActionInbox api={api} tenant={tenant} inbox={inbox} timeZone={zone} />
+      {process.env.NEXT_PUBLIC_RAYSTO_FINANCE_017 === 'on' && d && <TodayFinance key={`${api.scopeKey}:${tenant}:${d.from}:${d.to}:${revision}`}
+        api={api} tenant={tenant} from={d.from} to={d.to} inspect={() => open('finance')} />}
 
       {settled && <NeedsYou payments={needs.data?.payments ?? 0} requests={openRequests} open={open} />}
 
@@ -144,7 +148,8 @@ export function OverviewSection({
         <div>
           <h2 className="ops-ov-figures-title">The café at a glance</h2>
           <p className="ops-ov-basis">
-            Paid sales, counted when ordered · {rangeWords(range)} compared with {previousWords(range)}
+            Paid sales, counted when ordered · {rangeWords(range)}
+            {(!judges || range === "7d") && <> compared with {previousWords(range)}</>}
           </p>
         </div>
         <div className="ops-segmented" role="group" aria-label="Period">
@@ -185,10 +190,37 @@ export function OverviewSection({
           short={short}
           open={open}
           analytics={<OverviewStudio api={api} tenant={tenant} currencyCode={code} />}
+          demo={judges}
         />
       )}
     </div>
   );
+}
+
+function TodayFinance({ api, tenant, from, to, inspect }: { api: ConnectedApi; tenant: number; from: string; to: string; inspect: () => void }) {
+  const [summary, setSummary] = useState<FinancialSummary>(), [error, setError] = useState(''), [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setSummary(undefined); setError('');
+    void api.query<FinancialSummary>('finance.summary', { restaurantId: tenant, from, to }, controller.signal)
+      .then(data => { if (!controller.signal.aborted) setSummary(data); })
+      .catch(e => { if (!controller.signal.aborted) setError(String(e)); });
+    return () => controller.abort();
+  }, [api, tenant, from, to, retry]);
+  return <section className="ops-finance-panel" aria-label="Recorded financial position">
+    <h3>What the recorded finances show</h3>
+    {summary ? <>
+      <p>{summary.basisLabel} · {summary.timezone}. {summary.partialPeriod && `The management period begins at ${summary.effectiveFrom}.`}</p>
+      <dl className="ops-finance-figures">
+        <div><dt>Net sales</dt><dd>{currency(summary.netSalesMinor, summary.currency)}</dd></div>
+        <div><dt>{summary.operatingResultMinor == null ? 'Recorded result · incomplete or legacy basis' : 'Operating result'}</dt><dd>{currency(summary.operatingResultMinor ?? summary.recordedResultMinor, summary.currency)}</dd></div>
+        <div><dt>Recorded cash position</dt><dd>{summary.recordedCashPositionMinor == null ? 'Unknown' : currency(summary.recordedCashPositionMinor, summary.currency)}</dd></div>
+      </dl>
+      {!summary.complete && <p role="status">The financial evidence is incomplete or uses the legacy recognition basis. Inspect it before making a decision.</p>}
+      <p className="ops-note">Recorded cash is derived from Raysto transactions; an external bank balance has not been verified.</p>
+    </> : error ? <><p role="alert">{error}</p><button className="ops-btn secondary" onClick={() => setRetry(r => r + 1)}>Retry financial summary</button></> : <p role="status">Loading financial summary…</p>}
+    <button className="ops-btn" onClick={inspect}>Inspect costs and decisions</button>
+  </section>;
 }
 
 /** Other things that need a person: PayPal attempts left open and requests at the tables. Nothing when there are none. */
@@ -232,6 +264,7 @@ function Figures({
   short,
   open,
   analytics,
+  demo = false,
 }: {
   d: Dashboard;
   range: DashboardRange;
@@ -240,6 +273,10 @@ function Figures({
   open: (section: Section | "floor", focus?: string) => void;
   /** The 30-day AG Studio card, after the day's cards. */
   analytics?: ReactNode;
+  /** A demo café: its stored history covers the 30 days before today only, so
+   * today against yesterday, and 30 days against the 30 before, compare
+   * unlike things. Those comparisons are left out; 7 against 7 stays. */
+  demo?: boolean;
 }) {
   const empty = noSales(d);
   const kitchen = kitchenTotal(d.kitchen);
@@ -267,6 +304,7 @@ function Figures({
                 </p>
                 {f.series.some((v) => v !== 0) && <Sparkline values={f.series} label={`${k.label} ${per}, ${rangeWords(range)}`} />}
               </div>
+              {(!demo || range === "7d") && (
               <p className="ops-ov-delta">
                 <span className={`ops-ov-trend ${t.kind}`} aria-hidden="true">
                   {deltaChip(f.value, f.previous)}
@@ -274,6 +312,7 @@ function Figures({
                 <span aria-hidden="true">{previousShort(range)}</span>
                 <span className="m3-sr">{deltaSentence(f.value, f.previous, range)}</span>
               </p>
+              )}
             </Reveal>
           );
         })}

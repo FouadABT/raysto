@@ -40,6 +40,7 @@ import {
 } from "@/lib/connected/business";
 
 export type Section =
+  | "finance"
   | "overview"
   | "orders"
   | "payments"

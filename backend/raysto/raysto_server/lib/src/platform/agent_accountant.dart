@@ -440,6 +440,7 @@ class AccountantAgent {
       'restaurant': place,
       'today': _now().toIso8601String(),
     }, trace);
+    SuppliesAgent.requireDocumentCurrency(raw, currency);
     final read = _normalise(raw, currency);
     Json? proposed;
     final result = await AgentRuntime.loop(

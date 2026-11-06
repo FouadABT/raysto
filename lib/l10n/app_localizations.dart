@@ -6,6 +6,7 @@ import 'domain_catalog.dart';
 import 'connected_catalog.dart';
 import 'payment_catalog.dart';
 import 'experience_catalog.dart';
+import 'finance_catalog.dart';
 
 /// English keys keep feature call sites readable; translated catalogues are
 /// bundled and available offline. Restaurant-authored names remain verbatim.
@@ -105,6 +106,7 @@ extension RaystoTranslations on BuildContext {
 }
 
 const translations = <String, (String, String)>{
+  ...financeTranslations,
   ...experienceTranslations,
   ...paymentTranslations,
   ...connectedTranslations,

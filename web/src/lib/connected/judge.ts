@@ -47,8 +47,15 @@ export const evidence = {
 };
 
 export const judgeLogin = () => !!(judge.email && judge.password);
+/** Demo cafés the backend marks with `demo: true` on the person's memberships
+ * (both judges' cafés since backend 0.16.2), remembered once `me` loads. */
+const demoVenues = new Set<number>();
+export function markDemoVenues(ids: Iterable<number>) {
+  for (const id of ids) demoVenues.add(id);
+}
+
 export const isJudgeVenue = (restaurantId: number) =>
-  judge.restaurantId > 0 && restaurantId === judge.restaurantId;
+  (judge.restaurantId > 0 && restaurantId === judge.restaurantId) || demoVenues.has(restaurantId);
 
 /** "12 s" or "1 min 05 s": how long a demo has been running. */
 export function elapsed(ms: number): string {

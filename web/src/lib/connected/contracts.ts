@@ -5,6 +5,8 @@ export interface Membership {
   restaurantId: number;
   name: string;
   role: string;
+  /** A shared demo café (sample data, PayPal Sandbox); backend 0.16.2 and later. */
+  demo?: boolean;
 }
 export interface ServiceRow {
   id: number;

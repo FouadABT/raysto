@@ -1,9 +1,14 @@
+// Docker Postgres on this machine is slow; each pay run makes many round trips.
+@Timeout(Duration(minutes: 3))
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:raysto_server/src/generated/protocol.dart';
 import 'package:raysto_server/src/platform/platform.dart';
+import 'package:raysto_server/src/services/paypal_gateway.dart';
 import 'package:test/test.dart';
 import '../fixtures/money_agents_fixture.dart';
 import 'test_tools/serverpod_test_tools.dart';
@@ -418,6 +423,138 @@ void main() {
       expect(equal.values.fold<int>(0, (a, b) => a + b), 1000);
       expect(equal, {'a@x': 334, 'b@x': 333, 'c@x': 333});
       expect(PayrollAgent.splitTips(0, people, 'hours'), isEmpty);
+    });
+
+    // ---- 0.16.2: a pay run never pays the same wages twice ------------------
+
+    /// A pay run for yesterday to tomorrow, queued and run like the console's.
+    Future<AgentTask> payRun(String tag) async {
+      final s = builder.build();
+      upstream.turn = 0; // each run is a fresh conversation with the model
+      final now = DateTime.now().toUtc();
+      final task = (await AgentModule.asAgent<AgentTask?>(
+        s,
+        restaurant.id!,
+        (w) => AgentModule.enqueue(
+          w,
+          agent: PayrollAgent.agent,
+          trigger: 'user',
+          dedupeKey: 'payroll-fixture-$tag',
+          title: 'Pay run',
+          input: {
+            'from': now.subtract(const Duration(days: 1)).toIso8601String(),
+            'to': now.add(const Duration(days: 1)).toIso8601String(),
+          },
+        ),
+      ))!;
+      await AgentModule.run(s, task.id!);
+      return (await AgentTask.db.findById(s, task.id!))!;
+    }
+
+    Future<List<PayoutBatch>> batchesOf(AgentTask task) => PayoutBatch.db.find(
+      builder.build(),
+      where: (t) => t.taskId.equals(task.id!),
+      orderBy: (t) => t.id,
+    );
+
+    Future<void> approveAll(AgentTask task) async {
+      final s = builder.build();
+      // A fresh identity check for this approval.
+      await SecurityGrant.db.deleteWhere(s, where: (t) => t.userId.equals('payroll-owner'));
+      await stepUp();
+      for (final a in await AgentAction.db.find(
+        s,
+        where: (t) => t.taskId.equals(task.id!),
+        orderBy: (t) => t.ordinal,
+      )) {
+        final done = await AgentModule.decide(
+          owner.build(),
+          PlatformCommand(
+            requestKey: key(),
+            restaurantId: restaurant.id,
+            resourceId: a.id,
+            expectedVersion: a.version,
+            dataJson: '{"decision":"approve"}',
+          ),
+        );
+        expect(done['state'], 'executed', reason: jsonEncode(done));
+      }
+    }
+
+    test('wages already paid through PayPal are not paid again; tips earned since the last payout are', () async {
+      await shift('Nadia', 'floor', 4, 1500, 'nadia@example.test');
+      await shift('Omar', 'kitchen', 2, 1200, 'omar@example.test');
+      await tippedSale(2000);
+      final first = await payRun('1');
+      expect(first.status, 'done', reason: '${first.summary} ${first.stateJson}');
+      final paid = await batchesOf(first);
+      expect(paid.map((b) => b.kind), ['tips', 'wages']);
+      // Each batch records exactly what it pays.
+      final wages = jsonDecode(paid.last.summaryJson) as Map;
+      expect((wages['shiftWages'] as Map).values.fold<int>(0, (a, b) => a + (b as int)), 6000 + 2400);
+      final tips = jsonDecode(paid.first.summaryJson) as Map;
+      expect((tips['tipCharges'] as Map).values.single, 2000);
+      await approveAll(first);
+      expect(upstream.payouts, hasLength(2));
+
+      // The same week again: nothing new, said plainly, nothing proposed,
+      // and the model is not asked to lay out zeros.
+      final asked = upstream.geminiTools.length;
+      final second = await payRun('2');
+      expect(second.status, 'done', reason: '${second.summary} ${second.stateJson}');
+      expect(second.summary, contains('Nothing new to pay'));
+      expect(second.summary, contains('not paid again'));
+      expect(second.summary, contains('wages for 2 shifts (84.00 USD)'));
+      expect(second.summary, contains('tips of 20.00 USD'));
+      expect(upstream.geminiTools.length, asked);
+      expect(await batchesOf(second), isEmpty);
+      expect(
+        await AgentAction.db.count(builder.build(), where: (t) => t.taskId.equals(second.id!)),
+        0,
+      );
+
+      // A tip left since: only it is paid, and the wages still are not.
+      await tippedSale(600);
+      final third = await payRun('3');
+      expect(third.status, 'done', reason: '${third.summary} ${third.stateJson}');
+      final later = await batchesOf(third);
+      expect(later.map((b) => b.kind), ['tips']);
+      expect(later.single.totalMinor, 600);
+      expect(third.summary, contains('not paid again'));
+      await approveAll(third);
+      expect(upstream.payouts, hasLength(3));
+      final sent = (upstream.payouts.last['body'] as Map)['items'] as List;
+      expect(
+        sent.fold<int>(0, (n, i) => n + PayPalGateway.parseMoney(((i as Map)['amount'] as Map)['value'] as String)),
+        600,
+      );
+    });
+
+    test('a proposal overtaken by a batch sent since is refused, never paid twice', () async {
+      await shift('Nadia', 'floor', 4, 1500, 'nadia@example.test');
+      final a = await payRun('a');
+      final b = await payRun('b');
+      final wagesA = (await batchesOf(a)).singleWhere((x) => x.kind == 'wages');
+      final wagesB = (await batchesOf(b)).singleWhere((x) => x.kind == 'wages');
+      expect(wagesA.totalMinor, 6000);
+      expect(wagesB.totalMinor, 6000);
+      await stepUp();
+      final sent = await PayrollAgent.sendCommand(owner.build(), command({}, id: wagesA.id));
+      expect(sent['state'], 'sent');
+      await expectLater(
+        PayrollAgent.sendCommand(owner.build(), command({}, id: wagesB.id)),
+        throwsA(
+          isA<DomainError>()
+              .having((e) => e.code, 'code', 'stale_proposal')
+              .having((e) => e.message, 'message', contains('#${wagesA.id}')),
+        ),
+      );
+      expect(upstream.payouts, hasLength(1));
+      expect((await PayoutBatch.db.findById(builder.build(), wagesB.id!))!.state, 'proposed');
+      // Run again: the wages are paid, so there is nothing more to send.
+      final c = await payRun('c');
+      expect(await batchesOf(c), isEmpty);
+      expect(c.summary, contains('not paid again'));
     });
   });
 }

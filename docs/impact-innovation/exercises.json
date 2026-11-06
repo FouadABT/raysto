@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "provenance": "Authored USD sample exercises, not owner sales or provider results",
+  "taxBps": 0,
+  "pricesIncludeTax": false,
+  "targetBps": 6000,
+  "maxIncreaseBps": 1000,
+  "incrementMinor": 10,
+  "feeBps": 0,
+  "feeFixedMinor": 0,
+  "baselineUnits": 100,
+  "volumeBasis": "explicit sample assumption; no recorded sales period",
+  "exercises": [
+    {"id":"A","dish":"Sample lunch bowl","purchaseUnit":"kg","recipeUnit":"g","quantity":"350","previousUnitCostMinor":1000,"currentUnitCostMinor":1100,"yieldBps":10000,"packagingMinor":0,"packagingConfirmed":true,"priceMinor":900,"customPriceMinor":980,
+      "expected":{"previousCostMinor":350,"costMinor":385,"costIncreaseMinor":35,"keepContributionMinor":515,"recommendedPriceMinor":970,"recommendedContributionMinor":585,"breakEvenUnits":89,"requiredCostReductionMinor":25,"fivePercentCapFeasible":false,"contributionAt100UnitsMinor":58500,"contributionAt90UnitsMinor":52650,"contributionAt80UnitsMinor":46800,"customContributionMinor":595}},
+    {"id":"B","dish":"Sample snack bowl","purchaseUnit":"kg","recipeUnit":"g","quantity":"300","previousUnitCostMinor":1040,"currentUnitCostMinor":1140,"yieldBps":10000,"packagingMinor":0,"packagingConfirmed":true,"priceMinor":800,"customPriceMinor":870,
+      "expected":{"previousCostMinor":312,"costMinor":342,"costIncreaseMinor":30,"keepContributionMinor":458,"recommendedPriceMinor":860,"recommendedContributionMinor":518,"breakEvenUnits":89,"requiredCostReductionMinor":22,"fivePercentCapFeasible":false,"contributionAt100UnitsMinor":51800,"contributionAt90UnitsMinor":46620,"contributionAt80UnitsMinor":41440,"customContributionMinor":528}}
+  ],
+  "incompleteExample":{"dish":"Sample seasonal bowl","missing":"No confirmed ingredient purchase cost","expected":"Keep cost unknown; refuse numeric recommendation; request receipt evidence"}
+}

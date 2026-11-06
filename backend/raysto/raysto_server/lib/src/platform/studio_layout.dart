@@ -5,6 +5,7 @@ part of 'platform.dart';
 /// group's owner. Anyone who may read the scope may load the layout.
 class StudioLayoutModule {
   static const sections = {
+    'finance',
     'overview',
     'group',
     'accountant',

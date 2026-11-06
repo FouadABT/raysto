@@ -72,6 +72,10 @@ class PlatformQueries {
         policy,
       );
       await _rate(s, 'read:${actor.userId}', 240, tx);
+      if (Finance017.queryNames.contains(name)) {
+        return Finance017.query(w, name, d);
+      }
+      if (name == 'judge.story') return JudgeStory017.status(w);
       Json page(List<Json> rows) => {
         'rows': rows,
         'nextCursor': rows.length == limit ? rows.last['id'] : null,
@@ -166,6 +170,9 @@ class PlatformQueries {
             'version': policy?.version ?? 0,
             'menuVersion': policy?.menuVersion ?? 0,
             'merchantStatus': merchant?.status ?? 'notConnected',
+            // A judges' café: PayPal Sandbox, a stored sample history, one
+            // "Demo café" badge in the console.
+            'demo': JudgeModule.venue(restaurant.id),
           };
         case 'checkouts':
           if (d['staff'] == true) await w.role(_managers);
@@ -451,6 +458,7 @@ class PlatformQueries {
             }
           }
           return {
+            'finance017Enabled': Finance017.active,
             'guest': actor.isGuest,
             'platformAdmin': !actor.isGuest && _platformAdmin(w.user),
             'groups': groups,
@@ -470,6 +478,7 @@ class PlatformQueries {
                     m.restaurantId,
                     transaction: tx,
                   ))?.name,
+                  'demo': JudgeModule.venue(m.restaurantId),
                 },
             ],
           };

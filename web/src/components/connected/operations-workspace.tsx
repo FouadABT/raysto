@@ -49,6 +49,7 @@ import { TrySection } from "./try-section";
 import { MoneySection, TeamSection } from "./backoffice-sections";
 import { GroupSection } from "./group-section";
 import { AccountantSection } from "./accountant-section";
+import { FinanceSection } from "./finance-section";
 import { DispatchSection } from "./dispatch-section";
 import { SuppliesSection } from "./supplies-section";
 import { OverviewSection } from "./overview-section";
@@ -65,16 +66,21 @@ type Place = Section | "floor" | "try";
  * URL (tool/judge_path_qa.cjs and our own checks use it).
  */
 const places: readonly (readonly [Place, string, IconName])[] = [
-  ["overview", "Overview", "overview"],
+  ...(process.env.NEXT_PUBLIC_RAYSTO_FINANCE_017 === "on" ? [
+    ["overview", "Today", "overview"] as const,
+    ["finance", "Sales and margins", "ledger"] as const,
+    ["supplies", "Bills and stock", "supplies"] as const,
+    ["team", "Team", "team"] as const,
+    ["money", "Money", "money"] as const,
+  ] : [["overview", "Overview", "overview"] as const]),
   ["orders", "Orders", "orders"],
   ["payments", "Payments", "payments"],
   ["agents", "Agents", "agents"],
-  ["money", "Money", "money"],
-  ["team", "Team", "team"],
+  ...(process.env.NEXT_PUBLIC_RAYSTO_FINANCE_017 === "on" ? [] : [["money", "Money", "money"] as const, ["team", "Team", "team"] as const]),
   // 0.16: accountant, delivery dispatch, supplies, and the franchise view.
   ["accountant", "Accountant", "ledger"],
   ["dispatch", "Dispatch", "dispatch"],
-  ["supplies", "Supplies", "supplies"],
+  ...(process.env.NEXT_PUBLIC_RAYSTO_FINANCE_017 === "on" ? [] : [["supplies", "Supplies", "supplies"] as const]),
   ["group", "Group", "group"],
   ["floor", "Floor", "floor"],
 ];
@@ -96,6 +102,7 @@ function firstPlace(judges: boolean): Place {
  * the grid's measurements. The Overview holds a 30-day AG Studio.
  */
 const gridHeavy = new Set<Place>([
+  "finance",
   "overview",
   "orders",
   "payments",
@@ -654,19 +661,20 @@ export function OperationsWorkspace({
           </button>
         ),
     });
-  const navItems = places;
+  const ownerNavigation = process.env.NEXT_PUBLIC_RAYSTO_FINANCE_017 === 'on';
   const title = [tryPlace, ...places].find(([id]) => id === section)?.[1] ?? "Overview";
   // One navigation, rendered into the sidebar (drawer or rail) and, while it
   // is open, the phone's modal drawer; each has its own sliding indicator.
-  const renderNav = (layoutId: string) => (
-    <nav className="ops-sections" aria-label="Console sections">
-      {navItems.map(([id, label, icon]) => (
+  const renderNavItems = (items: typeof places, layoutId: string) =>
+      items.map(([id, label, icon]) => (
         <button
           key={id}
           type="button"
           className="ops-nav-item"
           aria-current={section === id ? "page" : undefined}
           onClick={() => {
+            if (id !== section && roomDraft.current && !window.confirm("Discard the unsaved changes before leaving this section?")) return;
+            if (id !== section) { roomDraft.current = false; onDirty?.(false); }
             setFocus(undefined);
             setSection(id);
           }}
@@ -677,7 +685,14 @@ export function OperationsWorkspace({
           </span>
           <span className="ops-nav-label">{label}</span>
         </button>
-      ))}
+      ));
+  const renderNav = (layoutId: string) => (
+    <nav className="ops-sections" aria-label="Console sections">
+      {renderNavItems(ownerNavigation ? places.slice(0, 5) : places, layoutId)}
+      {ownerNavigation && <details open={places.slice(5).some(([id]) => id === section)}>
+        <summary style={{ minHeight: 48, padding: '14px 16px', cursor: 'pointer' }}>Restaurant operations</summary>
+        {renderNavItems(places.slice(5), layoutId)}
+      </details>}
     </nav>
   );
   if (!snapshot || !layout)
@@ -760,6 +775,9 @@ export function OperationsWorkspace({
                 setSection(next);
               }}
             />
+          ) : section === "finance" ? (
+            <FinanceSection key={`${tenant}:${api.scopeKey ?? 'preview'}`} api={api} tenant={tenant} revision={snapshot.asOf}
+              onDirty={dirty => { roomDraft.current = dirty; onDirty?.(dirty); }} />
           ) : section === "orders" ? (
             <OrdersSection
               key={focus ?? "orders"}

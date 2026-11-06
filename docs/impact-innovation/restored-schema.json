@@ -1,0 +1,20 @@
+{
+  "checkedAtUtc": "2026-11-06T03:43:29.139937+00:00",
+  "status": "passed",
+  "sourceRelease": "0.16.1-20261104",
+  "backupSha256": "10130a9b8829b60687e5b37104f0f314ac25afa77fea9976cfd68a7e89291ba3",
+  "migrations": [
+    "20261105161345704",
+    "20261105193140136"
+  ],
+  "preservedRecords": {
+    "raysto_stock_movement": "8:0391f40d5ac2d9e438997785e7924c80",
+    "raysto_order": "32:b15f05fe00ba474bafb61acf51e455e1",
+    "raysto_payment_capture": "15:6639bfd5101b7b697eae82688205ddf3",
+    "raysto_bill": "13:a1205345fc41293bf6ef9ca593d8417c"
+  },
+  "productionChanged": false,
+  "dataExported": false,
+  "scope": "Isolated temporary Raysto database on the existing AWS host; additive migrations and record preservation",
+  "applicationStartup": "Not established by this schema check"
+}

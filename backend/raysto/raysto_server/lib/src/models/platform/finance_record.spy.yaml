@@ -1,0 +1,18 @@
+class: FinanceRecord
+table: raysto_finance_record
+serverOnly: true
+fields:
+  restaurantId: int, relation(parent=raysto_restaurant)
+  kind: String
+  recordKey: String
+  payloadJson: String
+  createdBy: String
+  version: int
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  finance_record_key:
+    fields: restaurantId, kind, recordKey
+    unique: true
+  finance_record_page:
+    fields: restaurantId, kind, id
