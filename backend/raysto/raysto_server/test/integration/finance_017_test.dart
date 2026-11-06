@@ -845,6 +845,70 @@ void main() {
       },
     );
     test(
+      'delivery receipt evidence resolves its matched supplier bill',
+      () async {
+        final now = DateTime.now().toUtc();
+        final mediaId = await world.file(
+          'deliveryNote',
+          'linked-supplier-note',
+        );
+        final bill = await BillsModule.save(
+          world.owner.build(),
+          world.command({
+            'vendor': 'Linked supplier',
+            'category': 'supplier',
+            'amountMinor': 1100,
+          }),
+        );
+        final order = await SupplierOrder.db.insertRow(
+          builder.build(),
+          SupplierOrder(
+            restaurantId: world.restaurant.id!,
+            state: 'billed',
+            linesJson: '[]',
+            totalMinor: 1100,
+            currency: 'USD',
+            createdBy: world.ownerId,
+            billId: bill['id'] as int,
+            version: 1,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        final delivery = await SupplyDelivery.db.insertRow(
+          builder.build(),
+          SupplyDelivery(
+            restaurantId: world.restaurant.id!,
+            mediaId: mediaId,
+            supplierOrderId: order.id,
+            linesJson: '[]',
+            totalMinor: 1100,
+            currency: 'USD',
+            state: 'received',
+            version: 1,
+            createdAt: now,
+          ),
+        );
+        final movement = await StockMovement.db.insertRow(
+          builder.build(),
+          StockMovement(
+            restaurantId: world.restaurant.id!,
+            stockItemId: ingredient,
+            kind: 'receive',
+            quantity: 1,
+            unitCostMinor: 1100,
+            purchaseUnit: 'kg',
+            refType: 'supplyDelivery',
+            refId: '${delivery.id}',
+            at: now,
+          ),
+        );
+        final evidence = await read('finance.evidence', {'id': movement.id});
+        expect(evidence['mediaId'], mediaId);
+        expect(evidence['billId'], bill['id']);
+      },
+    );
+    test(
       'a receipt, matched invoice and settlement acquire stock once',
       () async {
         await activate();

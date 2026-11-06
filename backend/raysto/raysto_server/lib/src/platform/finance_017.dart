@@ -1347,26 +1347,34 @@ class Finance017 {
         movement.stockItemId,
         transaction: w.tx,
       );
-      int? mediaId, billId;
+      int? mediaId, billId, supplierOrderId;
       if (movement.refType == 'supplyDelivery') {
         final delivery = await SupplyDelivery.db.findById(
           w.s,
           int.tryParse(movement.refId) ?? 0,
           transaction: w.tx,
         );
-        if (delivery?.restaurantId == w.tenant) mediaId = delivery!.mediaId;
+        if (delivery?.restaurantId == w.tenant) {
+          mediaId = delivery!.mediaId;
+          supplierOrderId = delivery.supplierOrderId;
+        }
       } else if (movement.refType == 'supplierOrder') {
+        supplierOrderId = int.tryParse(movement.refId.split(':').first);
+      }
+      if (supplierOrderId != null) {
         final order = await SupplierOrder.db.findById(
           w.s,
-          int.tryParse(movement.refId.split(':').first) ?? 0,
+          supplierOrderId,
           transaction: w.tx,
         );
         if (order?.restaurantId == w.tenant) {
-          billId = order!.billId;
-          final bill = billId == null
+          final bill = order!.billId == null
               ? null
-              : await Bill.db.findById(w.s, billId, transaction: w.tx);
-          if (bill?.restaurantId == w.tenant) mediaId = bill!.sourceMediaId;
+              : await Bill.db.findById(w.s, order.billId!, transaction: w.tx);
+          if (bill?.restaurantId == w.tenant) {
+            billId = bill!.id;
+            mediaId ??= bill.sourceMediaId;
+          }
         }
       }
       return {

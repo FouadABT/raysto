@@ -33,8 +33,9 @@ class FinancialNarrative {
       final parts = raw.split('.');
       final isBps = match[2]!.toLowerCase().startsWith('b');
       if (isBps && parts.length > 1 ||
-          !isBps && parts.length > 1 && parts[1].length > 2)
+          !isBps && parts.length > 1 && parts[1].length > 2) {
         return false;
+      }
       final rate = isBps
           ? int.parse(raw)
           : int.parse(parts[0]) * 100 +
