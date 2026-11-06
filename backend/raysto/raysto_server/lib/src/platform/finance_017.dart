@@ -1705,8 +1705,12 @@ class Finance017 {
           'You cannot change prices or move money. Use read_comparison and calculate_comparison for owner challenges. '
           'A comparison may narrow the owner cap, never expand it. Baseline units must be supplied by the owner or selected comparison. '
           'Use configure_view to arrange evidence and comparison, allowed columns and filters when asked. '
+          'Unsupported expressions or direct payment/publication requests must be refused; do not substitute a proposal unless the owner asks for a reviewed proposal. '
+          'Missing confirmed costs prevent recommendations, but do not prevent saving a draft recipe or ingredient. '
           'Use the report summary to ask for missing inputs rather than inventing them. '
-          'If costs are incomplete say what is missing; if evidence is insufficient say so.',
+          'If costs are incomplete say what is missing; if evidence is insufficient say so. '
+          'Finish by calling report with a concise summary of at most 900 characters. '
+          'Reserve a tool call for report; do not repeat unrelated financial reads.',
       prompt: _str(input, 'text', max: 2000),
       rounds: 4,
       maxCalls: 8,
@@ -1814,7 +1818,7 @@ class Finance017 {
         ),
         AgentRuntime.declaration(
           'report',
-          'Explain the evidence and choose a presentation-only widget. No business mutation.',
+          'Finish the turn: explain the evidence in at most 900 characters and choose a presentation-only widget. No business mutation.',
           {
             'summary': {'type': 'STRING'},
             'view': {
@@ -2061,7 +2065,29 @@ class Finance017 {
         });
       },
     );
-    final valid = report;
+    // Gemini can finish with text after successful tool calls instead of the
+    // requested report call. Apply the same evidence/amount/length boundary;
+    // never turn an unsupported answer into an accepted report or truncate it.
+    final finalText = result.text.trim();
+    final textAccepted =
+        report == null &&
+        evidence.isNotEmpty &&
+        finalText.isNotEmpty &&
+        finalText.length <= 1200 &&
+        FinancialNarrative.amountsSupported(finalText, evidence);
+    final valid =
+        report ??
+        (textAccepted
+            ? <String, dynamic>{
+                'summary': finalText,
+                'view':
+                    comparison != null ||
+                        calculated != null ||
+                        evidence.containsKey('read_comparison')
+                    ? 'scenario'
+                    : 'costing',
+              }
+            : null);
     if (valid == null) {
       _fail(
         'invalid_ai_response',
@@ -2074,6 +2100,7 @@ class Finance017 {
         ...valid,
         'taskId': task.id,
         'source': 'gemini',
+        'reportDelivery': textAccepted ? 'validated-final-text' : 'report-tool',
         'evidence': evidence,
         'scenario': calculated,
         'comparison': comparison,

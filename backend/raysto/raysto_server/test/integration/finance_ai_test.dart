@@ -149,6 +149,74 @@ void main() {
         );
       },
     );
+    test('evidenced final text retains the calculated comparison', () async {
+      final original = await FinanceDecisions.save(
+        world.owner.build(),
+        world.command({'productId': world.burger, 'baselineUnits': 100}),
+        revise: false,
+      );
+      world.script = (turn, _) => turn == 1
+          ? [
+              call('calculate_comparison', {'maxIncreaseBps': 500}),
+            ]
+          : [
+              {
+                'text':
+                    'At 9.00 USD the contribution is 5.15 USD. The narrower cap cannot meet the target.',
+              },
+            ];
+      final started = await Finance017.investigate(
+        world.owner.build(),
+        world.command({
+          'text': 'Use a five percent cap.',
+          'productId': world.burger,
+          'comparisonId': original['id'],
+        }),
+        studio: true,
+      );
+      await AgentModule.run(builder.build(), started['taskId'] as int);
+      final analysis = await world.read('finance.analysis', {
+        'id': started['taskId'],
+      });
+      expect(analysis['source'], 'gemini');
+      expect(analysis['reportDelivery'], 'validated-final-text');
+      expect(analysis['comparison']['parentId'], original['id']);
+      expect(analysis['comparison']['feasible'], false);
+      expect(analysis['proposalsPrepared'], 0);
+      expect(
+        (await MenuProduct.db.findById(
+          builder.build(),
+          world.burger,
+        ))!.priceMinor,
+        900,
+      );
+    });
+    for (final mode in ['unsupported-amount', 'no-evidence', 'oversized']) {
+      test('final text cannot bypass report validation: $mode', () async {
+        world.script = (turn, _) => turn == 1 && mode != 'no-evidence'
+            ? [call('read_costing')]
+            : [
+                {
+                  'text': mode == 'oversized'
+                      ? List.filled(1201, 'a').join()
+                      : 'The cost is 9999.99 USD.',
+                },
+              ];
+        final started = await start(studio: true);
+        await AgentModule.run(builder.build(), started['taskId'] as int);
+        final analysis = await world.read('finance.analysis', {
+          'id': started['taskId'],
+        });
+        expect(analysis['source'], 'deterministic-fallback');
+        expect(
+          await AgentAction.db.count(
+            builder.build(),
+            where: (t) => t.taskId.equals(started['taskId'] as int),
+          ),
+          0,
+        );
+      });
+    }
     test('Studio work uses the existing chat allowance', () async {
       final started = await start(studio: true);
       expect(
