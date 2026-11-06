@@ -96,3 +96,8 @@ The bounded deployment and acceptance tools are under tool/: package_design_cons
 [Public prerelease and downloads](https://github.com/FouadABT/raysto/releases/tag/raysto-0.17-design-dev6) contain the scanned backend delta, Linux console, development APK, manifest, original checkpoint index, artifact checksum file and public Git-byte verification index. [Publication record](artifact-publication.json) and [source refs](source-publication.json) identify the actual outputs. The immutable candidate tag resolves to6eb4826; its console application source remains e59d7ed.
 
 The original checkpoint index hashes the actual local evidence bytes. Git normalized Windows line endings in nine text records during publication; the JSON values are unchanged. [Published Git-byte verification](candidate-public-evidence.json) hashes the exact blobs at the tag, including the manifest and original index. Binary artifact hashes did not change. Publication-only records follow the frozen tag on main.
+
+
+## Final source-pinned check
+
+[Final validation](final-validation.json) records171 unit tests passed, zero failed, at published repository commit ff01a0f; application source is unchanged from e59d7ed. This supersedes the uncertain commit attribution attached to the earlier unit log. The immutable candidate tag and binary artifacts remain unchanged; the newer validation is a separate release attachment.

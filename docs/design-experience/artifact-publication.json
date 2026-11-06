@@ -45,7 +45,15 @@
       "sha256": "1f0ed5fbccf6494203291598998021679dfb090529c621439363d640a882c449",
       "bytes": 11096,
       "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/candidate-public-evidence.json"
+    },
+    {
+      "name": "final-validation.json",
+      "sha256": "7d160637f6ecb0f3ad07bed35f136eea27b08063752b08842a6847c054d06985",
+      "bytes": 698,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/final-validation.json"
     }
   ],
-  "publicGitBlobIndex": "docs/design-experience/candidate-public-evidence.json"
+  "publicGitBlobIndex": "docs/design-experience/candidate-public-evidence.json",
+  "finalValidation": "docs/design-experience/final-validation.json",
+  "lastVerifiedAtUtc": "2026-11-06T20:51:23.949993+00:00"
 }

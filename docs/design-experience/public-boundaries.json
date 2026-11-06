@@ -1,0 +1,24 @@
+{
+  "checkedAtUtc": "2026-11-06T20:51:23.949993+00:00",
+  "status": "passed",
+  "consoleSourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "checks": [
+    {
+      "url": "https://ops.rays.to/ops",
+      "status": 200
+    },
+    {
+      "url": "https://rays.to/",
+      "status": 200
+    },
+    {
+      "url": "https://ops.rays.to/ops/kit/decision",
+      "status": 404
+    },
+    {
+      "url": "https://ops.rays.to/ops/preview",
+      "status": 404
+    }
+  ],
+  "method": "Native Node fetch with normal TLS validation; actual response statuses verified before recording."
+}

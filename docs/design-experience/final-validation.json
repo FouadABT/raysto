@@ -1,0 +1,14 @@
+{
+  "checkedAtUtc": "2026-11-06T20:49:30.600983+00:00",
+  "status": "passed",
+  "testedRepositoryCommit": "ff01a0fcb2dcc5a6ad1d8433622b5614aef44828",
+  "applicationSourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "unitTests": {
+    "passed": 171,
+    "failed": 0,
+    "skipped": 0,
+    "log": ".tooling/test-tmp/design-unit-published.log",
+    "logSha256": "300c803ba091d715341d0251fc7fdaea788128ebcc8cf1b1d8f6dfd4a7d07787"
+  },
+  "historicalAttributionCorrection": "The earlier design-web-unit log did not record its exact commit. Treat its attributed 9dbf100 source as unverified; this source-pinned rerun supersedes that attribution. The frozen tag and binaries remain unchanged."
+}
