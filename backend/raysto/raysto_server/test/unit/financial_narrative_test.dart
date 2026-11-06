@@ -55,4 +55,34 @@ void main() {
       true,
     );
   });
+  test('percentages and basis points require exact backend evidence', () {
+    final data = {
+      'targetBps': 6000,
+      'contributionBps': 5722,
+      'volumeChangeBps': -1500,
+    };
+    for (final text in [
+      '60.00% target; 57.22 percent contribution',
+      '15% fewer units',
+      '-15.00% volume; 6,000 bps target',
+    ]) {
+      expect(
+        FinancialNarrative.amountsSupported(text, data),
+        true,
+        reason: text,
+      );
+    }
+    for (final text in [
+      '59.26% at the cap',
+      '57.2 percent contribution',
+      '5926 basis points',
+      '15.001% fewer units',
+    ]) {
+      expect(
+        FinancialNarrative.amountsSupported(text, data),
+        false,
+        reason: text,
+      );
+    }
+  });
 }

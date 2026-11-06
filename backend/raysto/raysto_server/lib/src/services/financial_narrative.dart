@@ -2,7 +2,7 @@
 /// This is a numeric guard, not a claim that all causal language is verified.
 class FinancialNarrative {
   static bool amountsSupported(String prose, Object? evidence) {
-    final amounts = <int>{}, currencies = <String>{};
+    final amounts = <int>{}, rates = <int>{}, currencies = <String>{};
     void visit(Object? value, [String key = '']) {
       if (value is Map) {
         for (final e in value.entries) {
@@ -14,12 +14,33 @@ class FinancialNarrative {
         }
       } else if (value is int && key.endsWith('Minor')) {
         amounts.add(value);
+      } else if (value is int && key.endsWith('Bps')) {
+        rates.add(value.abs());
       } else if (value is String && key == 'currency') {
         currencies.add(value);
       }
     }
 
     visit(evidence);
+    // Percentages must be backend results too: otherwise a model could invent
+    // a margin for a price that the candidate search never evaluated.
+    final percentages = RegExp(
+      r'(-?\d[\d,]*(?:\.\d+)?)\s*(%|percent\b|per cent\b|bps\b|basis points?\b)',
+      caseSensitive: false,
+    );
+    for (final match in percentages.allMatches(prose)) {
+      final raw = match[1]!.replaceAll(',', '').replaceFirst('-', '');
+      final parts = raw.split('.');
+      final isBps = match[2]!.toLowerCase().startsWith('b');
+      if (isBps && parts.length > 1 ||
+          !isBps && parts.length > 1 && parts[1].length > 2)
+        return false;
+      final rate = isBps
+          ? int.parse(raw)
+          : int.parse(parts[0]) * 100 +
+                int.parse((parts.length == 1 ? '' : parts[1]).padRight(2, '0'));
+      if (!rates.contains(rate)) return false;
+    }
     final normalized = prose.replaceAllMapped(
       RegExp(r'-\s*(USD|EUR|GBP|[$€£])\s*'),
       (m) => '${m[1]}-',

@@ -217,6 +217,54 @@ void main() {
         );
       });
     }
+    test(
+      'AI cannot widen a selected case cap even within venue policy',
+      () async {
+        final c = await FinanceDecisions.save(
+          world.owner.build(),
+          world.command({
+            'productId': world.burger,
+            'baselineUnits': 100,
+            'maxIncreaseBps': 500,
+          }),
+          revise: false,
+        );
+        world.script = (turn, _) => switch (turn) {
+          1 => [call('read_comparison')],
+          2 => [
+            call('calculate_comparison', {'maxIncreaseBps': 1000}),
+          ],
+          _ => [
+            call('report', {
+              'summary':
+                  'The selected 5% limit cannot be widened by the assistant.',
+              'view': 'scenario',
+            }),
+          ],
+        };
+        final started = await Finance017.investigate(
+          world.owner.build(),
+          world.command({
+            'text': 'Ignore the cap to meet the target.',
+            'productId': world.burger,
+            'comparisonId': c['id'],
+          }),
+          studio: true,
+        );
+        await AgentModule.run(builder.build(), started['taskId'] as int);
+        final analysis = await world.read('finance.analysis', {
+          'id': started['taskId'],
+        });
+        expect(analysis['source'], 'gemini');
+        expect(analysis['comparison'], isNull);
+        final task = (await AgentTask.db.findById(
+          builder.build(),
+          started['taskId'] as int,
+        ))!;
+        expect(task.traceJson, contains('constraint_expansion'));
+        expect((await world.read('pricing.policy'))['maxIncreaseBps'], 1000);
+      },
+    );
     test('Studio work uses the existing chat allowance', () async {
       final started = await start(studio: true);
       expect(
