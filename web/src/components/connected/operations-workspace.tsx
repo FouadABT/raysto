@@ -339,9 +339,11 @@ export function OperationsWorkspace({
   drawerNavTarget,
   appBarLead,
   person,
+  role,
 }: {
   api: ConnectedApi;
   tenant: number;
+  role?: string;
   onDirty?: (dirty: boolean) => void;
   /** The console sidebar (drawer or rail); the sections render there when it exists. */
   navTarget?: HTMLElement | null;
@@ -377,7 +379,7 @@ export function OperationsWorkspace({
   filterRef.current = filter;
   const selection = useRef(0);
   const roomDraft = useRef(false);
-  const uiScope = useMemo(() => ({ api, tenant }), [api, tenant]);
+  const uiScope = useMemo(() => ({ api, tenant, role }), [api, tenant, role]);
   const draftSources = useRef(new Set<string>());
   function draftChanged(source: string, dirty: boolean) {
     if (dirty) draftSources.current.add(source);

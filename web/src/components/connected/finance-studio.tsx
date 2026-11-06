@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceStateContext } from "@/lib/connected/workspace-state";
 import {
   createContext,
   useContext,
@@ -444,6 +445,7 @@ export function FinanceStudio({
   openProduct?: (id: number) => void;
   onScenario?: (s: PricingScenario) => void;
 }) {
+  const canSave = useContext(WorkspaceStateContext)?.role === "owner";
   const [compact, setCompact] = useState(false),
     [expanded, setExpanded] = useState(false);
   useEffect(() => {
@@ -535,7 +537,7 @@ export function FinanceStudio({
         setView(restoredDecisionView(cached));
       }
     };
-    if (isJudgeVenue(tenant) || sessionLayouts.get(api)?.has(tenant)) {
+    if (!canSave || sessionLayouts.get(api)?.has(tenant)) {
       layoutVersion.current = saveSession(api, tenant).version;
       fallback();
     } else
@@ -562,7 +564,7 @@ export function FinanceStudio({
       controller.abort();
       studio.current = null;
     };
-  }, [api, tenant]);
+  }, [api, tenant, canSave]);
   const ai = useMemo(
     () => ({
       harness: ({ api: studioApi }: { api: AgStudioApi }) => {
@@ -1089,7 +1091,7 @@ export function FinanceStudio({
                     cache.set(tenant, e.state);
                     setView(restoredDecisionView(e.state));
                     clearTimeout(saveTimer.current);
-                    if (isJudgeVenue(tenant)) {
+                    if (!canSave) {
                       setNotice("Layout changes last for this review session.");
                       return;
                     }

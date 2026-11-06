@@ -621,6 +621,9 @@ export function ConsoleShell({
                 key={`${selected}:${api.scopeKey ?? "preview"}`}
                 api={api}
                 tenant={selected}
+                role={
+                  memberships.find((m) => m.restaurantId === selected)?.role
+                }
                 navTarget={navTarget}
                 drawerNavTarget={drawerOpen ? drawerTarget : null}
                 appBarLead={lead}

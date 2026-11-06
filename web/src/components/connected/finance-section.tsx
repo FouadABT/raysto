@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { WorkspaceStateContext } from "@/lib/connected/workspace-state";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   useWorkspaceTab,
   updateWorkspaceRoute,
@@ -45,6 +46,7 @@ export function FinanceSection({
   revision: string;
   onDirty?: (dirty: boolean) => void;
 }) {
+  const canEditPolicy = useContext(WorkspaceStateContext)?.role === "owner";
   const [products, setProducts] = useState<CostProduct[]>([]);
   const [policy, setPolicy] = useState<PricingPolicy>();
   const [summary, setSummary] = useState<FinancialSummary>();
@@ -694,6 +696,7 @@ export function FinanceSection({
           </div>
           {showPolicy && policy && (
             <PolicyEditor
+              readOnly={!canEditPolicy}
               key={tenant}
               policy={policy}
               products={products}
@@ -1478,12 +1481,14 @@ function DraftForm({
   onDirty,
   cancel,
   changeToken,
+  readOnly = false,
 }: {
   children: React.ReactNode;
   save: (form: FormData) => Promise<void>;
   onDirty?: (v: boolean) => void;
   cancel: () => void;
   changeToken?: string;
+  readOnly?: boolean;
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -1520,7 +1525,7 @@ function DraftForm({
       }}
       onSubmit={(e) => {
         e.preventDefault();
-        if (busy) return;
+        if (busy || readOnly) return;
         const form = new FormData(e.currentTarget);
         setBusy(true);
         setError("");
@@ -1533,14 +1538,20 @@ function DraftForm({
           .finally(() => setBusy(false));
       }}
     >
-      <fieldset disabled={busy}>{children}</fieldset>
+      {readOnly && (
+        <p className="ops-note">
+          Only an owner can change this policy. These are the current recorded
+          limits.
+        </p>
+      )}
+      <fieldset disabled={busy || readOnly}>{children}</fieldset>
       {error && (
         <p role="alert" className="ops-error">
           {error}
         </p>
       )}
       <div className="ops-finance-select">
-        <button className="ops-btn" type="submit" disabled={busy}>
+        <button className="ops-btn" type="submit" disabled={busy || readOnly}>
           Save
         </button>
         <button
@@ -1707,6 +1718,7 @@ function PolicyEditor({
   save,
   onDirty,
   cancel,
+  readOnly = false,
 }: {
   policy: PricingPolicy;
   products: CostProduct[];
@@ -1714,10 +1726,12 @@ function PolicyEditor({
   save: (d: Json, version: number) => Promise<void>;
   onDirty?: (v: boolean) => void;
   cancel: () => void;
+  readOnly?: boolean;
 }) {
   const policy = useRef(currentPolicy).current;
   return (
     <DraftForm
+      readOnly={readOnly}
       onDirty={onDirty}
       cancel={cancel}
       save={async (f) =>

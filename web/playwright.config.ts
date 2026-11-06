@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 const port = process.env.RAYSTO_E2E_PORT ?? "3100";
 export default defineConfig({
   testDir: "./tests/browser",
+  outputDir: process.env.RAYSTO_E2E_OUTPUT ?? "test-results",
   fullyParallel: false,
   workers: 1,
   timeout: 45000,

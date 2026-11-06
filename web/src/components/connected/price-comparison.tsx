@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { WorkspaceStateContext } from "@/lib/connected/workspace-state";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useScopedDraft } from "@/lib/connected/scoped-draft";
 import { confirmDiscard } from "@/lib/connected/confirm-discard";
 import { updateWorkspaceRoute } from "@/lib/connected/workspace-location";
@@ -33,6 +34,8 @@ export function PriceComparisonPanel({
   onDirty: (v: boolean) => void;
   mode?: "compare" | "history";
 }) {
+  const role = useContext(WorkspaceStateContext)?.role;
+  const canDecide = role === "owner" || role === "manager";
   const useDraft = <T,>(key: string, initial: T) =>
     useScopedDraft(
       api,
@@ -229,6 +232,12 @@ export function PriceComparisonPanel({
         Keep the current price, inspect a change, or defer. Every option uses
         the same confirmed ingredient costs.
       </p>
+      {!canDecide && (
+        <p role="note">
+          Analytical access: an owner or authorized manager must record pricing
+          decisions and approve menu publication.
+        </p>
+      )}
       {!product.complete && (
         <p role="note" className="ops-note">
           Incomplete cost data. Confirm the missing inputs in Cost evidence
@@ -514,7 +523,7 @@ export function PriceComparisonPanel({
                 {o.publishable && (
                   <button
                     className="ops-btn"
-                    disabled={busy || !valid || !!review}
+                    disabled={busy || !valid || !!review || !canDecide}
                     onClick={() =>
                       void run(async () => {
                         const r = await command<{
@@ -607,7 +616,7 @@ export function PriceComparisonPanel({
               <button
                 className="ops-btn secondary"
                 key={choice}
-                disabled={busy || !valid}
+                disabled={busy || !valid || !canDecide}
                 onClick={() =>
                   void run(async () => {
                     await command("pricing.decision.record", {
@@ -683,7 +692,7 @@ export function PriceComparisonPanel({
           </p>
           <button
             className="ops-btn"
-            disabled={busy || !valid}
+            disabled={busy || !valid || !canDecide}
             onClick={() =>
               void run(async () => {
                 const r = await command<{ state: string }>(

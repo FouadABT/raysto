@@ -371,10 +371,7 @@ test("rapid motion transitions exclude outgoing content and app reduced motion r
   await page
     .getByRole("button", { name: "Sales and margins", exact: true })
     .click();
-  const outgoing = page.locator(".ops-place[inert]");
-  await expect(outgoing).toHaveAttribute("aria-hidden", "true", {
-    timeout: 500,
-  });
+  await expect.poll(()=>page.evaluate(()=>(window as unknown as {outgoingViews:{inert:boolean;hidden:string|null}[]}).outgoingViews.some(v=>v.inert&&v.hidden==='true'))).toBe(true);
   await page.getByRole("button", { name: "Team", exact: true }).click();
   await page.getByRole("button", { name: "Money", exact: true }).click();
   await expect(

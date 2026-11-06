@@ -4,7 +4,7 @@ import type { ConnectedApi } from "./api";
 import { useScopedDraft } from "./scoped-draft";
 
 export const WorkspaceStateContext = createContext<
-  { api: ConnectedApi; tenant: number } | undefined
+  { api: ConnectedApi; tenant: number; role?: string } | undefined
 >(undefined);
 /** Search and grid configuration survive navigation, scoped to identity and venue. */
 export function useWorkspaceState<T>(key: string, initial: T) {
