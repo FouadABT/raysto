@@ -1,0 +1,51 @@
+{
+  "checkedAtUtc": "2026-11-06T20:33:11.167Z",
+  "status": "published-prerelease",
+  "url": "https://github.com/FouadABT/raysto/releases/tag/raysto-0.17-design-dev6",
+  "tag": "raysto-0.17-design-dev6",
+  "assets": [
+    {
+      "name": "raysto-backend-0.17.0-dev.6-binary-linux-amd64.tar.gz",
+      "sha256": "fa409137de8e4b45a99295fc22206f77b72b64f31a04eeeb8a4200f9de49919e",
+      "bytes": 8394425,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/raysto-backend-0.17.0-dev.6-binary-linux-amd64.tar.gz"
+    },
+    {
+      "name": "raysto-ops-0.17.0-dev.6-linux.tar.gz",
+      "sha256": "5485181004a127432f509c72f57dea5be8ad502b04913789ef83c8bc45df9c38",
+      "bytes": 77920975,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/raysto-ops-0.17.0-dev.6-linux.tar.gz"
+    },
+    {
+      "name": "raysto-0.17.0-dev.3+2203-arm64.apk",
+      "sha256": "4238f255155102b0bf9ecfacf9332eabc4ff6fe9f2367620050c175db8d968a6",
+      "bytes": 48354033,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/raysto-0.17.0-dev.3%2B2203-arm64.apk"
+    },
+    {
+      "name": "release-0.17-manifest.json",
+      "sha256": "97a1e937c94a19c20ca267884e567be80c82fc4f095aca3d66efc8dba2a14abd",
+      "bytes": 12819,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/release-0.17-manifest.json"
+    },
+    {
+      "name": "candidate-evidence.json",
+      "sha256": "f807888aee84528d3f01a38c3d094a35911b95040e1a1eb55217833745eb11ba",
+      "bytes": 17071,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/candidate-evidence.json"
+    },
+    {
+      "name": "SHA256SUMS-design-dev6.txt",
+      "sha256": "c811de59ac51e3adb5fe2dc2a411d5ec46f0123cd3a9fcab910e3be6879c2f33",
+      "bytes": 507,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/SHA256SUMS-design-dev6.txt"
+    },
+    {
+      "name": "candidate-public-evidence.json",
+      "sha256": "1f0ed5fbccf6494203291598998021679dfb090529c621439363d640a882c449",
+      "bytes": 11096,
+      "url": "https://github.com/FouadABT/raysto/releases/download/raysto-0.17-design-dev6/candidate-public-evidence.json"
+    }
+  ],
+  "publicGitBlobIndex": "docs/design-experience/candidate-public-evidence.json"
+}

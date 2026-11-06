@@ -89,3 +89,10 @@ Use the project Node SDK and run npm ci, npm run typecheck and npm test from web
 The explicit offline cases require RAYSTO_OPS_ONLY=false; they do not run through the connected-only redirect. The isolated preview outputs are development caches, not release artifacts. Take evidence screenshots after assertions that depend on uninterrupted canvas history, or use a separate capture page.
 
 The bounded deployment and acceptance tools are under tool/: package_design_console.py, deploy_design_console.py, check_design_workspace.cjs, decision_sandbox_acceptance.cjs and check_design_public_apk.cjs. Provider runs require private existing configuration; no credentials are supplied by the repository. Reuse a run identifier to recover an existing Sandbox run rather than issuing fresh requests. Do not interpret a fixture or an environment failure as an actual provider result.
+
+
+## Published candidate
+
+[Public prerelease and downloads](https://github.com/FouadABT/raysto/releases/tag/raysto-0.17-design-dev6) contain the scanned backend delta, Linux console, development APK, manifest, original checkpoint index, artifact checksum file and public Git-byte verification index. [Publication record](artifact-publication.json) and [source refs](source-publication.json) identify the actual outputs. The immutable candidate tag resolves to6eb4826; its console application source remains e59d7ed.
+
+The original checkpoint index hashes the actual local evidence bytes. Git normalized Windows line endings in nine text records during publication; the JSON values are unchanged. [Published Git-byte verification](candidate-public-evidence.json) hashes the exact blobs at the tag, including the manifest and original index. Binary artifact hashes did not change. Publication-only records follow the frozen tag on main.

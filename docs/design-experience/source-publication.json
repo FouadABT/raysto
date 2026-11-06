@@ -1,0 +1,16 @@
+{
+  "checkedAtUtc": "2026-11-06T20:37:06.511061+00:00",
+  "repository": "https://github.com/FouadABT/raysto",
+  "sourceTag": "raysto-0.17-design-dev6",
+  "tagSourceCommit": "6eb48261a9a2540ba36541caf7e2e5107ce647af",
+  "backendSourceCommit": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+  "consoleSourceCommit": "e59d7ed1f93cfee7cfc105ae57fb9e58669319a0",
+  "sourceRefsVerified": [
+    "refs/heads/main",
+    "refs/heads/codex/web-design-017",
+    "refs/tags/raysto-0.17-design-dev6^{}"
+  ],
+  "publication": "https://github.com/FouadABT/raysto/releases/tag/raysto-0.17-design-dev6",
+  "tagImmutable": true,
+  "followup": "Publication-only documentation follows the frozen candidate tag; application source is unchanged."
+}

@@ -23,6 +23,8 @@ for(const p of files){const digest=sha(p),name=path.basename(p);let item=assets.
 if(item)assert(item.size===fs.statSync(p).size&&item.digest==='sha256:'+digest,'Existing release asset differs; never overwrite.');
 else{const url=release.upload_url.split('{')[0]+'?name='+encodeURIComponent(name);assert(url.startsWith('https://uploads.github.com/repos/'+repo+'/releases/'));const r=await fetch(url,{method:'POST',headers:{...headers,'Content-Type':'application/octet-stream'},body:fs.readFileSync(p),signal:AbortSignal.timeout(300000)});assert(r.ok,'GitHub asset upload HTTP '+r.status);item=await r.json();assert(item.size===fs.statSync(p).size&&item.digest==='sha256:'+digest);}
 published.push({name,sha256:digest,bytes:fs.statSync(p).size,url:item.browser_download_url});}
-const report={checkedAtUtc:new Date().toISOString(),status:'published-prerelease',url:release.html_url,tag,assets:published};
+const publicIndex=release.assets.find(a=>a.name==='candidate-public-evidence.json');
+if(publicIndex){const p=path.join(root,'docs/design-experience/candidate-public-evidence.json');assert(fs.existsSync(p)&&publicIndex.digest==='sha256:'+sha(p));published.push({name:publicIndex.name,sha256:sha(p),bytes:fs.statSync(p).size,url:publicIndex.browser_download_url});}
+const report={publicGitBlobIndex:publicIndex?'docs/design-experience/candidate-public-evidence.json':undefined,checkedAtUtc:new Date().toISOString(),status:'published-prerelease',url:release.html_url,tag,assets:published};
 fs.writeFileSync(path.join(root,'docs/design-experience/artifact-publication.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,url:report.url,assetCount:published.length}));
 })().catch(e=>{console.error(e.cause?.code??e.message);process.exitCode=1});
