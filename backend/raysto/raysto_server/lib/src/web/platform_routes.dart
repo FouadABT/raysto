@@ -10,6 +10,39 @@ import 'event_response.dart';
 /// Bounded request bodies, bearer authentication, and fixed command registry.
 class PlatformRoute extends Route {
   PlatformRoute() : super(methods: {Method.get, Method.post, Method.put});
+
+  /// Decode declared query types without coercing malformed values into valid IDs.
+  static Map<String, dynamic> parseQueryParameters(
+    Map<String, String> parameters,
+  ) {
+    final d = <String, dynamic>{};
+    for (final entry in parameters.entries) {
+      d[entry.key] = {'latitude', 'longitude'}.contains(entry.key)
+          ? double.tryParse(entry.value) ?? entry.value
+          : {
+              'restaurantId',
+              'groupId',
+              'id',
+              'cursor',
+              'limit',
+              'visitId',
+              'orderId',
+              'partySize',
+              'after',
+              'before',
+            }.contains(entry.key)
+          ? int.tryParse(entry.value) ?? entry.value
+          : {'staff', 'openNow'}.contains(entry.key)
+          ? entry.value == 'true'
+                ? true
+                : entry.value == 'false'
+                ? false
+                : entry.value
+          : entry.value;
+    }
+    return d;
+  }
+
   Future<Uint8List> bytes(Request request, int limit) async {
     final out = BytesBuilder(copy: false);
     await for (final part
@@ -150,30 +183,7 @@ class PlatformRoute extends Route {
         });
       }
       if (path.startsWith('queries/') && r.method == Method.get) {
-        final d = <String, dynamic>{};
-        for (final entry in r.url.queryParameters.entries) {
-          d[entry.key] = {'latitude', 'longitude'}.contains(entry.key)
-              ? double.tryParse(entry.value) ?? entry.value
-              : {
-                  'restaurantId',
-                  'id',
-                  'cursor',
-                  'limit',
-                  'visitId',
-                  'orderId',
-                  'partySize',
-                  'after',
-                  'before',
-                }.contains(entry.key)
-              ? int.tryParse(entry.value) ?? entry.value
-              : {'staff', 'openNow'}.contains(entry.key)
-              ? entry.value == 'true'
-                    ? true
-                    : entry.value == 'false'
-                    ? false
-                    : entry.value
-              : entry.value;
-        }
+        final d = parseQueryParameters(r.url.queryParameters);
         if (boundId != null) d['id'] = boundId;
         return jsonResponse(200, {
           'requestId': requestId,
