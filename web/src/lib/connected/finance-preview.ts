@@ -24,7 +24,7 @@ export function financePreview(asOf: string): Record<string, (p: Json) => unknow
     inputs:{baselineUnits:100,volumeChangeBps:-1000,maxIncreaseBps:1000,candidatePriceMinor:null},policy,
     options:[{key:'keep',priceMinor:900,netPriceMinor:900,grossPriceMinor:900,costMinor:385,feeMinor:0,contributionMinor:515,contributionBps:5722,
       targetMet:false,publishable:false,violations:['contribution_target'],breakEvenUnits:100,sensitivity:[{volumeChangeBps:0,units:100,contributionMinor:51500},{volumeChangeBps:-1000,units:90,contributionMinor:46350},{volumeChangeBps:-2000,units:80,contributionMinor:41200}]},
-      {key:'recommended',priceMinor:970,netPriceMinor:970,grossPriceMinor:970,costMinor:385,feeMinor:0,contributionMinor:585,contributionBps:6030,
+      {key:'recommended',priceMinor:970,netPriceMinor:970,grossPriceMinor:970,costMinor:385,feeMinor:0,contributionMinor:585,contributionBps:6031,
       targetMet:true,publishable:true,violations:[],breakEvenUnits:89,sensitivity:[{volumeChangeBps:0,units:100,contributionMinor:58500},{volumeChangeBps:-1000,units:90,contributionMinor:52650},{volumeChangeBps:-2000,units:80,contributionMinor:46800}]}],
     assumptions:['Frozen UI sample: volume is assumed. No business result is established.'],changes:[],keepPriceCostReductionMinor:25,
     keepPriceTargetFeasibleWithNonnegativeCost:true,expiresAt:'2099-01-01T00:00:00Z',valid:true,evidence:bowl,
