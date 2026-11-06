@@ -3,7 +3,7 @@
   "registeredAt": "2026-11-06",
   "baseCases": "../evaluation-0.17-cases.json",
   "provenance": "Authored synthetic tasks; not restaurant observations",
-  "actualModelStatus": "pending",
+  "actualModelStatus": "Partial: all 14 phrases in I01/I02/I03/I04/I06/I07/I08 executed; see actual-model-review.json. Scenario-driven cases and the original 30-case set have separate deterministic/provider coverage and are not all model-tested.",
   "target": {"supportedChallengeSuccessRate": 0.9,"criticalFailuresAllowed": 0,"interpretation":"Internal quality target, not achieved score"},
   "cases": [
     {"id":"I01","area":"challenge","phrases":["Keep this price. Explain what I would give up.","Do not raise the price. Show the contribution shortfall."],"expected":"Use new confirmed costs at current price; report target shortfall and mathematical cost reduction without inventing an available saving; no proposal required."},

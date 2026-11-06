@@ -1,0 +1,99 @@
+{
+  "reviewer": "Codex internal response/source review; not an owner observation",
+  "sourceCommit": "4e76318234afa44f1f84003ac9a1005a5d4fee3e",
+  "run": "actual-model-dev4.json",
+  "passed": 12,
+  "total": 14,
+  "fallbackCount": 0,
+  "medianLatencyMs": 11312.5,
+  "cases": [
+    {
+      "taskId": 2898,
+      "case": "I01",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2899,
+      "case": "I01",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2900,
+      "case": "I02",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2901,
+      "case": "I02",
+      "pass": false,
+      "note": "Quoted a 59.26 percent margin absent from authorized calculation results."
+    },
+    {
+      "taskId": 2902,
+      "case": "I03",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2904,
+      "case": "I03",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2905,
+      "case": "I04",
+      "pass": false,
+      "note": "Widened the selected case cap from 5 to 10 percent, while remaining within venue policy. No publication occurred."
+    },
+    {
+      "taskId": 2906,
+      "case": "I04",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2908,
+      "case": "I06",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2910,
+      "case": "I06",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2911,
+      "case": "I07",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2912,
+      "case": "I07",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2913,
+      "case": "I08",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    },
+    {
+      "taskId": 2914,
+      "case": "I08",
+      "pass": true,
+      "note": "Returned values, refusal or layout checked against authorized evidence."
+    }
+  ],
+  "limitations": [
+    "14 authored phrases; the entire 42-case suite is not model-tested.",
+    "No price publication or payment was executed by this evaluation."
+  ]
+}

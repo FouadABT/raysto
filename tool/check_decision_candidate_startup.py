@@ -8,16 +8,17 @@ import base64
 import json
 from pathlib import Path
 import subprocess
-import uuid
+import uuid,re
+from decision_upload import upload
 
 ROOT=Path(__file__).resolve().parents[1]
 KEY=Path(r'C:\Users\fabat\Desktop\Awhar\modernapp\v1\awhar_backend\new-key-awhar.pem')
 HOST='ubuntu@13.51.45.215'
 artifact=json.loads((ROOT/'docs/impact-innovation/backend-artifact.json').read_text(encoding='utf-8'))
 run=uuid.uuid4().hex[:12]
-remote='/home/ubuntu/raysto-upload/decision-startup-'+run+'.tar.gz'
-subprocess.run(['scp','-i',str(KEY),'-o','BatchMode=yes',str(ROOT/artifact['artifact']),HOST+':'+remote],check=True)
-payload=base64.b64encode(json.dumps({'run':run,'archive':remote,'sha256':artifact['sha256']}).encode()).decode()
+remote='/home/ubuntu/raysto-upload/'+Path(artifact['artifact']).name
+upload(ROOT/artifact['artifact'],remote)
+payload=base64.b64encode(json.dumps({**artifact,'run':run,'archive':remote}).encode()).decode()
 source=r'''
 import base64,hashlib,json,os,secrets,shutil,socket,subprocess,tarfile,time,urllib.request
 from pathlib import Path
@@ -29,7 +30,7 @@ assert len(run)==12 and all(x in '0123456789abcdef' for x in run)
 database='raysto_decision_startup_'+run
 role=database
 base=Path('/opt/raysto')/('startup-'+run)
-archive=Path(c['archive']);assert archive==Path('/home/ubuntu/raysto-upload')/('decision-startup-'+run+'.tar.gz')
+archive=Path(c['archive']);assert archive.parent==Path('/home/ubuntu/raysto-upload') and archive.name.startswith('raysto-backend-') and archive.name.endswith('.tar.gz')
 assert hashlib.sha256(archive.read_bytes()).hexdigest()==c['sha256']
 assert not base.exists();base.mkdir(mode=0o750)
 dump=base/'backup.dump';process=None;created=False;role_created=False
@@ -48,6 +49,11 @@ try:
  pg('createdb','--owner='+role,database);created=True
  stage='restore';pg('pg_restore','-d',database,'--no-owner','--no-acl','--role='+role,'--exit-on-error',data=dump.read_bytes())
  stage='extract'
+ if c.get('artifactKind')=='binary-delta':
+  previous=Path('/opt/raysto/current').resolve();assert previous.name==c['baseRelease']
+  manifest=subprocess.check_output(['/bin/sh','-c','find lib migrations -type f -exec sha256sum {} + | LC_ALL=C sort'],cwd=previous)
+  assert hashlib.sha256(manifest).hexdigest()==c['reusedLibrariesAndMigrationsSha256']
+  for name in ['lib','migrations']:shutil.copytree(previous/name,base/name)
  with tarfile.open(archive) as tar:
   for m in tar.getmembers():
    target=(base/m.name).resolve()
@@ -56,7 +62,9 @@ try:
   tar.extractall(base,filter='data')
  stage='migrations'
  migrations=['20261105161345704','20261105193140136']
- for m in migrations:sql('SET ROLE '+role+';\n'+(base/'migrations'/m/'migration.sql').read_text())
+ current_migration=sql("SELECT version FROM serverpod_migrations WHERE module='raysto'")
+ for m in migrations:
+  if m>current_migration:sql('SET ROLE '+role+';\n'+(base/'migrations'/m/'migration.sql').read_text())
  (base/'config').mkdir();(base/'web').mkdir()
  sockets=[];ports=[]
  for _ in range(3):
@@ -80,7 +88,7 @@ try:
  for s in sockets:s.close()
  stage='candidate-startup'
  with (base/'startup.log').open('wb') as log:
-  process=subprocess.Popen(['runuser','-u','raysto','--',str(base/'bin/server'),'--mode=production','--role=serverless','--server-id=isolated-startup','--logging=normal'],cwd=base,env=env,stdout=log,stderr=subprocess.STDOUT)
+  process=subprocess.Popen(['/usr/sbin/runuser','-u','raysto','--',str(base/'bin/server'),'--mode=production','--role=serverless','--server-id=isolated-startup','--logging=normal'],cwd=base,env=env,stdout=log,stderr=subprocess.STDOUT)
   for _ in range(45):
    if process.poll() is not None:raise RuntimeError('Candidate exited')
    try:
@@ -106,10 +114,13 @@ finally:
  if role_created:sql('DROP ROLE '+role+';',db='postgres')
  assert base.parent==Path('/opt/raysto') and base.name=='startup-'+run
  shutil.rmtree(base)
- archive.unlink(missing_ok=True)
+ # Retain the verified public artifact for deployment or a harness retry.
 '''.replace('PAYLOAD',payload)
 result=subprocess.run(['ssh','-i',str(KEY),'-o','BatchMode=yes',HOST,'sudo python3 -'],input=source.encode(),capture_output=True)
-if result.returncode:raise SystemExit('Isolated startup execution failed; no production data returned.')
+if result.returncode:
+ detail=result.stderr.decode(errors='replace')
+ print(json.dumps({'status':'harness-failed','remoteLines':re.findall(r'File "<stdin>", line (\d+)',detail),'errorType':re.findall(r'(?:^|\n)([A-Za-z]+Error):',detail),'safeReport':result.stdout.decode() if result.stdout.strip().startswith(b'{') else None}))
+ raise SystemExit('Isolated startup execution failed; no production data returned.')
 report=json.loads(result.stdout.decode())
 (ROOT/'docs/impact-innovation/restored-startup.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
 print(json.dumps(report))

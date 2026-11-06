@@ -1,0 +1,21 @@
+{
+  "checkedAtUtc": "2026-11-06T14:11:35.757305+00:00",
+  "status": "deployed",
+  "version": "0.17.0-dev.5",
+  "release": "/opt/raysto/releases/0.17.0-dev.5-20261106",
+  "previous": "/opt/raysto/releases/0.17.0-dev.4-20261106",
+  "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+  "artifactSha256": "b791ccebdc183f36c51eb8bb6c287e37f9ed7ca234c3afbf27d31ab21b145dc4",
+  "binarySha256": "c8b509c650e25ff5a69864abdd8fd47164beeed197e255d50c4cde3e4a20d1ae",
+  "ready": {
+    "status": "ready",
+    "platformV2": "enabled",
+    "schemaReady": true,
+    "missingConfiguration": [],
+    "providers": "not_probed"
+  },
+  "schemaChanged": false,
+  "featureFlagsAndBudgetsUnchanged": true,
+  "awharUnchanged": true,
+  "productionDataExported": false
+}

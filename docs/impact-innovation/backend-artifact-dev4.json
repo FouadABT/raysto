@@ -1,0 +1,9 @@
+{
+  "version": "0.17.0-dev.4",
+  "artifact": "dist/raysto-backend-0.17.0-dev.4-linux-amd64.tar.gz",
+  "sha256": "4c47bf12f7a91462b79c2f246029f8861cd23c0be82f4895630b5e9fb9b7180d",
+  "binarySha256": "af750e0b17fe2d49e7bd3a5dd7a5dd03152ffcdc85428a9cda128c510f37a2d9",
+  "bytes": 77549870,
+  "image": "raysto-backend:0.17.0-dev.4-ec2",
+  "configIncluded": false
+}

@@ -1,0 +1,114 @@
+{
+  "reviewer": "Codex internal source/response review, not a restaurant-owner study",
+  "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+  "model": "gemini-3.6-flash",
+  "passedFirstAttempt": 12,
+  "attempted": 14,
+  "firstAttemptRate": 0.8571428571428571,
+  "fallbacks": 1,
+  "transportFailures": 1,
+  "medianAttemptLatencyMs": 10397.0,
+  "readOnlyRecovery": {
+    "taskId": 2923,
+    "validResultRecovered": true,
+    "newModelCall": false,
+    "originalFailureRetained": true
+  },
+  "validModelResultsIncludingRecovery": 13,
+  "modelResultRateIncludingRecovery": 0.9285714285714286,
+  "primaryDeliveryTargetMet": false,
+  "unauthorizedPublishedPricesOrPayments": 0,
+  "priceAndPolicyUnchanged": true,
+  "cases": [
+    {
+      "case": "I01",
+      "taskId": 2922,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I01",
+      "taskId": 2923,
+      "pass": false,
+      "note": "fetch failed"
+    },
+    {
+      "case": "I02",
+      "taskId": 2924,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I02",
+      "taskId": 2925,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I03",
+      "taskId": 2927,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I03",
+      "taskId": 2929,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I04",
+      "taskId": 2930,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I04",
+      "taskId": 2932,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I06",
+      "taskId": 2933,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I06",
+      "taskId": 2934,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I07",
+      "taskId": 2935,
+      "pass": false,
+      "note": "Labelled fallback did not complete the requested view."
+    },
+    {
+      "case": "I07",
+      "taskId": 2936,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I08",
+      "taskId": 2937,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    },
+    {
+      "case": "I08",
+      "taskId": 2938,
+      "pass": true,
+      "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+    }
+  ],
+  "limitations": [
+    "14 authored phrases, not the entire 42-case set or an unbiased generalization.",
+    "Some explanations expose technical field names and basis points; owner-language clarity needs further improvement.",
+    "Task 2935 remained a safe fallback; failed task tracing does not identify its final rejected report cause.",
+    "All earlier complete runs and their failures are preserved."
+  ]
+}

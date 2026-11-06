@@ -1,0 +1,7 @@
+{
+  "status": "enabled",
+  "flag": "RAYSTO_AGENT_PRICING_ENABLED",
+  "model": "gemini-3.6-flash",
+  "budgetSettingsChanged": false,
+  "awharUnchanged": true
+}

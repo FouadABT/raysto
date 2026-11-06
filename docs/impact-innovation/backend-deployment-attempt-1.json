@@ -1,0 +1,9 @@
+{
+  "status": "not-promoted",
+  "stage": "migrate",
+  "errorType": "RuntimeError",
+  "migration": "20261105193140136",
+  "activeRelease": "/opt/raysto/releases/0.16.1-20261104",
+  "awharUnchanged": true,
+  "productionDataExported": false
+}

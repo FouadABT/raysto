@@ -1,0 +1,14 @@
+{
+  "checkedAtUtc": "2026-11-06T13:54:21.863314+00:00",
+  "status": "passed",
+  "artifactSha256": "4c47bf12f7a91462b79c2f246029f8861cd23c0be82f4895630b5e9fb9b7180d",
+  "sourceRelease": "0.17.0-dev.3-20261106",
+  "scope": "Candidate HTTP readiness on isolated on-host restored and migrated database",
+  "databaseConnected": true,
+  "backgroundJobsDisabled": true,
+  "providerCredentialsSupplied": false,
+  "productionChanged": false,
+  "dataExported": false,
+  "servicesUnchanged": true,
+  "authenticationAndProviderAcceptance": "separate gates"
+}

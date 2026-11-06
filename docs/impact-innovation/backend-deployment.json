@@ -1,0 +1,32 @@
+{
+  "checkedAtUtc": "2026-11-06T04:36:07.334889+00:00",
+  "status": "deployed-features-off",
+  "release": "/opt/raysto/releases/0.17.0-dev.3-20261106",
+  "previous": "/opt/raysto/releases/0.16.1-20261104",
+  "artifactSha256": "33d97fee783da99412a218c85218977092b7029d6ceb59416269b5c87a5e6493",
+  "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+  "binarySha256": "5dc8d2f5b999adbdc85ac0a8d51a18dcdade3b2a831d2ac519d1d295871fd80e",
+  "migration": "20261105193140136",
+  "migrationExitCode": 1,
+  "schemaWarningReview": {
+    "reported": 50,
+    "presentAndValid": 50,
+    "constraintsRemoved": 0
+  },
+  "ready": {
+    "status": "ready",
+    "platformV2": "enabled",
+    "schemaReady": true,
+    "missingConfiguration": [],
+    "providers": "not_probed"
+  },
+  "featureFlags": {
+    "RAYSTO_FINANCE_017_ENABLED": "false",
+    "RAYSTO_PRICING_ENABLED": "false",
+    "RAYSTO_STUDIO_AI_ENABLED": "false",
+    "RAYSTO_JUDGE_STORY_017_ENABLED": "false"
+  },
+  "awharUnchanged": true,
+  "productionDataExported": false,
+  "providerAcceptance": "not established"
+}

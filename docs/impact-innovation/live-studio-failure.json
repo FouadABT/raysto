@@ -1,0 +1,42 @@
+{
+  "startedAt": "2026-11-06T14:36:03.349Z",
+  "source": "Actual deployed console and backend, sample dish 72",
+  "errors": [],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "placeholder": null,
+      "label": "Page number, 1 of 1",
+      "role": "spinbutton"
+    },
+    {
+      "tag": "TEXTAREA",
+      "placeholder": "Ask the AI Assistant...",
+      "label": "Message input",
+      "role": null
+    }
+  ],
+  "analysis": {
+    "taskId": 2956,
+    "source": "gemini",
+    "summary": "The analytical view has been configured side-by-side with comparison and evidence widgets, displaying cost before contribution.\n\nComparison details for House lunch bowl · Decision sample:\n- Current price: $9.00\n- Confirmed cost: $3.85 (cost increased by $0.35 from previous confirmed cost of $3.50 based on supplier order receipt 10)\n- Current contribution: $5.15 (57.22%)\n- Baseline units: 100\n\nOptions under current policy:\n- Keep price ($9.00): Contribution $5.15 per unit, total baseline contribution $515.00. At assumed -10.00% volume change (90 units), contribution is $463.50.\n- Recommended price ($9.70): Contribution $5.85 per unit (60.31%), meeting the 60.00% target. At assumed -10.00% volume change (90 units), total contribution is $526.50.\n\nNote: Volume changes are owner assumptions, not predicted demand. Overhead and wages are excluded.",
+    "presentation": {
+      "arrangement": "side-by-side",
+      "columns": [
+        "name",
+        "price",
+        "cost",
+        "contribution"
+      ],
+      "widgets": [
+        "comparison",
+        "evidence"
+      ],
+      "completeness": "all",
+      "sort": "name"
+    }
+  },
+  "status": "failed",
+  "failure": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'AG Studio restaurant finance' }).getByText('The analytical view has been configured side-by-side with comparison and evidence widgets, displaying cost before contribution.\\n\\nComparison details for ",
+  "visibleWorkspace": "Your financial workspace · AG Studio\n\nExplore the data, arrange evidence widgets, or ask the financial analyst. Layout undo does not reverse a payment or menu change.\n\nFinancial analyst\nEdit layout\nData fields\nStudio filters\nUndo layout change\nRedo layout change\nCompare beside ingredient evidence\n\nOn a narrow screen, pan the analytical canvas horizontally. Cost evidence and reviewed decisions are also available above.\n\nOwner-target scenario\n\nHouse lunch bowl · Decision sample · comparison revision 1\n\nkeep: $9.00 · contribution $5.15 · break-even 100 units.\n\nrecommended: $9.70 · contribution $5.85 · break-even 89 units.\n\nVolume response is assumed. Use the reviewed decision controls to prepare a price action.\n\nRestaurant finances\nPrice scenario\nIngredient evidence\n\nHouse lunch bowl · Decision sample · reviewed recipe revision 1. Sample evidence.\n\nShowing 1 of 1 ingredient lines.\n\nBowl ingredients · Decision sample · 350 g per portion\nConfirmed cost $11.00 per kg · included cost $3.85\nReceipt date 2026-11-06T04:40:50.292091Z · usable yield 100%.\n\nOpen receipt #10\n\nPackaging $0.00. Review inputs above to inspect every conversion and excluded cost.\n\nRestaurant finances\nIngredient evidence\nSelected dish evidence\nName\nPrice\nCost\nContribution\nHouse lunch bowl · Decision sample\n9.00\n3.85\n5.15\nTable\nColumns\n4 values\nScenario assumptions and contribution\nOption\nPrice\nVolume Response\nUnits\nContribution\nkeep\n9.00\n0.00\n100\n515.00\nkeep\n9.00\n-10.00\n90\n463.50\nkeep\n9.00\n-20.00\n80\n412.00\nrecommended\n9.70\n0.00\n100\n585.00\nrecommended\n9.70\n-10.00\n90\n526.50\nrecommended\n9.70\n-20.00\n80\n468.00\nTable\nColumns\n5 values\nAI Assistant\nNew chat\nNew\n\nShow this comparison beside its ingredient evidence, with cost before contribution.\n\nDone\nraysto_configure_decision_view\nSend\n\nLayout changes last for this review session."
+}

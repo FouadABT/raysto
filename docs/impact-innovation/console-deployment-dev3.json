@@ -1,0 +1,16 @@
+{
+  "checkedAtUtc": "2026-11-06T04:38:41.802399+00:00",
+  "status": "development-candidate-deployed",
+  "release": "/opt/raysto/ops/releases/0.17.0-dev.3-20261106",
+  "previous": "/opt/raysto/ops/releases/0.18.3-20261105",
+  "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+  "artifactSha256": "5d802c05120f7649019e6dd01360984b05fb9738a3405daa1fa1f30f116159b4",
+  "featureFlags": {
+    "RAYSTO_FINANCE_017_ENABLED": "true",
+    "RAYSTO_PRICING_ENABLED": "true",
+    "RAYSTO_STUDIO_AI_ENABLED": "true"
+  },
+  "judgeStoryEnabled": false,
+  "awharUnchanged": true,
+  "acceptance": "Actual model, integrated provider and device gates remain separate"
+}

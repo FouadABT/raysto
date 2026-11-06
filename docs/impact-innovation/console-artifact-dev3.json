@@ -1,0 +1,9 @@
+{
+  "artifact": "dist/raysto-ops-0.17.0-dev.3-linux.tar.gz",
+  "sha256": "5d802c05120f7649019e6dd01360984b05fb9738a3405daa1fa1f30f116159b4",
+  "bytes": 78239729,
+  "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+  "version": "0.17.0-dev.3",
+  "financeFeatureBuilt": true,
+  "secretsExcluded": true
+}

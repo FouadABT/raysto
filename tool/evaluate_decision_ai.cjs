@@ -25,11 +25,14 @@ async function main(){
   const params=new URLSearchParams({restaurantId:String(config.restaurantId),id:String(config.comparisonId)});
   const selected=await request('queries/pricing.comparison?'+params);
   if(!selected.valid||selected.productId!==config.productId)throw Error('Select a current supported comparison first.');
-  const save=()=>fs.writeFileSync(output,JSON.stringify({candidateSource:config.candidateSource,model:config.model??'record from candidate manifest',provenance:'Actual provider turns on explicitly confirmed sample records',results,successRate:null,reviewStatus:'Human source/amount/task review pending; source=gemini alone is not success'},null,2)+'\n');
+  const save=()=>fs.writeFileSync(output,JSON.stringify({candidateSource:config.candidateSource,model:config.model??'record from candidate manifest',provenance:'Live candidate requests on explicit sample records; only source=gemini counts as a provider result',results,successRate:null,reviewStatus:'Human source/amount/task review pending; source=gemini alone is not success'},null,2)+'\n');
   evaluation: for(const c of cases)for(const text of c.phrases){
     const start=Date.now(),r={id:c.id,text,startedAt:new Date().toISOString(),expected:c.expected,pass:null};
     try{
-      const task=await request('commands/studio.turn',{requestKey:crypto.randomUUID(),restaurantId:config.restaurantId,dataJson:JSON.stringify({text,productId:config.productId,comparisonId:config.comparisonId})});
+      const scope=c.id==='I06'?{productId:config.incompleteProductId}:{productId:config.productId,comparisonId:c.id==='I04'?config.cappedComparisonId:config.comparisonId};
+      if(!scope.productId||(c.id==='I04'&&!scope.comparisonId))throw Error('Required case-specific sample evidence is missing.');
+      r.scope=scope;
+      const task=await request('commands/studio.turn',{requestKey:crypto.randomUUID(),restaurantId:config.restaurantId,dataJson:JSON.stringify({text,...scope})});
       r.taskId=task.taskId;
       for(let n=0;n<75;n++){
         const value=await request('queries/finance.analysis?'+new URLSearchParams({restaurantId:String(config.restaurantId),id:String(task.taskId)}));

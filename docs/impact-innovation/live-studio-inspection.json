@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-11-06T14:41:57.613Z",
+  "source": "Actual deployed console and backend, sample dish 72",
+  "errors": [],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "placeholder": null,
+      "label": "Page number, 1 of 1",
+      "role": "spinbutton"
+    },
+    {
+      "tag": "TEXTAREA",
+      "placeholder": "Ask the AI Assistant...",
+      "label": "Message input",
+      "role": null
+    }
+  ]
+}

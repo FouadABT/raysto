@@ -1,0 +1,43 @@
+{
+  "startedAt": "2026-11-06T14:20:27.921Z",
+  "source": "Actual deployed console and backend, sample dish 72",
+  "errors": [],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "placeholder": null,
+      "label": "Page number, 1 of 1",
+      "role": "spinbutton"
+    },
+    {
+      "tag": "TEXTAREA",
+      "placeholder": "Ask the AI Assistant...",
+      "label": "Message input",
+      "role": null
+    }
+  ],
+  "analysis": {
+    "taskId": 2942,
+    "source": "gemini",
+    "summary": "The view is configured side-by-side with cost placed before contribution.\n\nFor House lunch bowl \u00b7 Decision sample:\n- Current Price: $9.00\n- Confirmed Replacement Cost: $3.85\n- Baseline Contribution: $5.15 (57.22% based on target bps 5722)\n- Recommended Option Price: $9.70\n- Recommended Option Contribution: $5.85 (60.31% based on target bps 6031)\n\nRecorded Cause: Latest stock movement receipt group supplierOrder:7:2 increased item cost by $0.35 (from previous cost $3.50 to $3.85).\n\nAssumptions:\n- Baseline volume is 100 units (owner assumption, not predicted demand).\n- Contribution excludes shared wages, rent, utilities, and unrecorded overhead.",
+    "presentation": {
+      "arrangement": "side-by-side",
+      "columns": [
+        "name",
+        "price",
+        "cost",
+        "contribution",
+        "complete"
+      ],
+      "widgets": [
+        "comparison",
+        "evidence"
+      ],
+      "completeness": "all",
+      "sort": "name"
+    }
+  },
+  "status": "failed",
+  "failure": "locator.waitFor: Timeout 100000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'AG Studio restaurant finance' }).getByRole('heading', { name: 'Ingredient evidence', exact: true }) to be visible\u001b[22m\n",
+  "visibleWorkspace": "Your financial workspace \u00b7 AG Studio\n\nExplore the data, arrange evidence widgets, or ask the financial analyst. Layout undo does not reverse a payment or menu change.\n\nFinancial analyst\nEdit layout\nData fields\nStudio filters\nUndo layout change\nRedo layout change\nCompare beside ingredient evidence\n\nOn a narrow screen, pan the analytical canvas horizontally. Cost evidence and reviewed decisions are also available above.\n\nMargin change\n\nCurrent recipe compared with previous confirmed costs for the latest receipt. Contribution before fees and shared overhead.\n\nShowing 8 of 45 dishes in this view.\n\nButter croissant \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nPain au chocolat \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nGranola bowl \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nCroque monsieur \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nFalafel wrap (vegan) \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nChicken club \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nQuiche lorraine & green salad \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nMushroom risotto (vegetarian) \u00b7 Unknown \u00b7 incomplete\nPrevious cost comparison is incomplete.\n\nClear dish filter\nRestaurant finances\nCost evidence\nRecipe contribution records\nName\nPrice\nCost\nContribution\nComplete\nButter croissant\n2.20\nN/A\nN/A\nFalse\nCappuccino\n3.00\nN/A\nN/A\nFalse\nChicken club\n9.50\nN/A\nN/A\nFalse\nChocolate mousse\n4.00\nN/A\nN/A\nFalse\nConnected decision bowl - Sample\n9.70\n3.85\n5.85\nTrue\nCroque monsieur\n7.50\nN/A\nN/A\nFalse\nEspresso\n1.80\nN/A\nN/A\nFalse\nFalafel wrap\n8.00\nN/A\nN/A\nFalse\nFalafel wrap (vegan)\n8.00\nN/A\nN/A\nFalse\nFresh orange juice\n4.00\nN/A\nN/A\nFalse\nGranola bowl\n6.50\nN/A\nN/A\nFalse\nHouse lunch bowl \u00b7 Decision sample\n9.00\n3.85\n5.15\nTrue\nLemon tart\n4.50\nN/A\nN/A\nFalse\nMushroom risotto\n13.50\nN/A\nN/A\nFalse\nMushroom risotto (vegetarian)\n13.50\nN/A\nN/A\nFalse\nPain au chocolat\n2.40\nN/A\nN/A\nFalse\nQuiche lorraine & green salad\n11.00\nN/A\nN/A\nFalse\nSeasonal bowl \u00b7 Incomplete decision sample\n9.00\nN/A\nN/A\nFalse\nSoup of the day\n0.00\nN/A\nN/A\nFalse\nTable\nColumns\n5 values\nAI Assistant\nNew chat\nNew\n\nShow this comparison beside its ingredient evidence, with cost before contribution.\n\nAnalysis is not complete or the selection changed. Reopen its task to recover the result.\nSend\n\nAnalysis task 2942 submitted. Cancelling stops this view; inspect the task in Agents for its backend state."
+}

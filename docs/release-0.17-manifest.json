@@ -1,0 +1,237 @@
+{
+  "release": "Raysto 0.17 — Hackathon Edition",
+  "status": "development-candidate-with-open-acceptance-gates",
+  "recordedAtUtc": "2026-11-06T14:44:28.779771+00:00",
+  "baselineCommit": "44a3a78",
+  "submissionCommit": null,
+  "submissionTag": null,
+  "backend": {
+    "version": "0.17.0-dev.5",
+    "artifact": "dist/raysto-backend-0.17.0-dev.5-binary-linux-amd64.tar.gz",
+    "artifactKind": "binary-delta",
+    "baseRelease": "0.17.0-dev.4-20261106",
+    "reusedLibrariesAndMigrationsSha256": "c6e858499d61af8e7a8e1fb519f89382a598ef1e4a24851bacc3bab7d59d23e2",
+    "sha256": "b791ccebdc183f36c51eb8bb6c287e37f9ed7ca234c3afbf27d31ab21b145dc4",
+    "binarySha256": "c8b509c650e25ff5a69864abdd8fd47164beeed197e255d50c4cde3e4a20d1ae",
+    "bytes": 8390195,
+    "image": "raysto-backend:0.17.0-dev.5-ec2",
+    "configIncluded": false,
+    "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+    "deployedRelease": "/opt/raysto/releases/0.17.0-dev.5-20261106",
+    "deployed": true,
+    "artifactBase": "docs/impact-innovation/backend-artifact-dev4.json"
+  },
+  "console": {
+    "version": "0.17.0-dev.5",
+    "sourceCommit": "36c4501bc710869b5b4aebce59c786a12b7a1d29",
+    "artifact": "dist/raysto-ops-0.17.0-dev.5-linux.tar.gz",
+    "sha256": "229a784507a6a6a8b9309a24acf82bdd8e782366236e13211c80526cf1dd30a6",
+    "bytes": 77859257,
+    "configIncluded": false,
+    "packageVersion": "0.1.0",
+    "deployedRelease": "/opt/raysto/ops/releases/0.17.0-dev.5-20261106",
+    "deployed": true
+  },
+  "android": {
+    "version": "0.17.0-dev.3+2203",
+    "artifact": "build/release-017/raysto-0.17.0-dev.3+2203-arm64.apk",
+    "sha256": "4238f255155102b0bf9ecfacf9332eabc4ff6fe9f2367620050c175db8d968a6",
+    "bytes": 48354033,
+    "signing": "existing-development-key",
+    "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+    "abi": "arm64-v8a",
+    "physicalDeviceAccepted": false,
+    "physicalReview": "Explicitly deferred by Fouad on 6 November 2026"
+  },
+  "migrations": [
+    "20261105161345704",
+    "20261105193140136"
+  ],
+  "paymentEnvironment": "sandbox",
+  "judgeCurrency": "USD",
+  "agStudioVersion": "3.0.0",
+  "validatedModelVersion": "gemini-3.6-flash",
+  "enabledCapabilities": [
+    "one-dish-investigation",
+    "confirmed-receipt-costing",
+    "immutable-price-comparisons",
+    "bounded-AI-challenges",
+    "reviewed-price-publication",
+    "decision-and-outcome-evidence",
+    "Studio-custom-widgets-and-agent-harness",
+    "native-owner-workspace"
+  ],
+  "featureFlags": {
+    "finance017": true,
+    "pricing": true,
+    "pricingAgent": true,
+    "studioAi": true,
+    "guidedJudgeStory": false
+  },
+  "validation": [
+    {
+      "id": "backend-regression",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-full.log",
+      "logSha256": "007ce58e7c8515d96898d56313b355d605ac45a81d54bc512ecc28d9e8c93a63",
+      "count": 381
+    },
+    {
+      "id": "backend-finance-targeted",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-verified.log",
+      "logSha256": "2e2a85823981ef5cbf3df27231bad841565954a1e71e6ef9a784f2ee5a863b41",
+      "count": 46
+    },
+    {
+      "id": "backend-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-analysis-recheck.log",
+      "logSha256": "e1d8f9222ce71c532eb15e6fd62e379eca305a6d6888a563f25b79dddebf3920",
+      "count": null
+    },
+    {
+      "id": "backend-ai-delivery-patch",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-delivery-tests.log",
+      "logSha256": "5e9456c4b5bc7066c65a8bea1e84cbe2739deca0636e120ecb47770b8c29ec59",
+      "count": 10
+    },
+    {
+      "id": "backend-ai-delivery-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-delivery-analysis.log",
+      "logSha256": "fdfd482d6f1517c0a751e7559a03dc0acd672f12c7ea5235363a777db27bee99",
+      "count": null
+    },
+    {
+      "id": "backend-final-boundaries-and-finance",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-boundary-final-tests.log",
+      "logSha256": "f278369515fd1f77c9343e716b14884ef190b32058a94df8855f6975d6350ec0",
+      "count": 44
+    },
+    {
+      "id": "backend-final-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-boundary-final-analysis.log",
+      "logSha256": "a8b7cf559b20ceceaed6d1f96ebbaacd9c479aba8f0dcc3101bd1cd909df818d",
+      "count": null
+    },
+    {
+      "id": "native-regression-before-final-navigation-labels",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-native-full.log",
+      "logSha256": "27cf387a2e5a84f57569ebe7b0eadc321caf5f4bfb8b094b43c5ec0c60664b26",
+      "count": 257
+    },
+    {
+      "id": "native-final-targeted",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-native-candidate-recheck.log",
+      "logSha256": "fecdb38b1395d5c63f84cf14adad0c69089eea9c2a57faa47852af7358e2ed99",
+      "count": 14
+    },
+    {
+      "id": "native-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-native-analysis-candidate.log",
+      "logSha256": "e8a1e9068d067c3320dd0d79bb03ceb1a356f30ff2305b9145fec744377aab9c",
+      "count": null
+    },
+    {
+      "id": "native-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-android-build-candidate.log",
+      "logSha256": "0e77653c0447202a89edd38bcd5eab84cd3f232dd62813ec0a77fd3aefe6d581",
+      "count": null
+    },
+    {
+      "id": "web-regression-before-final-menu-entry",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-web-full.log",
+      "logSha256": "b486b0cad06eb09c94c7f2b563c4920fcc90b5d7261685c2d7edb6cac92cad42",
+      "count": 168
+    },
+    {
+      "id": "web-final-targeted",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-web-final-targeted.log",
+      "logSha256": "443327bffef079c75ae265a8164c8016963abb072adce6f41b623079336aee2d",
+      "count": 8
+    },
+    {
+      "id": "web-live-scope-regression",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-studio-scope-tests.log",
+      "logSha256": "bb9a559f41225d8ab01300e1883d8311b10b96d422f0b8bda08af97bb36e5a8b",
+      "count": 6
+    },
+    {
+      "id": "web-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-web-build-verified.log",
+      "logSha256": "6c189b5c381fd17ab707b51754398b7a897a6518e01ba8dafbfa538900326d7e",
+      "count": null
+    },
+    {
+      "id": "web-browser",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-browser-final.log",
+      "logSha256": "57dcdec111c9229656f368cd495204d1a514fe300febcda837fdcbaa87f63193",
+      "count": 5
+    },
+    {
+      "id": "web-browser-final",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-browser-candidate.log",
+      "logSha256": "d2ead3e0f20149cdb16c6f44222b7680c7884eb03894e56b4373b9568cd95cea",
+      "count": 5
+    },
+    {
+      "id": "backend-linux-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-build-retry.log",
+      "logSha256": "726793dade9b9bd685a0839cdf1fa109de542aa2ae6acace5ef839a4fcf59258",
+      "count": null
+    },
+    {
+      "id": "backend-linux-patch-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-dev4-build.log",
+      "logSha256": "d8556f7ce40f5fe986e253161bc73b358bc45af87c1f660c1cecf817eb4642bd",
+      "count": null
+    },
+    {
+      "id": "backend-final-linux-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-dev5-final-build.log",
+      "logSha256": "0456aef830b18ea1188d48a2cab8522bf568a3df0e012628df2e297eff04267a",
+      "count": null
+    },
+    {
+      "id": "console-final-linux-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-console-dev5-final-build.log",
+      "logSha256": "dd2d4daa9dc9aaa38883bc206bd1ce01a7f6b7556190f1de248cc64231dc078d",
+      "count": null
+    }
+  ],
+  "evidenceIndex": "docs/impact-innovation/candidate-evidence.json",
+  "sandboxEvidence": [
+    "docs/impact-innovation/integrated-sandbox-dev5.json"
+  ],
+  "modelEvaluation": "docs/impact-innovation/actual-model-review.json",
+  "ownersConfirmed": 0,
+  "limitations": [
+    "Development build, not an accepted or tagged submission release.",
+    "Physical Android review explicitly deferred; APK uses the existing development key.",
+    "No consenting restaurant owners confirmed; no owner-impact, adoption or profit-improvement claim.",
+    "First-attempt AI task delivery 12/14; a network-failed task was recovered read-only, bringing valid model results to 13/14. The 90% first-attempt target is not met.",
+    "The current sample venue remains on legacy recorded-transactions basis; reviewed accounting cutover, complete earned-revenue history and seven-day business observations are unavailable.",
+    "Complete repeatable public judge fixture, cold reviewer acceptance and private-owner persistent-layout demonstration remain open.",
+    "AG Studio licensing through the end of judging remains unresolved.",
+    "Actual uncertain-provider recovery/refund acceptance on this exact combination remains separate from scripted regression coverage.",
+    "Presentation work is excluded from this workstream."
+  ]
+}

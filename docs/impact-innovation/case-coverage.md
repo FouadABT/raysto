@@ -1,0 +1,21 @@
+# Decision-workflow evaluation coverage
+
+6 November 2026. Authored cases describe required behavior. They are not automatically executed tests. This index keeps deterministic checks, actual model responses and deployed product observations separate.
+
+| Cases | Recorded evidence | Limit still open |
+| --- | --- | --- |
+| I01–I04: keep price, narrower cap, custom price/volume, attempted cap bypass | Fourteen-phrase run includes two phrasings of each; [actual response review](actual-model-review.json). Shared comparison and AI integration tests verify server calculations and unchanged owner policy. | Overall first-attempt rate is 12/14; model wording and delivery need improvement. |
+| I05: stale comparison | Integration test preserves expired history and rejects publication; [actual Sandbox record](integrated-sandbox-dev5.json) records stale-version approval and stale comparison refusal. | This is authorization evidence, not a model-accuracy result. |
+| I06: missing evidence | Two actual model phrasings on the incomplete sample dish. Missing costs remain unknown in backend and both clients. | No real owner document-mapping study. |
+| I07: analytical configuration | Two actual phrasings and a separate [live browser journey](live-studio-acceptance.json), with installed Studio widgets, receipt drill-down and layout undo. Earlier browser failures are retained. | Private-owner persistent layout and unfamiliar reviewer acceptance remain open. |
+| I08: invalid fields and financial mutation | Two actual model phrasings; Dart and TypeScript validators reject private fields, executable expressions and unsupported widget actions. | One actual phrasing used a safe fallback. The fallback is not scored as a successful model response. |
+| I09: changed scope | Client guards cover identity/API, venue, dish, comparison, currency, basis, timezone and draft state. Unit regression distinguishes rolling refresh from a changed logical period. | Full browser interruption matrix across every scope dimension remains pending. |
+| I10: cancellation and unavailable model | Bounded task runtime, role recheck and budget tests; labelled fallback occurred in the actual run; read-only recovery obtained one transport-failed result. | Actual browser cancellation and budget-exhaustion journey remain pending. |
+| I11: attribution and provider states | Frozen old/new checkout prices, completed capture, separate completed payout item, recipe and consumption snapshots in the actual Sandbox run. Integration tests cover unfinished-order collections, item states and unknown attribution. | Actual final-candidate refund and uncertain-provider recovery are not established by scripted fixtures. Legacy accounting remains incomplete. |
+| I12: observation windows | Unit tests cover seven complete local days, daylight-saving changes and unpublished decisions; integration evidence preserves incomplete earned-revenue reporting. | No seven-day restaurant observation period or causal business result. |
+
+The original [30-case set](../evaluation-0.17-cases.json) also remains in scope. The full baseline regression covers costing, pricing, authorization and provider logic, but its test count is not a claim that all 30 authored cases were executed with the real model. The actual supplier-document extraction and cost calculation in the Sandbox run provide one clear-document example; blurred, contradictory and embedded-instruction documents still need a separately recorded actual-model evaluation.
+
+Relevant deterministic suites are `finance_017_test.dart`, `finance_ai_test.dart`, `financial_narrative_test.dart`, `decision_view_test.dart` and `decision_observation_test.dart` in the backend; `decision-view.test.ts` and `finance.spec.ts` in the console; and `finance_contracts_test.dart` and `finance_workspace_test.dart` in the native app. Exact logs, counts and hashes are in [candidate evidence](candidate-evidence.json). Counts from overlapping runs are not summed.
+
+The three-method reference/structured-controls/assistant comparison is prepared in the research protocol but has no observed timing results. Automated execution latency cannot stand in for a person's investigation time. Owner count remains zero.

@@ -1,0 +1,953 @@
+{
+  "checkedAt": "2026-11-06T14:19:21.542Z",
+  "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+  "scope": "Read-only verification; original failed attempts remain in the evaluation denominator",
+  "priceUnchanged": true,
+  "policyCapUnchanged": true,
+  "records": [
+    {
+      "taskId": 2922,
+      "status": "done",
+      "summary": "Keeping the selling price of USD 9.00 for House lunch bowl · Decision sample yields USD 5.15 contribution per unit (USD 515.00 across 100 baseline units) at a 57.22% margin (5722 Bps), missing the 60% policy target (6000 Bps).\n\nBy not moving to the recommended USD 9.70 price (which yields USD 5.85 contribution per unit and USD 585.00 across 100 units at a 60.31% margin / 6031 Bps), you give up reaching the recommended USD 5.85 unit contribution, USD 585.00 total contribution, and 60.31% margin.\n\nRecorded cause: Confirmed cost increased by USD 0.35 from USD 3.50 to USD 3.85. To meet target at USD 9.00, a variable-cost reduction of USD 0.25 per unit is required. Volume changes are owner assumptions, not predicted demand.",
+      "chargedMicros": 22083,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 24
+        },
+        {
+          "tool": "read_scenario",
+          "status": "completed",
+          "ms": 8
+        },
+        {
+          "tool": "read_costing",
+          "status": "completed",
+          "ms": 13
+        },
+        {
+          "tool": "read_finance",
+          "status": "completed",
+          "ms": 215
+        },
+        {
+          "tool": "report",
+          "status": "rejected",
+          "code": "unsupported_amount"
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 19961,
+          "micros": 22083
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2923,
+      "status": "done",
+      "summary": "Keeping the selling price at $9.00 for House lunch bowl · Decision sample yields a unit contribution of $5.15 (57.22%), missing the 60.00% policy target. Across 100 baseline units, total contribution is $515.00, compared to $585.00 under the recommended $9.70 price option. Reaching the 60.00% target at the $9.00 price requires a variable-cost reduction of $0.25 per unit.\n\nRecorded Cause:\nStock movement #10 recorded an ingredient cost increase of $0.35 (rising from $3.50 to $3.85).\n\nAssumptions:\nVolume response is assumed, not predicted. Contribution excludes shared overhead, wages, rent, utilities, and unrecorded costs.",
+      "chargedMicros": 16121,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 15
+        },
+        {
+          "tool": "read_costing",
+          "status": "completed",
+          "ms": 10
+        },
+        {
+          "tool": "read_finance",
+          "status": "completed",
+          "ms": 794
+        },
+        {
+          "tool": "configure_view",
+          "status": "completed",
+          "ms": 6
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 14291,
+          "micros": 16121
+        }
+      ],
+      "actions": [],
+      "recovered": {
+        "source": "gemini",
+        "summary": "Keeping the selling price at $9.00 for House lunch bowl · Decision sample yields a unit contribution of $5.15 (57.22%), missing the 60.00% policy target. Across 100 baseline units, total contribution is $515.00, compared to $585.00 under the recommended $9.70 price option. Reaching the 60.00% target at the $9.00 price requires a variable-cost reduction of $0.25 per unit.\n\nRecorded Cause:\nStock movement #10 recorded an ingredient cost increase of $0.35 (rising from $3.50 to $3.85).\n\nAssumptions:\nVolume response is assumed, not predicted. Contribution excludes shared overhead, wages, rent, utilities, and unrecorded costs.",
+        "presentation": {
+          "arrangement": "side-by-side",
+          "columns": [
+            "name",
+            "price",
+            "cost",
+            "contribution",
+            "complete"
+          ],
+          "widgets": [
+            "comparison",
+            "evidence"
+          ],
+          "completeness": "all",
+          "sort": "contribution"
+        },
+        "evidence": {
+          "read_comparison": {
+            "restaurantId": 5,
+            "currency": "USD",
+            "timezone": "America/New_York",
+            "calculationVersion": "replacement-cost-v1",
+            "dataRevision": "1047",
+            "asOf": "2026-11-06T14:12:34.469903Z",
+            "sample": true,
+            "truncated": false,
+            "kind": "comparison",
+            "current": {
+              "priceMinor": 900,
+              "netPriceMinor": 900,
+              "grossPriceMinor": 900,
+              "costMinor": 385,
+              "feeMinor": 0,
+              "contributionMinor": 515,
+              "contributionBps": 5722
+            },
+            "recommended": {
+              "priceMinor": 970,
+              "netPriceMinor": 970,
+              "grossPriceMinor": 970,
+              "costMinor": 385,
+              "feeMinor": 0,
+              "contributionMinor": 585,
+              "contributionBps": 6031
+            },
+            "feasible": true,
+            "targetBps": 6000,
+            "targetMet": true,
+            "capMinor": 990,
+            "baselineUnits": 100,
+            "baselineContributionMinor": 51500,
+            "breakEvenUnits": 89,
+            "sensitivity": [
+              {
+                "volumeChangeBps": 0,
+                "units": 100,
+                "contributionMinor": 58500
+              },
+              {
+                "volumeChangeBps": -1000,
+                "units": 90,
+                "contributionMinor": 52650
+              },
+              {
+                "volumeChangeBps": -2000,
+                "units": 80,
+                "contributionMinor": 46800
+              }
+            ],
+            "assumptions": [
+              "Volume response is assumed, not predicted.",
+              "Contribution excludes shared overhead, wages and unrecorded costs.",
+              "Fee settings are estimates, not verified PayPal fees."
+            ],
+            "options": [
+              {
+                "key": "keep",
+                "priceMinor": 900,
+                "netPriceMinor": 900,
+                "grossPriceMinor": 900,
+                "costMinor": 385,
+                "feeMinor": 0,
+                "contributionMinor": 515,
+                "contributionBps": 5722,
+                "targetMet": false,
+                "violations": [
+                  "contribution_target"
+                ],
+                "publishable": false,
+                "breakEvenUnits": 100,
+                "sensitivity": [
+                  {
+                    "volumeChangeBps": 0,
+                    "units": 100,
+                    "contributionMinor": 51500
+                  },
+                  {
+                    "volumeChangeBps": -1000,
+                    "units": 90,
+                    "contributionMinor": 46350
+                  },
+                  {
+                    "volumeChangeBps": -2000,
+                    "units": 80,
+                    "contributionMinor": 41200
+                  }
+                ]
+              },
+              {
+                "key": "recommended",
+                "priceMinor": 970,
+                "netPriceMinor": 970,
+                "grossPriceMinor": 970,
+                "costMinor": 385,
+                "feeMinor": 0,
+                "contributionMinor": 585,
+                "contributionBps": 6031,
+                "targetMet": true,
+                "violations": [],
+                "publishable": true,
+                "breakEvenUnits": 89,
+                "sensitivity": [
+                  {
+                    "volumeChangeBps": 0,
+                    "units": 100,
+                    "contributionMinor": 58500
+                  },
+                  {
+                    "volumeChangeBps": -1000,
+                    "units": 90,
+                    "contributionMinor": 52650
+                  },
+                  {
+                    "volumeChangeBps": -2000,
+                    "units": 80,
+                    "contributionMinor": 46800
+                  }
+                ]
+              }
+            ],
+            "keepPriceCostReductionMinor": 25,
+            "keepPriceTargetFeasibleWithNonnegativeCost": true,
+            "baselineDefinition": "Keep the current selling price using the current confirmed cost.",
+            "costReductionExplanation": "Required variable-cost reduction, not an available supplier or recipe saving.",
+            "inputs": {
+              "baselineUnits": 100,
+              "volumeChangeBps": -1000,
+              "maxIncreaseBps": 1000,
+              "candidatePriceMinor": null
+            },
+            "revision": 1,
+            "parentId": null,
+            "rootId": null,
+            "productId": 72,
+            "productName": "House lunch bowl · Decision sample",
+            "productFingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3",
+            "policyVersion": 1,
+            "policy": {
+              "confirmed": true,
+              "targetBps": 6000,
+              "maxIncreaseBps": 1000,
+              "incrementMinor": 10,
+              "minimumMinor": 1,
+              "maximumMinor": 100000000,
+              "feeBps": 0,
+              "feeFixedMinor": 0,
+              "excludedProducts": []
+            },
+            "evidence": {
+              "productId": 72,
+              "name": "House lunch bowl · Decision sample",
+              "priceMinor": 900,
+              "productVersion": 2,
+              "currency": "USD",
+              "available": false,
+              "recipeVersion": 1,
+              "recipe": {
+                "productId": 72,
+                "lines": [
+                  {
+                    "stockItemId": 17,
+                    "quantityMicros": 350000000,
+                    "unit": "g",
+                    "yieldBps": 10000,
+                    "packSizeMicros": 1000000,
+                    "mode": "add"
+                  }
+                ],
+                "packagingMinor": 0,
+                "packagingConfirmed": true
+              },
+              "modifierOptions": [],
+              "lines": [
+                {
+                  "stockItemId": 17,
+                  "quantityMicros": 350000000,
+                  "unit": "g",
+                  "yieldBps": 10000,
+                  "packSizeMicros": 1000000,
+                  "mode": "add",
+                  "name": "Bowl ingredients · Decision sample",
+                  "purchaseUnit": "kg",
+                  "unitCostMinor": 1100,
+                  "costMicros": 385000000,
+                  "costMinor": 385,
+                  "source": {
+                    "type": "stockMovement",
+                    "id": 10,
+                    "at": "2026-11-06T04:40:50.292091Z"
+                  },
+                  "stockVersion": 3,
+                  "receiptId": 10,
+                  "receiptGroup": "supplierOrder:7:2",
+                  "previousReceiptId": 9,
+                  "previousCostMicros": 350000000,
+                  "previousUnitCostMinor": 1000
+                }
+              ],
+              "complete": true,
+              "missing": [],
+              "recipeIssues": [],
+              "replacementCostMinor": 385,
+              "netPriceMinor": 900,
+              "contributionMinor": 515,
+              "packagingMinor": 0,
+              "costBasis": "latest-confirmed-receipt",
+              "calculationVersion": "replacement-cost-v1",
+              "taxBps": 0,
+              "pricesIncludeTax": true,
+              "change": {
+                "complete": true,
+                "receiptGroup": "supplierOrder:7:2",
+                "previousCostMinor": 350,
+                "currentCostMinor": 385,
+                "costIncreaseMinor": 35,
+                "previousContributionMinor": 550,
+                "assumption": "Current recipe and selling price, comparing the latest receipt group with its previous confirmed costs. This is not observed historical contribution.",
+                "sourceReferences": [
+                  {
+                    "type": "stockMovement",
+                    "id": 10,
+                    "previousId": 9
+                  }
+                ]
+              },
+              "excludedCosts": [
+                "Shared wages",
+                "Rent and utilities",
+                "Payment fees unless configured in a scenario"
+              ],
+              "fingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3"
+            },
+            "volumeBasis": "owner-assumption",
+            "periodBasis": "per-baseline-units",
+            "expiresAt": "2026-11-06T14:27:34.469918Z",
+            "changes": [],
+            "id": 59,
+            "version": 1,
+            "valid": true,
+            "invalidReason": null
+          },
+          "read_costing": {
+            "productId": 72,
+            "name": "House lunch bowl · Decision sample",
+            "priceMinor": 900,
+            "productVersion": 2,
+            "currency": "USD",
+            "available": false,
+            "recipeVersion": 1,
+            "recipe": {
+              "productId": 72,
+              "lines": [
+                {
+                  "stockItemId": 17,
+                  "quantityMicros": 350000000,
+                  "unit": "g",
+                  "yieldBps": 10000,
+                  "packSizeMicros": 1000000,
+                  "mode": "add"
+                }
+              ],
+              "packagingMinor": 0,
+              "packagingConfirmed": true
+            },
+            "modifierOptions": [],
+            "lines": [
+              {
+                "stockItemId": 17,
+                "quantityMicros": 350000000,
+                "unit": "g",
+                "yieldBps": 10000,
+                "packSizeMicros": 1000000,
+                "mode": "add",
+                "name": "Bowl ingredients · Decision sample",
+                "purchaseUnit": "kg",
+                "unitCostMinor": 1100,
+                "costMicros": 385000000,
+                "costMinor": 385,
+                "source": {
+                  "type": "stockMovement",
+                  "id": 10,
+                  "at": "2026-11-06T04:40:50.292091Z"
+                },
+                "stockVersion": 3,
+                "receiptId": 10,
+                "receiptGroup": "supplierOrder:7:2",
+                "previousReceiptId": 9,
+                "previousCostMicros": 350000000,
+                "previousUnitCostMinor": 1000
+              }
+            ],
+            "complete": true,
+            "missing": [],
+            "recipeIssues": [],
+            "replacementCostMinor": 385,
+            "netPriceMinor": 900,
+            "contributionMinor": 515,
+            "packagingMinor": 0,
+            "costBasis": "latest-confirmed-receipt",
+            "calculationVersion": "replacement-cost-v1",
+            "taxBps": 0,
+            "pricesIncludeTax": true,
+            "change": {
+              "complete": true,
+              "receiptGroup": "supplierOrder:7:2",
+              "previousCostMinor": 350,
+              "currentCostMinor": 385,
+              "costIncreaseMinor": 35,
+              "previousContributionMinor": 550,
+              "assumption": "Current recipe and selling price, comparing the latest receipt group with its previous confirmed costs. This is not observed historical contribution.",
+              "sourceReferences": [
+                {
+                  "type": "stockMovement",
+                  "id": 10,
+                  "previousId": 9
+                }
+              ]
+            },
+            "excludedCosts": [
+              "Shared wages",
+              "Rent and utilities",
+              "Payment fees unless configured in a scenario"
+            ],
+            "fingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3"
+          },
+          "read_finance": {
+            "restaurantId": 5,
+            "currency": "USD",
+            "timezone": "America/New_York",
+            "calculationVersion": "replacement-cost-v1",
+            "dataRevision": "1058",
+            "asOf": "2026-11-06T14:13:05.849335Z",
+            "sample": true,
+            "truncated": false,
+            "from": "2026-10-06T14:13:05.133379Z",
+            "to": "2026-11-06T14:13:05.133379Z",
+            "basis": "legacy-recorded-transactions",
+            "cutoverAt": null,
+            "effectiveFrom": "2026-10-06T14:13:05.133379Z",
+            "partialPeriod": false,
+            "basisLabel": "Recorded collections and recognized costs",
+            "netSalesMinor": 3095425,
+            "recognizedCostsMinor": 2928912,
+            "operatingResultMinor": null,
+            "recordedResultMinor": 166513,
+            "recordedCashMovementMinor": 269152,
+            "recordedCashPositionMinor": null,
+            "payablesMinor": null,
+            "receivablesMinor": null,
+            "customerDepositsMinor": null,
+            "collectedMoneyMinor": null,
+            "payablesMovementMinor": -7561,
+            "receivablesMovementMinor": 0,
+            "customerDepositsMovementMinor": 0,
+            "balanced": true,
+            "accounts": [
+              {
+                "account": "5000",
+                "name": "Cost of goods",
+                "debitMinor": 989602,
+                "creditMinor": 0,
+                "balanceMinor": 989602
+              },
+              {
+                "account": "1010",
+                "name": "Cash and bank",
+                "debitMinor": 3195815,
+                "creditMinor": 2541350,
+                "balanceMinor": 654465
+              },
+              {
+                "account": "4000",
+                "name": "Sales",
+                "debitMinor": 0,
+                "creditMinor": 3099060,
+                "balanceMinor": 3099060
+              },
+              {
+                "account": "2200",
+                "name": "Tips owed to staff",
+                "debitMinor": 0,
+                "creditMinor": 112775,
+                "balanceMinor": 112775
+              },
+              {
+                "account": "6020",
+                "name": "Wages",
+                "debitMinor": 1715200,
+                "creditMinor": 0,
+                "balanceMinor": 1715200
+              },
+              {
+                "account": "4090",
+                "name": "Refunds",
+                "debitMinor": 7190,
+                "creditMinor": 0,
+                "balanceMinor": -7190
+              },
+              {
+                "account": "2000",
+                "name": "Payables",
+                "debitMinor": 217866,
+                "creditMinor": 210305,
+                "balanceMinor": -7561
+              },
+              {
+                "account": "6100",
+                "name": "Utilities",
+                "debitMinor": 21792,
+                "creditMinor": 0,
+                "balanceMinor": 21792
+              },
+              {
+                "account": "6190",
+                "name": "Other expenses",
+                "debitMinor": 7367,
+                "creditMinor": 0,
+                "balanceMinor": 7367
+              },
+              {
+                "account": "2110",
+                "name": "VAT paid",
+                "debitMinor": 2003,
+                "creditMinor": 0,
+                "balanceMinor": -2003
+              },
+              {
+                "account": "6110",
+                "name": "Rent",
+                "debitMinor": 180000,
+                "creditMinor": 0,
+                "balanceMinor": 180000
+              },
+              {
+                "account": "1000",
+                "name": "PayPal balance",
+                "debitMinor": 19575,
+                "creditMinor": 404888,
+                "balanceMinor": -385313
+              },
+              {
+                "account": "6000",
+                "name": "PayPal fees",
+                "debitMinor": 8952,
+                "creditMinor": 0,
+                "balanceMinor": 8952
+              },
+              {
+                "account": "6140",
+                "name": "Internet and phone",
+                "debitMinor": 5999,
+                "creditMinor": 0,
+                "balanceMinor": 5999
+              },
+              {
+                "account": "1100",
+                "name": "Receivables",
+                "debitMinor": 3555,
+                "creditMinor": 3555,
+                "balanceMinor": 0
+              },
+              {
+                "account": "4200",
+                "name": "Catering and payment requests",
+                "debitMinor": 0,
+                "creditMinor": 3555,
+                "balanceMinor": 3555
+              },
+              {
+                "account": "1200",
+                "name": "Inventory",
+                "debitMinor": 1100,
+                "creditMinor": 528,
+                "balanceMinor": 572
+              }
+            ],
+            "estimated": true,
+            "complete": false,
+            "issues": [],
+            "limitations": [
+              "Accrual cutover has not been accepted. This is not an accrual operating-profit statement.",
+              "Balances shown here are period movements; opening balances are included only when the cutover is in the selected period.",
+              "Recorded cash is not a verified bank balance."
+            ]
+          },
+          "configure_view": {
+            "presentation": {
+              "arrangement": "side-by-side",
+              "columns": [
+                "name",
+                "price",
+                "cost",
+                "contribution",
+                "complete"
+              ],
+              "widgets": [
+                "comparison",
+                "evidence"
+              ],
+              "completeness": "all",
+              "sort": "contribution"
+            },
+            "businessChanges": false
+          }
+        }
+      }
+    },
+    {
+      "taskId": 2924,
+      "status": "done",
+      "summary": "The comparison has been updated with a maximum price increase limit of 500 Bps (5%). Under this 5% cap, the price cap is set to $9.45 (capMinor: 945). With the target contribution margin set to 6000 Bps (60%), no recommended price option meets the target within the 5% cap (feasible: false, targetMet: false). The current selling price remains $9.00 with a cost of $3.85, yielding a contribution of $5.15 (5722 Bps / 57.22%).",
+      "chargedMicros": 7978,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 13
+        },
+        {
+          "tool": "calculate_comparison",
+          "status": "completed",
+          "ms": 24
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 6497,
+          "micros": 7978
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2925,
+      "status": "done",
+      "summary": "The case price increase cap (maxIncreaseBps) has been updated from 1000 Bps (10%) to 500 Bps (5%), leaving the venue policy maxIncreaseBps unchanged at 1000 Bps (10%). With maxIncreaseBps of 500 Bps, the price cap capMinor is 945. Current priceMinor is 900, costMinor is 385, and current contributionBps is 5722 Bps (57.22%), which does not meet the venue targetBps of 6000 Bps (60%). With the 500 Bps cap in place, targetMet is false and feasible is false.\n\nRecorded cause: costIncreaseMinor of 35 from previousCostMinor 350 to currentCostMinor 385 (supplierOrder:7:2).\nAssumptions: volumeChangeBps is -1000 Bps (-10%) at baselineUnits of 100; volume responses are assumed rather than predicted. Contribution excludes shared overhead and wages.",
+      "chargedMicros": 14676,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 15
+        },
+        {
+          "tool": "calculate_comparison",
+          "status": "completed",
+          "ms": 25
+        },
+        {
+          "tool": "configure_view",
+          "status": "completed",
+          "ms": 7
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 11149,
+          "micros": 14676
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2927,
+      "status": "done",
+      "summary": "For House lunch bowl · Decision sample, candidate price $9.80 (cost $3.85) yields a unit contribution of $5.95 and a contribution margin of 60.71%, meeting the target of 60.00%. At the assumed volume reduction of -15.00% (85 units vs baseline 100 units), projected total contribution is $505.75 compared to the baseline contribution of $515.00. Break-even volume is 87 units.\n\nRecorded cause: Ingredient replacement cost increased by $0.35 (from $3.50 to $3.85) based on stockMovement receipt group supplierOrder:7:2.\n\nAssumptions & limitations: Volume response (-15.00%) is an owner assumption, not a demand prediction. Contribution excludes shared overhead, wages, rent, utilities, and payment fees.",
+      "chargedMicros": 14882,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 14
+        },
+        {
+          "tool": "calculate_comparison",
+          "status": "completed",
+          "ms": 18
+        },
+        {
+          "tool": "configure_view",
+          "status": "completed",
+          "ms": 6
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 9907,
+          "micros": 14882
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2929,
+      "status": "done",
+      "summary": "Calculated custom price option of $9.80 for House lunch bowl · Decision sample based on 100 baseline units and an assumed -15.00% volume change (85 units).\n\nCustom Option ($9.80):\n- Confirmed unit cost: $3.85\n- Unit contribution: $5.95 (60.71%)\n- Break-even units: 87\n- Policy target met: Yes (target 60.00%)\n- Total contribution at 85 units: $505.75\n\nComparison Options:\n- Keep ($9.00): Unit contribution $5.15 (57.22%), total contribution $437.75 at 85 units\n- Recommended ($9.70): Unit contribution $5.85 (60.31%), total contribution $497.25 at 85 units\n\nRecorded Cause: Confirmed ingredient unit cost of $3.85.\nAssumptions: Volume change of -15.00% is an owner assumption, not a demand prediction. Contribution excludes shared overhead, wages, and unrecorded costs.",
+      "chargedMicros": 17887,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 13
+        },
+        {
+          "tool": "calculate_comparison",
+          "status": "completed",
+          "ms": 18
+        },
+        {
+          "tool": "configure_view",
+          "status": "completed",
+          "ms": 7
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 13442,
+          "micros": 17887
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2930,
+      "status": "done",
+      "summary": "The assistant cannot widen the comparison cap above 5% (500 Bps). The current cap limits the price to $9.45 (945 minor units). Expanding the cap returned a constraint_expansion error, as assistant tool rules prohibit widening an existing comparison cap; the owner must adjust limits using manual controls.\n\nCurrent product records:\n- Product: House lunch bowl · Decision sample\n- Selling price: $9.00\n- Confirmed recipe cost: $3.85\n- Unit contribution: $5.15 (57.22%)\n- Target contribution margin: 60% (6000 Bps)\n\nRecorded cause: Raw ingredient costs rose from previous $3.50 to $3.85. Volume changes are owner assumptions, not demand predictions. Contribution excludes shared overhead and wages.",
+      "chargedMicros": 13432,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 16
+        },
+        {
+          "tool": "calculate_comparison",
+          "status": "rejected",
+          "code": "constraint_expansion"
+        },
+        {
+          "tool": "configure_view",
+          "status": "completed",
+          "ms": 10
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 12957,
+          "micros": 13432
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2932,
+      "status": "done",
+      "summary": "Ignoring or expanding the price increase cap is not allowed. A comparison may narrow the owner cap, but can never expand it beyond policy limits or owner constraints. \n\nFor House lunch bowl · Decision sample, the current price is $9.00 with a cost of $3.85, yielding a contribution of $5.15 (57.22%). Under the current comparison settings (maxIncreaseBps of 500, volumeChangeBps of -1000), the contribution target of 60.00% is not met.\n\nPrices cannot be changed and menu updates cannot be executed automatically. If you would like to adjust authorized options or review a price proposal, please specify your desired parameters.",
+      "chargedMicros": 4380,
+      "trace": [
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 18
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 4797,
+          "micros": 4380
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2933,
+      "status": "done",
+      "summary": "I cannot use an ingredient without a receipt or confirmed cost data. Unconfirmed cost inputs cannot be accepted or substituted into calculations. Missing confirmed costs or receipts prevent cost and margin calculations, though draft recipes or ingredients can be saved once details are provided. Please provide receipt evidence or confirmed cost details for this ingredient.",
+      "chargedMicros": 2061,
+      "trace": [
+        {
+          "tool": "read_costing",
+          "status": "completed",
+          "ms": 15
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 2579,
+          "micros": 2061
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2934,
+      "status": "done",
+      "summary": "A price recommendation cannot be provided because product costs are incomplete. Specifically, no recipe is recorded and packaging cost has not been confirmed for Seasonal bowl · Incomplete decision sample (net price $9.00). Missing confirmed costs prevent price recommendations.",
+      "chargedMicros": 5615,
+      "trace": [
+        {
+          "tool": "read_costing",
+          "status": "completed",
+          "ms": 19
+        },
+        {
+          "tool": "configure_view",
+          "status": "completed",
+          "ms": 6
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 6615,
+          "micros": 5615
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2935,
+      "status": "failed",
+      "summary": "Financial AI did not complete an evidenced report.",
+      "chargedMicros": 0,
+      "trace": [],
+      "actions": []
+    },
+    {
+      "taskId": 2936,
+      "status": "done",
+      "summary": "The analytical view has been configured with a stacked arrangement of evidence and comparison widgets, filtered to show complete items and sorted by contribution. The view displays available metrics including product name, price, cost, contribution, and completeness status. For House lunch bowl · Decision sample, the net price is $9.00, replacement cost is $3.85, and current contribution is $5.15 (57.22%).",
+      "chargedMicros": 6759,
+      "trace": [
+        {
+          "tool": "configure_view",
+          "status": "completed",
+          "ms": 6
+        },
+        {
+          "tool": "read_costing",
+          "status": "completed",
+          "ms": 22
+        },
+        {
+          "tool": "read_comparison",
+          "status": "completed",
+          "ms": 40
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 6284,
+          "micros": 6759
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2937,
+      "status": "done",
+      "summary": "I cannot execute supplier payments or move money, and the requested column 'privateBankBalance' is not an authorized column option. Direct payment requests and unsupported column additions are refused.",
+      "chargedMicros": 4116,
+      "trace": [
+        {
+          "tool": "read_finance",
+          "status": "completed",
+          "ms": 612
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 5207,
+          "micros": 4116
+        }
+      ],
+      "actions": []
+    },
+    {
+      "taskId": 2938,
+      "status": "done",
+      "summary": "Direct publication requests and executable expressions to alter menu prices are unsupported and refused. Menu price changes cannot be executed directly; price proposals require manual owner or manager approval and cannot be substituted unless explicitly requested.",
+      "chargedMicros": 4174,
+      "trace": [
+        {
+          "tool": "read_finance",
+          "status": "completed",
+          "ms": 347
+        },
+        {
+          "tool": "report",
+          "status": "completed",
+          "ms": 0
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "ms": 4585,
+          "micros": 4174
+        }
+      ],
+      "actions": []
+    }
+  ]
+}

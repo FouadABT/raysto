@@ -1,0 +1,23 @@
+{
+  "at": "2026-11-06T14:12:36.577Z",
+  "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+  "provenance": "Authored USD exercise A; not observed business results",
+  "restaurantId": 5,
+  "productId": 72,
+  "comparisonId": 59,
+  "supplierId": 4,
+  "stockItemId": 17,
+  "confirmedReceiptIds": [
+    10
+  ],
+  "replacementCostMinor": 385,
+  "currentContributionMinor": 515,
+  "recommendedPriceMinor": 970,
+  "baselineUnits": 100,
+  "volumeBasis": "explicit sample assumption",
+  "supplierEmailsSent": 0,
+  "pricePublished": false,
+  "moneyActions": 0,
+  "incompleteProductId": 73,
+  "cappedComparisonId": 60
+}

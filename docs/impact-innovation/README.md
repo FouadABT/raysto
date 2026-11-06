@@ -7,9 +7,10 @@ The intended value is one café owner tracing a confirmed supplier increase, com
 ## Current evidence boundary
 
 - Fouad confirmed **zero owners booked** on 6 November. No owner quotations, task times, adoption findings or business improvement are established.
-- The comparison and decision implementation extends the working-tree 0.17 candidate. It is not the deployed 0.16 release. The earlier 0.17 APK and earlier test counts do not validate these additions.
-- Scripted Gemini responses test tool boundaries. They do not measure actual model accuracy or latency. See the candidate acceptance record for dated runs.
-- PayPal mocks establish state handling only. The required integrated actual Sandbox run must use the matching candidate and retain recipient-level outcomes and journal evidence.
+- The decision backend is deployed as 0.17.0-dev.5. The matching console and development-signed Android artifact are identified independently in the [release manifest](../release-0.17-manifest.json). Component versions differ; this is still a development candidate with open acceptance gates.
+- Scripted Gemini responses test boundaries. The [actual-model review](actual-model-review.json) separately records 12/14 successful first attempts, one transport failure and one fallback. The transport-failed result was recovered without a new model call: 13/14 valid model results are available, while first-attempt delivery remains 12/14. All earlier runs are retained.
+- The [integrated Sandbox record](integrated-sandbox-dev5.json) links an actual $9.70 capture and an actual $11.00 completed payout item to reviewed sample evidence, prices and recipe/cost snapshots. The sample venue's journal balances on its legacy recorded-transactions basis; full accrual agreement and earned-revenue attribution remain incomplete without a reviewed cutover.
+- The [deployed Studio journey](live-studio-acceptance.json) passed on console 0.17.0-dev.5: visible Gemini explanation, configured comparison/evidence widgets, receipt drill-down and layout undo. Earlier scope and missing-text failures are retained and documented in acceptance.
 - No completed seven-day owner-impact observation is claimed. Immediate collections and payouts demonstrate execution, not improved demand or profit.
 - Presentation remains a separate workstream.
 
@@ -21,6 +22,7 @@ The intended value is one café owner tracing a confirmed supplier increase, com
 - [Consent, interview and observed-task protocol](owner-protocol.md)
 - [Blank participant observations](owner-observations.csv)
 - [Focused AI/workflow cases](evaluation-cases.json), extending the existing [30-case set](../evaluation-0.17-cases.json)
+- [Case-by-case evidence and remaining coverage](case-coverage.md)
 - [Candidate acceptance](acceptance.md)
 
 ## Research and execution responsibilities

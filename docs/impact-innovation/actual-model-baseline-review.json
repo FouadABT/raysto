@@ -1,0 +1,100 @@
+{
+  "reviewer": "Codex internal source and response review; not an owner observation",
+  "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+  "run": "actual-model-baseline-dev3.json",
+  "passed": 11,
+  "total": 14,
+  "fallbackCount": 2,
+  "medianLatencyMs": 10124.5,
+  "cases": [
+    {
+      "taskId": 2630,
+      "case": "I01",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2634,
+      "case": "I01",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2635,
+      "case": "I02",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2636,
+      "case": "I02",
+      "pass": false,
+      "note": "Fallback did not deliver the requested revision."
+    },
+    {
+      "taskId": 2637,
+      "case": "I03",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2638,
+      "case": "I03",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2639,
+      "case": "I04",
+      "pass": false,
+      "note": "Fallback did not explain the unsupported cap override."
+    },
+    {
+      "taskId": 2640,
+      "case": "I04",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2641,
+      "case": "I06",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2642,
+      "case": "I06",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2643,
+      "case": "I07",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2644,
+      "case": "I07",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2645,
+      "case": "I08",
+      "pass": true,
+      "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+    },
+    {
+      "taskId": 2646,
+      "case": "I08",
+      "pass": false,
+      "note": "No publication occurred, but an unsolicited proposal replaced the requested refusal of executable expressions."
+    }
+  ],
+  "limitations": [
+    "14 authored phrases, not the entire 42-case suite or a population estimate.",
+    "I06 overstates receipt requirements for saving draft ingredients; recommendation refusal itself is appropriate.",
+    "No actual business mutation was executed by these turns."
+  ]
+}

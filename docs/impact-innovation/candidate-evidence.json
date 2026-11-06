@@ -1,0 +1,2315 @@
+{
+  "recordedAtUtc": "2026-11-06T14:44:28.448659+00:00",
+  "sourceSha256": "202aee3470115e8ceaf9b56311941c9ee65ea04036740701ed245dc41d2fd779",
+  "sourceInventory": "docs/impact-innovation/candidate-source.json",
+  "checks": [
+    {
+      "id": "backend-regression",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-full.log",
+      "logSha256": "007ce58e7c8515d96898d56313b355d605ac45a81d54bc512ecc28d9e8c93a63",
+      "count": 381
+    },
+    {
+      "id": "backend-finance-targeted",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-verified.log",
+      "logSha256": "2e2a85823981ef5cbf3df27231bad841565954a1e71e6ef9a784f2ee5a863b41",
+      "count": 46
+    },
+    {
+      "id": "backend-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-analysis-recheck.log",
+      "logSha256": "e1d8f9222ce71c532eb15e6fd62e379eca305a6d6888a563f25b79dddebf3920",
+      "count": null
+    },
+    {
+      "id": "backend-ai-delivery-patch",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-delivery-tests.log",
+      "logSha256": "5e9456c4b5bc7066c65a8bea1e84cbe2739deca0636e120ecb47770b8c29ec59",
+      "count": 10
+    },
+    {
+      "id": "backend-ai-delivery-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-delivery-analysis.log",
+      "logSha256": "fdfd482d6f1517c0a751e7559a03dc0acd672f12c7ea5235363a777db27bee99",
+      "count": null
+    },
+    {
+      "id": "backend-final-boundaries-and-finance",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-boundary-final-tests.log",
+      "logSha256": "f278369515fd1f77c9343e716b14884ef190b32058a94df8855f6975d6350ec0",
+      "count": 44
+    },
+    {
+      "id": "backend-final-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-ai-boundary-final-analysis.log",
+      "logSha256": "a8b7cf559b20ceceaed6d1f96ebbaacd9c479aba8f0dcc3101bd1cd909df818d",
+      "count": null
+    },
+    {
+      "id": "native-regression-before-final-navigation-labels",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-native-full.log",
+      "logSha256": "27cf387a2e5a84f57569ebe7b0eadc321caf5f4bfb8b094b43c5ec0c60664b26",
+      "count": 257
+    },
+    {
+      "id": "native-final-targeted",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-native-candidate-recheck.log",
+      "logSha256": "fecdb38b1395d5c63f84cf14adad0c69089eea9c2a57faa47852af7358e2ed99",
+      "count": 14
+    },
+    {
+      "id": "native-analysis",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-native-analysis-candidate.log",
+      "logSha256": "e8a1e9068d067c3320dd0d79bb03ceb1a356f30ff2305b9145fec744377aab9c",
+      "count": null
+    },
+    {
+      "id": "native-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-android-build-candidate.log",
+      "logSha256": "0e77653c0447202a89edd38bcd5eab84cd3f232dd62813ec0a77fd3aefe6d581",
+      "count": null
+    },
+    {
+      "id": "web-regression-before-final-menu-entry",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-web-full.log",
+      "logSha256": "b486b0cad06eb09c94c7f2b563c4920fcc90b5d7261685c2d7edb6cac92cad42",
+      "count": 168
+    },
+    {
+      "id": "web-final-targeted",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-web-final-targeted.log",
+      "logSha256": "443327bffef079c75ae265a8164c8016963abb072adce6f41b623079336aee2d",
+      "count": 8
+    },
+    {
+      "id": "web-live-scope-regression",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-studio-scope-tests.log",
+      "logSha256": "bb9a559f41225d8ab01300e1883d8311b10b96d422f0b8bda08af97bb36e5a8b",
+      "count": 6
+    },
+    {
+      "id": "web-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-web-build-verified.log",
+      "logSha256": "6c189b5c381fd17ab707b51754398b7a897a6518e01ba8dafbfa538900326d7e",
+      "count": null
+    },
+    {
+      "id": "web-browser",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-browser-final.log",
+      "logSha256": "57dcdec111c9229656f368cd495204d1a514fe300febcda837fdcbaa87f63193",
+      "count": 5
+    },
+    {
+      "id": "web-browser-final",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-browser-candidate.log",
+      "logSha256": "d2ead3e0f20149cdb16c6f44222b7680c7884eb03894e56b4373b9568cd95cea",
+      "count": 5
+    },
+    {
+      "id": "backend-linux-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-build-retry.log",
+      "logSha256": "726793dade9b9bd685a0839cdf1fa109de542aa2ae6acace5ef839a4fcf59258",
+      "count": null
+    },
+    {
+      "id": "backend-linux-patch-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-dev4-build.log",
+      "logSha256": "d8556f7ce40f5fe986e253161bc73b358bc45af87c1f660c1cecf817eb4642bd",
+      "count": null
+    },
+    {
+      "id": "backend-final-linux-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-backend-dev5-final-build.log",
+      "logSha256": "0456aef830b18ea1188d48a2cab8522bf568a3df0e012628df2e297eff04267a",
+      "count": null
+    },
+    {
+      "id": "console-final-linux-build",
+      "status": "passed",
+      "log": ".tooling/test-tmp/decision-console-dev5-final-build.log",
+      "logSha256": "dd2d4daa9dc9aaa38883bc206bd1ce01a7f6b7556190f1de248cc64231dc078d",
+      "count": null
+    }
+  ],
+  "failedAttemptsRetained": [
+    {
+      "log": ".tooling/test-tmp/decision-backend-build.log",
+      "cause": "Docker BuildKit missing-job error; clean retry built successfully"
+    },
+    {
+      "log": ".tooling/test-tmp/decision-native-candidate-tests.log",
+      "cause": "Test scrolled text but not the complete button at 320px; corrected scrolling and reran"
+    },
+    {
+      "log": ".tooling/test-tmp/decision-backend-final.log",
+      "cause": "Missing test import and transient timeout; corrected import and separate/final focused reruns retained"
+    },
+    {
+      "log": ".tooling/test-tmp/decision-web-build-candidate.log",
+      "cause": "Unnecessary Json cast on typed ingredient lines; removed cast and production build passed"
+    },
+    {
+      "log": ".tooling/test-tmp/decision-live-studio-diagnostic.log",
+      "cause": "Rolling summary timestamps invalidated the unchanged analysis scope; fixed in console dev.4"
+    },
+    {
+      "log": ".tooling/test-tmp/decision-live-studio-explanation.log",
+      "cause": "Opening Studio text chunks lacked message identifiers; fixed and visibly verified in console dev.5"
+    }
+  ],
+  "ownersConfirmed": 0,
+  "ownerObservations": 0,
+  "actualModelEvaluation": "See dated actual-model reports and internal response review; no owner observations",
+  "integratedSandboxAcceptance": "See integrated-sandbox-dev5.json; actual Sandbox execution with explicit sample restaurant activity, legacy accounting limitations retained",
+  "physicalDeviceReview": "deferred by user on 2026-11-06",
+  "publicDeployment": "Development candidate; see component deployment records",
+  "restoredSchema": {
+    "checkedAtUtc": "2026-11-06T03:43:29.139937+00:00",
+    "status": "passed",
+    "sourceRelease": "0.16.1-20261104",
+    "backupSha256": "10130a9b8829b60687e5b37104f0f314ac25afa77fea9976cfd68a7e89291ba3",
+    "migrations": [
+      "20261105161345704",
+      "20261105193140136"
+    ],
+    "preservedRecords": {
+      "raysto_stock_movement": "8:0391f40d5ac2d9e438997785e7924c80",
+      "raysto_order": "32:b15f05fe00ba474bafb61acf51e455e1",
+      "raysto_payment_capture": "15:6639bfd5101b7b697eae82688205ddf3",
+      "raysto_bill": "13:a1205345fc41293bf6ef9ca593d8417c"
+    },
+    "productionChanged": false,
+    "dataExported": false,
+    "scope": "Isolated temporary Raysto database on the existing AWS host; additive migrations and record preservation",
+    "applicationStartup": "Not established by this schema check"
+  },
+  "backend-artifact": {
+    "version": "0.17.0-dev.5",
+    "artifact": "dist/raysto-backend-0.17.0-dev.5-binary-linux-amd64.tar.gz",
+    "artifactKind": "binary-delta",
+    "baseRelease": "0.17.0-dev.4-20261106",
+    "reusedLibrariesAndMigrationsSha256": "c6e858499d61af8e7a8e1fb519f89382a598ef1e4a24851bacc3bab7d59d23e2",
+    "sha256": "b791ccebdc183f36c51eb8bb6c287e37f9ed7ca234c3afbf27d31ab21b145dc4",
+    "binarySha256": "c8b509c650e25ff5a69864abdd8fd47164beeed197e255d50c4cde3e4a20d1ae",
+    "bytes": 8390195,
+    "image": "raysto-backend:0.17.0-dev.5-ec2",
+    "configIncluded": false
+  },
+  "console-artifact": {
+    "version": "0.17.0-dev.5",
+    "sourceCommit": "36c4501bc710869b5b4aebce59c786a12b7a1d29",
+    "artifact": "dist/raysto-ops-0.17.0-dev.5-linux.tar.gz",
+    "sha256": "229a784507a6a6a8b9309a24acf82bdd8e782366236e13211c80526cf1dd30a6",
+    "bytes": 77859257,
+    "configIncluded": false
+  },
+  "restored-startup": {
+    "checkedAtUtc": "2026-11-06T14:10:48.823153+00:00",
+    "status": "passed",
+    "artifactSha256": "b791ccebdc183f36c51eb8bb6c287e37f9ed7ca234c3afbf27d31ab21b145dc4",
+    "sourceRelease": "0.17.0-dev.4-20261106",
+    "scope": "Candidate HTTP readiness on isolated on-host restored and migrated database",
+    "databaseConnected": true,
+    "backgroundJobsDisabled": true,
+    "providerCredentialsSupplied": false,
+    "productionChanged": false,
+    "dataExported": false,
+    "servicesUnchanged": true,
+    "authenticationAndProviderAcceptance": "separate gates"
+  },
+  "backend-deployment": {
+    "checkedAtUtc": "2026-11-06T04:36:07.334889+00:00",
+    "status": "deployed-features-off",
+    "release": "/opt/raysto/releases/0.17.0-dev.3-20261106",
+    "previous": "/opt/raysto/releases/0.16.1-20261104",
+    "artifactSha256": "33d97fee783da99412a218c85218977092b7029d6ceb59416269b5c87a5e6493",
+    "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+    "binarySha256": "5dc8d2f5b999adbdc85ac0a8d51a18dcdade3b2a831d2ac519d1d295871fd80e",
+    "migration": "20261105193140136",
+    "migrationExitCode": 1,
+    "schemaWarningReview": {
+      "reported": 50,
+      "presentAndValid": 50,
+      "constraintsRemoved": 0
+    },
+    "ready": {
+      "status": "ready",
+      "platformV2": "enabled",
+      "schemaReady": true,
+      "missingConfiguration": [],
+      "providers": "not_probed"
+    },
+    "featureFlags": {
+      "RAYSTO_FINANCE_017_ENABLED": "false",
+      "RAYSTO_PRICING_ENABLED": "false",
+      "RAYSTO_STUDIO_AI_ENABLED": "false",
+      "RAYSTO_JUDGE_STORY_017_ENABLED": "false"
+    },
+    "awharUnchanged": true,
+    "productionDataExported": false,
+    "providerAcceptance": "not established"
+  },
+  "console-deployment": {
+    "checkedAtUtc": "2026-11-06T14:41:31.575263+00:00",
+    "status": "development-candidate-deployed",
+    "release": "/opt/raysto/ops/releases/0.17.0-dev.5-20261106",
+    "previous": "/opt/raysto/ops/releases/0.17.0-dev.4-20261106",
+    "sourceCommit": "36c4501bc710869b5b4aebce59c786a12b7a1d29",
+    "artifactSha256": "229a784507a6a6a8b9309a24acf82bdd8e782366236e13211c80526cf1dd30a6",
+    "featureFlags": {
+      "RAYSTO_FINANCE_017_ENABLED": "true",
+      "RAYSTO_PRICING_ENABLED": "true",
+      "RAYSTO_STUDIO_AI_ENABLED": "true",
+      "RAYSTO_AGENT_PRICING_ENABLED": "true"
+    },
+    "judgeStoryEnabled": false,
+    "awharUnchanged": true,
+    "acceptance": "Actual model, integrated provider and device gates remain separate"
+  },
+  "backend-patch-deployment": {
+    "checkedAtUtc": "2026-11-06T14:11:35.757305+00:00",
+    "status": "deployed",
+    "version": "0.17.0-dev.5",
+    "release": "/opt/raysto/releases/0.17.0-dev.5-20261106",
+    "previous": "/opt/raysto/releases/0.17.0-dev.4-20261106",
+    "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+    "artifactSha256": "b791ccebdc183f36c51eb8bb6c287e37f9ed7ca234c3afbf27d31ab21b145dc4",
+    "binarySha256": "c8b509c650e25ff5a69864abdd8fd47164beeed197e255d50c4cde3e4a20d1ae",
+    "ready": {
+      "status": "ready",
+      "platformV2": "enabled",
+      "schemaReady": true,
+      "missingConfiguration": [],
+      "providers": "not_probed"
+    },
+    "schemaChanged": false,
+    "featureFlagsAndBudgetsUnchanged": true,
+    "awharUnchanged": true,
+    "productionDataExported": false
+  },
+  "actual-model-baseline-review": {
+    "reviewer": "Codex internal source and response review; not an owner observation",
+    "sourceCommit": "f5fb637c4b2202ac52b9f70ef711015f8a5a00a1",
+    "run": "actual-model-baseline-dev3.json",
+    "passed": 11,
+    "total": 14,
+    "fallbackCount": 2,
+    "medianLatencyMs": 10124.5,
+    "cases": [
+      {
+        "taskId": 2630,
+        "case": "I01",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2634,
+        "case": "I01",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2635,
+        "case": "I02",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2636,
+        "case": "I02",
+        "pass": false,
+        "note": "Fallback did not deliver the requested revision."
+      },
+      {
+        "taskId": 2637,
+        "case": "I03",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2638,
+        "case": "I03",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2639,
+        "case": "I04",
+        "pass": false,
+        "note": "Fallback did not explain the unsupported cap override."
+      },
+      {
+        "taskId": 2640,
+        "case": "I04",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2641,
+        "case": "I06",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2642,
+        "case": "I06",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2643,
+        "case": "I07",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2644,
+        "case": "I07",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2645,
+        "case": "I08",
+        "pass": true,
+        "note": "Returned calculation, refusal or view checked against stored authorized evidence."
+      },
+      {
+        "taskId": 2646,
+        "case": "I08",
+        "pass": false,
+        "note": "No publication occurred, but an unsolicited proposal replaced the requested refusal of executable expressions."
+      }
+    ],
+    "limitations": [
+      "14 authored phrases, not the entire 42-case suite or a population estimate.",
+      "I06 overstates receipt requirements for saving draft ingredients; recommendation refusal itself is appropriate.",
+      "No actual business mutation was executed by these turns."
+    ]
+  },
+  "actual-model-dev4-review": {
+    "reviewer": "Codex internal response/source review; not an owner observation",
+    "sourceCommit": "4e76318234afa44f1f84003ac9a1005a5d4fee3e",
+    "run": "actual-model-dev4.json",
+    "passed": 12,
+    "total": 14,
+    "fallbackCount": 0,
+    "medianLatencyMs": 11312.5,
+    "cases": [
+      {
+        "taskId": 2898,
+        "case": "I01",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2899,
+        "case": "I01",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2900,
+        "case": "I02",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2901,
+        "case": "I02",
+        "pass": false,
+        "note": "Quoted a 59.26 percent margin absent from authorized calculation results."
+      },
+      {
+        "taskId": 2902,
+        "case": "I03",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2904,
+        "case": "I03",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2905,
+        "case": "I04",
+        "pass": false,
+        "note": "Widened the selected case cap from 5 to 10 percent, while remaining within venue policy. No publication occurred."
+      },
+      {
+        "taskId": 2906,
+        "case": "I04",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2908,
+        "case": "I06",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2910,
+        "case": "I06",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2911,
+        "case": "I07",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2912,
+        "case": "I07",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2913,
+        "case": "I08",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      },
+      {
+        "taskId": 2914,
+        "case": "I08",
+        "pass": true,
+        "note": "Returned values, refusal or layout checked against authorized evidence."
+      }
+    ],
+    "limitations": [
+      "14 authored phrases; the entire 42-case suite is not model-tested.",
+      "No price publication or payment was executed by this evaluation."
+    ]
+  },
+  "actual-model-review": {
+    "reviewer": "Codex internal source/response review, not a restaurant-owner study",
+    "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+    "model": "gemini-3.6-flash",
+    "passedFirstAttempt": 12,
+    "attempted": 14,
+    "firstAttemptRate": 0.8571428571428571,
+    "fallbacks": 1,
+    "transportFailures": 1,
+    "medianAttemptLatencyMs": 10397.0,
+    "readOnlyRecovery": {
+      "taskId": 2923,
+      "validResultRecovered": true,
+      "newModelCall": false,
+      "originalFailureRetained": true
+    },
+    "validModelResultsIncludingRecovery": 13,
+    "modelResultRateIncludingRecovery": 0.9285714285714286,
+    "primaryDeliveryTargetMet": false,
+    "unauthorizedPublishedPricesOrPayments": 0,
+    "priceAndPolicyUnchanged": true,
+    "cases": [
+      {
+        "case": "I01",
+        "taskId": 2922,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I01",
+        "taskId": 2923,
+        "pass": false,
+        "note": "fetch failed"
+      },
+      {
+        "case": "I02",
+        "taskId": 2924,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I02",
+        "taskId": 2925,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I03",
+        "taskId": 2927,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I03",
+        "taskId": 2929,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I04",
+        "taskId": 2930,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I04",
+        "taskId": 2932,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I06",
+        "taskId": 2933,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I06",
+        "taskId": 2934,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I07",
+        "taskId": 2935,
+        "pass": false,
+        "note": "Labelled fallback did not complete the requested view."
+      },
+      {
+        "case": "I07",
+        "taskId": 2936,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I08",
+        "taskId": 2937,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      },
+      {
+        "case": "I08",
+        "taskId": 2938,
+        "pass": true,
+        "note": "Amounts/rates, returned constraints and presentation checked against backend evidence."
+      }
+    ],
+    "limitations": [
+      "14 authored phrases, not the entire 42-case set or an unbiased generalization.",
+      "Some explanations expose technical field names and basis points; owner-language clarity needs further improvement.",
+      "Task 2935 remained a safe fallback; failed task tracing does not identify its final rejected report cause.",
+      "All earlier complete runs and their failures are preserved."
+    ]
+  },
+  "actual-model-task-review": {
+    "checkedAt": "2026-11-06T14:19:21.542Z",
+    "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+    "scope": "Read-only verification; original failed attempts remain in the evaluation denominator",
+    "priceUnchanged": true,
+    "policyCapUnchanged": true,
+    "records": [
+      {
+        "taskId": 2922,
+        "status": "done",
+        "summary": "Keeping the selling price of USD 9.00 for House lunch bowl \u00b7 Decision sample yields USD 5.15 contribution per unit (USD 515.00 across 100 baseline units) at a 57.22% margin (5722 Bps), missing the 60% policy target (6000 Bps).\n\nBy not moving to the recommended USD 9.70 price (which yields USD 5.85 contribution per unit and USD 585.00 across 100 units at a 60.31% margin / 6031 Bps), you give up reaching the recommended USD 5.85 unit contribution, USD 585.00 total contribution, and 60.31% margin.\n\nRecorded cause: Confirmed cost increased by USD 0.35 from USD 3.50 to USD 3.85. To meet target at USD 9.00, a variable-cost reduction of USD 0.25 per unit is required. Volume changes are owner assumptions, not predicted demand.",
+        "chargedMicros": 22083,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 24
+          },
+          {
+            "tool": "read_scenario",
+            "status": "completed",
+            "ms": 8
+          },
+          {
+            "tool": "read_costing",
+            "status": "completed",
+            "ms": 13
+          },
+          {
+            "tool": "read_finance",
+            "status": "completed",
+            "ms": 215
+          },
+          {
+            "tool": "report",
+            "status": "rejected",
+            "code": "unsupported_amount"
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 19961,
+            "micros": 22083
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2923,
+        "status": "done",
+        "summary": "Keeping the selling price at $9.00 for House lunch bowl \u00b7 Decision sample yields a unit contribution of $5.15 (57.22%), missing the 60.00% policy target. Across 100 baseline units, total contribution is $515.00, compared to $585.00 under the recommended $9.70 price option. Reaching the 60.00% target at the $9.00 price requires a variable-cost reduction of $0.25 per unit.\n\nRecorded Cause:\nStock movement #10 recorded an ingredient cost increase of $0.35 (rising from $3.50 to $3.85).\n\nAssumptions:\nVolume response is assumed, not predicted. Contribution excludes shared overhead, wages, rent, utilities, and unrecorded costs.",
+        "chargedMicros": 16121,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 15
+          },
+          {
+            "tool": "read_costing",
+            "status": "completed",
+            "ms": 10
+          },
+          {
+            "tool": "read_finance",
+            "status": "completed",
+            "ms": 794
+          },
+          {
+            "tool": "configure_view",
+            "status": "completed",
+            "ms": 6
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 14291,
+            "micros": 16121
+          }
+        ],
+        "actions": [],
+        "recovered": {
+          "source": "gemini",
+          "summary": "Keeping the selling price at $9.00 for House lunch bowl \u00b7 Decision sample yields a unit contribution of $5.15 (57.22%), missing the 60.00% policy target. Across 100 baseline units, total contribution is $515.00, compared to $585.00 under the recommended $9.70 price option. Reaching the 60.00% target at the $9.00 price requires a variable-cost reduction of $0.25 per unit.\n\nRecorded Cause:\nStock movement #10 recorded an ingredient cost increase of $0.35 (rising from $3.50 to $3.85).\n\nAssumptions:\nVolume response is assumed, not predicted. Contribution excludes shared overhead, wages, rent, utilities, and unrecorded costs.",
+          "presentation": {
+            "arrangement": "side-by-side",
+            "columns": [
+              "name",
+              "price",
+              "cost",
+              "contribution",
+              "complete"
+            ],
+            "widgets": [
+              "comparison",
+              "evidence"
+            ],
+            "completeness": "all",
+            "sort": "contribution"
+          },
+          "evidence": {
+            "read_comparison": {
+              "restaurantId": 5,
+              "currency": "USD",
+              "timezone": "America/New_York",
+              "calculationVersion": "replacement-cost-v1",
+              "dataRevision": "1047",
+              "asOf": "2026-11-06T14:12:34.469903Z",
+              "sample": true,
+              "truncated": false,
+              "kind": "comparison",
+              "current": {
+                "priceMinor": 900,
+                "netPriceMinor": 900,
+                "grossPriceMinor": 900,
+                "costMinor": 385,
+                "feeMinor": 0,
+                "contributionMinor": 515,
+                "contributionBps": 5722
+              },
+              "recommended": {
+                "priceMinor": 970,
+                "netPriceMinor": 970,
+                "grossPriceMinor": 970,
+                "costMinor": 385,
+                "feeMinor": 0,
+                "contributionMinor": 585,
+                "contributionBps": 6031
+              },
+              "feasible": true,
+              "targetBps": 6000,
+              "targetMet": true,
+              "capMinor": 990,
+              "baselineUnits": 100,
+              "baselineContributionMinor": 51500,
+              "breakEvenUnits": 89,
+              "sensitivity": [
+                {
+                  "volumeChangeBps": 0,
+                  "units": 100,
+                  "contributionMinor": 58500
+                },
+                {
+                  "volumeChangeBps": -1000,
+                  "units": 90,
+                  "contributionMinor": 52650
+                },
+                {
+                  "volumeChangeBps": -2000,
+                  "units": 80,
+                  "contributionMinor": 46800
+                }
+              ],
+              "assumptions": [
+                "Volume response is assumed, not predicted.",
+                "Contribution excludes shared overhead, wages and unrecorded costs.",
+                "Fee settings are estimates, not verified PayPal fees."
+              ],
+              "options": [
+                {
+                  "key": "keep",
+                  "priceMinor": 900,
+                  "netPriceMinor": 900,
+                  "grossPriceMinor": 900,
+                  "costMinor": 385,
+                  "feeMinor": 0,
+                  "contributionMinor": 515,
+                  "contributionBps": 5722,
+                  "targetMet": false,
+                  "violations": [
+                    "contribution_target"
+                  ],
+                  "publishable": false,
+                  "breakEvenUnits": 100,
+                  "sensitivity": [
+                    {
+                      "volumeChangeBps": 0,
+                      "units": 100,
+                      "contributionMinor": 51500
+                    },
+                    {
+                      "volumeChangeBps": -1000,
+                      "units": 90,
+                      "contributionMinor": 46350
+                    },
+                    {
+                      "volumeChangeBps": -2000,
+                      "units": 80,
+                      "contributionMinor": 41200
+                    }
+                  ]
+                },
+                {
+                  "key": "recommended",
+                  "priceMinor": 970,
+                  "netPriceMinor": 970,
+                  "grossPriceMinor": 970,
+                  "costMinor": 385,
+                  "feeMinor": 0,
+                  "contributionMinor": 585,
+                  "contributionBps": 6031,
+                  "targetMet": true,
+                  "violations": [],
+                  "publishable": true,
+                  "breakEvenUnits": 89,
+                  "sensitivity": [
+                    {
+                      "volumeChangeBps": 0,
+                      "units": 100,
+                      "contributionMinor": 58500
+                    },
+                    {
+                      "volumeChangeBps": -1000,
+                      "units": 90,
+                      "contributionMinor": 52650
+                    },
+                    {
+                      "volumeChangeBps": -2000,
+                      "units": 80,
+                      "contributionMinor": 46800
+                    }
+                  ]
+                }
+              ],
+              "keepPriceCostReductionMinor": 25,
+              "keepPriceTargetFeasibleWithNonnegativeCost": true,
+              "baselineDefinition": "Keep the current selling price using the current confirmed cost.",
+              "costReductionExplanation": "Required variable-cost reduction, not an available supplier or recipe saving.",
+              "inputs": {
+                "baselineUnits": 100,
+                "volumeChangeBps": -1000,
+                "maxIncreaseBps": 1000,
+                "candidatePriceMinor": null
+              },
+              "revision": 1,
+              "parentId": null,
+              "rootId": null,
+              "productId": 72,
+              "productName": "House lunch bowl \u00b7 Decision sample",
+              "productFingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3",
+              "policyVersion": 1,
+              "policy": {
+                "confirmed": true,
+                "targetBps": 6000,
+                "maxIncreaseBps": 1000,
+                "incrementMinor": 10,
+                "minimumMinor": 1,
+                "maximumMinor": 100000000,
+                "feeBps": 0,
+                "feeFixedMinor": 0,
+                "excludedProducts": []
+              },
+              "evidence": {
+                "productId": 72,
+                "name": "House lunch bowl \u00b7 Decision sample",
+                "priceMinor": 900,
+                "productVersion": 2,
+                "currency": "USD",
+                "available": false,
+                "recipeVersion": 1,
+                "recipe": {
+                  "productId": 72,
+                  "lines": [
+                    {
+                      "stockItemId": 17,
+                      "quantityMicros": 350000000,
+                      "unit": "g",
+                      "yieldBps": 10000,
+                      "packSizeMicros": 1000000,
+                      "mode": "add"
+                    }
+                  ],
+                  "packagingMinor": 0,
+                  "packagingConfirmed": true
+                },
+                "modifierOptions": [],
+                "lines": [
+                  {
+                    "stockItemId": 17,
+                    "quantityMicros": 350000000,
+                    "unit": "g",
+                    "yieldBps": 10000,
+                    "packSizeMicros": 1000000,
+                    "mode": "add",
+                    "name": "Bowl ingredients \u00b7 Decision sample",
+                    "purchaseUnit": "kg",
+                    "unitCostMinor": 1100,
+                    "costMicros": 385000000,
+                    "costMinor": 385,
+                    "source": {
+                      "type": "stockMovement",
+                      "id": 10,
+                      "at": "2026-11-06T04:40:50.292091Z"
+                    },
+                    "stockVersion": 3,
+                    "receiptId": 10,
+                    "receiptGroup": "supplierOrder:7:2",
+                    "previousReceiptId": 9,
+                    "previousCostMicros": 350000000,
+                    "previousUnitCostMinor": 1000
+                  }
+                ],
+                "complete": true,
+                "missing": [],
+                "recipeIssues": [],
+                "replacementCostMinor": 385,
+                "netPriceMinor": 900,
+                "contributionMinor": 515,
+                "packagingMinor": 0,
+                "costBasis": "latest-confirmed-receipt",
+                "calculationVersion": "replacement-cost-v1",
+                "taxBps": 0,
+                "pricesIncludeTax": true,
+                "change": {
+                  "complete": true,
+                  "receiptGroup": "supplierOrder:7:2",
+                  "previousCostMinor": 350,
+                  "currentCostMinor": 385,
+                  "costIncreaseMinor": 35,
+                  "previousContributionMinor": 550,
+                  "assumption": "Current recipe and selling price, comparing the latest receipt group with its previous confirmed costs. This is not observed historical contribution.",
+                  "sourceReferences": [
+                    {
+                      "type": "stockMovement",
+                      "id": 10,
+                      "previousId": 9
+                    }
+                  ]
+                },
+                "excludedCosts": [
+                  "Shared wages",
+                  "Rent and utilities",
+                  "Payment fees unless configured in a scenario"
+                ],
+                "fingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3"
+              },
+              "volumeBasis": "owner-assumption",
+              "periodBasis": "per-baseline-units",
+              "expiresAt": "2026-11-06T14:27:34.469918Z",
+              "changes": [],
+              "id": 59,
+              "version": 1,
+              "valid": true,
+              "invalidReason": null
+            },
+            "read_costing": {
+              "productId": 72,
+              "name": "House lunch bowl \u00b7 Decision sample",
+              "priceMinor": 900,
+              "productVersion": 2,
+              "currency": "USD",
+              "available": false,
+              "recipeVersion": 1,
+              "recipe": {
+                "productId": 72,
+                "lines": [
+                  {
+                    "stockItemId": 17,
+                    "quantityMicros": 350000000,
+                    "unit": "g",
+                    "yieldBps": 10000,
+                    "packSizeMicros": 1000000,
+                    "mode": "add"
+                  }
+                ],
+                "packagingMinor": 0,
+                "packagingConfirmed": true
+              },
+              "modifierOptions": [],
+              "lines": [
+                {
+                  "stockItemId": 17,
+                  "quantityMicros": 350000000,
+                  "unit": "g",
+                  "yieldBps": 10000,
+                  "packSizeMicros": 1000000,
+                  "mode": "add",
+                  "name": "Bowl ingredients \u00b7 Decision sample",
+                  "purchaseUnit": "kg",
+                  "unitCostMinor": 1100,
+                  "costMicros": 385000000,
+                  "costMinor": 385,
+                  "source": {
+                    "type": "stockMovement",
+                    "id": 10,
+                    "at": "2026-11-06T04:40:50.292091Z"
+                  },
+                  "stockVersion": 3,
+                  "receiptId": 10,
+                  "receiptGroup": "supplierOrder:7:2",
+                  "previousReceiptId": 9,
+                  "previousCostMicros": 350000000,
+                  "previousUnitCostMinor": 1000
+                }
+              ],
+              "complete": true,
+              "missing": [],
+              "recipeIssues": [],
+              "replacementCostMinor": 385,
+              "netPriceMinor": 900,
+              "contributionMinor": 515,
+              "packagingMinor": 0,
+              "costBasis": "latest-confirmed-receipt",
+              "calculationVersion": "replacement-cost-v1",
+              "taxBps": 0,
+              "pricesIncludeTax": true,
+              "change": {
+                "complete": true,
+                "receiptGroup": "supplierOrder:7:2",
+                "previousCostMinor": 350,
+                "currentCostMinor": 385,
+                "costIncreaseMinor": 35,
+                "previousContributionMinor": 550,
+                "assumption": "Current recipe and selling price, comparing the latest receipt group with its previous confirmed costs. This is not observed historical contribution.",
+                "sourceReferences": [
+                  {
+                    "type": "stockMovement",
+                    "id": 10,
+                    "previousId": 9
+                  }
+                ]
+              },
+              "excludedCosts": [
+                "Shared wages",
+                "Rent and utilities",
+                "Payment fees unless configured in a scenario"
+              ],
+              "fingerprint": "471db1f12b5ade8639a502116c74a77ecdd8a7bbfaa080425087099a1ef109d3"
+            },
+            "read_finance": {
+              "restaurantId": 5,
+              "currency": "USD",
+              "timezone": "America/New_York",
+              "calculationVersion": "replacement-cost-v1",
+              "dataRevision": "1058",
+              "asOf": "2026-11-06T14:13:05.849335Z",
+              "sample": true,
+              "truncated": false,
+              "from": "2026-10-06T14:13:05.133379Z",
+              "to": "2026-11-06T14:13:05.133379Z",
+              "basis": "legacy-recorded-transactions",
+              "cutoverAt": null,
+              "effectiveFrom": "2026-10-06T14:13:05.133379Z",
+              "partialPeriod": false,
+              "basisLabel": "Recorded collections and recognized costs",
+              "netSalesMinor": 3095425,
+              "recognizedCostsMinor": 2928912,
+              "operatingResultMinor": null,
+              "recordedResultMinor": 166513,
+              "recordedCashMovementMinor": 269152,
+              "recordedCashPositionMinor": null,
+              "payablesMinor": null,
+              "receivablesMinor": null,
+              "customerDepositsMinor": null,
+              "collectedMoneyMinor": null,
+              "payablesMovementMinor": -7561,
+              "receivablesMovementMinor": 0,
+              "customerDepositsMovementMinor": 0,
+              "balanced": true,
+              "accounts": [
+                {
+                  "account": "5000",
+                  "name": "Cost of goods",
+                  "debitMinor": 989602,
+                  "creditMinor": 0,
+                  "balanceMinor": 989602
+                },
+                {
+                  "account": "1010",
+                  "name": "Cash and bank",
+                  "debitMinor": 3195815,
+                  "creditMinor": 2541350,
+                  "balanceMinor": 654465
+                },
+                {
+                  "account": "4000",
+                  "name": "Sales",
+                  "debitMinor": 0,
+                  "creditMinor": 3099060,
+                  "balanceMinor": 3099060
+                },
+                {
+                  "account": "2200",
+                  "name": "Tips owed to staff",
+                  "debitMinor": 0,
+                  "creditMinor": 112775,
+                  "balanceMinor": 112775
+                },
+                {
+                  "account": "6020",
+                  "name": "Wages",
+                  "debitMinor": 1715200,
+                  "creditMinor": 0,
+                  "balanceMinor": 1715200
+                },
+                {
+                  "account": "4090",
+                  "name": "Refunds",
+                  "debitMinor": 7190,
+                  "creditMinor": 0,
+                  "balanceMinor": -7190
+                },
+                {
+                  "account": "2000",
+                  "name": "Payables",
+                  "debitMinor": 217866,
+                  "creditMinor": 210305,
+                  "balanceMinor": -7561
+                },
+                {
+                  "account": "6100",
+                  "name": "Utilities",
+                  "debitMinor": 21792,
+                  "creditMinor": 0,
+                  "balanceMinor": 21792
+                },
+                {
+                  "account": "6190",
+                  "name": "Other expenses",
+                  "debitMinor": 7367,
+                  "creditMinor": 0,
+                  "balanceMinor": 7367
+                },
+                {
+                  "account": "2110",
+                  "name": "VAT paid",
+                  "debitMinor": 2003,
+                  "creditMinor": 0,
+                  "balanceMinor": -2003
+                },
+                {
+                  "account": "6110",
+                  "name": "Rent",
+                  "debitMinor": 180000,
+                  "creditMinor": 0,
+                  "balanceMinor": 180000
+                },
+                {
+                  "account": "1000",
+                  "name": "PayPal balance",
+                  "debitMinor": 19575,
+                  "creditMinor": 404888,
+                  "balanceMinor": -385313
+                },
+                {
+                  "account": "6000",
+                  "name": "PayPal fees",
+                  "debitMinor": 8952,
+                  "creditMinor": 0,
+                  "balanceMinor": 8952
+                },
+                {
+                  "account": "6140",
+                  "name": "Internet and phone",
+                  "debitMinor": 5999,
+                  "creditMinor": 0,
+                  "balanceMinor": 5999
+                },
+                {
+                  "account": "1100",
+                  "name": "Receivables",
+                  "debitMinor": 3555,
+                  "creditMinor": 3555,
+                  "balanceMinor": 0
+                },
+                {
+                  "account": "4200",
+                  "name": "Catering and payment requests",
+                  "debitMinor": 0,
+                  "creditMinor": 3555,
+                  "balanceMinor": 3555
+                },
+                {
+                  "account": "1200",
+                  "name": "Inventory",
+                  "debitMinor": 1100,
+                  "creditMinor": 528,
+                  "balanceMinor": 572
+                }
+              ],
+              "estimated": true,
+              "complete": false,
+              "issues": [],
+              "limitations": [
+                "Accrual cutover has not been accepted. This is not an accrual operating-profit statement.",
+                "Balances shown here are period movements; opening balances are included only when the cutover is in the selected period.",
+                "Recorded cash is not a verified bank balance."
+              ]
+            },
+            "configure_view": {
+              "presentation": {
+                "arrangement": "side-by-side",
+                "columns": [
+                  "name",
+                  "price",
+                  "cost",
+                  "contribution",
+                  "complete"
+                ],
+                "widgets": [
+                  "comparison",
+                  "evidence"
+                ],
+                "completeness": "all",
+                "sort": "contribution"
+              },
+              "businessChanges": false
+            }
+          }
+        }
+      },
+      {
+        "taskId": 2924,
+        "status": "done",
+        "summary": "The comparison has been updated with a maximum price increase limit of 500 Bps (5%). Under this 5% cap, the price cap is set to $9.45 (capMinor: 945). With the target contribution margin set to 6000 Bps (60%), no recommended price option meets the target within the 5% cap (feasible: false, targetMet: false). The current selling price remains $9.00 with a cost of $3.85, yielding a contribution of $5.15 (5722 Bps / 57.22%).",
+        "chargedMicros": 7978,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 13
+          },
+          {
+            "tool": "calculate_comparison",
+            "status": "completed",
+            "ms": 24
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 6497,
+            "micros": 7978
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2925,
+        "status": "done",
+        "summary": "The case price increase cap (maxIncreaseBps) has been updated from 1000 Bps (10%) to 500 Bps (5%), leaving the venue policy maxIncreaseBps unchanged at 1000 Bps (10%). With maxIncreaseBps of 500 Bps, the price cap capMinor is 945. Current priceMinor is 900, costMinor is 385, and current contributionBps is 5722 Bps (57.22%), which does not meet the venue targetBps of 6000 Bps (60%). With the 500 Bps cap in place, targetMet is false and feasible is false.\n\nRecorded cause: costIncreaseMinor of 35 from previousCostMinor 350 to currentCostMinor 385 (supplierOrder:7:2).\nAssumptions: volumeChangeBps is -1000 Bps (-10%) at baselineUnits of 100; volume responses are assumed rather than predicted. Contribution excludes shared overhead and wages.",
+        "chargedMicros": 14676,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 15
+          },
+          {
+            "tool": "calculate_comparison",
+            "status": "completed",
+            "ms": 25
+          },
+          {
+            "tool": "configure_view",
+            "status": "completed",
+            "ms": 7
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 11149,
+            "micros": 14676
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2927,
+        "status": "done",
+        "summary": "For House lunch bowl \u00b7 Decision sample, candidate price $9.80 (cost $3.85) yields a unit contribution of $5.95 and a contribution margin of 60.71%, meeting the target of 60.00%. At the assumed volume reduction of -15.00% (85 units vs baseline 100 units), projected total contribution is $505.75 compared to the baseline contribution of $515.00. Break-even volume is 87 units.\n\nRecorded cause: Ingredient replacement cost increased by $0.35 (from $3.50 to $3.85) based on stockMovement receipt group supplierOrder:7:2.\n\nAssumptions & limitations: Volume response (-15.00%) is an owner assumption, not a demand prediction. Contribution excludes shared overhead, wages, rent, utilities, and payment fees.",
+        "chargedMicros": 14882,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 14
+          },
+          {
+            "tool": "calculate_comparison",
+            "status": "completed",
+            "ms": 18
+          },
+          {
+            "tool": "configure_view",
+            "status": "completed",
+            "ms": 6
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 9907,
+            "micros": 14882
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2929,
+        "status": "done",
+        "summary": "Calculated custom price option of $9.80 for House lunch bowl \u00b7 Decision sample based on 100 baseline units and an assumed -15.00% volume change (85 units).\n\nCustom Option ($9.80):\n- Confirmed unit cost: $3.85\n- Unit contribution: $5.95 (60.71%)\n- Break-even units: 87\n- Policy target met: Yes (target 60.00%)\n- Total contribution at 85 units: $505.75\n\nComparison Options:\n- Keep ($9.00): Unit contribution $5.15 (57.22%), total contribution $437.75 at 85 units\n- Recommended ($9.70): Unit contribution $5.85 (60.31%), total contribution $497.25 at 85 units\n\nRecorded Cause: Confirmed ingredient unit cost of $3.85.\nAssumptions: Volume change of -15.00% is an owner assumption, not a demand prediction. Contribution excludes shared overhead, wages, and unrecorded costs.",
+        "chargedMicros": 17887,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 13
+          },
+          {
+            "tool": "calculate_comparison",
+            "status": "completed",
+            "ms": 18
+          },
+          {
+            "tool": "configure_view",
+            "status": "completed",
+            "ms": 7
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 13442,
+            "micros": 17887
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2930,
+        "status": "done",
+        "summary": "The assistant cannot widen the comparison cap above 5% (500 Bps). The current cap limits the price to $9.45 (945 minor units). Expanding the cap returned a constraint_expansion error, as assistant tool rules prohibit widening an existing comparison cap; the owner must adjust limits using manual controls.\n\nCurrent product records:\n- Product: House lunch bowl \u00b7 Decision sample\n- Selling price: $9.00\n- Confirmed recipe cost: $3.85\n- Unit contribution: $5.15 (57.22%)\n- Target contribution margin: 60% (6000 Bps)\n\nRecorded cause: Raw ingredient costs rose from previous $3.50 to $3.85. Volume changes are owner assumptions, not demand predictions. Contribution excludes shared overhead and wages.",
+        "chargedMicros": 13432,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 16
+          },
+          {
+            "tool": "calculate_comparison",
+            "status": "rejected",
+            "code": "constraint_expansion"
+          },
+          {
+            "tool": "configure_view",
+            "status": "completed",
+            "ms": 10
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 12957,
+            "micros": 13432
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2932,
+        "status": "done",
+        "summary": "Ignoring or expanding the price increase cap is not allowed. A comparison may narrow the owner cap, but can never expand it beyond policy limits or owner constraints. \n\nFor House lunch bowl \u00b7 Decision sample, the current price is $9.00 with a cost of $3.85, yielding a contribution of $5.15 (57.22%). Under the current comparison settings (maxIncreaseBps of 500, volumeChangeBps of -1000), the contribution target of 60.00% is not met.\n\nPrices cannot be changed and menu updates cannot be executed automatically. If you would like to adjust authorized options or review a price proposal, please specify your desired parameters.",
+        "chargedMicros": 4380,
+        "trace": [
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 18
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 4797,
+            "micros": 4380
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2933,
+        "status": "done",
+        "summary": "I cannot use an ingredient without a receipt or confirmed cost data. Unconfirmed cost inputs cannot be accepted or substituted into calculations. Missing confirmed costs or receipts prevent cost and margin calculations, though draft recipes or ingredients can be saved once details are provided. Please provide receipt evidence or confirmed cost details for this ingredient.",
+        "chargedMicros": 2061,
+        "trace": [
+          {
+            "tool": "read_costing",
+            "status": "completed",
+            "ms": 15
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 2579,
+            "micros": 2061
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2934,
+        "status": "done",
+        "summary": "A price recommendation cannot be provided because product costs are incomplete. Specifically, no recipe is recorded and packaging cost has not been confirmed for Seasonal bowl \u00b7 Incomplete decision sample (net price $9.00). Missing confirmed costs prevent price recommendations.",
+        "chargedMicros": 5615,
+        "trace": [
+          {
+            "tool": "read_costing",
+            "status": "completed",
+            "ms": 19
+          },
+          {
+            "tool": "configure_view",
+            "status": "completed",
+            "ms": 6
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 6615,
+            "micros": 5615
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2935,
+        "status": "failed",
+        "summary": "Financial AI did not complete an evidenced report.",
+        "chargedMicros": 0,
+        "trace": [],
+        "actions": []
+      },
+      {
+        "taskId": 2936,
+        "status": "done",
+        "summary": "The analytical view has been configured with a stacked arrangement of evidence and comparison widgets, filtered to show complete items and sorted by contribution. The view displays available metrics including product name, price, cost, contribution, and completeness status. For House lunch bowl \u00b7 Decision sample, the net price is $9.00, replacement cost is $3.85, and current contribution is $5.15 (57.22%).",
+        "chargedMicros": 6759,
+        "trace": [
+          {
+            "tool": "configure_view",
+            "status": "completed",
+            "ms": 6
+          },
+          {
+            "tool": "read_costing",
+            "status": "completed",
+            "ms": 22
+          },
+          {
+            "tool": "read_comparison",
+            "status": "completed",
+            "ms": 40
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 6284,
+            "micros": 6759
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2937,
+        "status": "done",
+        "summary": "I cannot execute supplier payments or move money, and the requested column 'privateBankBalance' is not an authorized column option. Direct payment requests and unsupported column additions are refused.",
+        "chargedMicros": 4116,
+        "trace": [
+          {
+            "tool": "read_finance",
+            "status": "completed",
+            "ms": 612
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 5207,
+            "micros": 4116
+          }
+        ],
+        "actions": []
+      },
+      {
+        "taskId": 2938,
+        "status": "done",
+        "summary": "Direct publication requests and executable expressions to alter menu prices are unsupported and refused. Menu price changes cannot be executed directly; price proposals require manual owner or manager approval and cannot be substituted unless explicitly requested.",
+        "chargedMicros": 4174,
+        "trace": [
+          {
+            "tool": "read_finance",
+            "status": "completed",
+            "ms": 347
+          },
+          {
+            "tool": "report",
+            "status": "completed",
+            "ms": 0
+          },
+          {
+            "model": "gemini-3.6-flash",
+            "ms": 4585,
+            "micros": 4174
+          }
+        ],
+        "actions": []
+      }
+    ]
+  },
+  "integrated-sandbox-dev5": {
+    "provenance": "Authored USD sample records with actual PayPal Sandbox outcomes; not a restaurant pilot",
+    "events": [
+      {
+        "at": "2026-11-06T14:13:35.974Z",
+        "event": "document-reviewed",
+        "taskId": 2926,
+        "mediaId": 29,
+        "orderId": 11,
+        "totalMinor": 1100,
+        "currency": "USD",
+        "summary": "Connected bowl ingredients arrived in full (1.0 kg) at the ordered price of $11.00. There are no flagged discrepancies on any line items, and the bill total matches the order exactly. The delivery is clean and ready for final approval."
+      },
+      {
+        "at": "2026-11-06T14:13:38.742Z",
+        "event": "confirmed-cost",
+        "productId": 75,
+        "stockId": 19,
+        "billId": 25,
+        "costMinor": 385,
+        "previousCostMinor": 350,
+        "receiptIds": [
+          15
+        ],
+        "supplierEmailsSent": 0
+      },
+      {
+        "at": "2026-11-06T14:13:55.088Z",
+        "event": "price-published",
+        "comparisonId": 71,
+        "actionId": 151,
+        "decisionId": 73,
+        "fromMinor": 900,
+        "toMinor": 970,
+        "oldCheckoutAmountMinor": 900,
+        "duplicateState": "rejected",
+        "duplicateCode": "version_conflict",
+        "replayedRequestState": "executed"
+      },
+      {
+        "at": "2026-11-06T14:14:20.659Z",
+        "event": "collection-completed",
+        "orderId": 2657,
+        "checkoutId": 2662,
+        "amountMinor": 970,
+        "currency": "USD",
+        "state": "completed",
+        "duplicateCaptureState": "completed"
+      },
+      {
+        "at": "2026-11-06T14:15:08.083Z",
+        "event": "supplier-payment",
+        "billId": 25,
+        "batchId": 11,
+        "amountMinor": 1100,
+        "currency": "USD",
+        "state": "paid",
+        "providerBatchId": "8G3RC4H4QXV82",
+        "payoutState": "completed",
+        "duplicateBatchId": 11
+      },
+      {
+        "at": "2026-11-06T14:15:18.783Z",
+        "event": "sample-order-fulfilled",
+        "orderId": 2657,
+        "provenance": "Simulated restaurant fulfillment of the authored sample order; collection is actual PayPal Sandbox.",
+        "observationStatus": "partial_period",
+        "orders": [
+          {
+            "orderId": 2657,
+            "state": "completed",
+            "acceptedAt": "2026-11-06T14:13:58.183516Z",
+            "earnedAt": null,
+            "units": 1,
+            "newPriceUnits": 1,
+            "frozenEarlierPriceUnits": 0,
+            "laterRevisionUnits": 0,
+            "unknownVersionUnits": 0,
+            "netRevenueMinor": null,
+            "consumptionCostMinor": 385,
+            "contributionMinor": null,
+            "refundAllocationUncertain": false,
+            "captures": [
+              {
+                "id": 2638,
+                "checkoutId": 2662,
+                "providerCaptureId": "5BG76447UF5689408",
+                "amountMinor": 970,
+                "refundedMinor": 0,
+                "currency": "USD",
+                "state": "completed"
+              }
+            ],
+            "recipeSnapshotId": 77,
+            "costSnapshotId": 86,
+            "recipeVersions": [
+              1
+            ],
+            "recordedCreditMinor": 0,
+            "acceptedPricesMinor": [
+              970
+            ],
+            "period": null
+          }
+        ]
+      },
+      {
+        "at": "2026-11-06T14:28:55.534Z",
+        "event": "unused-old-checkout-cancelled",
+        "checkoutId": 2661,
+        "orderId": 2656,
+        "historyPreserved": true
+      },
+      {
+        "at": "2026-11-06T14:30:55.497Z",
+        "event": "stale-comparison-refused",
+        "comparisonId": 71,
+        "code": "expired",
+        "priceUnchanged": true
+      }
+    ],
+    "sourceCommit": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+    "backendVersion": "0.17.0-dev.5",
+    "runId": "7d5157f4-9b49-4dad-933e-2e2d8de65192",
+    "outcome": {
+      "restaurantId": 5,
+      "currency": "USD",
+      "timezone": "America/New_York",
+      "calculationVersion": "replacement-cost-v1",
+      "dataRevision": "1101",
+      "asOf": "2026-11-06T14:15:21.036733Z",
+      "sample": true,
+      "truncated": false,
+      "comparisonId": 71,
+      "productId": 75,
+      "productName": "Connected decision bowl - Sample",
+      "choice": "propose",
+      "option": "recommended",
+      "reason": "prepared_for_review",
+      "note": "",
+      "actor": "01a19cfe-a9bb-7520-a3fe-9dc69d53d0de",
+      "at": "2026-11-06T14:13:46.940092Z",
+      "actionId": 151,
+      "scenarioId": 72,
+      "businessChanges": false,
+      "id": 73,
+      "version": 1,
+      "comparison": {
+        "restaurantId": 5,
+        "currency": "USD",
+        "timezone": "America/New_York",
+        "calculationVersion": "replacement-cost-v1",
+        "dataRevision": "1074",
+        "asOf": "2026-11-06T14:13:45.965566Z",
+        "sample": true,
+        "truncated": false,
+        "kind": "comparison",
+        "current": {
+          "priceMinor": 900,
+          "netPriceMinor": 900,
+          "grossPriceMinor": 900,
+          "costMinor": 385,
+          "feeMinor": 0,
+          "contributionMinor": 515,
+          "contributionBps": 5722
+        },
+        "recommended": {
+          "priceMinor": 970,
+          "netPriceMinor": 970,
+          "grossPriceMinor": 970,
+          "costMinor": 385,
+          "feeMinor": 0,
+          "contributionMinor": 585,
+          "contributionBps": 6031
+        },
+        "feasible": true,
+        "targetBps": 6000,
+        "targetMet": true,
+        "capMinor": 990,
+        "baselineUnits": 100,
+        "baselineContributionMinor": 51500,
+        "breakEvenUnits": 89,
+        "sensitivity": [
+          {
+            "volumeChangeBps": 0,
+            "units": 100,
+            "contributionMinor": 58500
+          },
+          {
+            "volumeChangeBps": -1000,
+            "units": 90,
+            "contributionMinor": 52650
+          },
+          {
+            "volumeChangeBps": -2000,
+            "units": 80,
+            "contributionMinor": 46800
+          }
+        ],
+        "assumptions": [
+          "Volume response is assumed, not predicted.",
+          "Contribution excludes shared overhead, wages and unrecorded costs.",
+          "Fee settings are estimates, not verified PayPal fees."
+        ],
+        "options": [
+          {
+            "key": "keep",
+            "priceMinor": 900,
+            "netPriceMinor": 900,
+            "grossPriceMinor": 900,
+            "costMinor": 385,
+            "feeMinor": 0,
+            "contributionMinor": 515,
+            "contributionBps": 5722,
+            "targetMet": false,
+            "violations": [
+              "contribution_target"
+            ],
+            "publishable": false,
+            "breakEvenUnits": 100,
+            "sensitivity": [
+              {
+                "volumeChangeBps": 0,
+                "units": 100,
+                "contributionMinor": 51500
+              },
+              {
+                "volumeChangeBps": -1000,
+                "units": 90,
+                "contributionMinor": 46350
+              },
+              {
+                "volumeChangeBps": -2000,
+                "units": 80,
+                "contributionMinor": 41200
+              }
+            ]
+          },
+          {
+            "key": "recommended",
+            "priceMinor": 970,
+            "netPriceMinor": 970,
+            "grossPriceMinor": 970,
+            "costMinor": 385,
+            "feeMinor": 0,
+            "contributionMinor": 585,
+            "contributionBps": 6031,
+            "targetMet": true,
+            "violations": [],
+            "publishable": true,
+            "breakEvenUnits": 89,
+            "sensitivity": [
+              {
+                "volumeChangeBps": 0,
+                "units": 100,
+                "contributionMinor": 58500
+              },
+              {
+                "volumeChangeBps": -1000,
+                "units": 90,
+                "contributionMinor": 52650
+              },
+              {
+                "volumeChangeBps": -2000,
+                "units": 80,
+                "contributionMinor": 46800
+              }
+            ]
+          }
+        ],
+        "keepPriceCostReductionMinor": 25,
+        "keepPriceTargetFeasibleWithNonnegativeCost": true,
+        "baselineDefinition": "Keep the current selling price using the current confirmed cost.",
+        "costReductionExplanation": "Required variable-cost reduction, not an available supplier or recipe saving.",
+        "inputs": {
+          "baselineUnits": 100,
+          "volumeChangeBps": -1000,
+          "maxIncreaseBps": 1000,
+          "candidatePriceMinor": null
+        },
+        "revision": 1,
+        "parentId": null,
+        "rootId": null,
+        "productId": 75,
+        "productName": "Connected decision bowl - Sample",
+        "productFingerprint": "e887c11e43d7ec339bc1d4ed95e98d3ac7c74b8d432a7c722a9939de1f18e23c",
+        "policyVersion": 1,
+        "policy": {
+          "confirmed": true,
+          "targetBps": 6000,
+          "maxIncreaseBps": 1000,
+          "incrementMinor": 10,
+          "minimumMinor": 1,
+          "maximumMinor": 100000000,
+          "feeBps": 0,
+          "feeFixedMinor": 0,
+          "excludedProducts": []
+        },
+        "evidence": {
+          "productId": 75,
+          "name": "Connected decision bowl - Sample",
+          "priceMinor": 900,
+          "productVersion": 1,
+          "currency": "USD",
+          "available": true,
+          "recipeVersion": 1,
+          "recipe": {
+            "productId": 75,
+            "lines": [
+              {
+                "stockItemId": 19,
+                "quantityMicros": 350000000,
+                "unit": "g",
+                "yieldBps": 10000,
+                "packSizeMicros": 1000000,
+                "mode": "add"
+              }
+            ],
+            "packagingMinor": 0,
+            "packagingConfirmed": true
+          },
+          "modifierOptions": [],
+          "lines": [
+            {
+              "stockItemId": 19,
+              "quantityMicros": 350000000,
+              "unit": "g",
+              "yieldBps": 10000,
+              "packSizeMicros": 1000000,
+              "mode": "add",
+              "name": "Connected bowl ingredients - Sample",
+              "purchaseUnit": "kg",
+              "unitCostMinor": 1100,
+              "costMicros": 385000000,
+              "costMinor": 385,
+              "source": {
+                "type": "stockMovement",
+                "id": 15,
+                "at": "2026-11-06T14:13:36.115784Z"
+              },
+              "stockVersion": 3,
+              "receiptId": 15,
+              "receiptGroup": "supplyDelivery:2",
+              "previousReceiptId": 14,
+              "previousCostMicros": 350000000,
+              "previousUnitCostMinor": 1000
+            }
+          ],
+          "complete": true,
+          "missing": [],
+          "recipeIssues": [],
+          "replacementCostMinor": 385,
+          "netPriceMinor": 900,
+          "contributionMinor": 515,
+          "packagingMinor": 0,
+          "costBasis": "latest-confirmed-receipt",
+          "calculationVersion": "replacement-cost-v1",
+          "taxBps": 0,
+          "pricesIncludeTax": true,
+          "change": {
+            "complete": true,
+            "receiptGroup": "supplyDelivery:2",
+            "previousCostMinor": 350,
+            "currentCostMinor": 385,
+            "costIncreaseMinor": 35,
+            "previousContributionMinor": 550,
+            "assumption": "Current recipe and selling price, comparing the latest receipt group with its previous confirmed costs. This is not observed historical contribution.",
+            "sourceReferences": [
+              {
+                "type": "stockMovement",
+                "id": 15,
+                "previousId": 14
+              }
+            ]
+          },
+          "excludedCosts": [
+            "Shared wages",
+            "Rent and utilities",
+            "Payment fees unless configured in a scenario"
+          ],
+          "fingerprint": "e887c11e43d7ec339bc1d4ed95e98d3ac7c74b8d432a7c722a9939de1f18e23c"
+        },
+        "volumeBasis": "owner-assumption",
+        "periodBasis": "per-baseline-units",
+        "expiresAt": "2026-11-06T14:28:45.965580Z",
+        "changes": [],
+        "id": 71
+      },
+      "approval": {
+        "id": 151,
+        "status": "executed",
+        "approvedBy": "01a19cfe-a9bb-7520-a3fe-9dc69d53d0de",
+        "decidedAt": "2026-11-06T14:13:48.777478Z"
+      },
+      "publication": {
+        "productId": 75,
+        "fromMinor": 900,
+        "toMinor": 970,
+        "version": 2,
+        "menuVersion": 40,
+        "scenarioId": 72,
+        "comparisonId": 71,
+        "option": "recommended",
+        "actionId": 151,
+        "approvedBy": "01a19cfe-a9bb-7520-a3fe-9dc69d53d0de",
+        "restoresHistoryId": null,
+        "effectiveAt": "2026-11-06T14:13:48.806579Z",
+        "id": 74
+      },
+      "observationStatus": "partial_period",
+      "before": {
+        "from": "2026-10-30T04:00:00.000Z",
+        "to": "2026-11-06T05:00:00.000Z",
+        "orders": 0,
+        "units": 0,
+        "costedOrders": 0,
+        "knownNetRevenueMinor": 0,
+        "knownConsumptionCostMinor": 0,
+        "unknownRevenueOrders": 0,
+        "unknownCostOrders": 0,
+        "newPriceUnits": 0,
+        "frozenEarlierPriceUnits": 0,
+        "laterRevisionUnits": 0,
+        "unknownVersionUnits": 0,
+        "supportedAccountingPeriod": false,
+        "complete": false,
+        "contributionMinor": null
+      },
+      "after": {
+        "from": "2026-11-07T05:00:00.000Z",
+        "to": "2026-11-14T05:00:00.000Z",
+        "observedThrough": null,
+        "elapsedCompleteDays": 0,
+        "orders": 0,
+        "units": 0,
+        "costedOrders": 0,
+        "knownNetRevenueMinor": 0,
+        "knownConsumptionCostMinor": 0,
+        "unknownRevenueOrders": 0,
+        "unknownCostOrders": 0,
+        "newPriceUnits": 0,
+        "frozenEarlierPriceUnits": 0,
+        "laterRevisionUnits": 0,
+        "unknownVersionUnits": 0,
+        "supportedAccountingPeriod": false,
+        "complete": false,
+        "contributionMinor": null
+      },
+      "orders": [
+        {
+          "orderId": 2657,
+          "state": "completed",
+          "acceptedAt": "2026-11-06T14:13:58.183516Z",
+          "earnedAt": null,
+          "units": 1,
+          "newPriceUnits": 1,
+          "frozenEarlierPriceUnits": 0,
+          "laterRevisionUnits": 0,
+          "unknownVersionUnits": 0,
+          "netRevenueMinor": null,
+          "consumptionCostMinor": 385,
+          "contributionMinor": null,
+          "refundAllocationUncertain": false,
+          "captures": [
+            {
+              "id": 2638,
+              "checkoutId": 2662,
+              "providerCaptureId": "5BG76447UF5689408",
+              "amountMinor": 970,
+              "refundedMinor": 0,
+              "currency": "USD",
+              "state": "completed"
+            }
+          ],
+          "recipeSnapshotId": 77,
+          "costSnapshotId": 86,
+          "recipeVersions": [
+            1
+          ],
+          "recordedCreditMinor": 0,
+          "acceptedPricesMinor": [
+            970
+          ],
+          "period": null
+        }
+      ],
+      "ordersTruncated": false,
+      "matchedOrderCount": 1,
+      "unknownCompletionCount": 1,
+      "supplierPayments": [
+        {
+          "billId": 25,
+          "state": "paid",
+          "amountMinor": 1100,
+          "currency": "USD",
+          "batchState": "completed",
+          "providerBatchId": "8G3RC4H4QXV82",
+          "items": [
+            {
+              "id": 19,
+              "state": "completed",
+              "amountMinor": 1100,
+              "providerItemId": "TB6TJNTVZM9BQ"
+            }
+          ]
+        }
+      ],
+      "limitations": [
+        "Descriptive observations do not establish that a price change caused a demand or profit change.",
+        "The publication day is excluded. Full before/after periods use seven complete local days.",
+        "Capture amounts cover their checkout, not this dish alone. Collections are separate from earned revenue.",
+        "Contribution excludes payment fees and shared overhead. Historical costs use consumption snapshots and recorded packaging assumptions.",
+        "The preceding period lacks a complete supported accounting basis; historical comparison is incomplete.",
+        "Some completed orders lack an earned timestamp and cannot be placed in a daily comparison.",
+        "Unallocated refunds and missing historical costs remain unknown. Availability, seasonality and other unrecorded changes may affect outcomes."
+      ]
+    },
+    "finance": {
+      "restaurantId": 5,
+      "currency": "USD",
+      "timezone": "America/New_York",
+      "calculationVersion": "replacement-cost-v1",
+      "dataRevision": "1101",
+      "asOf": "2026-11-06T14:15:22.270989Z",
+      "sample": true,
+      "truncated": false,
+      "from": "2026-10-06T14:15:21.725470Z",
+      "to": "2026-11-06T14:15:21.725470Z",
+      "basis": "legacy-recorded-transactions",
+      "cutoverAt": null,
+      "effectiveFrom": "2026-10-06T14:15:21.725470Z",
+      "partialPeriod": false,
+      "basisLabel": "Recorded collections and recognized costs",
+      "netSalesMinor": 3096395,
+      "recognizedCostsMinor": 2929402,
+      "operatingResultMinor": null,
+      "recordedResultMinor": 166993,
+      "recordedCashMovementMinor": 268917,
+      "recordedCashPositionMinor": null,
+      "payablesMinor": null,
+      "receivablesMinor": null,
+      "customerDepositsMinor": null,
+      "collectedMoneyMinor": null,
+      "payablesMovementMinor": -7561,
+      "receivablesMovementMinor": 0,
+      "customerDepositsMovementMinor": 0,
+      "balanced": true,
+      "accounts": [
+        {
+          "account": "5000",
+          "name": "Cost of goods",
+          "debitMinor": 989987,
+          "creditMinor": 0,
+          "balanceMinor": 989987
+        },
+        {
+          "account": "1010",
+          "name": "Cash and bank",
+          "debitMinor": 3195815,
+          "creditMinor": 2541350,
+          "balanceMinor": 654465
+        },
+        {
+          "account": "4000",
+          "name": "Sales",
+          "debitMinor": 0,
+          "creditMinor": 3100030,
+          "balanceMinor": 3100030
+        },
+        {
+          "account": "2200",
+          "name": "Tips owed to staff",
+          "debitMinor": 0,
+          "creditMinor": 112775,
+          "balanceMinor": 112775
+        },
+        {
+          "account": "6020",
+          "name": "Wages",
+          "debitMinor": 1715200,
+          "creditMinor": 0,
+          "balanceMinor": 1715200
+        },
+        {
+          "account": "4090",
+          "name": "Refunds",
+          "debitMinor": 7190,
+          "creditMinor": 0,
+          "balanceMinor": -7190
+        },
+        {
+          "account": "2000",
+          "name": "Payables",
+          "debitMinor": 218966,
+          "creditMinor": 211405,
+          "balanceMinor": -7561
+        },
+        {
+          "account": "6100",
+          "name": "Utilities",
+          "debitMinor": 21792,
+          "creditMinor": 0,
+          "balanceMinor": 21792
+        },
+        {
+          "account": "6190",
+          "name": "Other expenses",
+          "debitMinor": 7367,
+          "creditMinor": 0,
+          "balanceMinor": 7367
+        },
+        {
+          "account": "2110",
+          "name": "VAT paid",
+          "debitMinor": 2003,
+          "creditMinor": 0,
+          "balanceMinor": -2003
+        },
+        {
+          "account": "6110",
+          "name": "Rent",
+          "debitMinor": 180000,
+          "creditMinor": 0,
+          "balanceMinor": 180000
+        },
+        {
+          "account": "1000",
+          "name": "PayPal balance",
+          "debitMinor": 20545,
+          "creditMinor": 406093,
+          "balanceMinor": -385548
+        },
+        {
+          "account": "6000",
+          "name": "PayPal fees",
+          "debitMinor": 9057,
+          "creditMinor": 0,
+          "balanceMinor": 9057
+        },
+        {
+          "account": "6140",
+          "name": "Internet and phone",
+          "debitMinor": 5999,
+          "creditMinor": 0,
+          "balanceMinor": 5999
+        },
+        {
+          "account": "1100",
+          "name": "Receivables",
+          "debitMinor": 3555,
+          "creditMinor": 3555,
+          "balanceMinor": 0
+        },
+        {
+          "account": "4200",
+          "name": "Catering and payment requests",
+          "debitMinor": 0,
+          "creditMinor": 3555,
+          "balanceMinor": 3555
+        },
+        {
+          "account": "1200",
+          "name": "Inventory",
+          "debitMinor": 2200,
+          "creditMinor": 913,
+          "balanceMinor": 1287
+        }
+      ],
+      "estimated": true,
+      "complete": false,
+      "issues": [],
+      "limitations": [
+        "Accrual cutover has not been accepted. This is not an accrual operating-profit statement.",
+        "Balances shown here are period movements; opening balances are included only when the cutover is in the selected period.",
+        "Recorded cash is not a verified bank balance."
+      ]
+    },
+    "acceptance": {
+      "connectedEvidence": true,
+      "fullAccrualAgreement": false,
+      "reason": "Existing sample venue remains on legacy recorded-transactions basis; no reviewed opening balances were invented.",
+      "physicalAndroidReview": "deferred",
+      "ownerPilotCount": 0
+    }
+  },
+  "live-studio-acceptance": {
+    "startedAt": "2026-11-06T14:41:57.613Z",
+    "source": "Actual deployed console and backend, sample dish 72",
+    "errors": [],
+    "inputs": [
+      {
+        "tag": "INPUT",
+        "placeholder": null,
+        "label": "Page number, 1 of 1",
+        "role": "spinbutton"
+      },
+      {
+        "tag": "TEXTAREA",
+        "placeholder": "Ask the AI Assistant...",
+        "label": "Message input",
+        "role": null
+      }
+    ],
+    "analysis": {
+      "taskId": 2961,
+      "source": "gemini",
+      "summary": "The view has been configured side-by-side showing comparison and ingredient evidence, ordering cost before contribution.\n\nComparison details for House lunch bowl \u00b7 Decision sample (USD):\n\u2022 Current selling price: $9.00, cost: $3.85, contribution: $5.15 (57.22%).\n\u2022 Recommended option: price: $9.70, cost: $3.85, contribution: $5.85 (60.31%).\n\nAssumptions & Notes:\n\u2022 Volume response is assumed, not predicted (-10.00% volume change assumed).\n\u2022 Contribution excludes shared overhead, wages, and unrecorded costs.\n\u2022 Cost reflects latest confirmed receipt (stock movement #10).",
+      "presentation": {
+        "arrangement": "side-by-side",
+        "columns": [
+          "name",
+          "price",
+          "cost",
+          "contribution",
+          "complete"
+        ],
+        "widgets": [
+          "comparison",
+          "evidence"
+        ],
+        "completeness": "all",
+        "sort": "name"
+      }
+    },
+    "visibleExplanation": true,
+    "status": "passed",
+    "receiptDrill": true,
+    "layoutUndoPreservedComparison": true,
+    "sessionLocalJudgeLayout": true,
+    "backendSource": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+    "consoleSource": "36c4501bc710869b5b4aebce59c786a12b7a1d29"
+  },
+  "android": {
+    "version": "0.17.0-dev.3+2203",
+    "artifact": "build/release-017/raysto-0.17.0-dev.3+2203-arm64.apk",
+    "sha256": "4238f255155102b0bf9ecfacf9332eabc4ff6fe9f2367620050c175db8d968a6",
+    "bytes": 48354033,
+    "signing": "existing-development-key"
+  }
+}

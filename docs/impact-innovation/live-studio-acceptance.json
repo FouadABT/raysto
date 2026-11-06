@@ -1,0 +1,47 @@
+{
+  "startedAt": "2026-11-06T14:41:57.613Z",
+  "source": "Actual deployed console and backend, sample dish 72",
+  "errors": [],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "placeholder": null,
+      "label": "Page number, 1 of 1",
+      "role": "spinbutton"
+    },
+    {
+      "tag": "TEXTAREA",
+      "placeholder": "Ask the AI Assistant...",
+      "label": "Message input",
+      "role": null
+    }
+  ],
+  "analysis": {
+    "taskId": 2961,
+    "source": "gemini",
+    "summary": "The view has been configured side-by-side showing comparison and ingredient evidence, ordering cost before contribution.\n\nComparison details for House lunch bowl · Decision sample (USD):\n• Current selling price: $9.00, cost: $3.85, contribution: $5.15 (57.22%).\n• Recommended option: price: $9.70, cost: $3.85, contribution: $5.85 (60.31%).\n\nAssumptions & Notes:\n• Volume response is assumed, not predicted (-10.00% volume change assumed).\n• Contribution excludes shared overhead, wages, and unrecorded costs.\n• Cost reflects latest confirmed receipt (stock movement #10).",
+    "presentation": {
+      "arrangement": "side-by-side",
+      "columns": [
+        "name",
+        "price",
+        "cost",
+        "contribution",
+        "complete"
+      ],
+      "widgets": [
+        "comparison",
+        "evidence"
+      ],
+      "completeness": "all",
+      "sort": "name"
+    }
+  },
+  "visibleExplanation": true,
+  "status": "passed",
+  "receiptDrill": true,
+  "layoutUndoPreservedComparison": true,
+  "sessionLocalJudgeLayout": true,
+  "backendSource": "3f2c9533028447f212593ec8c8359d2e36b1d06e",
+  "consoleSource": "36c4501bc710869b5b4aebce59c786a12b7a1d29"
+}

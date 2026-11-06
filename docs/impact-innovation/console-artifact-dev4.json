@@ -1,0 +1,8 @@
+{
+  "version": "0.17.0-dev.4",
+  "sourceCommit": "17c873d07ba16b5180b5ec21a53f02295099593a",
+  "artifact": "dist/raysto-ops-0.17.0-dev.4-linux.tar.gz",
+  "sha256": "cd15c619d7a3b2c4a489032652313f512e0a290270d2e25fabe2b59bb10bee97",
+  "bytes": 77860829,
+  "configIncluded": false
+}

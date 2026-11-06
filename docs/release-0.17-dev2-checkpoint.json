@@ -1,0 +1,108 @@
+{
+  "release": "0.17",
+  "status": "development-candidate",
+  "baselineCommit": "44a3a78",
+  "submissionCommit": null,
+  "submissionTag": null,
+  "backend": {
+    "source": "working-tree",
+    "version": null,
+    "deployed": false
+  },
+  "console": {
+    "packageVersion": "0.1.0",
+    "candidateProfile": "017",
+    "deployed": false
+  },
+  "android": {
+    "version": "0.17.0-dev.2+2202",
+    "abi": "arm64-v8a",
+    "signing": "existing-development-key",
+    "artifact": "build/release-017/raysto-0.17.0-dev.2+2202-arm64.apk",
+    "physicalDeviceAccepted": false,
+    "physicalReview": "partial",
+    "physicalReviewReport": "docs/device-review-0.17-2026-11-05.json"
+  },
+  "apkSha256": "c3d11a190aa49d7fb4bfc67020d57cfcbb589d2823a2b7576804eeff1dab7cc6",
+  "migrations": [
+    "20261105161345704",
+    "20261105193140136"
+  ],
+  "paymentEnvironment": "sandbox",
+  "agStudioVersion": "3.0.0",
+  "enabledCapabilities": [],
+  "validation": [
+    {
+      "evidenceId": "backend-regression",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "backend-analysis",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "backend-finance-final",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "native-regression",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "native-analysis",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "native-finance-final",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "native-build",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "web-build",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "web-browser",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "schema-upgrade",
+      "status": "passed"
+    },
+    {
+      "evidenceId": "web-unit",
+      "status": "passed"
+    }
+  ],
+  "sandboxEvidence": [],
+  "limitations": [
+    "Not deployed or accepted as a 0.17 release",
+    "Integrated source tag/commit pending",
+    "Complete guided fixture and repeat-run acceptance pending",
+    "Actual model evaluation pending",
+    "Actual new-release Sandbox journeys pending",
+    "Historical cost inspection and remaining parity gaps",
+    "Restored production-copy validation pending",
+    "Restaurant pilot not arranged",
+    "Physical-device acceptance pending",
+    "AG Studio license extension pending",
+    "Live payments excluded"
+  ],
+  "workingTreeDirty": true,
+  "validatedModelVersion": null,
+  "implementedCandidateCapabilities": [
+    "receipt-costing",
+    "recipe-and-consumption-snapshots",
+    "pricing-scenarios",
+    "reviewed-price-publication-and-restoration",
+    "prospective-management-journal",
+    "bounded-financial-investigation",
+    "studio-custom-widgets-and-harness",
+    "native-owner-workspace",
+    "judge-run-coordination"
+  ],
+  "evidenceIndex": "docs/evidence-0.17.json"
+}

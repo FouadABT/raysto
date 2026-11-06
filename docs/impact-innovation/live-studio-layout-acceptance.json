@@ -1,0 +1,45 @@
+{
+  "startedAt": "2026-11-06T14:34:30.427Z",
+  "source": "Actual deployed console and backend, sample dish 72",
+  "errors": [],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "placeholder": null,
+      "label": "Page number, 1 of 1",
+      "role": "spinbutton"
+    },
+    {
+      "tag": "TEXTAREA",
+      "placeholder": "Ask the AI Assistant...",
+      "label": "Message input",
+      "role": null
+    }
+  ],
+  "analysis": {
+    "taskId": 2953,
+    "source": "gemini",
+    "summary": "Configured a side-by-side view with cost positioned before contribution for comparison ID 93 and its ingredient evidence (House lunch bowl · Decision sample).\n\nKey Data Summary:\n• Current Price: $9.00 (900 minor) | Current Cost: $3.85 (385 minor) | Current Contribution: $5.15 (515 minor)\n• Cost Increase: $0.35 (35 minor) over previous cost of $3.50 (350 minor)\n• Recommended Price: $9.70 (970 minor) | Recommended Cost: $3.85 | Recommended Contribution: $5.85 (585 minor)\n• Target Contribution Margin: 60.31% (6031 Bps / 100) vs target 60.00% (6000 Bps / 100)\n• Max Increase Bps Policy Cap: 10.00% (1000 Bps / 100)\n\nAssumptions:\n• Volume response is assumed, not predicted.\n• Contribution excludes shared overhead, wages, utilities, rent, and unrecorded costs.",
+    "presentation": {
+      "arrangement": "side-by-side",
+      "columns": [
+        "name",
+        "price",
+        "cost",
+        "contribution",
+        "complete"
+      ],
+      "widgets": [
+        "comparison",
+        "evidence"
+      ],
+      "completeness": "all",
+      "sort": "name"
+    }
+  },
+  "status": "passed",
+  "receiptDrill": true,
+  "layoutUndoPreservedComparison": true,
+  "sessionLocalJudgeLayout": true,
+  "backendSource": "3f2c9533028447f212593ec8c8359d2e36b1d06e"
+}
