@@ -640,3 +640,10 @@ html:has(.ops-root[data-reduce-motion]) .ops-confirm {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+
+/* Keep desktop evidence beside its originating task; retain the same native
+   focus and draft boundary on phones. */
+@media (min-width: 960px) {
+  .ops-root .ops-receipt-dialog { margin:16px 16px 16px auto; width:min(720px,calc(100vw - 48px)); height:calc(100dvh - 32px); }
+  .ops-root .ops-receipt-dialog .m3-dialog-surface { min-height:100%; }
+}
