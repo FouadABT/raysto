@@ -462,6 +462,7 @@ export function FinanceStudio({
   >();
   const [view, setView] = useState<DecisionView>();
   const [history, setHistory] = useState({ undo: false, redo: false });
+  const [canvasReady, setCanvasReady] = useState(false);
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -514,6 +515,7 @@ export function FinanceStudio({
   useEffect(() => {
     const controller = new AbortController();
     setStart(undefined);
+    setCanvasReady(false);
     setPayouts([]);
     setNotice("");
     setView(undefined);
@@ -847,7 +849,7 @@ export function FinanceStudio({
       </div>
       <button
         className="ops-btn secondary"
-        disabled={!comparison}
+        disabled={!comparison || ((!compact || expanded) && !canvasReady)}
         onClick={() => {
           const canvas = studio.current;
           const selection: DecisionView = {
@@ -1075,6 +1077,16 @@ export function FinanceStudio({
                   }}
                   onApiReady={(e) => {
                     studio.current = e.api;
+                    setCanvasReady(true);
+                    const h = e.api.getHistory();
+                    setHistory({
+                      undo: !!h.undo.length,
+                      redo: !!h.redo.length,
+                    });
+                  }}
+                  onStudioPreDestroyed={() => {
+                    studio.current = null;
+                    setCanvasReady(false);
                     setHistory({ undo: false, redo: false });
                   }}
                   onStateUpdated={(e) => {
