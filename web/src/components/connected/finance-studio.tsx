@@ -10,7 +10,7 @@ import { knownMoney } from '@/lib/connected/finance';
 import { studioRaystoTheme } from '@/lib/connected/studio/studio-canvas';
 import { isJudgeVenue } from '@/lib/connected/judge';
 import type { PriceComparison, DecisionView } from '@/lib/connected/finance';
-import { decisionPage, decisionView, restoredDecisionView } from '@/lib/connected/decision-view';
+import { decisionPage, decisionView, restoredDecisionView, financialPeriodScope } from '@/lib/connected/decision-view';
 
 type WidgetId = 'raystoMarginChange' | 'raystoPriceScenario' | 'raystoPaymentEvidence' | 'raystoIngredientEvidence';
 type Definition<T extends WidgetId> = AgWidgetDefinition<T, { type: T; dataMapping: { dish?: AgWidgetFieldReference[] }; format?: AgWidgetDataFormat<unknown> & {decisionConfig?:string} }>;
@@ -120,7 +120,9 @@ export function FinanceStudio({ api, tenant, products, scenario, productId, summ
   const [view,setView]=useState<DecisionView>();
   const [start, setStart] = useState<AgReportState<Registry>>();
   const studio = useRef<AgStudioApi | null>(null);
-  const token=JSON.stringify([tenant,productId,scenario?.id,comparison?.id,summary?.currency,summary?.from,summary?.to,comparison?.sample,comparisonDirty]);
+  // Streaming refreshes advance the default report's from/to bounds. Keep the
+  // owner's logical scope stable so an analysis cannot invalidate itself.
+  const token=JSON.stringify([tenant,productId,scenario?.id,comparison?.id,summary?.currency,financialPeriodScope(summary),null,comparison?.sample,comparisonDirty]);
   const scope = useRef({ api, tenant, productId, scenario, onScenario, comparison, onComparison,token });
   scope.current = { api, tenant, productId, scenario, onScenario, comparison, onComparison,token };
   const layoutVersion = useRef<number | undefined>(undefined);

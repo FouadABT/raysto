@@ -1,4 +1,9 @@
 import type { DecisionView } from './finance';
+/** Default reports roll forward on every read. Those observation timestamps
+ * are not a new owner selection. An explicit period, when selected, is scope. */
+export function financialPeriodScope(summary?: {basis:string;timezone?:string;from:string;to:string}, selected?:{from:string;to:string}) {
+  return JSON.stringify([summary?.basis,summary?.timezone,selected??'default-rolling-period']);
+}
 const fields=['name','price','cost','contribution','complete'];
 export function decisionView(value:unknown):DecisionView {
   if(!value||typeof value!=='object')throw Error('Invalid decision view');
