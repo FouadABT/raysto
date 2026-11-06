@@ -18,7 +18,8 @@
   --warn: #7c5000;
   --warn-bg: #fbefd2;
   --shadow-1: 0 1px 2px rgb(23 62 52 / 6%), 0 1px 1px rgb(23 62 52 / 4%);
-  --shadow-2: 0 18px 40px -22px rgb(23 62 52 / 40%), 0 2px 6px rgb(23 62 52 / 6%);
+  --shadow-2:
+    0 18px 40px -22px rgb(23 62 52 / 40%), 0 2px 6px rgb(23 62 52 / 6%);
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   min-height: 100vh;
   background: var(--paper);
@@ -56,7 +57,11 @@
   align-items: center;
   padding: clamp(28px, 5vw, 64px) clamp(16px, 6vw, 88px) clamp(48px, 6vw, 88px);
   background:
-    radial-gradient(1200px 520px at 85% -10%, rgb(215 249 120 / 16%), transparent 60%),
+    radial-gradient(
+      1200px 520px at 85% -10%,
+      rgb(215 249 120 / 16%),
+      transparent 60%
+    ),
     var(--forest);
   color: #fff;
   border-radius: 0 0 40px 40px;
@@ -118,7 +123,10 @@
   border-radius: 999px;
   font-weight: 700;
   text-decoration: none;
-  transition: transform 140ms var(--ease), background-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition:
+    transform 140ms var(--ease),
+    background-color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
 }
 .jg-primary {
   background: var(--lime);
@@ -380,7 +388,10 @@
   box-shadow: var(--shadow-1);
   color: inherit;
   text-decoration: none;
-  transition: transform 140ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition:
+    transform 140ms var(--ease),
+    border-color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
 }
 .jg-demo:hover {
   transform: translateY(-1px);
@@ -533,7 +544,9 @@
   border-radius: 28px;
   overflow: hidden;
   background: #06120e;
-  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 55%), 0 0 0 1px rgb(215 249 120 / 18%);
+  box-shadow:
+    0 30px 60px -30px rgb(0 0 0 / 55%),
+    0 0 0 1px rgb(215 249 120 / 18%);
   aspect-ratio: 16 / 9;
 }
 .jg-diagram video {
@@ -559,7 +572,10 @@
   box-shadow: var(--shadow-1);
   color: inherit;
   text-decoration: none;
-  transition: transform 140ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition:
+    transform 140ms var(--ease),
+    border-color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
 }
 .jg-flow:hover {
   transform: translateY(-2px);
@@ -656,6 +672,86 @@
   border: 1px solid var(--line);
   font-weight: 600;
   font-size: 15px;
+}
+
+.jg-decision-map {
+  margin: 0;
+  padding: clamp(24px, 3vw, 44px);
+  border-radius: 32px;
+  background: var(--paper, #f8f7ef);
+  color: var(--ink, #143d2e);
+  border: 1px solid rgb(22 65 47 / 0.14);
+}
+.jg-decision-map figcaption strong {
+  display: block;
+  margin: 14px 0 26px;
+  font-family: "Fraunces Variable", serif;
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 500;
+  line-height: 1.15;
+}
+.jg-decision-map ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.jg-decision-map li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 20px;
+  padding-bottom: 26px;
+}
+.jg-decision-map li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 48px;
+  bottom: 0;
+  width: 1px;
+  background: rgb(22 65 47 / 0.25);
+}
+.jg-map-node {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #d9f2c5;
+  color: #193e2b;
+}
+.jg-decision-map li:nth-child(2) .jg-map-node {
+  background: #e0ebdf;
+}
+.jg-decision-map li:nth-child(3) .jg-map-node {
+  background: #f8d7bd;
+}
+.jg-decision-map h3 {
+  margin: 4px 0 6px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.jg-decision-map li p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #43584a;
+}
+.jg-decision-map small {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.jg-map-caption {
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid rgb(22 65 47 / 0.16);
+  font-size: 12px;
+  line-height: 1.6;
+  color: #43584a;
+}
+.jg-root :is(a, button):focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 5px;
 }
 
 @media (max-width: 1100px) {

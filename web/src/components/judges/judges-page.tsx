@@ -17,7 +17,15 @@ const ease = [0.2, 0.8, 0.2, 1] as const;
 
 /** Rises into view while scrolling. The page renders fully visible first, so
  * nothing stays hidden if scripts are slow or off. */
-function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
+function Reveal({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   const reduced = useReducedMotion();
   const [running, setRunning] = useState(false);
   useEffect(() => setRunning(true), []);
@@ -35,29 +43,61 @@ function Reveal({ children, delay = 0, className }: { children: ReactNode; delay
   );
 }
 
-/** The animated diagram of the rule. Still for anyone who asks for less motion. */
+/** A responsive diagram, not a recording or provider execution result. */
 function Diagram() {
-  const reduced = useReducedMotion();
-  const video = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const v = video.current;
-    if (!v) return;
-    if (reduced) v.pause();
-    else void v.play().catch(() => {});
-  }, [reduced]);
   return (
-    <figure className="jg-diagram">
-      <video
-        ref={video}
-        src="/judges/brain.mp4"
-        poster="/judges/brain.jpg"
-        muted
-        loop
-        playsInline
-        autoPlay={!reduced}
-        preload="metadata"
-        aria-label="Animated diagram: the café's AI coworkers prepare a bill, a delivery payout and a supplier order; the owner approves with an identity check; PayPal pays the internet provider, the driver and the supplier."
-      />
+    <figure className="jg-diagram jg-decision-map">
+      <figcaption>
+        <span className="jg-eyebrow">THE DECISION THREAD</span>
+        <strong>
+          From a cost change
+          <br />
+          <em>to a considered choice.</em>
+        </strong>
+      </figcaption>
+      <ol>
+        {[
+          [
+            "receipt",
+            "01",
+            "Read the evidence",
+            "Confirm the supplier cost and recipe units.",
+          ],
+          [
+            "chart",
+            "02",
+            "Challenge the options",
+            "Inspect contribution and explicit volume assumptions.",
+          ],
+          [
+            "check",
+            "03",
+            "Review the action",
+            "Keep, defer or approve a separate price proposal.",
+          ],
+          [
+            "paypal",
+            "04",
+            "Inspect the outcome",
+            "Follow order, collection and supplier-payment records.",
+          ],
+        ].map(([icon, n, title, text]) => (
+          <li key={n}>
+            <span className="jg-map-node">
+              <Icon name={icon as IconName} size={24} />
+            </span>
+            <div>
+              <small>{n}</small>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="jg-map-caption">
+        Workflow diagram · sample café data and PayPal Sandbox are labeled in
+        the workspace.
+      </p>
     </figure>
   );
 }
@@ -71,51 +111,84 @@ const steps: { icon: IconName; title: string; text: string }[] = [
   {
     icon: "check",
     title: "You approve",
-    text: "Nothing moves until the owner or manager taps Approve. Money asks them to confirm it is really them.",
+    text: "Review pricing proposals and money actions separately. Existing automation policies remain visible in the workspace.",
   },
   {
     icon: "paypal",
     title: "PayPal moves the money",
-    text: "Checkout, refunds, Payouts and invoices run through PayPal, and the books update by themselves.",
+    text: "Supported checkout, refunds and Payouts use PayPal Sandbox. Inspect the actual provider outcome and its financial records.",
   },
 ];
 
-const flows: { icon: IconName; title: string; text: string; paypal: string }[] = [
-  {
-    icon: "receipt",
-    title: "Pays your bills",
-    text: "Snap a bill. The AI accountant reads the vendor, amount and due date, checks it was not paid before, and pays it once you approve.",
-    paypal: "PayPal Payouts",
-  },
-  {
-    icon: "chat",
-    title: "Settles complaints",
-    text: "A guest says a dish was missing. The agent checks the order and the payment, then proposes a fair partial refund.",
-    paypal: "PayPal refunds",
-  },
-  {
-    icon: "team",
-    title: "Pays your team",
-    text: "Tips and wages from the week's shifts, worked out and sent in one batch after your identity check.",
-    paypal: "PayPal Payouts",
-  },
-  {
-    icon: "qr",
-    title: "Gets you paid",
-    text: "A link and a QR code for a deposit or an unpaid order. The customer pays with PayPal and it is marked paid.",
-    paypal: "PayPal checkout",
-  },
-];
+const flows: { icon: IconName; title: string; text: string; paypal: string }[] =
+  [
+    {
+      icon: "receipt",
+      title: "Pays your bills",
+      text: "Snap a bill. The AI accountant reads the vendor, amount and due date, checks it was not paid before, and pays it once you approve.",
+      paypal: "PayPal Payouts",
+    },
+    {
+      icon: "chat",
+      title: "Settles complaints",
+      text: "A guest says a dish was missing. The agent checks the order and the payment, then proposes a fair partial refund.",
+      paypal: "PayPal refunds",
+    },
+    {
+      icon: "team",
+      title: "Pays your team",
+      text: "Tips and wages from the week's shifts, worked out and sent in one batch after your identity check.",
+      paypal: "PayPal Payouts",
+    },
+    {
+      icon: "qr",
+      title: "Gets you paid",
+      text: "A link and a QR code for a deposit or an unpaid order. The customer pays with PayPal and it is marked paid.",
+      paypal: "PayPal checkout",
+    },
+  ];
 
 const runsOn: { icon: IconName; title: string; text: string }[] = [
-  { icon: "orders", title: "Ordering and split bills", text: "Guests order in one sentence and each pays their own share." },
-  { icon: "kitchen", title: "Counter and kitchen", text: "Voice orders at the till and a live kitchen board." },
-  { icon: "ledger", title: "Books and VAT", text: "Double-entry books, profit and loss, cash flow, payables." },
-  { icon: "supplies", title: "Supplies", text: "Stock-out forecasts, purchase orders and a three-way match." },
-  { icon: "dispatch", title: "Delivery", text: "Drivers, a live map and an API for delivery partners." },
-  { icon: "group", title: "Several venues", text: "One owner, many cafés, compared side by side." },
-  { icon: "chart", title: "Analytics", text: "Dashboards and pivots on AG Grid and AG Studio." },
-  { icon: "paypal", title: "Your own PayPal", text: "Each restaurant connects its own PayPal account." },
+  {
+    icon: "orders",
+    title: "Ordering and split bills",
+    text: "Guests order in one sentence and each pays their own share.",
+  },
+  {
+    icon: "kitchen",
+    title: "Counter and kitchen",
+    text: "Voice orders at the till and a live kitchen board.",
+  },
+  {
+    icon: "ledger",
+    title: "Books and VAT",
+    text: "Recorded journal, cash movements and payables, with accounting-basis limitations visible.",
+  },
+  {
+    icon: "supplies",
+    title: "Supplies",
+    text: "Stock-out forecasts, purchase orders and a three-way match.",
+  },
+  {
+    icon: "dispatch",
+    title: "Delivery",
+    text: "Drivers, a live map and an API for delivery partners.",
+  },
+  {
+    icon: "group",
+    title: "Several venues",
+    text: "One owner, many cafés, compared side by side.",
+  },
+  {
+    icon: "chart",
+    title: "Analytics",
+    text: "Dashboards and pivots on AG Grid and AG Studio.",
+  },
+  {
+    icon: "paypal",
+    title: "Your own PayPal",
+    text: "Account configuration and supported Sandbox payment evidence. Live merchant acceptance remains a release gate.",
+  },
 ];
 
 const builtWith = [
@@ -140,27 +213,35 @@ export function JudgesPage() {
             rays<span>to</span>
             <i aria-hidden="true">✳</i>
           </a>
-          <span className="jg-eyebrow">For restaurants, cafés and snack bars</span>
+          <span className="jg-eyebrow">
+            For restaurants, cafés and snack bars
+          </span>
           <h1>
             The AI operating system
             <br />
             <em>for restaurants.</em>
           </h1>
           <p className="jg-lead">
-            AI coworkers prepare the work, you approve it, and PayPal moves the money. Bills paid, refunds settled, the
-            team paid and every sale in the books, without a back office.
+            Connect supplier costs, recipes and payments. AI explains the
+            evidence; you challenge the assumptions, review a decision and
+            return to its recorded outcome.
           </p>
           <div className="jg-ctas">
-            <a className="jg-primary" href={demoUrl}>
+            <a
+              className="jg-primary"
+              href={`${demoUrl}&section=finance&tab=investigate&guided=1`}
+            >
               <Icon name="play" size={20} />
-              Enter the live demo
+              Follow a cost investigation
             </a>
             {/* The film button returns with the new film (planned 9–10 November). */}
-            <a className="jg-secondary" href="#does">
-              See what it does
+            <a className="jg-secondary" href={demoUrl}>
+              Explore the workspace
             </a>
           </div>
-          <small className="jg-sandbox">Opens a demo café, already signed in. Nothing to install.</small>
+          <small className="jg-sandbox">
+            Opens a demo café, already signed in. Nothing to install.
+          </small>
         </div>
         <Diagram />
       </header>
@@ -169,7 +250,7 @@ export function JudgesPage() {
         <section className="jg-section" aria-labelledby="how">
           <Reveal>
             <span className="jg-eyebrow">How it works</span>
-            <h2 id="how">One rule, everywhere in the product.</h2>
+            <h2 id="how">Evidence, review and a traceable outcome.</h2>
           </Reveal>
           <ol className="jg-steps">
             {steps.map((s, i) => (
@@ -189,7 +270,7 @@ export function JudgesPage() {
         <section className="jg-section" aria-labelledby="does">
           <Reveal>
             <span className="jg-eyebrow">What it does for you</span>
-            <h2 id="does">The money work, done before you ask.</h2>
+            <h2 id="does">Connected work, with the evidence close by.</h2>
           </Reveal>
           <div className="jg-flows">
             {flows.map((f, i) => (
@@ -241,12 +322,20 @@ export function JudgesPage() {
               <div className="jg-download">
                 <a className="jg-secondary" href={judge.apkUrl}>
                   <Icon name="download" size={18} />
-                  Download for Android{judge.apkVersion ? ` · ${judge.apkVersion}` : ""}
+                  Download for Android
+                  {judge.apkVersion ? ` · ${judge.apkVersion}` : ""}
                 </a>
+                <p className="jg-sandbox">
+                  Android preview · development signed. Physical review of this
+                  build is pending.
+                </p>
                 <ol>
-                  <li>Open the file on an Android phone and allow the install.</li>
                   <li>
-                    Tap <strong>Use my Raysto account</strong>, then <strong>Sign in as a diner</strong> or{" "}
+                    Open the file on an Android phone and allow the install.
+                  </li>
+                  <li>
+                    Tap <strong>Use my Raysto account</strong>, then{" "}
+                    <strong>Sign in as a diner</strong> or{" "}
                     <strong>Sign in as the café manager</strong>. No typing.
                   </li>
                 </ol>
@@ -257,7 +346,12 @@ export function JudgesPage() {
                 )}
               </div>
               <div className="jg-qr" aria-hidden="true">
-                <QRCodeSVG value={judge.apkUrl} size={132} level="M" marginSize={2} />
+                <QRCodeSVG
+                  value={judge.apkUrl}
+                  size={132}
+                  level="M"
+                  marginSize={2}
+                />
                 <span>Scan with your phone</span>
               </div>
             </div>
@@ -278,11 +372,12 @@ export function JudgesPage() {
       </main>
       <footer className="jg-footer">
         <span>
-          Built for the PayPal AI Hackathon · MIT licence · <a href={repo}>Source on GitHub</a>
+          Built for the PayPal AI Hackathon · MIT licence ·{" "}
+          <a href={repo}>Source on GitHub</a>
         </span>
         <span>
-          The demo café uses sample data and PayPal Sandbox, so no real money moves. It starts fresh every day at 09:00
-          UTC.
+          The demo café uses sample data and PayPal Sandbox, so no real money
+          moves. It starts fresh every day at 09:00 UTC.
         </span>
       </footer>
     </div>

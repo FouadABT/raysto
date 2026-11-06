@@ -17,14 +17,21 @@ export type StudioRow = Record<string, string | number | boolean | null>;
 export interface StudioSource {
   id: string;
   data: StudioRow[];
+  /** Declare schema before asynchronous rows arrive; Studio must not infer an empty schema. */
+  fields?: {
+    id: string;
+    format: "textFormat" | "decimalFormat" | "booleanFormat";
+  }[];
 }
 
 /** Money for Studio: minor units become major units, so sums read as money. */
 export const major = (minor: unknown) => Math.round(Number(minor ?? 0)) / 100;
 
 /** A local day "2026-11-04" or month "2026-11" from an ISO instant, for grouping. */
-export const dayOf = (iso: unknown) => (typeof iso === "string" ? iso.slice(0, 10) : "");
-export const monthOf = (iso: unknown) => (typeof iso === "string" ? iso.slice(0, 7) : "");
+export const dayOf = (iso: unknown) =>
+  typeof iso === "string" ? iso.slice(0, 10) : "";
+export const monthOf = (iso: unknown) =>
+  typeof iso === "string" ? iso.slice(0, 7) : "";
 
 /**
  * Loads one source and keeps the last good rows while it reloads, so a live
@@ -35,7 +42,12 @@ export function useStudioSource(
   id: string,
   load: () => Promise<StudioRow[]>,
   deps: readonly unknown[],
-): { source?: StudioSource; loading: boolean; error?: string; reload: () => void } {
+): {
+  source?: StudioSource;
+  loading: boolean;
+  error?: string;
+  reload: () => void;
+} {
   const [source, setSource] = useState<StudioSource>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();

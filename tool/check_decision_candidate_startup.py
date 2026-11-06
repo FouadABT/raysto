@@ -8,13 +8,15 @@ import base64
 import json
 from pathlib import Path
 import subprocess
-import uuid,re
+import uuid,re,argparse
 from decision_upload import upload
 
 ROOT=Path(__file__).resolve().parents[1]
 KEY=Path(r'C:\Users\fabat\Desktop\Awhar\modernapp\v1\awhar_backend\new-key-awhar.pem')
 HOST='ubuntu@13.51.45.215'
-artifact=json.loads((ROOT/'docs/impact-innovation/backend-artifact.json').read_text(encoding='utf-8'))
+parser=argparse.ArgumentParser();parser.add_argument('--evidence-dir',default='docs/impact-innovation');args=parser.parse_args()
+folder=(ROOT/args.evidence_dir).resolve();assert folder.is_relative_to(ROOT/'docs')
+artifact=json.loads((folder/'backend-artifact.json').read_text(encoding='utf-8'))
 run=uuid.uuid4().hex[:12]
 remote='/home/ubuntu/raysto-upload/'+Path(artifact['artifact']).name
 upload(ROOT/artifact['artifact'],remote)
@@ -122,6 +124,6 @@ if result.returncode:
  print(json.dumps({'status':'harness-failed','remoteLines':re.findall(r'File "<stdin>", line (\d+)',detail),'errorType':re.findall(r'(?:^|\n)([A-Za-z]+Error):',detail),'safeReport':result.stdout.decode() if result.stdout.strip().startswith(b'{') else None}))
  raise SystemExit('Isolated startup execution failed; no production data returned.')
 report=json.loads(result.stdout.decode())
-(ROOT/'docs/impact-innovation/restored-startup.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+(folder/'restored-startup.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
 print(json.dumps(report))
 if report['status']!='passed':raise SystemExit(1)

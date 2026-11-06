@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s · Raysto",
   },
   description:
-    "Discover, dine, and run a remarkable restaurant. Explore the Raysto phase 1 demo.",
+    "Raysto connects café costs, recipes and payments. Investigate evidence, compare assumptions and review financial decisions.",
   robots: { index: false, follow: false },
 };
 export default function RootLayout({
@@ -33,9 +33,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={jakarta.variable} data-scroll-behavior="smooth">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

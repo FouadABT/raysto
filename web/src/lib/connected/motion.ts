@@ -1,7 +1,18 @@
 "use client";
 
-import { createElement, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { LazyMotion, MotionConfig, domMax, useReducedMotion } from "motion/react";
+import {
+  createElement,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import {
+  LazyMotion,
+  MotionConfig,
+  domMax,
+  useReducedMotion,
+} from "motion/react";
 
 /**
  * Material 3 motion for the console, from docs/design-tokens.json (md-sys.css
@@ -48,8 +59,10 @@ export function stagger(i: number, step = 0.09, cap = 0.36): number {
 
 const KEY = "raysto.reduceMotion";
 const listeners = new Set<() => void>();
+let memoryPreference: boolean | undefined;
 
 function readStored(): boolean {
+  if (memoryPreference !== undefined) return memoryPreference;
   try {
     return globalThis.localStorage?.getItem(KEY) === "1";
   } catch {
@@ -60,7 +73,10 @@ function readStored(): boolean {
 function subscribe(listener: () => void) {
   listeners.add(listener);
   const onStorage = (e: StorageEvent) => {
-    if (e.key === KEY) listener();
+    if (e.key === KEY) {
+      memoryPreference = undefined;
+      listener();
+    }
   };
   globalThis.addEventListener?.("storage", onStorage);
   return () => {
@@ -71,6 +87,7 @@ function subscribe(listener: () => void) {
 
 /** Turns the console's reduce-motion switch on or off; it adds to the device setting, never overrides it. */
 export function setReduceMotion(on: boolean) {
+  memoryPreference = on;
   try {
     if (on) globalThis.localStorage?.setItem(KEY, "1");
     else globalThis.localStorage?.removeItem(KEY);
@@ -135,6 +152,10 @@ export function MotionRoot({ children }: { children: ReactNode }) {
   return createElement(
     LazyMotion,
     { features: domMax },
-    createElement(MotionConfig, { reducedMotion: app ? "always" : "user" }, children),
+    createElement(
+      MotionConfig,
+      { reducedMotion: app ? "always" : "user" },
+      children,
+    ),
   );
 }

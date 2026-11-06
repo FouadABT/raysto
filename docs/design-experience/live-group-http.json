@@ -1,0 +1,28 @@
+{
+  "checkedAtUtc": "2026-11-06T17:50:42.942Z",
+  "source": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+  "groupId": 1,
+  "queries": [
+    {
+      "name": "group.overview",
+      "completed": true,
+      "rows": null
+    },
+    {
+      "name": "group.compare",
+      "completed": true,
+      "rows": 14
+    },
+    {
+      "name": "group.ledger",
+      "completed": true,
+      "rows": 1357
+    },
+    {
+      "name": "group.payables",
+      "completed": true,
+      "rows": 5
+    }
+  ],
+  "status": "passed"
+}

@@ -5,7 +5,7 @@ import "./judges.css";
 export const metadata: Metadata = {
   title: { absolute: "Raysto · The AI operating system for restaurants" },
   description:
-    "AI coworkers prepare the work, you approve it, and PayPal moves the money. Bills paid, refunds settled and the team paid, in one system for restaurants and cafés.",
+    "Connect café costs, recipes and payments. Investigate the evidence, challenge pricing assumptions and inspect recorded outcomes.",
   robots: { index: true, follow: true },
 };
 

@@ -1,0 +1,12 @@
+{
+  "version": "0.17.0-dev.6",
+  "artifact": "dist/raysto-backend-0.17.0-dev.6-binary-linux-amd64.tar.gz",
+  "artifactKind": "binary-delta",
+  "baseRelease": "0.17.0-dev.5-20261106",
+  "reusedLibrariesAndMigrationsSha256": "c6e858499d61af8e7a8e1fb519f89382a598ef1e4a24851bacc3bab7d59d23e2",
+  "sha256": "fa409137de8e4b45a99295fc22206f77b72b64f31a04eeeb8a4200f9de49919e",
+  "binarySha256": "faedc30938a2001216e55a21c47a186fb5b444c10d23e156dcd4db6e066dac30",
+  "bytes": 8394425,
+  "image": "raysto-backend:0.17.0-dev.6-ec2",
+  "configIncluded": false
+}

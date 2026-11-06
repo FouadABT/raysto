@@ -1,4 +1,8 @@
 "use client";
+import {
+  useWorkspaceTab,
+  useWorkspaceValue,
+} from "@/lib/connected/workspace-location";
 /**
  * The franchise view: every venue of a group on AG Studio pages (Portfolio,
  * Compare venues, Money), with the same figures in plain grids beneath, and
@@ -19,7 +23,13 @@ import type { ConnectedApi } from "@/lib/connected/api";
 import { currency } from "@/lib/connected/contracts";
 import { isJudgeVenue, judge } from "@/lib/connected/judge";
 import { stepUp, usesPassword } from "@/lib/connected/step-up";
-import { countCol, dateCol, idCol, moneyCol, statusCol } from "@/lib/connected/grid-columns";
+import {
+  countCol,
+  dateCol,
+  idCol,
+  moneyCol,
+  statusCol,
+} from "@/lib/connected/grid-columns";
 import {
   agingBucket,
   compareRows,
@@ -43,7 +53,10 @@ import {
 } from "@/lib/connected/group";
 import { StudioCanvas } from "@/lib/connected/studio/studio-canvas";
 import { groupPages } from "@/lib/connected/studio/pages";
-import { groupAssistant, type ToolScope } from "@/lib/connected/studio/ai-tools";
+import {
+  groupAssistant,
+  type ToolScope,
+} from "@/lib/connected/studio/ai-tools";
 import { CountUp, Reveal } from "./m3";
 import { Icon } from "./icons";
 import { RaystoGrid } from "./raysto-grid";
@@ -70,12 +83,22 @@ const studioPagesIds = new Set<Page>(["portfolio", "compare", "money"]);
  * Franchise view: every venue of the group on AG Studio pages (portfolio, compare venues, money).
  * The group is the one chosen in the switcher, else the one this venue belongs to.
  */
-export function GroupSection({ api, tenant, revision, currencyCode }: SectionProps) {
+export function GroupSection({
+  api,
+  tenant,
+  revision,
+  currencyCode,
+}: SectionProps) {
   const choice = useGroupChoice();
-  const list = useLoad(() => api.query<{ rows: GroupRow[] }>("group.list").then((r) => r.rows), [api, revision]);
+  const list = useLoad(
+    () => api.query<{ rows: GroupRow[] }>("group.list").then((r) => r.rows),
+    [api, revision],
+  );
   const groups = list.data ?? choice?.groups;
   const group =
-    (choice?.groupId ? groups?.find((g) => g.id === choice.groupId) : undefined) ?? (groups ? groupOfVenue(groups, tenant) : undefined);
+    (choice?.groupId
+      ? groups?.find((g) => g.id === choice.groupId)
+      : undefined) ?? (groups ? groupOfVenue(groups, tenant) : undefined);
   if (!groups)
     return list.error ? (
       <p className="ops-error" role="alert">
@@ -99,7 +122,16 @@ export function GroupSection({ api, tenant, revision, currencyCode }: SectionPro
         }}
       />
     );
-  return <GroupView key={group.id} api={api} tenant={tenant} revision={revision} group={group} onChanged={() => list.reload()} />;
+  return (
+    <GroupView
+      key={group.id}
+      api={api}
+      tenant={tenant}
+      revision={revision}
+      group={group}
+      onChanged={() => list.reload()}
+    />
+  );
 }
 
 function NoGroup({
@@ -127,7 +159,11 @@ function NoGroup({
     try {
       let groupId = typeof target === "number" ? target : 0;
       if (create) {
-        const made = await api.command<{ groupId: number }>("group.create", noVenue, { name: name.trim(), currency: currencyCode });
+        const made = await api.command<{ groupId: number }>(
+          "group.create",
+          noVenue,
+          { name: name.trim(), currency: currencyCode },
+        );
         groupId = made.groupId;
       }
       await api.command("group.attach", tenant, { groupId });
@@ -139,20 +175,35 @@ function NoGroup({
     }
   }
   return (
-    <section className="ops-panel ops-group-empty" aria-labelledby="group-title">
+    <section
+      className="ops-panel ops-group-empty"
+      aria-labelledby="group-title"
+    >
       <span className="ops-eyebrow">Group</span>
       <h2 id="group-title">This venue is not in a group</h2>
       <p>
-        A group puts up to twelve venues side by side: sales, the books and stock across all of them, menu templates and stock transfers.
-        Each venue keeps its own PayPal connection, team and records. Only a venue&rsquo;s owner can add it.
+        A group puts up to twelve venues side by side: sales, the books and
+        stock across all of them, menu templates and stock transfers. Each venue
+        keeps its own PayPal connection, team and records. Only a venue&rsquo;s
+        owner can add it.
       </p>
       <div className="ops-group-forms">
         <form className="ops-group-form" onSubmit={(e) => void run(e, true)}>
           <label>
             New group&rsquo;s name
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required placeholder="Atelier Group" />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={80}
+              required
+              placeholder="Atelier Group"
+            />
           </label>
-          <button className="ops-primary" type="submit" disabled={busy || !name.trim()}>
+          <button
+            className="ops-primary"
+            type="submit"
+            disabled={busy || !name.trim()}
+          >
             <Icon name="plus" size={18} /> Start a group with this venue
           </button>
         </form>
@@ -160,7 +211,10 @@ function NoGroup({
           <form className="ops-group-form" onSubmit={(e) => void run(e, false)}>
             <label>
               Or add it to a group you own
-              <select value={target} onChange={(e) => setTarget(Number(e.target.value))}>
+              <select
+                value={target}
+                onChange={(e) => setTarget(Number(e.target.value))}
+              >
                 {owned.map((g) => (
                   <option key={g.id} value={g.id}>
                     {g.name}
@@ -196,34 +250,68 @@ function GroupView({
   group: GroupRow;
   onChanged: () => void;
 }) {
-  const [range, setRange] = useState<GroupRange>("7d");
-  const [page, setPage] = useState<Page>("portfolio");
   const money = readsMoney(group.role);
+  const [range, setRange] = useWorkspaceValue<GroupRange>(
+    "group",
+    "period",
+    ["today", "7d", "30d"],
+    "7d",
+  );
+  const [page, setPage] = useWorkspaceTab<Page>(
+    "group",
+    money
+      ? ["portfolio", "compare", "money", "templates", "transfers"]
+      : ["portfolio", "compare", "templates", "transfers"],
+    "portfolio",
+  );
   const owner = group.role === "owner";
-  const judges = group.venues.some((v) => isJudgeVenue(v.restaurantId)) || isJudgeVenue(tenant);
+  const judges =
+    group.venues.some((v) => isJudgeVenue(v.restaurantId)) ||
+    isJudgeVenue(tenant);
   const overview = useLoad(
-    () => api.query<GroupOverview>("group.overview", { groupId: group.id, range }),
+    () =>
+      api.query<GroupOverview>("group.overview", { groupId: group.id, range }),
     [api, group.id, range, revision],
   );
   const compare = useLoad(
-    () => api.query<{ rows: CompareRow[] }>("group.compare", { groupId: group.id, range }).then((r) => r.rows),
+    () =>
+      api
+        .query<{ rows: CompareRow[] }>("group.compare", {
+          groupId: group.id,
+          range,
+        })
+        .then((r) => r.rows),
     [api, group.id, range, revision],
   );
   const ledger = useLoad(
     () =>
       money
-        ? api.query<{ rows: LedgerLine[]; truncated: boolean }>("group.ledger", { groupId: group.id, range })
+        ? api.query<{ rows: LedgerLine[]; truncated: boolean }>(
+            "group.ledger",
+            { groupId: group.id, range },
+          )
         : Promise.resolve({ rows: [] as LedgerLine[], truncated: false }),
     [api, group.id, range, revision, money],
   );
   const payables = useLoad(
-    () => (money ? api.query<{ rows: PayableRow[] }>("group.payables", { groupId: group.id }).then((r) => r.rows) : Promise.resolve([])),
+    () =>
+      money
+        ? api
+            .query<{ rows: PayableRow[] }>("group.payables", {
+              groupId: group.id,
+            })
+            .then((r) => r.rows)
+        : Promise.resolve([]),
     [api, group.id, revision, money],
   );
   const venues = overview.data?.venues;
-  const currencies = useMemo(() => currenciesOf(venues ?? group.venues), [venues, group.venues]);
+  const currencies = useMemo(
+    () => currenciesOf(venues ?? group.venues),
+    [venues, group.venues],
+  );
   const [picked, setPicked] = useState<string>();
-  const cur = picked && currencies.includes(picked) ? picked : currencies[0] ?? "USD";
+  const cur =
+    picked && currencies.includes(picked) ? picked : (currencies[0] ?? "USD");
 
   // Studio's sources: one currency at a time, refreshed in place.
   const sources = useMemo(
@@ -236,12 +324,22 @@ function GroupView({
   );
   const initial = useMemo(() => groupPages(cur, money), [cur, money]);
   const scope = useMemo<ToolScope>(
-    () => ({ api, groupId: group.id, groupName: group.name, venues: group.venues, range, money }),
+    () => ({
+      api,
+      groupId: group.id,
+      groupName: group.name,
+      venues: group.venues,
+      range,
+      money,
+    }),
     [api, group, range, money],
   );
   const scopeRef = useRef(scope);
   scopeRef.current = scope;
-  const assistant = useMemo(() => groupAssistant(() => scopeRef.current), [scopeRef]);
+  const assistant = useMemo(
+    () => groupAssistant(() => scopeRef.current),
+    [scopeRef],
+  );
 
   const pages: [Page, string][] = [
     ["portfolio", "Portfolio"],
@@ -251,20 +349,30 @@ function GroupView({
     ["transfers", "Stock transfers"],
   ];
   const totals = totalsByCurrency(venues ?? []);
-  const shared = group.venues.length === 2 ? "Both venues share" : "These venues share";
+  const shared =
+    group.venues.length === 2 ? "Both venues share" : "These venues share";
   return (
     <div className="ops-business ops-group">
       <header className="ops-group-head">
         <div>
           <span className="ops-eyebrow">
-            Group · {group.venues.length} venue{group.venues.length === 1 ? "" : "s"} · you are its {roleLabel(group.role).toLowerCase()}
+            Group · {group.venues.length} venue
+            {group.venues.length === 1 ? "" : "s"} · you are its{" "}
+            {roleLabel(group.role).toLowerCase()}
           </span>
           <h2>{group.name}</h2>
-          <p className="ops-group-venues">{group.venues.map((v) => v.name).join(" · ")}</p>
+          <p className="ops-group-venues">
+            {group.venues.map((v) => v.name).join(" · ")}
+          </p>
         </div>
         <div className="ops-chips" role="group" aria-label="Period">
           {(["today", "7d", "30d"] as const).map((r) => (
-            <button key={r} type="button" aria-pressed={range === r} onClick={() => setRange(r)}>
+            <button
+              key={r}
+              type="button"
+              aria-pressed={range === r}
+              onClick={() => setRange(r)}
+            >
               {rangeLabel[r]}
             </button>
           ))}
@@ -273,12 +381,20 @@ function GroupView({
       <p className="ops-group-banner" role="note">
         <Icon name="paypal" size={18} />
         <span>
-          <strong>Sandbox.</strong> {shared} one Sandbox merchant; in production each connects its own PayPal.
+          <strong>Sandbox.</strong> {shared} one Sandbox merchant; in production
+          each connects its own PayPal.
         </span>
       </p>
       {overview.error && (
         <p className="ops-error" role="alert">
-          {overview.error}
+          We could not load this group’s records. Check your group selection and
+          try again.{" "}
+          <button
+            className="ops-btn secondary"
+            onClick={() => overview.reload()}
+          >
+            Retry group records
+          </button>
         </p>
       )}
       <div className="ops-kpis compact" aria-label="Group totals">
@@ -288,44 +404,86 @@ function GroupView({
           </p>
         ) : (
           totals.flatMap((t, i) => [
-            <Reveal key={`${t.currency}-sales`} index={i * 3} visitKey="group-kpis" className="ops-kpi">
+            <Reveal
+              key={`${t.currency}-sales`}
+              index={i * 3}
+              visitKey="group-kpis"
+              className="ops-kpi"
+            >
               <span>
-                Paid sales · {t.currency} · {t.venues} venue{t.venues === 1 ? "" : "s"}
+                Paid sales · {t.currency} · {t.venues} venue
+                {t.venues === 1 ? "" : "s"}
               </span>
               <strong>
-                <CountUp value={t.paidSalesMinor} format={(n) => currency(Math.round(n), t.currency)} />
+                <CountUp
+                  value={t.paidSalesMinor}
+                  format={(n) => currency(Math.round(n), t.currency)}
+                />
               </strong>
               <small>{t.orders} paid orders</small>
             </Reveal>,
-            <Reveal key={`${t.currency}-bills`} index={i * 3 + 1} visitKey="group-kpis" className={`ops-kpi${t.billsDueMinor ? " alert" : ""}`}>
+            <Reveal
+              key={`${t.currency}-bills`}
+              index={i * 3 + 1}
+              visitKey="group-kpis"
+              className={`ops-kpi${t.billsDueMinor ? " alert" : ""}`}
+            >
               <span>Bills due in 7 days · {t.currency}</span>
               <strong>
-                <CountUp value={t.billsDueMinor} format={(n) => currency(Math.round(n), t.currency)} />
+                <CountUp
+                  value={t.billsDueMinor}
+                  format={(n) => currency(Math.round(n), t.currency)}
+                />
               </strong>
             </Reveal>,
-            <Reveal key={`${t.currency}-stock`} index={i * 3 + 2} visitKey="group-kpis" className={`ops-kpi${t.lowStock ? " alert" : ""}`}>
+            <Reveal
+              key={`${t.currency}-stock`}
+              index={i * 3 + 2}
+              visitKey="group-kpis"
+              className={`ops-kpi${t.lowStock ? " alert" : ""}`}
+            >
               <span>Items low on stock · {t.currency} venues</span>
               <strong>
-                <CountUp value={t.lowStock} format={(n) => String(Math.round(n))} />
+                <CountUp
+                  value={t.lowStock}
+                  format={(n) => String(Math.round(n))}
+                />
               </strong>
             </Reveal>,
           ])
         )}
       </div>
-      <div className="ops-chips ops-group-pages" role="tablist" aria-label="Group pages">
+      <div
+        className="ops-chips ops-group-pages"
+        role="tablist"
+        aria-label="Group pages"
+      >
         {pages.map(([id, label]) => (
-          <button key={id} type="button" role="tab" aria-selected={page === id} aria-pressed={page === id} onClick={() => setPage(id)}>
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            tabIndex={page === id ? 0 : -1}
+            aria-selected={page === id}
+            aria-pressed={page === id}
+            onClick={() => setPage(id)}
+          >
             {label}
           </button>
         ))}
       </div>
-      {studioPagesIds.has(page) && (
+      {studioPagesIds.has(page) && overview.data && !overview.error && (
         <>
           <div className="ops-group-studio-bar">
             {currencies.length > 1 ? (
               <div className="ops-chips" role="group" aria-label="Currency">
                 {currencies.map((c) => (
-                  <button key={c} type="button" aria-pressed={cur === c} onClick={() => setPicked(c)}>
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={cur === c}
+                    onClick={() => setPicked(c)}
+                  >
                     {c}
                   </button>
                 ))}
@@ -333,8 +491,14 @@ function GroupView({
             ) : null}
             <small>
               Amounts in {cur}
-              {currencies.length > 1 ? "; Studio shows one currency at a time and never adds two together." : "."}
-              {owner && !judges ? " Your layout is saved for you." : judges ? " Rearrange freely: the demo café never saves a layout." : ""}
+              {currencies.length > 1
+                ? "; Studio shows one currency at a time and never adds two together."
+                : "."}
+              {owner && !judges
+                ? " Your layout is saved for you."
+                : judges
+                  ? " Rearrange freely: the demo café never saves a layout."
+                  : ""}
             </small>
           </div>
           <StudioCanvas
@@ -345,13 +509,29 @@ function GroupView({
             page={page}
             editable={owner || judges}
             height={780}
-            layoutKey={{ api, scope: `group:${group.id}`, section: "group", save: owner && !judges }}
+            layoutKey={{
+              api,
+              scope: `group:${group.id}`,
+              section: "group",
+              save: owner && !judges,
+            }}
             ai={owner || judges ? assistant : undefined}
           />
         </>
       )}
-      {page === "portfolio" && <VenuesGrid venues={venues} loading={!overview.data && !overview.error} />}
-      {page === "compare" && <CompareGrid rows={compare.data} loading={!compare.data && !compare.error} error={compare.error} />}
+      {page === "portfolio" && (
+        <VenuesGrid
+          venues={venues}
+          loading={!overview.data && !overview.error}
+        />
+      )}
+      {page === "compare" && (
+        <CompareGrid
+          rows={compare.data}
+          loading={!compare.data && !compare.error}
+          error={compare.error}
+        />
+      )}
       {page === "money" && money && (
         <MoneyGrids
           ledger={ledger.data?.rows}
@@ -360,25 +540,56 @@ function GroupView({
           error={ledger.error || payables.error}
         />
       )}
-      {page === "templates" && <Templates api={api} group={group} owner={owner} />}
-      {page === "transfers" && <Transfers api={api} tenant={tenant} group={group} revision={revision} />}
-      {page === "portfolio" && owner && !judges && <Invite api={api} tenant={tenant} group={group} onDone={onChanged} />}
+      {page === "templates" && (
+        <Templates api={api} group={group} owner={owner} />
+      )}
+      {page === "transfers" && (
+        <Transfers
+          api={api}
+          tenant={tenant}
+          group={group}
+          revision={revision}
+        />
+      )}
+      {page === "portfolio" && owner && !judges && (
+        <Invite api={api} tenant={tenant} group={group} onDone={onChanged} />
+      )}
     </div>
   );
 }
 
-function VenuesGrid({ venues, loading }: { venues?: VenueFigures[]; loading: boolean }) {
+function VenuesGrid({
+  venues,
+  loading,
+}: {
+  venues?: VenueFigures[];
+  loading: boolean;
+}) {
   const columns = useMemo<ColDef<VenueFigures>[]>(
     () => [
-      { field: "name", headerName: "Venue", minWidth: 180, cellClass: "ops-cell-strong" },
+      {
+        field: "name",
+        headerName: "Venue",
+        minWidth: 180,
+        cellClass: "ops-cell-strong",
+      },
       { field: "currency", headerName: "Currency", minWidth: 100, flex: 0.5 },
       moneyCol<VenueFigures>("Paid sales", "paidSalesMinor", (v) => v.currency),
       countCol<VenueFigures>("Paid orders", "orders"),
-      moneyCol<VenueFigures>("Average ticket", "averageTicketMinor", (v) => v.currency, { total: false }),
+      moneyCol<VenueFigures>(
+        "Average ticket",
+        "averageTicketMinor",
+        (v) => v.currency,
+        { total: false },
+      ),
       moneyCol<VenueFigures>("Refunds", "refundsMinor", (v) => v.currency),
       moneyCol<VenueFigures>("Paid out", "payoutsMinor", (v) => v.currency),
       countCol<VenueFigures>("Bills due", "billsDue"),
-      moneyCol<VenueFigures>("Due in 7 days", "billsDueMinor", (v) => v.currency),
+      moneyCol<VenueFigures>(
+        "Due in 7 days",
+        "billsDueMinor",
+        (v) => v.currency,
+      ),
       countCol<VenueFigures>("Low stock", "lowStock"),
       countCol<VenueFigures>("Deliveries out", "liveDeliveries"),
     ],
@@ -397,7 +608,15 @@ function VenuesGrid({ venues, loading }: { venues?: VenueFigures[]; loading: boo
   );
 }
 
-function CompareGrid({ rows, loading, error }: { rows?: CompareRow[]; loading: boolean; error?: string }) {
+function CompareGrid({
+  rows,
+  loading,
+  error,
+}: {
+  rows?: CompareRow[];
+  loading: boolean;
+  error?: string;
+}) {
   const columns = useMemo<ColDef<CompareRow>[]>(
     () => [
       dateCol<CompareRow>("Day", "date", { dayOnly: true, sort: "desc" }),
@@ -440,13 +659,22 @@ function MoneyGrids({
 }) {
   const billColumns = useMemo<ColDef<PayableRow>[]>(
     () => [
-      { field: "vendor", headerName: "Supplier or biller", minWidth: 180, cellClass: "ops-cell-strong" },
+      {
+        field: "vendor",
+        headerName: "Supplier or biller",
+        minWidth: 180,
+        cellClass: "ops-cell-strong",
+      },
       { field: "venue", headerName: "Venue", minWidth: 160 },
       { field: "category", headerName: "Category", minWidth: 130 },
       moneyCol<PayableRow>("Amount", "amountMinor", (b) => b.currency),
       dateCol<PayableRow>("Due", "dueAt", { dayOnly: true, sort: "asc" }),
       countCol<PayableRow>("Days overdue", "daysOverdue", { total: false }),
-      { headerName: "Aging", valueGetter: (p) => (p.data ? agingBucket(p.data.daysOverdue) : ""), minWidth: 130 },
+      {
+        headerName: "Aging",
+        valueGetter: (p) => (p.data ? agingBucket(p.data.daysOverdue) : ""),
+        minWidth: 130,
+      },
       statusCol<PayableRow>("State", "state"),
     ],
     [],
@@ -455,11 +683,29 @@ function MoneyGrids({
     () => [
       dateCol<LedgerLine>("Date", "date", { dayOnly: true, sort: "desc" }),
       { field: "venue", headerName: "Venue", minWidth: 150 },
-      { headerName: "Account", valueGetter: (p) => (p.data ? `${p.data.account} ${p.data.accountName}` : ""), minWidth: 200 },
+      {
+        headerName: "Account",
+        valueGetter: (p) =>
+          p.data ? `${p.data.account} ${p.data.accountName}` : "",
+        minWidth: 200,
+      },
       moneyCol<LedgerLine>("Debit", "debitMinor", (l) => l.currency),
       moneyCol<LedgerLine>("Credit", "creditMinor", (l) => l.currency),
-      { field: "memo", headerName: "Memo", minWidth: 200, flex: 1.5, tooltipField: "memo" },
-      { headerName: "From", valueGetter: (p) => (p.data?.source?.kind ? `${p.data.source.kind}${p.data.source.estimated ? " (fee estimated)" : ""}` : ""), minWidth: 140 },
+      {
+        field: "memo",
+        headerName: "Memo",
+        minWidth: 200,
+        flex: 1.5,
+        tooltipField: "memo",
+      },
+      {
+        headerName: "From",
+        valueGetter: (p) =>
+          p.data?.source?.kind
+            ? `${p.data.source.kind}${p.data.source.estimated ? " (fee estimated)" : ""}`
+            : "",
+        minWidth: 140,
+      },
     ],
     [],
   );
@@ -491,16 +737,33 @@ function MoneyGrids({
         emptyText="No journal lines in this period."
       />
       <small className="ops-note">
-        Each venue&rsquo;s journal is derived from its own orders, PayPal captures, refunds, payouts and bills; debits equal credits per
-        venue and currency.{truncated ? " Only the newest 2,000 lines are shown; export a shorter period for the rest." : ""}
+        Each venue&rsquo;s journal is derived from its own orders, PayPal
+        captures, refunds, payouts and bills; debits equal credits per venue and
+        currency.
+        {truncated
+          ? " Only the newest 2,000 lines are shown; export a shorter period for the rest."
+          : ""}
       </small>
     </>
   );
 }
 
-function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; owner: boolean }) {
+function Templates({
+  api,
+  group,
+  owner,
+}: {
+  api: ConnectedApi;
+  group: GroupRow;
+  owner: boolean;
+}) {
   const list = useLoad(
-    () => api.query<{ rows: TemplateRow[] }>("group.templates", { groupId: group.id }).then((r) => r.rows),
+    () =>
+      api
+        .query<{ rows: TemplateRow[] }>("group.templates", {
+          groupId: group.id,
+        })
+        .then((r) => r.rows),
     [api, group.id],
   );
   const [name, setName] = useState("");
@@ -518,7 +781,10 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
       await api.command("group.template.save", noVenue, {
         groupId: group.id,
         name: name.trim(),
-        items: parsed.items.map((i) => ({ ...i, category: category.trim() || "Group specials" })),
+        items: parsed.items.map((i) => ({
+          ...i,
+          category: category.trim() || "Group specials",
+        })),
       });
       setName("");
       setText("");
@@ -534,9 +800,15 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
     setBusy(true);
     setNote("");
     try {
-      const r = await api.command<{ drafts?: unknown[] }>("group.template.push", noVenue, { groupId: group.id, templateId: t.id });
+      const r = await api.command<{ drafts?: unknown[] }>(
+        "group.template.push",
+        noVenue,
+        { groupId: group.id, templateId: t.id },
+      );
       const n = r.drafts?.length ?? group.venues.length;
-      setNote(`“${t.name}” is now a proposed menu draft in ${n} venue${n === 1 ? "" : "s"}. Each venue's manager reviews and publishes it.`);
+      setNote(
+        `“${t.name}” is now a proposed menu draft in ${n} venue${n === 1 ? "" : "s"}. Each venue's manager reviews and publishes it.`,
+      );
     } catch (err) {
       setNote(errorText(err));
     } finally {
@@ -544,9 +816,15 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
     }
   }
   return (
-    <section className="ops-panel ops-group-panel" aria-labelledby="group-templates">
+    <section
+      className="ops-panel ops-group-panel"
+      aria-labelledby="group-templates"
+    >
       <h3 id="group-templates">Menu templates</h3>
-      <p>A template is a set of dishes for every venue. Pushing it never changes a live menu: each venue gets a draft its manager publishes.</p>
+      <p>
+        A template is a set of dishes for every venue. Pushing it never changes
+        a live menu: each venue gets a draft its manager publishes.
+      </p>
       {list.error && (
         <p className="ops-error" role="alert">
           {list.error}
@@ -557,7 +835,12 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
           Loading the templates…
         </p>
       ) : list.data.length === 0 ? (
-        <p className="ops-quiet-note">No template yet.{owner ? " Write the first one below." : " The group's owner writes them."}</p>
+        <p className="ops-quiet-note">
+          No template yet.
+          {owner
+            ? " Write the first one below."
+            : " The group's owner writes them."}
+        </p>
       ) : (
         <ul className="ops-group-templates">
           {list.data.map((t) => (
@@ -565,7 +848,8 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
               <div>
                 <strong>{t.name}</strong>
                 <small>
-                  {t.items.length} dish{t.items.length === 1 ? "" : "es"} · updated {new Date(t.updatedAt).toLocaleDateString()}
+                  {t.items.length} dish{t.items.length === 1 ? "" : "es"} ·
+                  updated {new Date(t.updatedAt).toLocaleDateString()}
                 </small>
                 <span className="ops-group-dishes">
                   {t.items
@@ -576,7 +860,11 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
                 </span>
               </div>
               {owner && (
-                <button type="button" onClick={() => void push(t)} disabled={busy}>
+                <button
+                  type="button"
+                  onClick={() => void push(t)}
+                  disabled={busy}
+                >
                   Push to every venue
                 </button>
               )}
@@ -588,11 +876,21 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
         <form className="ops-group-form wide" onSubmit={(e) => void save(e)}>
           <label>
             Template name
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required placeholder="Winter specials" />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={80}
+              required
+              placeholder="Winter specials"
+            />
           </label>
           <label>
             Menu category for these dishes
-            <input value={category} onChange={(e) => setCategory(e.target.value)} maxLength={80} />
+            <input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              maxLength={80}
+            />
           </label>
           <label className="span">
             Dishes, one per line: name, price, optional description
@@ -600,7 +898,9 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
               rows={5}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={"Mushroom soup, 7.50, with thyme cream\nLemon tart, 6.00"}
+              placeholder={
+                "Mushroom soup, 7.50, with thyme cream\nLemon tart, 6.00"
+              }
             />
           </label>
           {text && parsed.errors.length > 0 && (
@@ -610,8 +910,18 @@ function Templates({ api, group, owner }: { api: ConnectedApi; group: GroupRow; 
               ))}
             </ul>
           )}
-          <button className="ops-primary" type="submit" disabled={busy || !name.trim() || parsed.items.length === 0 || parsed.errors.length > 0}>
-            Save template ({parsed.items.length} dish{parsed.items.length === 1 ? "" : "es"})
+          <button
+            className="ops-primary"
+            type="submit"
+            disabled={
+              busy ||
+              !name.trim() ||
+              parsed.items.length === 0 ||
+              parsed.errors.length > 0
+            }
+          >
+            Save template ({parsed.items.length} dish
+            {parsed.items.length === 1 ? "" : "es"})
           </button>
         </form>
       )}
@@ -632,11 +942,27 @@ interface StockRow {
   low: boolean;
 }
 
-function Transfers({ api, tenant, group, revision }: { api: ConnectedApi; tenant: number; group: GroupRow; revision: string }) {
+function Transfers({
+  api,
+  tenant,
+  group,
+  revision,
+}: {
+  api: ConnectedApi;
+  tenant: number;
+  group: GroupRow;
+  revision: string;
+}) {
   const here = group.venues.find((v) => v.restaurantId === tenant);
   const others = group.venues.filter((v) => v.restaurantId !== tenant);
   const stock = useLoad(
-    () => api.query<{ rows: StockRow[] }>("stock", { restaurantId: tenant, limit: 200 }).then((r) => r.rows),
+    () =>
+      api
+        .query<{ rows: StockRow[] }>("stock", {
+          restaurantId: tenant,
+          limit: 200,
+        })
+        .then((r) => r.rows),
     [api, tenant, revision],
   );
   const [to, setTo] = useState<number>(others[0]?.restaurantId ?? 0);
@@ -646,13 +972,28 @@ function Transfers({ api, tenant, group, revision }: { api: ConnectedApi; tenant
   const [note, setNote] = useState("");
   const chosen = stock.data?.find((s) => s.id === item) ?? stock.data?.[0];
   const amount = Number(quantity);
-  const valid = chosen && to && Number.isFinite(amount) && amount > 0 && amount <= chosen.quantity;
+  const valid =
+    chosen &&
+    to &&
+    Number.isFinite(amount) &&
+    amount > 0 &&
+    amount <= chosen.quantity;
   const stockColumns = useMemo<ColDef<StockRow>[]>(
     () => [
-      { field: "name", headerName: "Item", minWidth: 180, cellClass: "ops-cell-strong" },
-      countCol<StockRow>("On hand", "quantity", { total: false, format: (n) => String(Math.round(n * 1000) / 1000) }),
+      {
+        field: "name",
+        headerName: "Item",
+        minWidth: 180,
+        cellClass: "ops-cell-strong",
+      },
+      countCol<StockRow>("On hand", "quantity", {
+        total: false,
+        format: (n) => String(Math.round(n * 1000) / 1000),
+      }),
       { field: "unit", headerName: "Unit", minWidth: 90, flex: 0.5 },
-      statusCol<StockRow>("Level", (r) => (r.low ? "low" : "ok"), { label: (v) => (v === "low" ? "Low" : "Enough") }),
+      statusCol<StockRow>("Level", (r) => (r.low ? "low" : "ok"), {
+        label: (v) => (v === "low" ? "Low" : "Enough"),
+      }),
       idCol<StockRow>("Item id", "id", { prefix: "#" }),
     ],
     [],
@@ -663,9 +1004,16 @@ function Transfers({ api, tenant, group, revision }: { api: ConnectedApi; tenant
     setBusy(true);
     setNote("");
     try {
-      await api.command("stock.transfer", tenant, { toRestaurantId: to, stockItemId: chosen.id, quantity: amount });
-      const dest = others.find((v) => v.restaurantId === to)?.name ?? "the other venue";
-      setNote(`Moved ${amount} ${chosen.unit} of ${chosen.name} to ${dest}. Both venues' stock records show the transfer.`);
+      await api.command("stock.transfer", tenant, {
+        toRestaurantId: to,
+        stockItemId: chosen.id,
+        quantity: amount,
+      });
+      const dest =
+        others.find((v) => v.restaurantId === to)?.name ?? "the other venue";
+      setNote(
+        `Moved ${amount} ${chosen.unit} of ${chosen.name} to ${dest}. Both venues' stock records show the transfer.`,
+      );
       setQuantity("");
       stock.reload();
     } catch (err) {
@@ -677,20 +1025,34 @@ function Transfers({ api, tenant, group, revision }: { api: ConnectedApi; tenant
   if (!here)
     return (
       <p className="ops-quiet-note">
-        Open one of the group&rsquo;s venues to move its stock; transfers start from the venue that gives.
+        Open one of the group&rsquo;s venues to move its stock; transfers start
+        from the venue that gives.
       </p>
     );
   return (
-    <section className="ops-panel ops-group-panel" aria-labelledby="group-transfers">
+    <section
+      className="ops-panel ops-group-panel"
+      aria-labelledby="group-transfers"
+    >
       <h3 id="group-transfers">Move stock from {here.name}</h3>
-      <p>A transfer takes stock off this venue and adds it to another venue of the group, as two movements with one transfer id. You need a manager role in both.</p>
+      <p>
+        A transfer takes stock off this venue and adds it to another venue of
+        the group, as two movements with one transfer id. You need a manager
+        role in both.
+      </p>
       {others.length === 0 ? (
-        <p className="ops-quiet-note">There is no other venue in this group to send stock to.</p>
+        <p className="ops-quiet-note">
+          There is no other venue in this group to send stock to.
+        </p>
       ) : (
         <form className="ops-group-form wide" onSubmit={(e) => void send(e)}>
           <label>
             Item
-            <select value={chosen?.id ?? ""} onChange={(e) => setItem(Number(e.target.value))} disabled={!stock.data?.length}>
+            <select
+              value={chosen?.id ?? ""}
+              onChange={(e) => setItem(Number(e.target.value))}
+              disabled={!stock.data?.length}
+            >
               {(stock.data ?? []).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.quantity} {s.unit})
@@ -700,7 +1062,12 @@ function Transfers({ api, tenant, group, revision }: { api: ConnectedApi; tenant
           </label>
           <label>
             Quantity{chosen ? ` (${chosen.unit})` : ""}
-            <input inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(",", "."))} required />
+            <input
+              inputMode="decimal"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value.replace(",", "."))}
+              required
+            />
           </label>
           <label>
             To
@@ -712,7 +1079,11 @@ function Transfers({ api, tenant, group, revision }: { api: ConnectedApi; tenant
               ))}
             </select>
           </label>
-          <button className="ops-primary" type="submit" disabled={busy || !valid}>
+          <button
+            className="ops-primary"
+            type="submit"
+            disabled={busy || !valid}
+          >
             <Icon name="swap" size={18} /> Move stock
           </button>
           {chosen && quantity && amount > chosen.quantity && (
@@ -735,13 +1106,27 @@ function Transfers({ api, tenant, group, revision }: { api: ConnectedApi; tenant
         getRowId={(p) => String(p.data.id)}
         csvName="stock"
         totals={false}
-        emptyText={stock.error ? stock.error : "No stock items recorded at this venue yet."}
+        emptyText={
+          stock.error
+            ? stock.error
+            : "No stock items recorded at this venue yet."
+        }
       />
     </section>
   );
 }
 
-function Invite({ api, tenant, group, onDone }: { api: ConnectedApi; tenant: number; group: GroupRow; onDone: () => void }) {
+function Invite({
+  api,
+  tenant,
+  group,
+  onDone,
+}: {
+  api: ConnectedApi;
+  tenant: number;
+  group: GroupRow;
+  onDone: () => void;
+}) {
   const known = isJudgeVenue(tenant) ? judge.password : "";
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"accountant" | "areaManager">("accountant");
@@ -761,7 +1146,11 @@ function Invite({ api, tenant, group, onDone }: { api: ConnectedApi; tenant: num
     setNote("");
     try {
       await stepUp(api, tenant, byPassword ? password : undefined);
-      await api.command("group.member.invite", noVenue, { groupId: group.id, email: email.trim(), role });
+      await api.command("group.member.invite", noVenue, {
+        groupId: group.id,
+        email: email.trim(),
+        role,
+      });
       setNote(
         `Invitation sent to ${email.trim()}. ${role === "accountant" ? "An accountant reads every venue's books once they accept." : "An area manager reads the group's sales and stock."} You can revoke it later.`,
       );
@@ -776,21 +1165,43 @@ function Invite({ api, tenant, group, onDone }: { api: ConnectedApi; tenant: num
     }
   }
   return (
-    <section className="ops-panel ops-group-panel" aria-labelledby="group-invite">
+    <section
+      className="ops-panel ops-group-panel"
+      aria-labelledby="group-invite"
+    >
       <h3 id="group-invite">Invite someone to the group</h3>
-      <p>An accountant gets the books of every venue; an area manager gets the group&rsquo;s figures. Neither can pay, refund or change a menu without a venue role.</p>
+      <p>
+        An accountant gets the books of every venue; an area manager gets the
+        group&rsquo;s figures. Neither can pay, refund or change a menu without
+        a venue role.
+      </p>
       {asking ? (
         <form className="ops-group-form" onSubmit={(e) => void confirm(e)}>
           {byPassword && (
             <label>
               Your password, to confirm it is you
-              <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </label>
           )}
           <button className="ops-primary" type="submit" disabled={busy}>
-            {busy ? "Sending…" : byPassword ? "Confirm and invite" : "Confirm with Google and invite"}
+            {busy
+              ? "Sending…"
+              : byPassword
+                ? "Confirm and invite"
+                : "Confirm with Google and invite"}
           </button>
-          <button type="button" className="ops-quiet" onClick={() => setAsking(false)} disabled={busy}>
+          <button
+            type="button"
+            className="ops-quiet"
+            onClick={() => setAsking(false)}
+            disabled={busy}
+          >
             Cancel
           </button>
         </form>
@@ -798,11 +1209,22 @@ function Invite({ api, tenant, group, onDone }: { api: ConnectedApi; tenant: num
         <form className="ops-group-form wide" onSubmit={(e) => void start(e)}>
           <label>
             Email
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="off" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="off"
+            />
           </label>
           <label>
             Role
-            <select value={role} onChange={(e) => setRole(e.target.value as "accountant" | "areaManager")}>
+            <select
+              value={role}
+              onChange={(e) =>
+                setRole(e.target.value as "accountant" | "areaManager")
+              }
+            >
               <option value="accountant">Accountant</option>
               <option value="areaManager">Area manager</option>
             </select>

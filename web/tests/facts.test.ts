@@ -9,13 +9,33 @@ import { evidence } from "../src/lib/connected/judge";
 const root = join(__dirname, "..", "..");
 const read = (rel: string) => readFileSync(join(root, rel), "utf8");
 const facts = JSON.parse(read("docs/facts.json"));
-const pages = ["README.md", "docs/devpost-submission.md", "docs/reviewer-guide.md"];
+const pages = [
+  "README.md",
+  "docs/devpost-submission.md",
+  "docs/reviewer-guide.md",
+];
 
 const words: Record<string, number> = {
-  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
-  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, twenty: 20,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  thirteen: 13,
+  fourteen: 14,
+  fifteen: 15,
+  sixteen: 16,
+  twenty: 20,
 };
-const asNumber = (s: string) => (/^\d+$/.test(s) ? Number(s) : words[s.toLowerCase()]);
+const asNumber = (s: string) =>
+  /^\d+$/.test(s) ? Number(s) : words[s.toLowerCase()];
 
 /** Every "<number> <noun>" claim in a page, e.g. "Eleven captures" or "4 refunds". */
 function counts(text: string, noun: string): number[] {
@@ -37,12 +57,22 @@ test("the judges' page constants are the facts", () => {
   assert.equal(evidence.firstCommit, facts.firstCommit);
 });
 
-test("the product page at rays.to keeps proof backstage and says Sandbox once", () => {
+test("the product page keeps proof backstage and makes Sandbox limits visible", () => {
   // Since 5 November rays.to is a product page: the proof (ids, test counts)
   // lives in the README and on Devpost, and the Sandbox note is in the footer.
   const page = read("web/src/components/judges/judges-page.tsx");
-  assert.doesNotMatch(page, /\bevidence\.[a-zA-Z]|unit tests|integration tests|browser tests/);
-  assert.equal(page.match(/Sandbox/g)?.length ?? 0, 1, "one Sandbox note, in the footer");
+  assert.doesNotMatch(
+    page,
+    /\bevidence\.[a-zA-Z]|unit tests|integration tests|browser tests/,
+  );
+  assert.ok(
+    page.includes("Sandbox"),
+    "the public entry must identify the payment environment",
+  );
+  assert.doesNotMatch(
+    page,
+    /Nothing moves until|Checkout, refunds, Payouts and invoices run through PayPal/,
+  );
   assert.doesNotMatch(page, /For hackathon judges|FOR JUDGES/i);
 });
 
@@ -58,19 +88,34 @@ test("the facts agree with themselves", () => {
 for (const page of pages) {
   test(`${page} states the same numbers`, () => {
     const text = read(page);
-    for (const n of counts(text, "captures")) assert.equal(n, facts.paypal.captures.count, "captures");
-    for (const n of counts(text, "refunds")) assert.equal(n, facts.paypal.refunds.count, "refunds");
-    for (const n of counts(text, "Payouts batches")) assert.equal(n, facts.paypal.payoutBatches.count, "Payouts batches");
-    for (const m of text.matchAll(/backend (\d+) unit tests and (\d+) integration tests/g)) {
+    for (const n of counts(text, "captures"))
+      assert.equal(n, facts.paypal.captures.count, "captures");
+    for (const n of counts(text, "refunds"))
+      assert.equal(n, facts.paypal.refunds.count, "refunds");
+    for (const n of counts(text, "Payouts batches"))
+      assert.equal(n, facts.paypal.payoutBatches.count, "Payouts batches");
+    for (const m of text.matchAll(
+      /backend (\d+) unit tests and (\d+) integration tests/g,
+    )) {
       assert.equal(Number(m[1]), facts.tests.backendUnit, "backend unit tests");
-      assert.equal(Number(m[2]), facts.tests.backendIntegration, "backend integration tests");
+      assert.equal(
+        Number(m[2]),
+        facts.tests.backendIntegration,
+        "backend integration tests",
+      );
     }
-    for (const m of text.matchAll(/console (\d+) unit tests/g)) assert.equal(Number(m[1]), facts.tests.consoleUnit, "console unit tests");
-    for (const m of text.matchAll(/(\d+) browser tests/g)) assert.equal(Number(m[1]), facts.tests.consoleBrowser, "browser tests");
-    for (const m of text.matchAll(/app (\d+) widget tests/g)) assert.equal(Number(m[1]), facts.tests.app, "app widget tests");
-    for (const m of text.matchAll(/(?:APK is|[Bb]uild is|served build is) (\d+\.\d+\.\d+)/g))
+    for (const m of text.matchAll(/console (\d+) unit tests/g))
+      assert.equal(Number(m[1]), facts.tests.consoleUnit, "console unit tests");
+    for (const m of text.matchAll(/(\d+) browser tests/g))
+      assert.equal(Number(m[1]), facts.tests.consoleBrowser, "browser tests");
+    for (const m of text.matchAll(/app (\d+) widget tests/g))
+      assert.equal(Number(m[1]), facts.tests.app, "app widget tests");
+    for (const m of text.matchAll(
+      /(?:APK is|[Bb]uild is|served build is) (\d+\.\d+\.\d+)/g,
+    ))
       assert.equal(m[1], facts.versions.apk, "APK version");
-    for (const m of text.matchAll(/started on (\d{1,2} \w+ \d{4})/g)) assert.equal(m[1], facts.startedOn, "start date");
+    for (const m of text.matchAll(/started on (\d{1,2} \w+ \d{4})/g))
+      assert.equal(m[1], facts.startedOn, "start date");
     for (const m of text.matchAll(/first commit \((\d{1,2} \w+)\)/gi))
       assert.ok(facts.firstCommit.startsWith(m[1]), `first commit ${m[1]}`);
   });

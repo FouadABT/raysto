@@ -23,7 +23,13 @@
  * - New rows reach the open Studio through its `data` prop: no remount, so
  *   a live refresh keeps the reader's page, filters and selection.
  */
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { AgStudio, AgStudioProvider } from "ag-studio-react";
 import {
   AgStudioAiModule,
@@ -46,7 +52,13 @@ const license = process.env.NEXT_PUBLIC_AG_STUDIO_LICENSE;
 if (license) AgStudioLicenseManager.setLicenseKey(license);
 
 /** Raysto's chart colours (`--raysto-chart-1…5` in md-sys.css), forest first. */
-const chartColors = ["#173f35", "#6a8f1f", "#b27a14", "#b5543a", "#5c7a8a"] as const;
+const chartColors = [
+  "#173f35",
+  "#6a8f1f",
+  "#b27a14",
+  "#b5543a",
+  "#5c7a8a",
+] as const;
 
 /** Raysto's look inside Studio: the console's tokens, its font, 12 px corners, its chart palette. */
 export const studioRaystoTheme = studioTheme.withParams({
@@ -76,7 +88,14 @@ export type StudioWidgetSpec = Record<string, unknown> & { type: string };
 export interface StudioLayoutKey {
   api: ConnectedApi;
   scope: string;
-  section: "overview" | "group" | "accountant" | "supplies" | "dispatch" | "money" | "floor";
+  section:
+    | "overview"
+    | "group"
+    | "accountant"
+    | "supplies"
+    | "dispatch"
+    | "money"
+    | "floor";
   /** Owners save; everyone else, and every judge, only loads. */
   save: boolean;
 }
@@ -85,13 +104,34 @@ export interface StudioLayoutKey {
 export const STUDIO_COLUMNS = 24;
 export const STUDIO_ROW = 16;
 
-const noPanels = { view: { left: [], right: [] }, edit: { left: [], right: [] } };
+// Identity-scoped, in-memory only. Navigating away must not discard a layout
+// while its debounced owner save is still pending.
+const layoutSessions = new WeakMap<
+  object,
+  Map<
+    string,
+    { state: StudioState; version?: number | null; queue: Promise<unknown> }
+  >
+>();
+const noPanels = {
+  view: { left: [], right: [] },
+  edit: { left: [], right: [] },
+};
 
-function StudioOff({ label, height }: { label: string; height: CSSProperties["height"] }) {
+function StudioOff({
+  label,
+  height,
+}: {
+  label: string;
+  height: CSSProperties["height"];
+}) {
   return (
     <div className="ops-studio-off" role="note" style={{ minHeight: height }}>
       <strong>{label}</strong>
-      <span>AG Studio is switched off on this deployment; the table below has the same figures.</span>
+      <span>
+        AG Studio is switched off on this deployment; the table below has the
+        same figures.
+      </span>
     </div>
   );
 }
@@ -108,10 +148,14 @@ export function StudioCanvas(props: {
   layoutKey?: StudioLayoutKey;
   page?: string;
   /** Tools read by their label only (no detail component), so one map serves any framework. */
-  ai?: { harness: AgAiHarnessSetup; display?: Record<string, Omit<AgBaseAiToolDisplay, "detail">> };
+  ai?: {
+    harness: AgAiHarnessSetup;
+    display?: Record<string, Omit<AgBaseAiToolDisplay, "detail">>;
+  };
   onApi?: (api: AgStudioApi) => void;
 }) {
-  if (!studioOn || !license) return <StudioOff label={props.label} height={props.height ?? 640} />;
+  if (!studioOn || !license)
+    return <StudioOff label={props.label} height={props.height ?? 640} />;
   return <StudioOn {...props} />;
 }
 
@@ -128,12 +172,22 @@ function StudioOn({
   onApi,
 }: Parameters<typeof StudioCanvas>[0]) {
   // undefined: still loading the saved layout; null: none saved.
-  const [saved, setSaved] = useState<StudioState | null | undefined>(layoutKey ? undefined : null);
+  const [saved, setSaved] = useState<StudioState | null | undefined>(
+    layoutKey ? undefined : null,
+  );
   const [note, setNote] = useState("");
+  const [panel, setPanel] = useState<"ai" | "edit" | undefined>();
   const studio = useRef<AgStudioApi | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lastSaved = useRef("");
   const loadedAt = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const key = layoutKey;
   const scope = key?.scope;
   const section = key?.section;
@@ -142,13 +196,32 @@ function StudioOn({
   useEffect(() => {
     if (!keyApi || !scope || !section) return;
     let live = true;
+    const session = layoutSessions.get(keyApi)?.get(`${scope}:${section}`);
+    if (session) {
+      lastSaved.current = JSON.stringify(session.state);
+      setSaved(session.state);
+      return;
+    }
     setSaved(undefined);
     keyApi
-      .query<{ state: unknown; version: number | null }>("studio.layout", { scope, section })
+      .query<{ state: unknown; version: number | null }>("studio.layout", {
+        scope,
+        section,
+      })
       .then((r) => {
         if (!live) return;
         if (isStudioState(r.state)) {
           lastSaved.current = JSON.stringify(r.state);
+          let sessions = layoutSessions.get(keyApi);
+          if (!sessions) {
+            sessions = new Map();
+            layoutSessions.set(keyApi, sessions);
+          }
+          sessions.set(`${scope}:${section}`, {
+            state: r.state,
+            version: r.version,
+            queue: Promise.resolve(),
+          });
           setSaved(r.state);
         } else setSaved(null);
       })
@@ -159,8 +232,6 @@ function StudioOn({
     };
   }, [keyApi, scope, section]);
 
-  useEffect(() => () => clearTimeout(timer.current), []);
-
   // Switch page in place: the open Studio keeps its data, filters and history.
   useEffect(() => {
     const api = studio.current;
@@ -170,9 +241,33 @@ function StudioOn({
       api.setState({ ...state, selectedPageId: page });
   }, [page]);
 
-  const data = useMemo(() => ({ sources }), [sources]);
+  const data = useMemo(
+    () => ({
+      sources: sources.map((source) => {
+        if (source.fields) return source;
+        const examples = new Map<string, string | number | boolean | null>();
+        for (const row of source.data)
+          for (const [key, value] of Object.entries(row))
+            if (value !== null || !examples.has(key)) examples.set(key, value);
+        return {
+          ...source,
+          fields: [...examples].map(([id, value]) => ({
+            id,
+            format:
+              typeof value === "number"
+                ? ("decimalFormat" as const)
+                : typeof value === "boolean"
+                  ? ("booleanFormat" as const)
+                  : ("textFormat" as const),
+          })),
+        };
+      }),
+    }),
+    [sources],
+  );
   const start = useMemo(
-    () => (saved === undefined ? undefined : mergeLayout(saved, initialState, page)),
+    () =>
+      saved === undefined ? undefined : mergeLayout(saved, initialState, page),
     // The starting state is read once, when Studio mounts.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [saved === undefined],
@@ -185,26 +280,60 @@ function StudioOn({
     if (Date.now() - loadedAt.current < 800) return;
     const json = JSON.stringify(state);
     if (json === lastSaved.current) return;
+    let sessions = layoutSessions.get(key.api);
+    if (!sessions) {
+      sessions = new Map();
+      layoutSessions.set(key.api, sessions);
+    }
+    const sessionId = `${key.scope}:${key.section}`;
+    let session = sessions.get(sessionId);
+    if (!session) {
+      session = { state, queue: Promise.resolve() };
+      sessions.set(sessionId, session);
+    }
+    session.state = state;
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       if (json.length > 120000) {
-        setNote("This layout is too large to save.");
+        if (mounted.current) setNote("This layout is too large to save.");
         return;
       }
-      key.api
-        // A group or venue layout belongs to the person, not to one restaurant's command lock.
-        .command("studio.layout.save", undefined as unknown as number, { scope: key.scope, section: key.section, state })
-        .then(() => {
-          lastSaved.current = json;
-          setNote("Layout saved for you.");
-        })
-        .catch((e: unknown) => setNote(`The layout was not saved: ${e instanceof Error ? e.message : String(e)}`));
-    }, 1500);
+      const entry = session;
+      if (!entry) return;
+      entry.queue = entry.queue
+        .catch(() => {})
+        .then(() =>
+          key.api
+            .command<{ version: number }>(
+              "studio.layout.save",
+              undefined as unknown as number,
+              { scope: key.scope, section: key.section, state },
+              { version: entry.version ?? undefined },
+            )
+            .then((result) => {
+              entry.version = result.version;
+              lastSaved.current = json;
+              if (mounted.current) setNote("Layout saved for you.");
+            })
+            .catch((e: unknown) => {
+              if (mounted.current)
+                setNote(
+                  `The layout was not saved: ${e instanceof Error ? e.message : String(e)}`,
+                );
+              throw e;
+            }),
+        );
+      void entry.queue.catch(() => {});
+    }, 800);
   };
 
   if (!start)
     return (
-      <section className={`ops-studio ops-studio-canvas${className ? ` ${className}` : ""}`} aria-label={label} style={{ height }}>
+      <section
+        className={`ops-studio ops-studio-canvas${className ? ` ${className}` : ""}`}
+        aria-label={label}
+        style={{ height }}
+      >
         <p className="ops-note" role="status">
           Opening {label.toLowerCase()}…
         </p>
@@ -212,13 +341,55 @@ function StudioOn({
     );
   return (
     <>
-      <section className={`ops-studio ops-studio-canvas${className ? ` ${className}` : ""}`} aria-label={label} style={{ height }}>
+      {(editable || ai) && (
+        <div className="ops-analysis-tools" aria-label={`${label} controls`}>
+          <button
+            className="ops-btn secondary"
+            aria-pressed={!panel}
+            onClick={() => setPanel(undefined)}
+          >
+            Read view
+          </button>
+          {ai && (
+            <button
+              className="ops-btn secondary"
+              aria-pressed={panel === "ai"}
+              onClick={() => setPanel((p) => (p === "ai" ? undefined : "ai"))}
+            >
+              Ask about this view
+            </button>
+          )}
+          {editable && (
+            <button
+              className="ops-btn secondary"
+              aria-pressed={panel === "edit"}
+              onClick={() =>
+                setPanel((p) => (p === "edit" ? undefined : "edit"))
+              }
+            >
+              Arrange widgets
+            </button>
+          )}
+        </div>
+      )}
+      <section
+        className={`ops-studio ops-studio-canvas${className ? ` ${className}` : ""}`}
+        aria-label={label}
+        style={{ height }}
+      >
         <AgStudioProvider licenseKey={license}>
           <AgStudio
-            mode={editable ? "edit" : "view"}
+            mode={panel ? "edit" : "view"}
             theme={studioRaystoTheme}
             loadThemeGoogleFonts={false}
-            panels={editable ? undefined : noPanels}
+            panels={
+              panel
+                ? {
+                    view: { left: [], right: [] },
+                    edit: { left: [], right: [panel] },
+                  }
+                : noPanels
+            }
             modules={ai ? [AgStudioAiModule] : undefined}
             ai={ai?.harness}
             aiToolDisplay={ai?.display}
@@ -260,7 +431,10 @@ export function StudioWidget({
   height?: CSSProperties["height"];
   className?: string;
 }) {
-  const rows = typeof height === "number" ? Math.max(8, Math.floor((height - 32) / STUDIO_ROW)) : 24;
+  const rows =
+    typeof height === "number"
+      ? Math.max(8, Math.floor((height - 32) / STUDIO_ROW))
+      : 24;
   const state = useMemo(
     () =>
       ({
@@ -268,7 +442,14 @@ export function StudioWidget({
           {
             id: "only",
             widgets: { main: widget },
-            widgetLayout: { main: { xTrack: 0, yTrack: 0, xSpan: STUDIO_COLUMNS, ySpan: rows } },
+            widgetLayout: {
+              main: {
+                xTrack: 0,
+                yTrack: 0,
+                xSpan: STUDIO_COLUMNS,
+                ySpan: rows,
+              },
+            },
           },
         ],
         selectedPageId: "only",
@@ -276,5 +457,13 @@ export function StudioWidget({
     [widget, rows],
   );
   const sources = useMemo(() => [source], [source]);
-  return <StudioCanvas label={label} sources={sources} initialState={state} height={height} className={className} />;
+  return (
+    <StudioCanvas
+      label={label}
+      sources={sources}
+      initialState={state}
+      height={height}
+      className={className}
+    />
+  );
 }

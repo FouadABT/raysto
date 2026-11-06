@@ -1,10 +1,22 @@
 "use client";
 
 import { AnimatePresence, m } from "motion/react";
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { duration, easing, useReduce } from "@/lib/connected/motion";
+import { confirmFormDismiss } from "../workspace-drafts";
 
-const cards = { div: m.div, article: m.article, li: m.li, section: m.section } as const;
+const cards = {
+  div: m.div,
+  article: m.article,
+  li: m.li,
+  section: m.section,
+} as const;
 const grow = { duration: duration.medium4, ease: easing.emphasized };
 
 export type ContainerCardProps = {
@@ -21,7 +33,13 @@ export type ContainerCardProps = {
  * container transform). Opening it is the caller's job: put a real button
  * inside and set the dialog open from it.
  */
-export function ContainerCard({ layoutId, children, as = "div", className, style }: ContainerCardProps) {
+export function ContainerCard({
+  layoutId,
+  children,
+  as = "div",
+  className,
+  style,
+}: ContainerCardProps) {
   const reduce = useReduce();
   if (reduce) {
     const Tag = as;
@@ -33,7 +51,12 @@ export function ContainerCard({ layoutId, children, as = "div", className, style
   }
   const Tag = cards[as];
   return (
-    <Tag layoutId={layoutId} className={className} style={style} transition={{ layout: grow }}>
+    <Tag
+      layoutId={layoutId}
+      className={className}
+      style={style}
+      transition={{ layout: grow }}
+    >
       {children}
     </Tag>
   );
@@ -56,19 +79,44 @@ export type ContainerDialogProps = {
  * Focus returns to whatever opened it. Reduced motion opens and closes it
  * directly.
  */
-export function ContainerDialog({ layoutId, open, onClose, title, children, className }: ContainerDialogProps) {
+export function ContainerDialog({
+  layoutId,
+  open,
+  onClose,
+  title,
+  children,
+  className,
+}: ContainerDialogProps) {
   const reduce = useReduce();
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(open);
+  const requestClose = async () => {
+    if (await confirmFormDismiss(ref.current)) onClose();
+  };
   if (open && !mounted) setMounted(true);
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog || !mounted || !open || dialog.open) return;
-    opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    opener.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     dialog.showModal();
   }, [mounted, open]);
+
+  useEffect(
+    () => () => {
+      // Some evidence routes unmount the dialog directly instead of animating
+      // open=false. Restore focus in both paths, including a removed opener.
+      const target = opener.current?.isConnected
+        ? opener.current
+        : document.getElementById("workspace-content");
+      target?.focus({ preventScroll: true });
+    },
+    [],
+  );
 
   const finish = () => {
     ref.current?.close();
@@ -84,9 +132,19 @@ export function ContainerDialog({ layoutId, open, onClose, title, children, clas
   if (!mounted) return null;
 
   const close = (
-    <button type="button" className="m3-dialog-close" aria-label="Close" onClick={onClose}>
+    <button
+      type="button"
+      className="m3-dialog-close"
+      aria-label="Close"
+      onClick={() => void requestClose()}
+    >
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+        <path
+          d="M6 6l12 12M18 6L6 18"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+        />
       </svg>
     </button>
   );
@@ -98,10 +156,10 @@ export function ContainerDialog({ layoutId, open, onClose, title, children, clas
       aria-label={title}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        void requestClose();
       }}
       onClick={(e) => {
-        if (e.target === ref.current) onClose();
+        if (e.target === ref.current) void requestClose();
       }}
     >
       {reduce ? (
@@ -112,12 +170,30 @@ export function ContainerDialog({ layoutId, open, onClose, title, children, clas
       ) : (
         <AnimatePresence onExitComplete={finish}>
           {open && (
-            <m.div key="surface" layoutId={layoutId} className="m3-dialog-surface" transition={{ layout: grow }}>
+            <m.div
+              key="surface"
+              layoutId={layoutId}
+              className="m3-dialog-surface"
+              transition={{ layout: grow }}
+            >
               <m.div
                 className="m3-dialog-content"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { duration: duration.medium2, ease: easing.standard, delay: duration.medium4 * 0.3 } }}
-                exit={{ opacity: 0, transition: { duration: duration.short2, ease: easing.emphasizedAccelerate } }}
+                animate={{
+                  opacity: 1,
+                  transition: {
+                    duration: duration.medium2,
+                    ease: easing.standard,
+                    delay: duration.medium4 * 0.3,
+                  },
+                }}
+                exit={{
+                  opacity: 0,
+                  transition: {
+                    duration: duration.short2,
+                    ease: easing.emphasizedAccelerate,
+                  },
+                }}
               >
                 {close}
                 {children}

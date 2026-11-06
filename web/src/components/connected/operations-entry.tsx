@@ -10,14 +10,30 @@ import {
   type Auth,
 } from "firebase/auth";
 import { connectedAuth } from "@/lib/connected/firebase";
+import { confirmDiscard } from "@/lib/connected/confirm-discard";
 import { ConnectedApi } from "@/lib/connected/api";
 import type { Membership } from "@/lib/connected/contracts";
 import type { GroupRef } from "@/lib/connected/group";
-import { isJudgeVenue, judge, judgeLogin, markDemoVenues } from "@/lib/connected/judge";
-import { MotionRoot, setReduceMotion, useAppReduceMotion } from "@/lib/connected/motion";
+import {
+  isJudgeVenue,
+  judge,
+  judgeLogin,
+  markDemoVenues,
+} from "@/lib/connected/judge";
+import {
+  MotionRoot,
+  setReduceMotion,
+  useAppReduceMotion,
+} from "@/lib/connected/motion";
 import { Icon } from "./icons";
 import { SnackbarProvider } from "./m3";
-import { GroupChoiceProvider, GroupSwitcher, useGroups, venuesInChoice, type GroupChoice } from "./group-switcher";
+import {
+  GroupChoiceProvider,
+  GroupSwitcher,
+  useGroups,
+  venuesInChoice,
+  type GroupChoice,
+} from "./group-switcher";
 
 const Workspace = dynamic(
   () => import("./operations-workspace").then((m) => m.OperationsWorkspace),
@@ -41,7 +57,10 @@ export function OperationsEntry() {
     [error, setError] = useState("");
   const [busy, setBusy] = useState(true),
     [signedIn, setSignedIn] = useState(false);
-  const [person, setPerson] = useState<{ name?: string | null; email?: string | null }>();
+  const [person, setPerson] = useState<{
+    name?: string | null;
+    email?: string | null;
+  }>();
   // 0.16: the groups `me` lists, for the group switcher.
   const [groupRefs, setGroupRefs] = useState<GroupRef[]>([]);
   useEffect(() => {
@@ -63,17 +82,21 @@ export function OperationsEntry() {
           setMemberships([]);
           setSelected(undefined);
           setSignedIn(!!user);
-          setPerson(user ? { name: user.displayName, email: user.email } : undefined);
+          setPerson(
+            user ? { name: user.displayName, email: user.email } : undefined,
+          );
           if (!user && judgeLink) {
             judgeLink = false;
-            void signInWithEmailAndPassword(a, judge.email, judge.password).catch(
-              (e) => {
-                if (active) {
-                  setError(String(e));
-                  setBusy(false);
-                }
-              },
-            );
+            void signInWithEmailAndPassword(
+              a,
+              judge.email,
+              judge.password,
+            ).catch((e) => {
+              if (active) {
+                setError(String(e));
+                setBusy(false);
+              }
+            });
             return;
           }
           if (!user) {
@@ -90,7 +113,9 @@ export function OperationsEntry() {
               const allowed = me.memberships.filter((m) =>
                 ["owner", "manager"].includes(m.role),
               );
-              markDemoVenues(me.memberships.filter((m) => m.demo).map((m) => m.restaurantId));
+              markDemoVenues(
+                me.memberships.filter((m) => m.demo).map((m) => m.restaurantId),
+              );
               setApi(next);
               setMemberships(allowed);
               setGroupRefs(me.groups ?? []);
@@ -192,12 +217,12 @@ export function OperationsEntry() {
                 table
               </li>
               <li>
-                <Icon name="paypal" size={18} /> PayPal payments you can
-                trust, checked twice
+                <Icon name="paypal" size={18} /> PayPal payments you can trust,
+                checked twice
               </li>
               <li>
-                <Icon name="agents" size={18} /> AI coworkers that prepare,
-                so you can decide
+                <Icon name="agents" size={18} /> AI coworkers that prepare, so
+                you can decide
               </li>
             </ul>
             <div className="ops-table-art" aria-hidden="true">
@@ -239,11 +264,28 @@ export function OperationsEntry() {
               className="ops-secondary ops-google"
               onClick={() => void login(true)}
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z" />
-                <path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z" />
-                <path fill="#FBBC05" d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2z" />
-                <path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1z" />
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#4285F4"
+                  d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1z"
+                />
               </svg>
               Continue with Google
             </button>
@@ -279,7 +321,9 @@ export function OperationsEntry() {
         </section>
       ) : (
         <section className="ops-empty">
-          <span className="ops-empty-mark" aria-hidden="true">✳</span>
+          <span className="ops-empty-mark" aria-hidden="true">
+            ✳
+          </span>
           <h1>Your place is waiting.</h1>
           <p>
             This account has no active owner or manager membership. Ask your
@@ -304,8 +348,22 @@ function Wordmark() {
 
 function MenuIcon({ close = false }: { close?: boolean }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true" focusable="false">
-      {close ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {close ? (
+        <path d="M6 6l12 12M18 6 6 18" />
+      ) : (
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      )}
     </svg>
   );
 }
@@ -324,14 +382,22 @@ function VenuePicker({
   return (
     <label className={`ops-venue ${className}`}>
       <span>Restaurant</span>
-      <select aria-label="Restaurant" value={selected} onChange={(e) => onSelect(Number(e.target.value))}>
+      <select
+        aria-label="Restaurant"
+        value={selected}
+        onChange={(e) => onSelect(Number(e.target.value))}
+      >
         {memberships.map((m) => (
           <option key={m.restaurantId} value={m.restaurantId}>
             {m.name}
           </option>
         ))}
       </select>
-      <small>You are its {memberships.find((m) => m.restaurantId === selected)?.role ?? "manager"}</small>
+      <small>
+        You are its{" "}
+        {memberships.find((m) => m.restaurantId === selected)?.role ??
+          "manager"}
+      </small>
     </label>
   );
 }
@@ -341,7 +407,12 @@ function ReduceMotionSwitch() {
   const on = useAppReduceMotion();
   return (
     <label className="ops-motion-switch">
-      <input type="checkbox" role="switch" checked={on} onChange={(e) => setReduceMotion(e.target.checked)} />
+      <input
+        type="checkbox"
+        role="switch"
+        checked={on}
+        onChange={(e) => setReduceMotion(e.target.checked)}
+      />
       <span className="ops-motion-switch-text">Reduce motion</span>
     </label>
   );
@@ -393,7 +464,11 @@ export function ConsoleShell({
   groups?: GroupRef[];
 }) {
   const draft = useRef(false);
-  const canLeave = () => !draft.current || window.confirm("Discard the unsent room message?");
+  const canLeave = async () =>
+    !draft.current ||
+    (await confirmDiscard(
+      "Discard your unsaved changes before leaving this workspace?",
+    ));
   // The sidebar slot (drawer or rail) the workspace renders its sections into,
   // and the phone drawer's slot while it is open.
   const [navTarget, setNavTarget] = useState<HTMLElement | null>(null);
@@ -402,18 +477,18 @@ export function ConsoleShell({
   const drawer = useRef<HTMLDialogElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const View = workspace ?? Workspace;
-  const select = (id: number) => {
-    if (canLeave()) {
+  const select = async (id: number) => {
+    if (await canLeave()) {
       draft.current = false;
       onSelect(id);
     }
   };
   // 0.16: the group switcher narrows the venue picker to the chosen group.
   const groupState = useGroups(api, groups);
-  const pickGroup = (id: number | null) => {
+  const pickGroup = async (id: number | null) => {
     const next = venuesInChoice(memberships, { ...groupState, groupId: id });
     if (next.length && !next.some((m) => m.restaurantId === selected)) {
-      if (!canLeave()) return;
+      if (!(await canLeave())) return;
       draft.current = false;
       onSelect(next[0].restaurantId);
     }
@@ -421,8 +496,8 @@ export function ConsoleShell({
   };
   const choice: GroupChoice = { ...groupState, setGroupId: pickGroup };
   const venues = venuesInChoice(memberships, choice);
-  const signOutNow = () => {
-    if (canLeave()) {
+  const signOutNow = async () => {
+    if (await canLeave()) {
       draft.current = false;
       onSignOut();
     }
@@ -472,7 +547,12 @@ export function ConsoleShell({
         <MenuIcon />
       </button>
       <GroupSwitcher choice={choice} className="in-bar" />
-      <VenuePicker memberships={venues} selected={selected} onSelect={select} className="in-bar" />
+      <VenuePicker
+        memberships={venues}
+        selected={selected}
+        onSelect={select}
+        className="in-bar"
+      />
       {/* The rail hides the sidebar's Sandbox line; the demo café's badge says it there instead. */}
       {!isJudgeVenue(selected) && (
         <span className="ops-appbar-sandbox">
@@ -486,13 +566,21 @@ export function ConsoleShell({
     <MotionRoot>
       <SnackbarProvider>
         <main className="ops-root with-shell">
+          <a className="ops-skip" href="#workspace-content">
+            Skip to workspace
+          </a>
           <aside className="ops-shell-side" aria-label="Console">
             <div className="ops-shell-brand">
               <Wordmark />
               <span className="ops-tag">THE RESTAURANT ROOM</span>
             </div>
             <GroupSwitcher choice={choice} className="in-side" />
-            <VenuePicker memberships={venues} selected={selected} onSelect={select} className="in-side" />
+            <VenuePicker
+              memberships={venues}
+              selected={selected}
+              onSelect={select}
+              className="in-side"
+            />
             <div className="ops-shell-nav" ref={setNavTarget} />
             <ShellFoot onSignOut={signOutNow} />
           </aside>
@@ -501,12 +589,22 @@ export function ConsoleShell({
               <div className="ops-drawer-body">
                 <div className="ops-drawer-head">
                   <Wordmark />
-                  <button type="button" className="ops-drawer-close" aria-label="Close the menu" onClick={() => drawer.current?.close()}>
+                  <button
+                    type="button"
+                    className="ops-drawer-close"
+                    aria-label="Close the menu"
+                    onClick={() => drawer.current?.close()}
+                  >
                     <MenuIcon close />
                   </button>
                 </div>
                 <GroupSwitcher choice={choice} className="in-drawer" />
-                <VenuePicker memberships={venues} selected={selected} onSelect={select} className="in-drawer" />
+                <VenuePicker
+                  memberships={venues}
+                  selected={selected}
+                  onSelect={select}
+                  className="in-drawer"
+                />
                 <div className="ops-shell-nav" ref={setDrawerTarget} />
                 <ShellFoot onSignOut={signOutNow} />
               </div>
@@ -520,7 +618,7 @@ export function ConsoleShell({
             )}
             <GroupChoiceProvider value={choice}>
               <View
-                key={selected}
+                key={`${selected}:${api.scopeKey ?? "preview"}`}
                 api={api}
                 tenant={selected}
                 navTarget={navTarget}

@@ -131,14 +131,25 @@ export interface SupplierOrder {
   version: number;
   createdAt: string;
   updatedAt: string;
-  delivery?: { id: number; state: string; totalMinor: number; mediaId: number; match: Match | null } | null;
+  delivery?: {
+    id: number;
+    state: string;
+    totalMinor: number;
+    mediaId: number;
+    match: Match | null;
+  } | null;
 }
 
 export interface Delivery {
   id: number;
   supplierId?: number | null;
   mediaId: number;
-  lines: { name: string; quantity: number; unit: string; unitCostMinor: number }[];
+  lines: {
+    name: string;
+    quantity: number;
+    unit: string;
+    unitCostMinor: number;
+  }[];
   totalMinor: number;
   currency: string;
   state: string;
@@ -197,10 +208,19 @@ export const poStages = [
   ["billed", "Bill approved"],
   ["paid", "Paid"],
 ] as const;
-const rank: Record<string, number> = { draft: 0, sent: 1, partiallyReceived: 2, received: 2, billed: 3, paid: 4 };
+const rank: Record<string, number> = {
+  draft: 0,
+  sent: 1,
+  partiallyReceived: 2,
+  received: 2,
+  billed: 3,
+  paid: 4,
+};
 
 /** How many orders reached each stage (cancelled ones reach none). */
-export function poFunnel(orders: Pick<SupplierOrder, "state">[]): { stage: string; label: string; count: number }[] {
+export function poFunnel(
+  orders: Pick<SupplierOrder, "state">[],
+): { stage: string; label: string; count: number }[] {
   return poStages.map(([stage, label], i) => ({
     stage,
     label,
@@ -209,14 +229,19 @@ export function poFunnel(orders: Pick<SupplierOrder, "state">[]): { stage: strin
 }
 
 /** What is still to arrive on a line. */
-export const remaining = (l: Pick<OrderLine, "qty" | "receivedQty">) => Math.max(0, round(l.qty - (l.receivedQty ?? 0), 3));
+export const remaining = (l: Pick<OrderLine, "qty" | "receivedQty">) =>
+  Math.max(0, round(l.qty - (l.receivedQty ?? 0), 3));
 
 /** The receipt a person starts from: whatever is still to arrive, at the ordered price. */
 export const receiptDraft = (o: Pick<SupplierOrder, "lines">) =>
-  o.lines.filter((l) => remaining(l) > 0).map((l) => ({ stockItemId: l.stockItemId, qty: remaining(l) }));
+  o.lines
+    .filter((l) => remaining(l) > 0)
+    .map((l) => ({ stockItemId: l.stockItemId, qty: remaining(l) }));
 
 /** The actions an order offers next, in the order a manager takes them. */
-export function orderActions(o: Pick<SupplierOrder, "state">): ("send" | "receive" | "cancel")[] {
+export function orderActions(
+  o: Pick<SupplierOrder, "state">,
+): ("send" | "receive" | "cancel")[] {
   if (o.state === "draft") return ["send", "cancel"];
   if (o.state === "sent") return ["receive", "cancel"];
   if (o.state === "partiallyReceived") return ["receive"];
@@ -224,11 +249,16 @@ export function orderActions(o: Pick<SupplierOrder, "state">): ("send" | "receiv
 }
 
 /** A stock row's state as a word the grid colours: reorder, low or fine. */
-export const stockState = (r: Pick<ForecastRow, "reorder" | "low">) => (r.reorder ? "reorder" : r.low ? "low" : "ok");
+export const stockState = (r: Pick<ForecastRow, "reorder" | "low">) =>
+  r.reorder ? "reorder" : r.low ? "low" : "ok";
 
 /** Days of cover as a person reads it. */
 export const coverText = (r: Pick<ForecastRow, "daysCover">) =>
-  r.daysCover == null ? "No recent use" : r.daysCover < 1 ? "Under a day" : `${r.daysCover.toFixed(1)} days`;
+  r.daysCover == null
+    ? "No recent use"
+    : r.daysCover < 1
+      ? "Under a day"
+      : `${r.daysCover.toFixed(1)} days`;
 
 export const basisText = (b: Forecast["basis"], days = 28) =>
   b === "movements"
@@ -248,7 +278,10 @@ const flagNames: Record<string, string> = {
 };
 export const flagLabel = (f: string) => flagNames[f] ?? f;
 /** A flag's tone: money against the café is late (red), the rest a warning. */
-export const flagTone = (f: string) => (["short", "missing", "price_up", "billed_differs"].includes(f) ? "late" : "warn");
+export const flagTone = (f: string) =>
+  ["short", "missing", "price_up", "billed_differs"].includes(f)
+    ? "late"
+    : "warn";
 
 const qtyFormat = new Intl.NumberFormat("en", { maximumFractionDigits: 3 });
 export const qty = (n: number | null | undefined, unit?: string | null) =>
@@ -256,16 +289,27 @@ export const qty = (n: number | null | undefined, unit?: string | null) =>
 
 /** One match line in words, so the colour is never the only signal. */
 export function matchText(l: MatchLine, code: string): string {
-  if (l.flags.includes("not_ordered")) return `${qty(l.deliveredQty, l.unit)} arrived but were not ordered.`;
-  if (l.flags.includes("missing")) return `Nothing arrived of ${qty(l.orderedQty, l.unit)} ordered.`;
+  if (l.flags.includes("not_ordered"))
+    return `${qty(l.deliveredQty, l.unit)} arrived but were not ordered.`;
+  if (l.flags.includes("missing"))
+    return `Nothing arrived of ${qty(l.orderedQty, l.unit)} ordered.`;
   const parts: string[] = [];
-  if (l.flags.includes("short")) parts.push(`${qty(Math.abs(l.qtyVariance), l.unit)} short (${qty(l.deliveredQty)} of ${qty(l.orderedQty, l.unit)})`);
-  if (l.flags.includes("over")) parts.push(`${qty(l.qtyVariance, l.unit)} more than ordered`);
-  if ((l.flags.includes("price_up") || l.flags.includes("price_down")) && l.deliveredUnitMinor != null && l.orderedUnitMinor != null)
+  if (l.flags.includes("short"))
+    parts.push(
+      `${qty(Math.abs(l.qtyVariance), l.unit)} short (${qty(l.deliveredQty)} of ${qty(l.orderedQty, l.unit)})`,
+    );
+  if (l.flags.includes("over"))
+    parts.push(`${qty(l.qtyVariance, l.unit)} more than ordered`);
+  if (
+    (l.flags.includes("price_up") || l.flags.includes("price_down")) &&
+    l.deliveredUnitMinor != null &&
+    l.orderedUnitMinor != null
+  )
     parts.push(
       `${currency(l.deliveredUnitMinor, code)} instead of ${currency(l.orderedUnitMinor, code)} a unit (${(l.priceVariancePct ?? 0) > 0 ? "+" : ""}${l.priceVariancePct}%)`,
     );
-  if (l.flags.includes("billed_differs") && l.billedUnitMinor != null) parts.push(`the bill charges ${currency(l.billedUnitMinor, code)} a unit`);
+  if (l.flags.includes("billed_differs") && l.billedUnitMinor != null)
+    parts.push(`the bill charges ${currency(l.billedUnitMinor, code)} a unit`);
   return parts.length ? `${parts.join("; ")}.` : "As ordered.";
 }
 
@@ -278,14 +322,28 @@ export function parseQty(text: string): number | null {
 }
 
 /** Cost of one portion of a dish from its recipe. */
-export const portionCost = (r: Pick<Recipe, "lines">) => r.lines.reduce((n, l) => n + l.costMinor, 0);
+export const portionCost = (r: Pick<Recipe, "lines">) =>
+  r.lines.reduce((n, l) => n + l.costMinor, 0);
 
 /** Reorder rows grouped by supplier, each with its suggested lines (the "draft from the forecast" button). */
 export function reorderGroups(rows: ForecastRow[]) {
-  const groups = new Map<number | null, { supplierId: number | null; supplierName: string; rows: ForecastRow[]; totalMinor: number }>();
+  const groups = new Map<
+    number | null,
+    {
+      supplierId: number | null;
+      supplierName: string;
+      rows: ForecastRow[];
+      totalMinor: number;
+    }
+  >();
   for (const r of rows.filter((x) => x.reorder)) {
     const k = r.supplierId ?? null;
-    const g = groups.get(k) ?? { supplierId: k, supplierName: r.supplierName ?? "No supplier yet", rows: [], totalMinor: 0 };
+    const g = groups.get(k) ?? {
+      supplierId: k,
+      supplierName: r.supplierName ?? "No supplier yet",
+      rows: [],
+      totalMinor: 0,
+    };
     g.rows.push(r);
     g.totalMinor += Math.round(r.suggestedQty * r.costMinor);
     groups.set(k, g);
@@ -293,7 +351,8 @@ export function reorderGroups(rows: ForecastRow[]) {
   return [...groups.values()].sort((a, b) => b.totalMinor - a.totalMinor);
 }
 
-const round = (v: number, places: number) => Math.round(v * 10 ** places) / 10 ** places;
+const round = (v: number, places: number) =>
+  Math.round(v * 10 ** places) / 10 ** places;
 
 /* ---------- AG Studio sources and pages ---------- */
 
@@ -318,11 +377,22 @@ export function funnelSource(orders: SupplierOrder[]): StudioRow[] {
 export function scorecardSource(rows: Scorecard[]): StudioRow[] {
   return rows
     .filter((r) => r.onTimePct != null)
-    .map((r) => ({ supplier: r.name, onTime: r.onTimePct, priceVariance: r.priceVariancePct ?? 0, fillRate: r.fillRatePct, orders: r.orders }));
+    .map((r) => ({
+      supplier: r.name,
+      onTime: r.onTimePct,
+      priceVariance: r.priceVariancePct ?? 0,
+      fillRate: r.fillRatePct,
+      orders: r.orders,
+    }));
 }
 
 type Place = { xTrack: number; yTrack: number; xSpan: number; ySpan: number };
-const at = (xTrack: number, yTrack: number, xSpan: number, ySpan: number): Place => ({ xTrack, yTrack, xSpan, ySpan });
+const at = (
+  xTrack: number,
+  yTrack: number,
+  xSpan: number,
+  ySpan: number,
+): Place => ({ xTrack, yTrack, xSpan, ySpan });
 const title = (text: string) => ({ title: { text, enabled: true } });
 
 /** The Inventory canvas: shortest cover, low and reorder counts, stock value, and value by supplier and item. */
@@ -333,17 +403,39 @@ export function inventoryState(currencyCode: string): StudioState {
       type: "radial-gauge",
       format: {
         ...title("Shortest cover (days)"),
-        style: { label: { enabled: true }, secondaryLabel: { enabled: true, text: "until the first item runs out" }, scaleLabel: { min: 0, max: 14 } },
+        style: {
+          label: { enabled: true },
+          secondaryLabel: {
+            enabled: true,
+            text: "until the first item runs out",
+          },
+          scaleLabel: { min: 0, max: 14 },
+        },
       },
       dataMapping: { value: [{ id: "stock.cover", aggregation: "min" }] },
     },
-    low: { type: "value", format: title("Items at or under their low mark"), dataMapping: { value: [{ id: "stock.low", aggregation: "sum" }] } },
-    reorder: { type: "value", format: title("Items to reorder now"), dataMapping: { value: [{ id: "stock.reorder", aggregation: "sum" }] } },
-    value: { type: "value", format: title(`Stock value (${c})`), dataMapping: { value: [{ id: "stock.value", aggregation: "sum" }] } },
+    low: {
+      type: "value",
+      format: title("Below low mark"),
+      dataMapping: { value: [{ id: "stock.low", aggregation: "sum" }] },
+    },
+    reorder: {
+      type: "value",
+      format: title("Reorder now"),
+      dataMapping: { value: [{ id: "stock.reorder", aggregation: "sum" }] },
+    },
+    value: {
+      type: "value",
+      format: title(`Stock value (${c})`),
+      dataMapping: { value: [{ id: "stock.value", aggregation: "sum" }] },
+    },
     map: {
       type: "treemap-chart",
       format: title(`Stock value by supplier and item (${c})`),
-      dataMapping: { categoryKey: [{ id: "stock.supplier" }, { id: "stock.name" }], valueKey: [{ id: "stock.value", aggregation: "sum" }] },
+      dataMapping: {
+        categoryKey: [{ id: "stock.supplier" }, { id: "stock.name" }],
+        valueKey: [{ id: "stock.value", aggregation: "sum" }],
+      },
     },
   };
   const page = {
@@ -357,13 +449,19 @@ export function inventoryState(currencyCode: string): StudioState {
       map: at(0, 14, 24, 18),
     },
   };
-  return { pages: [page], selectedPageId: "inventory" } as unknown as StudioState;
+  return {
+    pages: [page],
+    selectedPageId: "inventory",
+  } as unknown as StudioState;
 }
 
 export const funnelWidget: StudioWidgetSpec = {
   type: "funnel-chart",
   format: title("Purchase orders by stage"),
-  dataMapping: { categoryKey: [{ id: "orders.stage" }], valueKey: [{ id: "orders.orders", aggregation: "sum" }] },
+  dataMapping: {
+    categoryKey: [{ id: "orders.stage" }],
+    valueKey: [{ id: "orders.orders", aggregation: "sum" }],
+  },
 };
 
 export const scatterWidget: StudioWidgetSpec = {
@@ -376,29 +474,111 @@ export const scatterWidget: StudioWidgetSpec = {
   },
 };
 
-export const source = (id: string, data: StudioRow[]): StudioSource => ({ id, data });
+export const source = (id: string, data: StudioRow[]): StudioSource => ({
+  id,
+  data,
+  ...(id === "stock"
+    ? {
+        fields: [
+          ...["name", "supplier", "unit"].map((id) => ({
+            id,
+            format: "textFormat" as const,
+          })),
+          ...["quantity", "value", "cover", "low", "reorder"].map((id) => ({
+            id,
+            format: "decimalFormat" as const,
+          })),
+        ],
+      }
+    : {}),
+});
 
 /* ---------- Data access ---------- */
 
 export const supplies = (api: ConnectedApi, tenant: number) => ({
-  forecast: () => api.query<Forecast>("stock.forecast", { restaurantId: tenant }),
-  orders: async () => asRows<SupplierOrder>(await api.query<Json>("supplier.orders", { restaurantId: tenant, limit: 100 })),
-  order: (id: number) => api.query<SupplierOrder>("supplier.order", { restaurantId: tenant, id }),
-  scorecards: async () => asRows<Scorecard>(await api.query<Json>("supplier.scorecards", { restaurantId: tenant })),
-  recipes: async () => asRows<Recipe>(await api.query<Json>("recipes", { restaurantId: tenant })),
-  deliveries: async () => asRows<Delivery>(await api.query<Json>("supply.deliveries", { restaurantId: tenant, limit: 50 })),
-  inbox: async () => asRows<AgentActionRow>(await api.query<Json>("agent.inbox", { restaurantId: tenant }).catch(() => ({ rows: [] }))),
-  saveOrder: (data: Json, at?: { id: number; version: number }) => api.command<{ orderId: number; state: string; version: number }>("supplier.order.save", tenant, data, at ?? {}),
-  cancelOrder: (o: Pick<SupplierOrder, "id" | "version">) => api.command<{ state: string }>("supplier.order.save", tenant, { state: "cancelled" }, { id: o.id, version: o.version }),
+  forecast: () =>
+    api.query<Forecast>("stock.forecast", { restaurantId: tenant }),
+  orders: async () =>
+    asRows<SupplierOrder>(
+      await api.query<Json>("supplier.orders", {
+        restaurantId: tenant,
+        limit: 100,
+      }),
+    ),
+  order: (id: number) =>
+    api.query<SupplierOrder>("supplier.order", { restaurantId: tenant, id }),
+  scorecards: async () =>
+    asRows<Scorecard>(
+      await api.query<Json>("supplier.scorecards", { restaurantId: tenant }),
+    ),
+  recipes: async () =>
+    asRows<Recipe>(await api.query<Json>("recipes", { restaurantId: tenant })),
+  deliveries: async () =>
+    asRows<Delivery>(
+      await api.query<Json>("supply.deliveries", {
+        restaurantId: tenant,
+        limit: 50,
+      }),
+    ),
+  inbox: async () =>
+    asRows<AgentActionRow>(
+      await api
+        .query<Json>("agent.inbox", { restaurantId: tenant })
+        .catch(() => ({ rows: [] })),
+    ),
+  saveOrder: (data: Json, at?: { id: number; version: number }) =>
+    api.command<{ orderId: number; state: string; version: number }>(
+      "supplier.order.save",
+      tenant,
+      data,
+      at ?? {},
+    ),
+  cancelOrder: (o: Pick<SupplierOrder, "id" | "version">) =>
+    api.command<{ state: string }>(
+      "supplier.order.save",
+      tenant,
+      { state: "cancelled" },
+      { id: o.id, version: o.version },
+    ),
   sendOrder: (o: Pick<SupplierOrder, "id" | "version">, email?: string) =>
-    api.command<{ state: string; emailed: boolean; to?: string | null }>("supplier.order.send", tenant, email ? { email } : {}, { id: o.id, version: o.version }),
-  receiveOrder: (o: Pick<SupplierOrder, "id" | "version">, lines: { stockItemId: number; qty: number; unitCostMinor?: number }[]) =>
-    api.command<{ state: string; complete: boolean }>("supplier.order.receive", tenant, { lines }, { id: o.id, version: o.version }),
-  saveRecipe: (productId: number, lines: { stockItemId: number; quantity: number }[]) => api.command<{ lines: number }>("recipe.save", tenant, { productId, lines }),
-  count: (stockItemId: number, quantity: number) => api.command<{ variance: number }>("stock.count", tenant, { stockItemId, quantity }),
-  waste: (stockItemId: number, quantity: number, reason: WasteReason) => api.command<{ quantity: number }>("stock.waste", tenant, { stockItemId, quantity, reason }),
+    api.command<{ state: string; emailed: boolean; to?: string | null }>(
+      "supplier.order.send",
+      tenant,
+      email ? { email } : {},
+      { id: o.id, version: o.version },
+    ),
+  receiveOrder: (
+    o: Pick<SupplierOrder, "id" | "version">,
+    lines: { stockItemId: number; qty: number; unitCostMinor?: number }[],
+  ) =>
+    api.command<{ state: string; complete: boolean }>(
+      "supplier.order.receive",
+      tenant,
+      { lines },
+      { id: o.id, version: o.version },
+    ),
+  saveRecipe: (
+    productId: number,
+    lines: { stockItemId: number; quantity: number }[],
+  ) =>
+    api.command<{ lines: number }>("recipe.save", tenant, { productId, lines }),
+  count: (stockItemId: number, quantity: number) =>
+    api.command<{ variance: number }>("stock.count", tenant, {
+      stockItemId,
+      quantity,
+    }),
+  waste: (stockItemId: number, quantity: number, reason: WasteReason) =>
+    api.command<{ quantity: number }>("stock.waste", tenant, {
+      stockItemId,
+      quantity,
+      reason,
+    }),
   plan: () => api.command<{ taskId: number }>("supplies.plan", tenant, {}),
   receiveNote: (mediaId: number, supplierOrderId?: number) =>
-    api.command<{ taskId: number }>("supply.receive", tenant, supplierOrderId ? { mediaId, supplierOrderId } : { mediaId }),
+    api.command<{ taskId: number }>(
+      "supply.receive",
+      tenant,
+      supplierOrderId ? { mediaId, supplierOrderId } : { mediaId },
+    ),
 });
 export type SuppliesApi = ReturnType<typeof supplies>;

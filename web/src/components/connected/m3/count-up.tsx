@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, useInView } from "motion/react";
+import { animate, useInView, useIsPresent } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { duration as dur, easing, useReduce } from "@/lib/connected/motion";
 import { countAt } from "./chart-math";
@@ -24,8 +24,23 @@ export type CountUpProps = {
  * moving digits are hidden from assistive technology, which reads the final
  * value only. Reduced motion, or a hidden tab, shows the value directly.
  */
-export function CountUp({ value, format, fromZero = true, duration = dur.long2, className }: CountUpProps) {
+export function CountUp({
+  value,
+  format,
+  fromZero = true,
+  duration = dur.long2,
+  className,
+}: CountUpProps) {
   const reduce = useReduce();
+  const present = useIsPresent();
+  const [hidden, setHidden] = useState(
+    () => typeof document !== "undefined" && document.hidden,
+  );
+  useEffect(() => {
+    const sync = () => setHidden(document.hidden);
+    document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, []);
   const ref = useRef<HTMLSpanElement>(null);
   const seen = useInView(ref, { once: true, amount: 0.4 });
   const [shown, setShown] = useState(() => (reduce || !fromZero ? value : 0));
@@ -33,7 +48,7 @@ export function CountUp({ value, format, fromZero = true, duration = dur.long2, 
   const last = useRef(shown);
 
   useEffect(() => {
-    if (reduce || (typeof document !== "undefined" && document.hidden)) {
+    if (reduce || hidden || !present) {
       last.current = value;
       setShown(value);
       return;
@@ -59,11 +74,14 @@ export function CountUp({ value, format, fromZero = true, duration = dur.long2, 
       },
     });
     return () => controls.stop();
-  }, [value, seen, reduce, duration]);
+  }, [value, seen, reduce, duration, hidden, present]);
 
   const final = format(value);
   return (
-    <span ref={ref} className={["m3-count", className].filter(Boolean).join(" ")}>
+    <span
+      ref={ref}
+      className={["m3-count", className].filter(Boolean).join(" ")}
+    >
       <span className="m3-count-sizer" aria-hidden="true">
         {final}
       </span>

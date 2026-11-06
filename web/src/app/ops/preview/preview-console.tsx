@@ -19,7 +19,7 @@ import { paypalAccountPreview } from "@/lib/connected/paypal-account";
 // The Overview's AI Action Inbox: `?state=inbox` and `?state=caught-up` (append-only).
 import { inboxPreview } from "@/lib/connected/inbox-preview";
 import { judge } from "@/lib/connected/judge";
-import { financePreview } from '@/lib/connected/finance-preview';
+import { financePreview } from "@/lib/connected/finance-preview";
 
 /**
  * Development only: the real console shell and workspace on a fixture API,
@@ -28,22 +28,38 @@ import { financePreview } from '@/lib/connected/finance-preview';
  * and `?state=empty` returns a café with no paid order yet. `?demo=1` opens
  * the preview as the shared demo café (its badge, and `?section=try`).
  */
-export function PreviewConsole({ week, today }: { week: Dashboard; today: Dashboard }) {
+export function PreviewConsole({
+  week,
+  today,
+}: {
+  week: Dashboard;
+  today: Dashboard;
+}) {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState("");
   const [venue, setVenue] = useState(1);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setState(params.get("state") ?? "");
-    if (params.get("demo") === "1" && judge.restaurantId > 0) setVenue(judge.restaurantId);
+    if (params.get("demo") === "1" && judge.restaurantId > 0)
+      setVenue(judge.restaurantId);
     setReady(true);
   }, []);
-  const api = useMemo(() => fixtureApi({ week, today, state }), [week, today, state]);
+  const api = useMemo(
+    () => fixtureApi({ week, today, state }),
+    [week, today, state],
+  );
   if (!ready) return <main className="ops-root" />;
   return (
     <ConsoleShell
       api={api}
-      memberships={[{ restaurantId: venue, name: "Atelier Café · Preview", role: "owner" } as never]}
+      memberships={[
+        {
+          restaurantId: venue,
+          name: "Atelier Café · Preview",
+          role: "owner",
+        } as never,
+      ]}
       selected={venue}
       onSelect={() => {}}
       onSignOut={() => {}}
@@ -56,11 +72,21 @@ export function PreviewConsole({ week, today }: { week: Dashboard; today: Dashbo
 }
 
 function month(week: Dashboard): Dashboard {
-  const start = new Date(week.points[week.points.length - 1].start).getTime() - 29 * 86400000;
+  const start =
+    new Date(week.points[week.points.length - 1].start).getTime() -
+    29 * 86400000;
   const points = Array.from({ length: 30 }, (_, i) => {
     const p = week.points[i % week.points.length];
     const at = new Date(start + i * 86400000);
-    return { ...p, start: at.toISOString(), label: at.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) };
+    return {
+      ...p,
+      start: at.toISOString(),
+      label: at.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        timeZone: "UTC",
+      }),
+    };
   });
   const series = (key: "salesMinor" | "orders") => points.map((p) => p[key]);
   const sales = series("salesMinor"),
@@ -71,17 +97,38 @@ function month(week: Dashboard): Dashboard {
     range: "30d",
     points,
     kpis: {
-      sales: { value: sum(sales), previous: Math.round(sum(sales) * 0.8), series: sales },
-      orders: { value: sum(orders), previous: Math.round(sum(orders) * 0.8), series: orders },
+      sales: {
+        value: sum(sales),
+        previous: Math.round(sum(sales) * 0.8),
+        series: sales,
+      },
+      orders: {
+        value: sum(orders),
+        previous: Math.round(sum(orders) * 0.8),
+        series: orders,
+      },
       averageTicket: {
         value: Math.round(sum(sales) / Math.max(1, sum(orders))),
         previous: week.kpis.averageTicket.previous,
-        series: points.map((p) => (p.orders ? Math.round(p.salesMinor / p.orders) : 0)),
+        series: points.map((p) =>
+          p.orders ? Math.round(p.salesMinor / p.orders) : 0,
+        ),
       },
-      tips: { value: week.kpis.tips.value * 4, previous: week.kpis.tips.previous, series: points.map((_, i) => week.kpis.tips.series[i % 7]) },
+      tips: {
+        value: week.kpis.tips.value * 4,
+        previous: week.kpis.tips.previous,
+        series: points.map((_, i) => week.kpis.tips.series[i % 7]),
+      },
     },
     sample: week.sample
-      ? { label: week.sample.label, points: points.map((p, i) => ({ ...week.sample!.points[i % 7], start: p.start, label: p.label })) }
+      ? {
+          label: week.sample.label,
+          points: points.map((p, i) => ({
+            ...week.sample!.points[i % 7],
+            start: p.start,
+            label: p.label,
+          })),
+        }
       : null,
   };
 }
@@ -93,7 +140,13 @@ function emptied(d: Dashboard): Dashboard {
     points: d.points.map((p) => ({ ...p, salesMinor: 0, orders: 0 })),
     kpis: { sales: zero, orders: zero, averageTicket: zero, tips: zero },
     channels: [],
-    kitchen: { submitted: 0, accepted: 0, preparing: 0, ready: 0, oldestMinutes: 0 },
+    kitchen: {
+      submitted: 0,
+      accepted: 0,
+      preparing: 0,
+      ready: 0,
+      oldestMinutes: 0,
+    },
     latest: [],
     staff: [],
     target: { dailyTargetMinor: 0, todayMinor: 0 },
@@ -101,10 +154,26 @@ function emptied(d: Dashboard): Dashboard {
   };
 }
 
-function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard; state: string }): ConnectedApi {
+function fixtureApi({
+  week,
+  today,
+  state,
+}: {
+  week: Dashboard;
+  today: Dashboard;
+  state: string;
+}): ConnectedApi {
   const asOf = new Date().toISOString();
   const inbox = inboxPreview(state, asOf);
-  const orders = week.latest.map((o) => ({ ...o, restaurantId: 1, version: 1, visitId: null, pickupCode: null, address: null, lines: [] }));
+  const orders = week.latest.map((o) => ({
+    ...o,
+    restaurantId: 1,
+    version: 1,
+    visitId: null,
+    pickupCode: null,
+    address: null,
+    lines: [],
+  }));
   const queries: Record<string, (p: Json) => unknown> = {
     "operations.snapshot": (p) => ({
       restaurantId: 1,
@@ -126,7 +195,19 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
       rows:
         state === "empty"
           ? []
-          : [{ id: 1, taskId: 1, agent: "payroll", command: "payout.send", title: "Pay this week's tips", rationale: "Preview", risk: "money", status: "pending", version: 1 }],
+          : [
+              {
+                id: 1,
+                taskId: 1,
+                agent: "payroll",
+                command: "payout.send",
+                title: "Pay this week's tips",
+                rationale: "Preview",
+                risk: "money",
+                status: "pending",
+                version: 1,
+              },
+            ],
     }),
     // `?state=payouts`: a list row in the shape the 0.15.0 backend sent (no
     // `items`), next to a completed batch, with someone held for a missing email.
@@ -144,7 +225,16 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
                 currency: "USD",
                 state: "proposed",
                 createdAt: asOf,
-                summary: { held: [{ recipientName: "Lina", amountMinor: 35200, minutes: 960, reason: "No PayPal email: add one to pay." }] },
+                summary: {
+                  held: [
+                    {
+                      recipientName: "Lina",
+                      amountMinor: 35200,
+                      minutes: 960,
+                      reason: "No PayPal email: add one to pay.",
+                    },
+                  ],
+                },
               },
               {
                 id: 1,
@@ -156,7 +246,13 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
                 state: "completed",
                 providerBatchId: "TMS8FKRT6ALYU",
                 createdAt: asOf,
-                items: [{ recipientName: "Nadia", amountMinor: 25600, state: "completed" }],
+                items: [
+                  {
+                    recipientName: "Nadia",
+                    amountMinor: 25600,
+                    state: "completed",
+                  },
+                ],
               },
             ],
             nextCursor: null,
@@ -173,12 +269,18 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
               startsAt: new Date(Date.now() - (i + 2) * 3600000).toISOString(),
               endsAt: new Date(Date.now() - (i + 1) * 3600000).toISOString(),
               hourlyRateMinor: 1800,
-              payoutEmail: name === "Lina" ? null : `${name.toLowerCase()}@example.com`,
+              payoutEmail:
+                name === "Lina" ? null : `${name.toLowerCase()}@example.com`,
             })),
           },
     dashboard: (p) => {
-      if (state === "failed") throw new ApiFailure("not_found", "Unknown query: dashboard (the backend does not serve it yet).");
-      const d = p.range === "today" ? today : p.range === "30d" ? month(week) : week;
+      if (state === "failed")
+        throw new ApiFailure(
+          "not_found",
+          "Unknown query: dashboard (the backend does not serve it yet).",
+        );
+      const d =
+        p.range === "today" ? today : p.range === "30d" ? month(week) : week;
       return state === "empty" ? emptied(d) : d;
     },
     // ---- S3 supplies fixtures (append-only block) ----
@@ -203,14 +305,30 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
   };
   const api = {
     async query<T>(name: string, params: Json = {}) {
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) =>
+        setTimeout(
+          r,
+          state === "slow-costs" && name === "costing.products" ? 2000 : 120,
+        ),
+      );
+      if (state === "finance-unavailable" && name === "finance.summary")
+        throw new ApiFailure(
+          "unavailable",
+          "Illustrative financial report failure.",
+        );
       const handler = queries[name];
       return (handler ? handler(params) : { rows: [] }) as T;
     },
     // Only the inbox states answer a few commands, from fixtures; everything else is refused.
-    async command<T>(name: string, _restaurantId: number, data: Json = {}, options: { id?: number; version?: number } = {}): Promise<T> {
+    async command<T>(
+      name: string,
+      _restaurantId: number,
+      data: Json = {},
+      options: { id?: number; version?: number } = {},
+    ): Promise<T> {
       const handler = inbox.commands[name];
-      if (!handler) throw new ApiFailure("preview", "The preview does not send commands.");
+      if (!handler)
+        throw new ApiFailure("preview", "The preview does not send commands.");
       await new Promise((r) => setTimeout(r, 120));
       return handler(data, options) as T;
     },
@@ -226,9 +344,15 @@ function fixtureApi({ week, today, state }: { week: Dashboard; today: Dashboard;
     async request(): Promise<never> {
       throw new ApiFailure("preview", "The preview has no backend.");
     },
-    async stream(_path: string, signal: AbortSignal, receive: (e: Json) => void) {
+    async stream(
+      _path: string,
+      signal: AbortSignal,
+      receive: (e: Json) => void,
+    ) {
       receive({ cursor: 1, kind: "heartbeat" });
-      await new Promise<void>((resolve) => signal.addEventListener("abort", () => resolve(), { once: true }));
+      await new Promise<void>((resolve) =>
+        signal.addEventListener("abort", () => resolve(), { once: true }),
+      );
     },
     close() {},
   };
