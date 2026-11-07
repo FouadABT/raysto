@@ -1,0 +1,365 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-11-07T17:55:07.270Z",
+  "candidate": "Raysto Ops expressive local candidate — 2026-11-07",
+  "status": "Implementation locally verified; independent review and promotion pending",
+  "source": {
+    "baseline": "32e19fee529471e2e23d90cfa0e381eb351e16e3",
+    "implementationCommit": "fa5c46d537436974fcf5c98646c17bd3c9036f10",
+    "motionCommit": "fd6b9bdbfa99020ef0cf861602dd5b4243e6b4ff",
+    "branch": "codex/judge-first-dashboard",
+    "pushed": false,
+    "unrelatedWorkingChangesExcluded": true
+  },
+  "artifact": {
+    "buildId": "1TIcqsY5ctw2_mc2P9bDw",
+    "platform": "win32",
+    "node": "24.22.1",
+    "next": "16.4.3",
+    "motion": "14.6.0",
+    "studio": "3.0.0",
+    "compiledOutputFingerprint": {
+      "algorithm": "SHA-256 of codepoint-sorted relative path + NUL + file SHA-256 + newline",
+      "sha256": "7cc8e0e77c57dc309d88e79c0d176379a76982837dd8cdc2273fb3614f4e61b6",
+      "files": 536,
+      "bytes": 59727009,
+      "includes": [
+        "server/**",
+        "static/**",
+        "BUILD_ID",
+        "build-manifest.json",
+        "required-server-files.json",
+        "standalone/server.js"
+      ],
+      "excludes": [
+        "node_modules",
+        "public"
+      ],
+      "interpretation": "Compiled Windows console output fingerprint; not a Linux deployment archive checksum."
+    },
+    "privateEnvFilePresentAtStandaloneRoot": false,
+    "featureFlags": {
+      "NEXT_PUBLIC_RAYSTO_FINANCE_017": "on",
+      "RAYSTO_ISOLATED_PREVIEW": "017"
+    },
+    "localOrigin": "http://127.0.0.1:3101",
+    "linuxDeploymentArchive": "not built"
+  },
+  "companionBaseline": {
+    "recordedConsole": "0.17.0-dev.7-20261107",
+    "recordedConsoleSource": "e840a1d6a0b326941f56e46ab1b9f5453a8200e1",
+    "backend": "Recorded 0.17.0-dev.7 companion plus existing patch; see compatibility-baseline.json. Not replaced or independently recertified here.",
+    "native": "Outside this workstream"
+  },
+  "checks": {
+    "unit": {
+      "passed": 181,
+      "failed": 0,
+      "log": ".tooling/ops-motion-unit-final.log"
+    },
+    "productionBuild": {
+      "status": "passed",
+      "typescript": "passed",
+      "log": ".tooling/ops-motion-build-final.log"
+    },
+    "browser": {
+      "distinctCasesExercised": 43,
+      "interpretation": "Broad suite and targeted follow-ups; not 43 cases rerun as a single final-source suite.",
+      "runs": [
+        {
+          "directory": "web/test-results/ops-motion-verified",
+          "cases": 38,
+          "status": "passed",
+          "failedCases": 0,
+          "note": "Broad regression before final focused refinements"
+        },
+        {
+          "directory": "web/test-results/ops-motion-final",
+          "cases": 15,
+          "status": "passed",
+          "failedCases": 0,
+          "note": "Finance and original motion follow-up"
+        },
+        {
+          "directory": "web/test-results/ops-motion-studio-verified",
+          "cases": 1,
+          "status": "passed",
+          "failedCases": 0,
+          "note": "Studio undo includes console and page errors"
+        },
+        {
+          "directory": "web/test-results/ops-motion-geometry-final",
+          "cases": 3,
+          "status": "passed",
+          "failedCases": 0,
+          "note": "Receipt geometry and closing"
+        },
+        {
+          "directory": "web/test-results/ops-motion-accepted",
+          "cases": 13,
+          "status": "failed",
+          "failedCases": 1,
+          "note": "Twelve passed; initial interruption assertion failed"
+        },
+        {
+          "directory": "web/test-results/ops-motion-interruption",
+          "cases": 1,
+          "status": "passed",
+          "failedCases": 0,
+          "note": "Corrected synchronous interruption regression"
+        },
+        {
+          "directory": "web/test-results/ops-motion-scope-recheck",
+          "cases": 1,
+          "status": "passed",
+          "failedCases": 0,
+          "note": "Identity, venue, revocation and late responses"
+        },
+        {
+          "directory": "web/test-results/ops-motion-entry-immediate",
+          "cases": 1,
+          "status": "passed",
+          "failedCases": 0,
+          "note": "Starting action enabled during pending costing"
+        }
+      ]
+    },
+    "responsiveWidths": [
+      320,
+      390,
+      768,
+      1024,
+      1280,
+      1440
+    ],
+    "textScale": "2x authored review",
+    "normalAndReducedMotionRecorded": true
+  },
+  "performance": {
+    "sourceCommit": "fa5c46d537436974fcf5c98646c17bd3c9036f10",
+    "checkedAtUtc": "2026-11-07T17:51:01.697Z",
+    "origin": "http://127.0.0.1:3101",
+    "platform": "win32",
+    "method": "v2-native-input-transition-windows",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "diagnosticProfiling": false,
+    "sharedAuthenticatedContext": true,
+    "cpu": "Intel(R) Core(TM) Ultra 7 155H",
+    "logicalCpus": 22,
+    "memoryBytes": 34044334080,
+    "browser": "157.0.4341.42",
+    "provenance": "Local production web candidate; shared USD judge sample, existing Sandbox records; read-only.",
+    "runs": [
+      {
+        "cpuThrottle": 1,
+        "iterations": 3,
+        "idleCadence": {
+          "count": 60,
+          "p95Ms": 16.80000000000291,
+          "within20msFraction": 1
+        },
+        "captureDuringMeasurement": false,
+        "transitionWindowFrames": 211,
+        "within20msFraction": 0.976303317535545,
+        "p95FrameMs": 17,
+        "longTasks": [],
+        "layoutShift": 0,
+        "layoutShiftEntries": [],
+        "interpretation": "Long tasks are total observed work; attribution requires trace inspection."
+      },
+      {
+        "cpuThrottle": 4,
+        "iterations": 3,
+        "idleCadence": {
+          "count": 60,
+          "p95Ms": 16.89999999999418,
+          "within20msFraction": 0.9833333333333333
+        },
+        "captureDuringMeasurement": false,
+        "transitionWindowFrames": 42,
+        "within20msFraction": 0.5952380952380952,
+        "p95FrameMs": 333.40000000000146,
+        "longTasks": [
+          {
+            "start": 61253.19999998808,
+            "duration": 383
+          },
+          {
+            "start": 61640.19999998808,
+            "duration": 166
+          },
+          {
+            "start": 61850.69999998808,
+            "duration": 59
+          },
+          {
+            "start": 62367.19999998808,
+            "duration": 130
+          },
+          {
+            "start": 62502.69999998808,
+            "duration": 57
+          },
+          {
+            "start": 62685.5,
+            "duration": 127
+          },
+          {
+            "start": 62943.19999998808,
+            "duration": 201
+          },
+          {
+            "start": 63146.39999997616,
+            "duration": 128
+          },
+          {
+            "start": 63700.5,
+            "duration": 164
+          },
+          {
+            "start": 64346.5,
+            "duration": 295
+          },
+          {
+            "start": 64642.39999997616,
+            "duration": 95
+          },
+          {
+            "start": 64814.10000002384,
+            "duration": 60
+          },
+          {
+            "start": 65308.80000001192,
+            "duration": 64
+          },
+          {
+            "start": 65401.30000001192,
+            "duration": 199
+          },
+          {
+            "start": 65604.60000002384,
+            "duration": 71
+          },
+          {
+            "start": 65677.80000001192,
+            "duration": 64
+          },
+          {
+            "start": 65830.69999998808,
+            "duration": 78
+          },
+          {
+            "start": 66047.10000002384,
+            "duration": 151
+          },
+          {
+            "start": 66200.60000002384,
+            "duration": 77
+          },
+          {
+            "start": 66702.89999997616,
+            "duration": 82
+          },
+          {
+            "start": 67378.19999998808,
+            "duration": 246
+          },
+          {
+            "start": 67627,
+            "duration": 133
+          },
+          {
+            "start": 68323.5,
+            "duration": 69
+          },
+          {
+            "start": 68447.69999998808,
+            "duration": 92
+          },
+          {
+            "start": 68762.89999997616,
+            "duration": 76
+          },
+          {
+            "start": 68842.10000002384,
+            "duration": 149
+          },
+          {
+            "start": 68992.89999997616,
+            "duration": 150
+          },
+          {
+            "start": 69206.10000002384,
+            "duration": 123
+          },
+          {
+            "start": 69335.60000002384,
+            "duration": 99
+          },
+          {
+            "start": 69848,
+            "duration": 115
+          },
+          {
+            "start": 69964.30000001192,
+            "duration": 121
+          }
+        ],
+        "layoutShift": 0,
+        "layoutShiftEntries": [],
+        "interpretation": "Long tasks are total observed work; attribution requires trace inspection."
+      }
+    ],
+    "referenceFrameTargetPassed": true,
+    "throttledResult": "Visible stalls remain; not a smooth-4x claim.",
+    "traceInterpretation": "Separate warm-transition trace includes React event/scheduler callbacks and major garbage collection. This suggests event/render and allocation cost; it does not isolate the responsible component or attribute all long tasks to animation.",
+    "rawEvidence": ".tooling/ops-motion-production/",
+    "startupFailureEvidence": ".tooling/ops-motion-production/results-server-startup-race.json",
+    "earlierStressEvidence": ".tooling/ops-motion-production/results-fd6b9bd.json",
+    "dataset": {
+      "source": "Observed reference overview screenshot, includes illustrative sales history",
+      "venue": "Atelier Café · Judges",
+      "currency": "USD",
+      "selectedPeriod": "last 7 days",
+      "displayedPaidOrders": 327,
+      "chartPoints": 7,
+      "displayedChannels": 2,
+      "investigatedDishes": 1,
+      "totalProductRows": "not captured; no large-grid scale claim"
+    }
+  },
+  "reviewers": {
+    "confirmed": 0,
+    "completed": 0,
+    "required": 2,
+    "status": "not run — user reports not available yet",
+    "taskSheet": "docs/judge-dashboard/ops-motion-reviewer-tasks.md"
+  },
+  "promotion": {
+    "status": "held",
+    "deployed": false,
+    "resourcePreflight": "not run; required before promotion with actual Linux artifact",
+    "sharedServiceHealth": "not rechecked for promotion; no remote administration used in this workstream",
+    "studioLicenceThroughJudging": "not verified by this local candidate",
+    "publicJourneyAfterPromotion": "pending"
+  },
+  "boundaries": {
+    "backendApiOrMigrationChanges": false,
+    "financialMutationsInConnectedReview": false,
+    "remoteServiceRestart": false,
+    "awharChange": false,
+    "nginxChange": false,
+    "nativeChanges": false
+  },
+  "limitations": [
+    "Independent reviewer gate incomplete",
+    "4x CPU stress remains slow",
+    "Headless Windows measurements do not establish all-device performance",
+    "No Linux deployment artifact or live promotion",
+    "No new live-provider or physical-device acceptance claim",
+    "Studio 3.0.0 teardown correction must be revalidated before upgrade"
+  ]
+}
