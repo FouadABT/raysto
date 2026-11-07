@@ -13,6 +13,7 @@ import { isJudgeVenue, judge } from "@/lib/connected/judge";
 import { m3GridTheme } from "@/lib/connected/grid-theme";
 import { advanceOrder, type OrderApi } from "@/lib/connected/pending-moves";
 import {
+  Pending,
   ContainerCard,
   ContainerDialog,
   CountUp,
@@ -624,9 +625,7 @@ export function OrdersSection({
           </p>
         )}
         {!loaded && !error ? (
-          <p className="ops-note" role="status">
-            Loading the orders…
-          </p>
+          <Pending label="Loading the orders…" />
         ) : (
           <>
             {byChannel.length > 0 &&
@@ -780,7 +779,7 @@ export function OrderPanel({
   const [note, setNote] = useState("");
   const [asking, setAsking] = useState(false);
   if (!order)
-    return <p className="ops-note">{error || "Loading the order…"}</p>;
+    return error ? <p className="ops-error" role="alert">{error}</p> : <Pending label="Loading the order…" />;
   const step = nextStep(order);
   // The same path as a move on the board: ticks open lines before ready,
   // then the transition with the version this panel holds.
@@ -1000,7 +999,7 @@ export function PaymentsSection({
     ["byDay", "By method and day"],
   ];
   // Zero totals while loading would read as "no money taken".
-  if (!data) return <p className="ops-note">{error || "Loading payments…"}</p>;
+  if (!data) return error ? <p className="ops-error" role="alert">{error}</p> : <Pending label="Loading payments…" />;
   return (
     <div className="ops-business">
       <div className="ops-kpis compact">
@@ -1246,7 +1245,7 @@ export function AgentsSection({
     [],
   );
   if (!data)
-    return <p className="ops-note">{error || "Loading the agents…"}</p>;
+    return error ? <p className="ops-error" role="alert">{error}</p> : <Pending label="Loading the agents…" />;
   const kpis: [string, number, (n: number) => string][] = [
     ["Waiting for you", data.inbox.length, (n) => String(Math.round(n))],
     ["Agent tasks today", todays.length, (n) => String(Math.round(n))],

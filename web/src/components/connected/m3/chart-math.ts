@@ -1,3 +1,4 @@
+import { numberFormatter } from "@/lib/connected/display-format";
 /**
  * Pure maths for the m3 charts and number displays: no React, so it is unit
  * tested directly (web/tests/motion.test.ts).
@@ -150,13 +151,13 @@ export function deltaLabel(value: number, previous: number): string {
 
 /** Money from minor units, e.g. 19530 → "$195.30". */
 export function formatMoney(minor: number, currency = "USD", locale = "en-US"): string {
-  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(minor / 100);
+  return numberFormatter(locale, { style: "currency", currency }).format(minor / 100);
 }
 
 /** Short money for axes and tight cards, e.g. 1953000 → "$19.5K". */
 export function formatMoneyShort(minor: number, currency = "USD", locale = "en-US"): string {
   const major = minor / 100;
-  return new Intl.NumberFormat(locale, {
+  return numberFormatter(locale, {
     style: "currency",
     currency,
     notation: Math.abs(major) >= 10000 ? "compact" : "standard",
@@ -165,7 +166,7 @@ export function formatMoneyShort(minor: number, currency = "USD", locale = "en-U
 }
 
 export function formatCount(n: number, locale = "en-US"): string {
-  return new Intl.NumberFormat(locale).format(Math.round(n));
+  return numberFormatter(locale).format(Math.round(n));
 }
 
 /**

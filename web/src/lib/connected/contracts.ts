@@ -1,3 +1,4 @@
+import { numberFormatter } from "./display-format";
 /** Additive /api/v2 contracts. Money is always integer minor units. */
 export type Json = Record<string, unknown>;
 export type AttentionFilter = "all" | "billRequested" | "paymentExceptions";
@@ -104,6 +105,6 @@ export interface AssistantHistory extends AssistantResult {
   createdAt: string;
 }
 export const currency = (minor: number, code: string) =>
-  new Intl.NumberFormat("en", { style: "currency", currency: code }).format(
+  numberFormatter("en", { style: "currency", currency: code }).format(
     minor / 100,
   );

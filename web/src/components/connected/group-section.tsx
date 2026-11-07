@@ -1,4 +1,5 @@
 "use client";
+import { Pending } from "./m3";
 import {
   useWorkspaceTab,
   useWorkspaceValue,
@@ -855,9 +856,7 @@ function Templates({
         </p>
       )}
       {!list.data ? (
-        <p className="ops-note" role="status">
-          Loading the templates…
-        </p>
+        <Pending label="Loading the templates…" />
       ) : list.data.length === 0 ? (
         <p className="ops-quiet-note">
           No template yet.

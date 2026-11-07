@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import {
   GoogleAuthProvider,
@@ -24,9 +24,11 @@ import {
   MotionRoot,
   setReduceMotion,
   useAppReduceMotion,
+  useReduce,
 } from "@/lib/connected/motion";
+import { clearOverviewSnapshots } from "@/lib/connected/read-snapshots";
 import { Icon } from "./icons";
-import { SnackbarProvider } from "./m3";
+import { Pending, SnackbarProvider } from "./m3";
 import {
   GroupChoiceProvider,
   GroupSwitcher,
@@ -40,14 +42,14 @@ const Workspace = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="ops-loading" role="status">
-        <span className="ops-spinner" aria-hidden="true" />
-        Setting your table…
-      </div>
+      <Pending label="Setting your table…" />
     ),
   },
 );
 export function OperationsEntry() {
+  return <MotionRoot><Entry /></MotionRoot>;
+}
+function Entry() {
   const [auth, setAuth] = useState<Auth>();
   const [api, setApi] = useState<ConnectedApi>();
   const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -194,10 +196,7 @@ export function OperationsEntry() {
         </p>
       )}
       {busy ? (
-        <div className="ops-loading" role="status">
-          <span className="ops-spinner" aria-hidden="true" />
-          Connecting your restaurant…
-        </div>
+        <Pending label="Connecting your restaurant…" />
       ) : !signedIn ? (
         <section className="ops-welcome">
           <div className="ops-welcome-story">
@@ -477,6 +476,24 @@ export function ConsoleShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawer = useRef<HTMLDialogElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const reduce = useReduce();
+  const drawerExit = useRef<Animation | null>(null);
+  const closeDrawer = useCallback(() => {
+    const d = drawer.current;
+    if (!d?.open || drawerExit.current) return;
+    if (reduce) { d.close(); return; }
+    d.dataset.closing = "true";
+    const body = d.querySelector<HTMLElement>(".ops-drawer-body");
+    if (body) body.inert = true;
+    d.focus();
+    const animation = d.animate([{ transform: getComputedStyle(d).transform, opacity: 1 }, { transform: "translateX(-100%)", opacity: 0.6 }], {
+      duration: 180, easing: "cubic-bezier(.2,0,0,1)", fill: "forwards",
+    });
+    drawerExit.current = animation;
+    void animation.finished.then(() => { d.close(); animation.cancel(); delete d.dataset.closing; drawerExit.current = null; }).catch(() => {});
+  }, [reduce]);
+  useEffect(() => () => { clearOverviewSnapshots(api, true); }, [api, selected, memberships.find(m => m.restaurantId === selected)?.role]);
+  useEffect(() => () => { drawerExit.current?.cancel(); }, []);
   const View = workspace ?? Workspace;
   const select = async (id: number) => {
     if (await canLeave()) {
@@ -514,14 +531,19 @@ export function ConsoleShell({
     // clicks bubble through the dialog in the DOM, not in React's tree.
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target === d || target.closest(".ops-sections button")) d.close();
+      if (target === d || target.closest(".ops-sections button")) closeDrawer();
     };
     const onClose = () => {
+      drawerExit.current?.cancel(); drawerExit.current = null; delete d.dataset.closing;
+      const body = d.querySelector<HTMLElement>(".ops-drawer-body");
+      if (body) body.inert = false;
       setDrawerOpen(false);
       menuButton.current?.focus();
     };
     d.addEventListener("click", onClick);
     d.addEventListener("close", onClose);
+    const onCancel = (e: Event) => { e.preventDefault(); closeDrawer(); };
+    d.addEventListener("cancel", onCancel);
     // Wider than a phone, the rail or drawer is on screen: the modal goes.
     const wide = window.matchMedia("(min-width: 600px)");
     const onWide = () => {
@@ -531,9 +553,10 @@ export function ConsoleShell({
     return () => {
       d.removeEventListener("click", onClick);
       d.removeEventListener("close", onClose);
+      d.removeEventListener("cancel", onCancel);
       wide.removeEventListener("change", onWide);
     };
-  }, []);
+  }, [closeDrawer]);
   const lead: ReactNode = (
     <>
       <button
@@ -590,7 +613,7 @@ export function ConsoleShell({
             <div className="ops-shell-nav" ref={setNavTarget} />
             <ShellFoot onSignOut={signOutNow} />
           </aside>
-          <dialog ref={drawer} className="ops-drawer" aria-label="Console menu">
+          <dialog ref={drawer} className="ops-drawer" aria-label="Console menu" tabIndex={-1}>
             {drawerOpen && (
               <div className="ops-drawer-body">
                 <div className="ops-drawer-head">
@@ -599,7 +622,7 @@ export function ConsoleShell({
                     type="button"
                     className="ops-drawer-close"
                     aria-label="Close the menu"
-                    onClick={() => drawer.current?.close()}
+                    onClick={closeDrawer}
                   >
                     <MenuIcon close />
                   </button>

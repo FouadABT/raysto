@@ -1,6 +1,9 @@
 "use client";
 import { WorkspaceStateContext } from "@/lib/connected/workspace-state";
 import { useContext, useEffect, useRef, useState } from "react";
+import { m, useIsPresent } from "motion/react";
+import { motionPresets, useReduce } from "@/lib/connected/motion";
+import { Pending } from "./m3";
 import { useScopedDraft } from "@/lib/connected/scoped-draft";
 import { confirmDiscard } from "@/lib/connected/confirm-discard";
 import { updateWorkspaceRoute } from "@/lib/connected/workspace-location";
@@ -35,6 +38,8 @@ export function PriceComparisonPanel({
   mode?: "compare" | "history";
 }) {
   const role = useContext(WorkspaceStateContext)?.role;
+  const reduce = useReduce();
+  const present = useIsPresent();
   const canDecide = role === "owner" || role === "manager";
   const useDraft = <T,>(key: string, initial: T) =>
     useScopedDraft(
@@ -86,9 +91,10 @@ export function PriceComparisonPanel({
   const [requests] = useDraft("request-keys", new Map<string, string>());
   const [clock, setClock] = useState(Date.now());
   useEffect(() => {
+    if (!present) return;
     const timer = setInterval(() => setClock(Date.now()), 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [present]);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -238,6 +244,7 @@ export function PriceComparisonPanel({
           decisions and approve menu publication.
         </p>
       )}
+      {busy && <Pending kind="inline" label="Preparing the reviewed result…" />}
       {!product.complete && (
         <p role="note" className="ops-note">
           Incomplete cost data. Confirm the missing inputs in Cost evidence
@@ -455,8 +462,12 @@ export function PriceComparisonPanel({
                 : "Comparison is stale or expired. Recalculate before recording a decision or preparing publication."}
             </p>
           )}
-          <div
+          <m.div
             className="ops-price-options"
+            key={value.id}
+            initial={reduce ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={motionPresets.effectsSlow}
             ref={resultsRef}
             tabIndex={-1}
             role="region"
@@ -585,7 +596,7 @@ export function PriceComparisonPanel({
                 )}
               </article>
             ))}
-          </div>
+          </m.div>
           <p>
             Keeping the price would require{" "}
             {fmt(value.keepPriceCostReductionMinor)} less variable cost per item

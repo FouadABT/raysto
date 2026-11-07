@@ -7,6 +7,7 @@
  * the Overview's first screen stays light. When the café has no history yet
  * it says so; it never draws estimated sales.
  */
+import { Pending } from "./m3";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { ConnectedApi } from "@/lib/connected/api";
 import { backoffice } from "@/lib/connected/backoffice";
@@ -96,9 +97,7 @@ export function OverviewStudio({ api, tenant, currencyCode }: { api: ConnectedAp
         {seen ? (
           <StudioBody api={api} tenant={tenant} currencyCode={currencyCode} page={page} phone={phone} />
         ) : (
-          <p className="ops-ov-note" role="status">
-            Opening the analytics…
-          </p>
+          <Pending kind="studio" label="Opening the analytics…" />
         )}
       </div>
     </section>
@@ -159,9 +158,7 @@ function StudioBody({
 
   if (loading)
     return (
-      <p className="ops-ov-note" role="status">
-        Reading 30 days of sales and the journal…
-      </p>
+      <Pending kind="studio" label="Reading 30 days of sales and the journal…" />
     );
   if (failed.length === 3)
     return (

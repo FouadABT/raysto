@@ -10,13 +10,17 @@ import { channelName, localDate, rangeWords } from "@/lib/connected/overview";
 import { useWorkspaceValue } from "@/lib/connected/workspace-location";
 import { AreaChart, Donut, Sparkline, Reveal, formatMoneyShort } from "./m3";
 import { Icon } from "./icons";
-import { useLoad, type Section } from "./business-sections";
+import { type Section } from "./business-sections";
+import { useOverviewRead } from "@/lib/connected/use-overview-read";
+import { Pending, RefreshStatus } from "./m3";
+import { m } from "motion/react";
+import { motionPresets, useReduce } from "@/lib/connected/motion";
 
 const DetailedOverview = dynamic(
   () => import("./overview-section").then((m) => m.OverviewSection),
   {
     loading: () => (
-      <p role="status">Opening detailed reports and review tools…</p>
+      <Pending label="Opening detailed reports and review tools…" kind="studio" />
     ),
   },
 );
@@ -51,27 +55,28 @@ export function OverviewSection(props: Props) {
     "7d",
   );
   const [definitions, setDefinitions] = useState(false);
-  const board = useLoad(
+  const board = useOverviewRead(
+    api, tenant, `dashboard:${range}`, revision,
     () => backoffice(api, tenant).dashboard(range),
-    [api, tenant, range, revision],
   );
-  const costs = useLoad(
-    () =>
+  const costs = useOverviewRead(
+    api, tenant, "costing.products", revision,
+    (signal) =>
       api.query<{
         rows: CostProduct[];
         coverage: { complete: number; total: number };
-      }>("costing.products", { restaurantId: tenant }),
-    [api, tenant, revision],
+      }>("costing.products", { restaurantId: tenant }, signal),
   );
   const d = board.data,
     code = d?.currency ?? props.currencyCode;
-  const financial = useLoad(
-    () =>
+  const financial = useOverviewRead(
+    api, tenant, `finance:${d?.from}:${d?.to}:${code}`, revision,
+    (signal) =>
       api.query<FinancialSummary>("finance.summary", {
         restaurantId: tenant,
-        ...(d ? { from: d.from, to: d.to } : {}),
-      }),
-    [api, tenant, d?.from, d?.to, revision],
+        from: d!.from, to: d!.to,
+      }, signal),
+    !!d,
   );
   const product =
     costs.data?.rows.find(
@@ -88,7 +93,7 @@ export function OverviewSection(props: Props) {
       d.kitchen.preparing +
       d.kitchen.ready
     : undefined;
-  const summary = financial.data;
+  const summary = financial.data?.from === d?.from && financial.data?.to === d?.to && financial.data?.currency === code ? financial.data : undefined;
   if (view === "details")
     return (
       <div className="jr-details">
@@ -104,7 +109,7 @@ export function OverviewSection(props: Props) {
 
   return (
     <div className="jr-home" aria-busy={!d && !board.error}>
-      <header className="jr-welcome">
+      <Reveal as="header" className="jr-welcome" visitKey={`welcome:${tenant}`}>
         <div>
           <p className="jr-eyebrow">
             {judges ? "YOUR DEMO CAFÉ" : "YOUR CAFÉ, AT A GLANCE"}
@@ -121,9 +126,9 @@ export function OverviewSection(props: Props) {
           </p>
         </div>
         <span className="jr-date">{localDate(new Date(), d?.timezone)}</span>
-      </header>
+      </Reveal>
 
-      <section className="jr-start" aria-label="Start a cost investigation">
+      <Reveal as="section" className="jr-start" ariaLabel="Start a cost investigation" index={1} visitKey={`story:${tenant}`}>
         <div className="jr-start-story">
           <span className="jr-kicker">
             <Icon name="agents" size={18} />{" "}
@@ -145,7 +150,7 @@ export function OverviewSection(props: Props) {
                 ? "Dish costs could not load. You can still open the investigation workspace."
                 : costs.data
                   ? "Start with one dish and its confirmed ingredient costs."
-                  : "Finding a dish with confirmed cost evidence…"}
+              : "Finding a dish with confirmed cost evidence…"}
           </p>
           <ol className="jr-journey" aria-label="The decision journey">
             <li>
@@ -184,9 +189,9 @@ export function OverviewSection(props: Props) {
           {product ? (
             <CostVisual product={product} />
           ) : (
-            <div className="jr-cost-placeholder">
+            <div className="jr-cost-placeholder" aria-busy={!costs.error && !costs.data}>
               <Icon name="receipt" size={34} />
-              <p>Receipt → dish → decision</p>
+              {!costs.data && !costs.error ? <Pending kind="receipt" label="Finding confirmed dish costs…" /> : <p>Receipt → dish → decision</p>}
               <small>Missing costs stay unknown.</small>
               {costs.error && (
                 <button
@@ -199,7 +204,7 @@ export function OverviewSection(props: Props) {
             </div>
           )}
         </div>
-      </section>
+      </Reveal>
 
       {costs.error && product && (
         <p role="status" className="ops-note">
@@ -209,11 +214,7 @@ export function OverviewSection(props: Props) {
           </button>
         </p>
       )}
-      {board.loading && d && (
-        <p role="status" className="ops-note">
-          Updating figures. The previous loaded period remains visible.
-        </p>
-      )}
+      {d && <RefreshStatus loading={board.loading} label={`Updating ${rangeWords(range)}. The displayed figures still cover ${rangeWords(d.range)}.`} />}
       {board.error && d && (
         <p role="alert" className="ops-note">
           Figures could not refresh. Previously loaded figures may be stale.
@@ -241,6 +242,7 @@ export function OverviewSection(props: Props) {
             <button
               key={key}
               aria-pressed={range === key}
+              data-pending={board.loading && range === key || undefined}
               onClick={() => setRange(key)}
             >
               {label}
@@ -258,11 +260,12 @@ export function OverviewSection(props: Props) {
           </button>
         </section>
       ) : !d ? (
-        <div className="jr-metrics" aria-label="Loading café figures">
+        <div className="jr-metrics" aria-label="Loading café figures" role="status">
           {[0, 1, 2].map((n) => (
             <div className="jr-metric jr-pending" key={n}>
-              <span>Loading…</span>
-              <strong>—</strong>
+              <span>{["Paid order value", "Paid orders", "Average order"][n]}</span>
+              <span className="ops-skeleton-value" aria-hidden="true" />
+              <span className="m3-sr">Loading…</span>
             </div>
           ))}
         </div>
@@ -309,6 +312,7 @@ export function OverviewSection(props: Props) {
         </section>
       )}
 
+      {!d && !board.error && <div className="jr-dashboard-grid" aria-hidden="true"><Pending kind="studio" label="Loading the sales trend…" /><Pending kind="studio" label="Loading order channels…" /></div>}
       {d && (
         <div className="jr-dashboard-grid">
           <section
@@ -507,6 +511,7 @@ export function OverviewSection(props: Props) {
 }
 
 function CostVisual({ product: p }: { product: CostProduct }) {
+  const reduce = useReduce();
   const known =
     p.complete &&
     p.replacementCostMinor != null &&
@@ -520,7 +525,7 @@ function CostVisual({ product: p }: { product: CostProduct }) {
       )
     : 0;
   return (
-    <div className="jr-cost-card">
+    <m.div className="jr-cost-card" initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={motionPresets.spatialDefault}>
       <div className="jr-cost-card-top">
         <span>THE DISH BEHIND THE DECISION</span>
         <Icon name="receipt" size={22} />
@@ -568,6 +573,6 @@ function CostVisual({ product: p }: { product: CostProduct }) {
         <p>Cost data is incomplete. No recommendation is available.</p>
       )}
       <small>*Before fees and shared overhead. Not net profit.</small>
-    </div>
+    </m.div>
   );
 }

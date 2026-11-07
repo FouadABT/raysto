@@ -13,6 +13,7 @@ import "../design-workspace.css";
 import "../judge-dashboard.css";
 
 /** Development only: the signed-in console on the frozen dashboard fixtures. */
+import "../expressive.css";
 export default async function PreviewPage() {
   if (process.env.NODE_ENV === "production") notFound();
   const read = async (name: string) =>

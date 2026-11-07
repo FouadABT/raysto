@@ -27,3 +27,5 @@ export { ContainerCard, ContainerDialog, type ContainerCardProps, type Container
 export { FadeThrough, type FadeThroughProps } from "./fade-through";
 export { NavIndicator, type NavIndicatorProps } from "./nav-indicator";
 export * from "./chart-math";
+export { Pending, RefreshStatus, asyncState, type AsyncState } from "./async-region";
+export { StageSurface } from "./stage-surface";

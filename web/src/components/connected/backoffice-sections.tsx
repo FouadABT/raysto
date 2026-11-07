@@ -86,6 +86,7 @@ import {
   ContainerCard,
   ContainerDialog,
   CountUp,
+  Pending,
   Reveal,
   SnackbarProvider,
   Stamp,
@@ -302,6 +303,7 @@ function Proposals({
 }
 
 function Empty({ children }: { children: ReactNode }) {
+  if (typeof children === "string" && children.startsWith("Loading")) return <Pending label={children} />;
   return <p className="ops-quiet-note">{children}</p>;
 }
 
@@ -484,7 +486,7 @@ function CloseTab({
   version,
 }: TabProps) {
   const today = localDay(new Date());
-  const { data, error } = useLoad(async () => {
+  const { data, error, loading } = useLoad(async () => {
     const [current, past] = await Promise.all([bo.close(today), bo.closes()]);
     return { close: current.close, past };
   }, [bo, version]);
@@ -531,7 +533,7 @@ function CloseTab({
               ? c.state === "signed"
                 ? "Signed off"
                 : "Ready for your sign-off"
-              : "Not closed yet"}
+              : !data ? (error ? "Today's close is unavailable" : "Checking today’s close…") : "Not closed yet"}
           </h2>
           {c ? (
             <>
@@ -628,7 +630,7 @@ function CloseTab({
           <div className="ops-try-actions">
             <button
               className="ops-secondary"
-              disabled={busy}
+              disabled={busy || loading || !data}
               onClick={() =>
                 void act(async () => {
                   await api.command("close.run", tenant, { day: today });
@@ -2445,7 +2447,7 @@ function Team({
           <Empty>
             {data
               ? "No shift this week. Add one, or let the copilot plan the roster."
-              : "Loading the week…"}
+              : error ? "The week is unavailable. Retry the records." : "Loading the week…"}
           </Empty>
         ) : (
           <div className="ops-bo-people">

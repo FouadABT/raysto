@@ -1,4 +1,5 @@
 "use client";
+import { Pending } from "./m3";
 import { submittedFormAcknowledgement } from "./workspace-drafts";
 import { useWorkspaceTab } from "@/lib/connected/workspace-location";
 /**
@@ -405,8 +406,8 @@ function OverviewTab({
       >
         <h2 id="acc-findings">What needs attention</h2>
         {!bills.data && !bills.error ? (
-          <p className="ops-note">Reading the books…</p>
-        ) : findings.length === 0 ? (
+          <Pending label="Reading the books…" />
+        ) : bills.error ? (<p role="status">Bill findings are unavailable. Retry the records before drawing a conclusion.</p>) : findings.length === 0 ? (
           <p className="ops-note">
             Nothing needs attention: bills are on time, requests are paid, and
             the books balance.

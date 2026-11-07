@@ -62,6 +62,7 @@ import { DispatchSection } from "./dispatch-section";
 import { SuppliesSection } from "./supplies-section";
 import { OverviewSection } from "./judge-home";
 import { FadeThrough, NavIndicator } from "./m3";
+import { clearOverviewSnapshots } from "@/lib/connected/read-snapshots";
 import { RaystoGrid } from "./raysto-grid";
 import {
   boolCol,
@@ -659,6 +660,7 @@ export function OperationsWorkspace({
               "account_disabled",
             ].includes(e.code)
           ) {
+            clearOverviewSnapshots(api, true);
             setSnapshot(undefined);
             setOrders([]);
             setPayments([]);
@@ -687,6 +689,7 @@ export function OperationsWorkspace({
               failures = 0;
               cursor = Number(event.cursor ?? cursor);
               if (event.kind === "snapshot.changed") {
+                clearOverviewSnapshots(api);
                 clearTimeout(timer);
                 timer = setTimeout(() => void refresh(), 250);
               }
@@ -975,7 +978,7 @@ export function OperationsWorkspace({
               {error}
             </p>
           )}
-          <ReadProgress />
+          <ReadProgress announce={section !== "overview" && section !== "finance"} />
           {navTarget && createPortal(renderNav("ops-nav-side"), navTarget)}
           {drawerNavTarget &&
             createPortal(renderNav("ops-nav-drawer"), drawerNavTarget)}

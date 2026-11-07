@@ -7,7 +7,7 @@ import { areaPath, arcPath, donutSegments, labelEvery, linePath, niceMax, progre
 
 const safeId = (id: string) => id.replace(/[^a-zA-Z0-9_-]/g, "");
 
-const draw = { duration: duration.long4, ease: easing.emphasized };
+const draw = { duration: 0.4, ease: easing.emphasized };
 
 /* ---------- Sparkline ---------- */
 

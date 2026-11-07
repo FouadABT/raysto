@@ -12,6 +12,7 @@ import {
   MotionConfig,
   domMax,
   useReducedMotion,
+  useIsPresent,
 } from "motion/react";
 
 /**
@@ -42,6 +43,18 @@ export const duration = {
   long3: 0.55,
   long4: 0.6,
 } as const;
+
+/** Spatial motion carries personality; effects keep records easy to read. */
+export const motionPresets = {
+  spatialFast: { type: "spring", visualDuration: 0.18, bounce: 0.08 },
+  spatialDefault: { type: "spring", visualDuration: 0.32, bounce: 0.12 },
+  spatialLarge: { type: "spring", visualDuration: 0.42, bounce: 0.08 },
+  effectsFast: { duration: 0.12, ease: easing.standard },
+  effectsDefault: { duration: 0.18, ease: easing.standard },
+  effectsSlow: { duration: 0.24, ease: easing.standard },
+} as const;
+
+export function entranceDelay(index: number) { return Math.min(2, Math.max(0, index)) * 0.06; }
 
 /** How long a status move waits for Undo before it is sent. */
 export const GRACE_MS = 5000;
@@ -95,6 +108,7 @@ export function setReduceMotion(on: boolean) {
     /* Private mode: the switch lasts for this page only. */
   }
   if (typeof document !== "undefined") {
+    document.documentElement.toggleAttribute("data-raysto-reduce-motion", on);
     for (const root of document.querySelectorAll<HTMLElement>(".ops-root")) {
       if (on) root.dataset.reduceMotion = "true";
       else delete root.dataset.reduceMotion;
@@ -116,7 +130,8 @@ export function useAppReduceMotion(): boolean {
 export function useReduce(): boolean {
   const device = useReducedMotion();
   const app = useAppReduceMotion();
-  return Boolean(device) || app;
+  const present = useIsPresent();
+  return Boolean(device) || app || !present;
 }
 
 /* ---------- Entrances run once per section per session ---------- */
@@ -147,7 +162,11 @@ export function resetVisits() {
 export function MotionRoot({ children }: { children: ReactNode }) {
   const app = useAppReduceMotion();
   useEffect(() => {
-    if (app) setReduceMotion(true);
+    document.documentElement.toggleAttribute("data-raysto-reduce-motion", app);
+    for (const root of document.querySelectorAll<HTMLElement>(".ops-root")) {
+      if (app) root.dataset.reduceMotion = "true";
+      else delete root.dataset.reduceMotion;
+    }
   }, [app]);
   return createElement(
     LazyMotion,

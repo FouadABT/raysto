@@ -1,4 +1,5 @@
 "use client";
+import { stepLayoutHistory } from "@/lib/connected/studio/history";
 import { WorkspaceStateContext } from "@/lib/connected/workspace-state";
 import {
   createContext,
@@ -868,14 +869,14 @@ export function FinanceStudio({
         <button
           className="ops-btn secondary"
           disabled={!history.undo || (compact && !expanded)}
-          onClick={() => studio.current?.undo()}
+          onClick={() => stepLayoutHistory(studio.current, "undo")}
         >
           Undo layout change
         </button>
         <button
           className="ops-btn secondary"
           disabled={!history.redo || (compact && !expanded)}
-          onClick={() => studio.current?.redo()}
+          onClick={() => stepLayoutHistory(studio.current, "redo")}
         >
           Redo layout change
         </button>

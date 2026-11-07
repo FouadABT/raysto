@@ -7,6 +7,7 @@ import "./m3-board.css";
 import "./m3-money.css";
 import "./design-workspace.css";
 import "./judge-dashboard.css";
+import "./expressive.css";
 export default function OperationsPage() {
   return <OperationsEntry />;
 }

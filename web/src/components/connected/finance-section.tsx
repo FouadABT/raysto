@@ -11,7 +11,7 @@ import {
   clearScopedDrafts,
   useScopedDraft,
 } from "@/lib/connected/scoped-draft";
-import { Reveal, ContainerDialog, ContainerCard } from "./m3";
+import { Reveal, ContainerDialog, Pending, StageSurface } from "./m3";
 import type { ConnectedApi } from "@/lib/connected/api";
 import { currency, type Json } from "@/lib/connected/contracts";
 import {
@@ -28,7 +28,7 @@ import { moneyCol, countCol } from "@/lib/connected/grid-columns";
 import dynamic from "next/dynamic";
 const FinanceStudio = dynamic(
   () => import("./finance-studio").then((m) => m.FinanceStudio),
-  { loading: () => <p role="status">Opening the analytical workspace…</p> },
+  { loading: () => <Pending kind="studio" label="Opening the analytical workspace…" /> },
 );
 import { PriceComparisonPanel } from "./price-comparison";
 import type { PriceComparison } from "@/lib/connected/finance";
@@ -382,6 +382,7 @@ export function FinanceSection({
             aria-current={view === id ? "step" : undefined}
             onClick={() => setView(id)}
           >
+            {view === id && <span className="m3-nav-indicator ops-stage-indicator" aria-hidden="true" />}
             <span>{n}</span>
             {label}
           </button>
@@ -407,14 +408,7 @@ export function FinanceSection({
         </div>
       )}
       {loading && !products.length && (
-        <section
-          className="ops-finance-panel ops-data-loading"
-          role="status"
-          aria-label="Loading dish costs"
-        >
-          <span className="ops-spinner" aria-hidden="true" />
-          Reading recipes, confirmed costs and your pricing policy…
-        </section>
+        <Pending ariaLabel="Loading dish costs" label="Reading recipes, confirmed costs and your pricing policy…" />
       )}
       {product && view !== "investigate" && view !== "reports" && (
         <div className="ops-selected-dish">
@@ -472,6 +466,7 @@ export function FinanceSection({
           {notice}
         </p>
       )}
+      <StageSurface stage={view} className="ops-stage-body">
       {view === "reports" && summary && (
         <section aria-label="Financial basis" className="ops-finance-panel">
           <h3>{summary.basisLabel}</h3>
@@ -899,9 +894,7 @@ export function FinanceSection({
                         <td>{fmt(l.costMinor)}</td>
                         <td>
                           {l.source.id ? (
-                            <ContainerCard
-                              layoutId={`receipt-${tenant}-${l.source.id}`}
-                            >
+                            <div>
                               <button
                                 className="ops-btn secondary"
                                 type="button"
@@ -909,7 +902,7 @@ export function FinanceSection({
                               >
                                 Inspect receipt
                               </button>
-                            </ContainerCard>
+                            </div>
                           ) : (
                             "Not confirmed"
                           )}
@@ -1163,6 +1156,7 @@ export function FinanceSection({
           )}
         </>
       )}
+      </StageSurface>
       {receipt && (
         <ReceiptEvidence
           key={`${tenant}:${receipt}`}
@@ -1300,7 +1294,7 @@ function PriceHistory({
           </li>
         ))}
       </ol>
-      {loading && <p role="status">Loading decisions…</p>}
+      {loading && <Pending label="Loading decisions…" />}
       {!loading && !error && rows.length === 0 && (
         <p>No published price decisions yet.</p>
       )}
@@ -1341,6 +1335,7 @@ function ReceiptEvidence({
     [error, setError] = useState(""),
     [url, setUrl] = useState("");
   const objectUrl = useRef("");
+  const [open, setOpen] = useState(true);
   const active = useRef(true);
   const dirty = useRef(false);
   useEffect(() => {
@@ -1371,21 +1366,24 @@ function ReceiptEvidence({
         "Your unsaved receipt corrections will be discarded.",
       ))
     )
-      close();
+      setOpen(false);
   };
   return (
     <ContainerDialog
       layoutId={`receipt-${tenant}-${id}`}
-      open
+      open={open}
+      shared={false}
       onClose={() => void dismiss()}
+      onExited={close}
       title="Confirmed receipt evidence"
-      className="ops-receipt-dialog"
+      className={`ops-receipt-dialog${record && !record.mediaId ? " metadata-only" : ""}`}
     >
       <aside
         className="ops-finance-review"
         aria-label="Confirmed receipt evidence"
       >
         <h4>Confirmed receipt evidence</h4>
+        <div className="ops-receipt-body" aria-busy={!record && !error}>
         {error && <p role="alert">{error}</p>}
         {record ? (
           <>
@@ -1477,8 +1475,9 @@ function ReceiptEvidence({
             )}
           </>
         ) : (
-          <p role="status">Loading receipt…</p>
+          <Pending kind="receipt" label="Loading receipt…" />
         )}
+        </div>
         <button className="ops-btn secondary" onClick={() => void dismiss()}>
           Close evidence
         </button>

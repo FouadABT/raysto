@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, m } from "motion/react";
+import { AnimatePresence, m, useIsPresent } from "motion/react";
 import {
   useEffect,
   useRef,
@@ -8,7 +8,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { duration, easing, useReduce } from "@/lib/connected/motion";
+import { duration, easing, motionPresets, useReduce } from "@/lib/connected/motion";
 import { confirmFormDismiss } from "../workspace-drafts";
 
 const cards = {
@@ -17,7 +17,7 @@ const cards = {
   li: m.li,
   section: m.section,
 } as const;
-const grow = { duration: duration.medium4, ease: easing.emphasized };
+const grow = motionPresets.spatialDefault;
 
 export type ContainerCardProps = {
   /** Shared with the ContainerDialog it opens, e.g. `order-14`. */
@@ -66,6 +66,10 @@ export type ContainerDialogProps = {
   layoutId: string;
   open: boolean;
   onClose: () => void;
+  /** Release the originating record only after the native modal closes. */
+  onExited?: () => void;
+  /** Fixed native layers use a compositor entrance instead of a table-row morph. */
+  shared?: boolean;
   /** The dialog's accessible name. */
   title: string;
   children: ReactNode;
@@ -86,6 +90,8 @@ export function ContainerDialog({
   title,
   children,
   className,
+  onExited,
+  shared = true,
 }: ContainerDialogProps) {
   const reduce = useReduce();
   const ref = useRef<HTMLDialogElement>(null);
@@ -122,12 +128,16 @@ export function ContainerDialog({
     ref.current?.close();
     setMounted(false);
     opener.current?.focus();
+    onExited?.();
   };
 
   // Reduced motion has no exit animation to wait for: close at once.
   useEffect(() => {
     if (reduce && !open && mounted) finish();
   }, [reduce, open, mounted]);
+  useEffect(() => {
+    if (!open && ref.current?.open) ref.current.focus();
+  }, [open]);
 
   if (!mounted) return null;
 
@@ -154,6 +164,8 @@ export function ContainerDialog({
       ref={ref}
       className={["m3-dialog", className].filter(Boolean).join(" ")}
       aria-label={title}
+      data-closing={!open || undefined}
+      tabIndex={-1}
       onCancel={(e) => {
         e.preventDefault();
         void requestClose();
@@ -172,10 +184,16 @@ export function ContainerDialog({
           {open && (
             <m.div
               key="surface"
-              layoutId={layoutId}
+              inert={!open}
+              aria-hidden={!open || undefined}
+              layoutId={shared ? layoutId : undefined}
               className="m3-dialog-surface"
-              transition={{ layout: grow }}
+              transition={shared ? { layout: grow } : motionPresets.spatialDefault}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6, transition: motionPresets.effectsDefault }}
             >
+              <PresentDialogContent>
               <m.div
                 className="m3-dialog-content"
                 initial={{ opacity: 0 }}
@@ -184,7 +202,7 @@ export function ContainerDialog({
                   transition: {
                     duration: duration.medium2,
                     ease: easing.standard,
-                    delay: duration.medium4 * 0.3,
+                    delay: 0.06,
                   },
                 }}
                 exit={{
@@ -198,10 +216,16 @@ export function ContainerDialog({
                 {close}
                 {children}
               </m.div>
+              </PresentDialogContent>
             </m.div>
           )}
         </AnimatePresence>
       )}
     </dialog>
   );
+}
+
+function PresentDialogContent({ children }: { children: ReactNode }) {
+  const present = useIsPresent();
+  return <div inert={!present} aria-hidden={!present || undefined}>{children}</div>;
 }

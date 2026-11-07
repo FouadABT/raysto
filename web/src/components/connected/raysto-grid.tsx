@@ -317,7 +317,7 @@ export function RaystoGrid<T>({
           defaultColDef={base}
           components={components}
           loading={loading}
-          overlayLoadingTemplate={`<span class="ops-grid-overlay" role="status">Loading ${escape(label.toLowerCase())}…</span>`}
+          overlayLoadingTemplate={`<span class="ops-grid-overlay" role="status"><span class="ops-activity" aria-hidden="true"></span>Loading ${escape(label.toLowerCase())}…</span>`}
           noRowsOverlayComponent={NoRows}
           noRowsOverlayComponentParams={noRowsParams}
           quickFilterText={query}

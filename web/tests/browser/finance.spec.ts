@@ -145,6 +145,11 @@ test("narrow financial workspace keeps the decision and evidence readable", asyn
 test("saved comparison configures real Studio widgets and layout undo preserves the decision", async ({
   page,
 }) => {
+  const studioErrors: string[] = [];
+  page.on("console", message => {
+    if (message.type() === "error" && /AG Studio|State property/.test(message.text())) studioErrors.push(message.text());
+  });
+  page.on("pageerror", error => studioErrors.push(error.stack ?? error.message));
   await page.goto("/ops/preview?section=finance&tab=compare");
   await expect(
     page.getByRole("heading", {
@@ -187,7 +192,10 @@ test("saved comparison configures real Studio widgets and layout undo preserves 
     .getByRole("button", { name: "Close evidence", exact: true })
     .click();
   await studio.getByRole("button", { name: "Undo layout change" }).click();
+  await expect.poll(() => studioErrors).toEqual([]);
   await page.getByRole("button", { name: "03 Compare options" }).click();
+  await page.waitForTimeout(500);
+  expect(studioErrors).toEqual([]);
   await expect(
     page.getByRole("heading", { name: /Lowest qualifying price/ }),
   ).toBeVisible();

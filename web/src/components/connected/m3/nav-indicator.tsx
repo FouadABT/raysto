@@ -1,7 +1,7 @@
 "use client";
 
 import { m } from "motion/react";
-import { duration, easing, useReduce } from "@/lib/connected/motion";
+import { motionPresets, useReduce } from "@/lib/connected/motion";
 
 export type NavIndicatorProps = {
   /** Render it inside the item that is selected; it slides from the last one. */
@@ -26,7 +26,7 @@ export function NavIndicator({ active, layoutId = "m3-nav-indicator", className 
       layoutId={layoutId}
       className={cls}
       aria-hidden="true"
-      transition={{ layout: { duration: duration.medium2, ease: easing.emphasized } }}
+      transition={{ layout: motionPresets.spatialFast }}
     />
   );
 }

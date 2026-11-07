@@ -10,7 +10,7 @@ export type CountUpProps = {
   value: number;
   /** How a number reads, e.g. minor units → "$195.30". */
   format: (n: number) => string;
-  /** Count from 0 on the first reveal (default), or show the value at once. */
+  /** Optional decorative zero entrance. Financial records default to the exact value. */
   fromZero?: boolean;
   /** Seconds; default Material long2 (0.5 s). */
   duration?: number;
@@ -27,7 +27,7 @@ export type CountUpProps = {
 export function CountUp({
   value,
   format,
-  fromZero = true,
+  fromZero = false,
   duration = dur.long2,
   className,
 }: CountUpProps) {

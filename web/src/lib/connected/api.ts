@@ -1,5 +1,6 @@
 import type { Auth, User } from "firebase/auth";
 import type { Json } from "./contracts";
+import { clearOverviewSnapshots } from "./read-snapshots";
 
 export class ApiFailure extends Error {
   constructor(
@@ -22,6 +23,7 @@ export class ConnectedApi {
     private user: User,
   ) {}
   close() {
+    clearOverviewSnapshots(this, true);
     this.ended = true;
     this.token = undefined;
   }
@@ -81,11 +83,13 @@ export class ConnectedApi {
     }
     const payload = await response.json();
     this.current();
+    if (response.status === 401 || response.status === 403) clearOverviewSnapshots(this, true);
     if (!response.ok)
       throw new ApiFailure(
         payload.error?.code ?? "request_failed",
         payload.error?.message ?? "Request could not be completed.",
       );
+    if (init.method === "POST" && path.startsWith("commands/")) clearOverviewSnapshots(this);
     return payload.data as T;
   }
   query<T>(name: string, params: Json = {}, signal?: AbortSignal) {

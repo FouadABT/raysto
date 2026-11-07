@@ -1,4 +1,5 @@
 "use client";
+import { Pending } from "./m3";
 /**
  * Money › PayPal account (0.16, stream S6): which PayPal account this café's
  * money goes through, and how the owner connects their own.
@@ -42,7 +43,7 @@ export function PayPalAccountTab({ api, tenant, version }: { api: ConnectedApi; 
   );
   const reload = () => setTick((n) => n + 1);
   if (error) return <p className="ops-note" role="alert">{error}</p>;
-  if (!data) return <p className="ops-note" role="status">Reading the PayPal account…</p>;
+  if (!data) return <Pending label="Reading the PayPal account…" />;
   return (
     <div className="ops-bo-stack ops-paypal-account">
       <Reveal as="section" className="ops-panel ops-bo-card" index={0}>

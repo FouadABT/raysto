@@ -1,0 +1,90 @@
+/* Ops expressive system. Keep monetary labels and grid geometry stable. */
+.ops-root { --ops-effect-fast:120ms; --ops-effect:180ms; --ops-effect-slow:240ms; }
+.ops-root .ops-pending { min-width:0; padding:24px; border:1px solid var(--md-sys-color-outline-variant); border-radius:20px; background:var(--md-sys-color-surface-container-lowest); }
+.ops-root .ops-pending-label { display:flex; align-items:center; gap:12px; font-size:14px; line-height:1.6; }
+.ops-root .ops-pending-inline { padding:8px 0; border:0; background:transparent; }
+.ops-root .ops-pending-studio { min-height:280px; }
+.ops-root .ops-pending-receipt { min-height:200px; }
+.ops-root .ops-activity { flex:none; width:18px; height:18px; border:2px solid var(--md-sys-color-outline-variant); border-top-color:var(--md-sys-color-primary); border-radius:50%; opacity:0; animation:ops-spin 900ms linear 150ms infinite,ops-activity-appear 1ms linear 150ms forwards; }
+.ops-root .ops-placeholder-lines { display:grid; gap:16px; margin-top:24px; }
+.ops-root .ops-placeholder-lines i,.ops-root .ops-skeleton-value { display:block; height:15px; border-radius:7px; background:linear-gradient(100deg,#e7ebe0 20%,#f8faf4 48%,#e7ebe0 80%) 0 0 / 250% 100%; animation:ops-shimmer 1.8s ease-in-out 150ms infinite; }
+.ops-root .ops-placeholder-lines i:nth-child(2) { width:84%; }
+.ops-root .ops-placeholder-lines i:nth-child(3) { width:58%; }
+.ops-root .ops-skeleton-value { height:40px; width:74%; margin:16px 0; }
+.ops-root .ops-slow-read { margin:16px 0 0; font-size:13px; line-height:1.6; color:var(--md-sys-color-on-surface-variant); }
+.ops-root .ops-refresh-status { padding:10px 14px; border-radius:12px; background:var(--md-sys-color-secondary-container); font-size:13px; }
+.ops-root .ops-read-progress { min-height:0; height:2px; margin:0; position:relative; overflow:hidden; border-radius:2px; }
+.ops-root .ops-read-progress[data-active]::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,#8fae56,transparent); transform:translateX(-100%); animation:ops-read-sweep 1.6s ease-in-out 150ms infinite; }
+@keyframes ops-activity-appear { to { opacity:1; } }
+@keyframes ops-read-sweep { to { transform:translateX(100%); } }
+.ops-root .ops-stage-body { min-width:0; display:grid; gap:20px; }
+.ops-root .ops-place[inert] *,.ops-root .ops-place[inert] *::before,.ops-root .ops-place[inert] *::after { animation-play-state:paused!important; pointer-events:none!important; }
+.ops-root .ops-grid-overlay { display:flex; align-items:center; gap:10px; }
+.ops-root .ops-decision-nav button { position:relative; isolation:isolate; }
+.ops-root .ops-decision-nav button>.m3-nav-indicator { z-index:-1; border-radius:12px; width:auto; height:auto; clip-path:none; overflow:visible; inset:0; }
+.ops-root .ops-stage-indicator { animation:ops-stage-selected var(--ops-effect) var(--md-sys-motion-easing-standard); }
+@keyframes ops-stage-selected { from { opacity:0.4; } to { opacity:1; } }
+.ops-root .ops-decision-nav button>span:not(.m3-nav-indicator) { z-index:1; }
+.ops-root .ops-decision-nav button[aria-current=step] { background:transparent; color:var(--md-sys-color-on-secondary-container); }
+.ops-root dialog.ops-drawer[data-closing] .ops-drawer-body { pointer-events:none; }
+.ops-root dialog::backdrop { transition:opacity var(--ops-effect) var(--md-sys-motion-easing-standard); }
+.ops-root dialog[data-closing]::backdrop { opacity:0; }
+.ops-root .ops-price-option { animation:none; }
+.ops-root .ops-receipt-dialog { height:auto; max-height:calc(100dvh - 48px); margin:24px 24px auto auto; }
+.ops-root .ops-receipt-dialog .m3-dialog-surface { min-height:0; }
+.ops-root .ops-receipt-dialog .ops-finance-review { margin:0; display:grid; grid-template-rows:auto minmax(200px,auto) auto; }
+.ops-root .ops-receipt-body { min-height:200px; }
+.ops-root .ops-receipt-body>.ops-pending { border:0; padding:12px 0; min-height:200px; }
+.ops-root .ops-receipt-dialog .ops-finance-review>button:last-child { justify-self:start; margin-top:8px; }
+.ops-root details>summary { position:relative; padding-inline-end:30px; list-style:none; }
+.ops-root details>summary::-webkit-details-marker { display:none; }
+.ops-root details>summary::after { content:""; position:absolute; inset-inline-end:10px; top:20px; width:6px; height:6px; border-inline-end:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); transition:transform var(--ops-effect) var(--md-sys-motion-easing-standard); }
+.ops-root details[open]>summary::after { transform:rotate(225deg); }
+@supports (interpolate-size:allow-keywords) {
+  .ops-root details::details-content { interpolate-size:allow-keywords; block-size:0; overflow:clip; transition:block-size var(--ops-effect) var(--md-sys-motion-easing-standard),content-visibility var(--ops-effect) allow-discrete; }
+  .ops-root details[open]::details-content { block-size:auto; }
+}
+.ops-root [data-pending=true] { cursor:progress; }
+.ops-root button:not(.ops-studio *, .ag-root-wrapper *):active { transform:none; }
+.ops-root .ops-btn>svg { transition:transform var(--ops-effect-fast) var(--md-sys-motion-easing-standard); }
+.ops-root .ops-btn:active>svg { transform:translateX(2px); }
+.ops-root .jr-home .jr-welcome p:last-child,.ops-root .jr-home .jr-start-story>p { font-size:14px; }
+.ops-root .jr-home :is(.jr-start .jr-start-note,.jr-caption,.jr-metric p,.jr-cost-card>small,.jr-section-heading p,.jr-cost-price) { font-size:12px; line-height:1.6; }
+.ops-root .jr-cost-card { transform:none; }
+.ops-root .jr-contribution-track { transform-origin:left; animation:ops-cost-reveal 400ms var(--md-sys-motion-easing-emphasized-decelerate); }
+@keyframes ops-cost-reveal { from { clip-path:inset(0 100% 0 0); } to { clip-path:inset(0); } }
+.ops-root .jr-cost-placeholder { padding:0; border:0; }
+.ops-root .jr-metric.jr-pending { min-height:176px; }
+.ops-root .jr-metric { min-height:176px; }
+.ops-root .jr-dashboard-grid>:is(.ops-pending-studio,.jr-sales,.jr-channels) { min-height:360px; }
+.ops-root .ops-live.on i { animation:none; box-shadow:none; }
+.ops-root .jr-text-button { transition:background-color var(--ops-effect-fast),color var(--ops-effect-fast); }
+.ops-root .jr-action-row { transition:background-color var(--ops-effect-fast); }
+.ops-root .jr-home button.jr-action-row { border:0; border-bottom:1px solid #edf0e9; border-radius:0; box-shadow:none; padding:14px 0; line-height:1.5; }
+.ops-root .jr-home button.jr-action-row:last-child { border-bottom:0; }
+.ops-root .jr-action-row:hover { background:#173f3505; }
+.ops-root :is(.ops-toolbar,.ops-business-toolbar) { align-items:center; gap:12px; }
+.ops-root :is(.ops-note,.ops-empty p) { line-height:1.6; }
+@media (max-width:599px) {
+  .ops-root .jr-home { gap:18px; padding-top:0; }
+  .ops-root .jr-welcome { display:none; }
+  .ops-root .jr-start { padding:20px; gap:20px; }
+  .ops-root .jr-start h3 { font-size:27px; margin:12px 0 8px; }
+  .ops-root .jr-start-actions { gap:4px; }
+  .ops-root .jr-start-actions>.ops-btn { width:100%; min-height:50px; padding:10px 12px; }
+  .ops-root .jr-journey { margin:14px 0; gap:8px; font-size:12px; }
+  .ops-root .jr-journey li { flex:1 1 100%; }
+  .ops-root .jr-start .jr-start-note { margin-top:8px; }
+  .ops-root .jr-cost-card h4 { font-size:22px; }
+  .ops-root .ops-receipt-dialog { width:calc(100vw - 24px); margin:12px auto auto; }
+  .ops-root .ops-pending { padding:18px; }
+}
+/* The app switch has the same CSS coverage as the device preference. */
+html[data-raysto-reduce-motion] .ops-root *,html[data-raysto-reduce-motion] .ops-root *::before,html[data-raysto-reduce-motion] .ops-root *::after,html[data-raysto-reduce-motion] .ops-root *::details-content { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+@media (prefers-reduced-motion:reduce) {
+  .ops-root *, .ops-root *::before,.ops-root *::after,.ops-root *::details-content { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+  .ops-root .ops-read-progress[data-active]::after { transform:none; }
+}
+html[data-raysto-reduce-motion] .ops-root .ops-read-progress[data-active]::after { transform:none; }
+html[data-raysto-reduce-motion] .ops-root dialog::backdrop { transition:none!important; }
+@media (prefers-reduced-motion:reduce) { .ops-root dialog::backdrop { transition:none!important; } }

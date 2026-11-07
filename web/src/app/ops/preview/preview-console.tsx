@@ -19,6 +19,7 @@ import { paypalAccountPreview } from "@/lib/connected/paypal-account";
 // The Overview's AI Action Inbox: `?state=inbox` and `?state=caught-up` (append-only).
 import { inboxPreview } from "@/lib/connected/inbox-preview";
 import { judge } from "@/lib/connected/judge";
+import { ReadScopePreview } from "./read-scope-preview";
 import { financePreview } from "@/lib/connected/finance-preview";
 
 /**
@@ -50,6 +51,7 @@ export function PreviewConsole({
     [week, today, state],
   );
   if (!ready) return <main className="ops-root" />;
+  if (state === "motion-scope") return <ReadScopePreview />;
   return (
     <ConsoleShell
       api={api}
@@ -308,9 +310,10 @@ function fixtureApi({
       await new Promise((r) =>
         setTimeout(
           r,
-          state === "slow-costs" && name === "costing.products" ? 2000 : 120,
+          state.startsWith("motion-") ? 1600 : state === "slow-costs" && name === "costing.products" ? 2000 : 120,
         ),
       );
+      if (state === "motion-close-failed" && name === "backoffice.close") throw new ApiFailure("unavailable", "Authored close-read failure.");
       if (state === "finance-unavailable" && name === "finance.summary")
         throw new ApiFailure(
           "unavailable",
