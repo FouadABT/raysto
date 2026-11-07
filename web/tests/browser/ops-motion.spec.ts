@@ -178,3 +178,13 @@ test("scope changes, late responses and permission loss cannot restore retained 
   await page.waitForTimeout(500);
   await expect(result).toHaveText("Pending");
 });
+
+
+test("the investigation opens while dish costing is still loading", async ({ page }) => {
+  await page.goto("/ops/preview?section=overview&state=motion-slow");
+  await expect(page.getByText("Finding confirmed dish costs…", { exact: true })).toBeVisible();
+  const start = page.getByRole("button", { name: "Start the investigation", exact: true });
+  expect(await start.isEnabled()).toBe(true);
+  await start.click();
+  await expect(page.getByRole("heading", { name: "The cost behind this dish" })).toBeVisible();
+});

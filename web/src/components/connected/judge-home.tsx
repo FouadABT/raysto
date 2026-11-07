@@ -167,13 +167,11 @@ export function OverviewSection(props: Props) {
             <button
               className="ops-btn"
               onClick={() => investigate(product?.productId, "evidence")}
-              disabled={!costs.data && !costs.error}
             >
               Start the investigation <Icon name="arrow" size={18} />
             </button>
             <button
               className="jr-text-button"
-              disabled={!costs.data && !costs.error}
               onClick={() => investigate(product?.productId, "studio")}
             >
               Open in AG Studio <Icon name="arrow" size={16} />
