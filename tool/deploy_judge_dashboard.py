@@ -6,11 +6,12 @@ ROOT=Path(__file__).resolve().parents[1]
 KEY=Path(r'C:\Users\fabat\Desktop\Awhar\modernapp\v1\awhar_backend\new-key-awhar.pem')
 folder=ROOT/'docs/judge-dashboard'
 a=json.loads((folder/'console-artifact.json').read_text(encoding='utf-8'))
+baseline=json.loads((folder/'compatibility-baseline.json').read_text(encoding='utf-8'))
 compat=json.loads((folder/'live-compatibility.json').read_text(encoding='utf-8'))
 assert all(compat[k] for k in ['managerAuthenticated','existingMenuReadable','invalidSessionRejected'])
 remote='/home/ubuntu/raysto-upload/'+Path(a['artifact']).name
 upload(ROOT/a['artifact'],remote)
-payload=base64.b64encode(json.dumps({**a,'archive':remote}).encode()).decode()
+payload=base64.b64encode(json.dumps({**a,'archive':remote,'backendRelease':baseline['backend']['deployedRelease'],'backendArtifactSha256':baseline['backend']['sha256']}).encode()).decode()
 script=r'''
 from pathlib import Path
 import base64,hashlib,json,os,shutil,subprocess,tarfile,time
@@ -18,16 +19,18 @@ from datetime import datetime,timezone
 assert os.geteuid()==0;os.umask(0o077)
 c=json.loads(base64.b64decode('PAYLOAD'));archive=Path(c['archive']);assert archive.parent==Path('/home/ubuntu/raysto-upload')
 assert hashlib.sha256(archive.read_bytes()).hexdigest()==c['sha256']
-assert c['version']=='0.17.0-dev.8'
-assert Path('/opt/raysto/current').resolve().name=='0.17.0-dev.6-20261106'
-current=Path('/opt/raysto/ops/current');previous=current.resolve(strict=True);release=Path('/opt/raysto/ops/releases/0.17.0-dev.8-20261107')
+assert c['version']=='0.17.0-dev.9'
+assert str(Path('/opt/raysto/current').resolve())==c['backendRelease']
+assert json.loads((Path(c['backendRelease'])/'source.json').read_text())['artifactSha256']==c['backendArtifactSha256']
+current=Path('/opt/raysto/ops/current');previous=current.resolve(strict=True);release=Path('/opt/raysto/ops/releases/0.17.0-dev.9-20261107')
 assert previous.parent==release.parent and previous.name=='0.17.0-dev.7-20261107' and not release.exists()
 def run(*args):return subprocess.check_output(args,stderr=subprocess.PIPE).decode().strip()
 def baseline():return [run('systemctl','show','awhar-server','-p','MainPID','--value'),hashlib.sha256(Path('/etc/nginx/sites-available/awhar.com').read_bytes()).hexdigest()]
 before=baseline();runtime=Path('/etc/raysto/runtime.env');old=runtime.read_bytes();switched=False
 backendPid=run('systemctl','show','raysto','-p','MainPID','--value')
-apk=previous/'public/downloads/raysto-0.17.0-dev.3-2203-arm64.apk'
-assert apk.resolve().is_relative_to(previous/'public/downloads')
+apk=Path('/opt/raysto/downloads/raysto.apk')
+apk_name='raysto-0.17.0-dev.7-2204-arm64.apk'
+assert apk.is_file()
 assert hashlib.sha256(apk.read_bytes()).hexdigest()==c['android']['sha256']
 downloads=Path('/opt/raysto/downloads');assert downloads.resolve().is_relative_to(Path('/opt/raysto'))
 latest=downloads/'raysto.apk';priorApkHash=hashlib.sha256(latest.read_bytes()).hexdigest()
@@ -54,9 +57,13 @@ try:
   for f in files:
    p=Path(folder)/f;p.chmod(0o750 if p==release/'node' else 0o640);shutil.chown(p,user='root',group='raysto')
  public_downloads=release/'public/downloads';public_downloads.mkdir(exist_ok=True)
- shutil.copyfile(apk,public_downloads/apk.name)
+ for prior in (previous/'public/downloads').glob('*.apk'):
+  assert prior.is_file() and not prior.is_symlink() and prior.resolve().is_relative_to(previous/'public/downloads')
+  shutil.copyfile(prior,public_downloads/prior.name)
+  os.chmod(public_downloads/prior.name,0o640);shutil.chown(public_downloads/prior.name,user="root",group="raysto")
+ shutil.copyfile(apk,public_downloads/apk_name)
  os.chmod(public_downloads,0o750);shutil.chown(public_downloads,user='root',group='raysto')
- os.chmod(public_downloads/apk.name,0o640);shutil.chown(public_downloads/apk.name,user='root',group='raysto')
+ os.chmod(public_downloads/apk_name,0o640);shutil.chown(public_downloads/apk.name,user='root',group='raysto')
  cache=release/'.next/cache';cache.mkdir(exist_ok=True);shutil.chown(cache,user='raysto',group='raysto')
  flags={k:'true' for k in ['RAYSTO_FINANCE_017_ENABLED','RAYSTO_PRICING_ENABLED','RAYSTO_STUDIO_AI_ENABLED','RAYSTO_AGENT_PRICING_ENABLED']}
  values=dict(l.split('=',1) for l in old.decode().splitlines() if '=' in l and not l.startswith('#'))
@@ -70,7 +77,7 @@ try:
  assert runtime.read_bytes()==old and run('systemctl','show','raysto','-p','MainPID','--value')==backendPid
  result={'checkedAtUtc':datetime.now(timezone.utc).isoformat(),'status':'development-candidate-deployed','release':str(release),'previous':str(previous),
   'sourceCommit':c['sourceCommit'],'artifactSha256':c['sha256'],'featureFlags':flags,'judgeStoryEnabled':False,'awharUnchanged':True,
-  'android':c['android'],'priorApkSha256':priorApkHash,'backendUnchanged':True,'runtimeUnchanged':True,'apkUnchanged':True,'acceptance':'Web UI candidate; owner-pilot and physical Android gates remain open'}
+  'android':c['android'],'priorApkSha256':priorApkHash,'backendRelease':c['backendRelease'],'backendArtifactSha256':c['backendArtifactSha256'],'backendUnchanged':True,'runtimeUnchanged':True,'apkUnchanged':True,'acceptance':'Web UI candidate; owner-pilot and physical Android gates remain open'}
  Path('/var/backups/raysto/judge-dashboard-017-console.json').write_text(json.dumps(result,indent=2)+'\n')
  print(json.dumps(result))
 except Exception:

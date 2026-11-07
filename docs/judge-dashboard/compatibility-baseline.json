@@ -1,0 +1,47 @@
+{
+  "checkedAtUtc": "2026-11-07T02:21:14.260Z",
+  "origin": "Separate AI/mobile workstream; preserved during the web deployment",
+  "backend": {
+    "version": "0.17.0-dev.7",
+    "image": "raysto-backend:0.17.0-dev.7-ec2",
+    "artifact": "dist/raysto-backend-0.17.0-dev.7-ai-linux-amd64.tar.gz",
+    "bytes": 77608493,
+    "sha256": "cee07b810f1ce8f995c0531a83db20a684a1f08a4b68a7835faa067ec6ea3ba0",
+    "binarySha256": "939886b78873115fe5536d14f67c7ff45088ee1fcdd21e26c8a9a1ca80fbd1b4",
+    "sourceCommit": "e840a1d6a0b326941f56e46ab1b9f5453a8200e1",
+    "backendPatchSha256": "c3146b712bcccd509674d542cbf3e51efdaeb0217e43e630b8f70746d20d6bd7",
+    "migration": "20261107011730122",
+    "configIncluded": false,
+    "deployedRelease": "/opt/raysto/releases/0.17.0-dev.7-ai-20261107",
+    "sourceProvenance": "Recorded baseline commit plus backendPatchSha256; companion source finalization remains separate"
+  },
+  "android": {
+    "version": "0.17.0-dev.7+2204",
+    "versionCode": 2204,
+    "package": "com.gmrt.raysto",
+    "abi": "arm64-v8a",
+    "artifact": "build/release-ai/raysto-0.17.0-dev.7-2204-arm64.apk",
+    "bytes": 48354113,
+    "sha256": "afc350ff7a637b7ca327f1bb1cf1f8bef287952d0beddf09da148f27aef9a50c",
+    "url": "https://ops.rays.to/downloads/raysto-0.17.0-dev.7-2204-arm64.apk",
+    "signing": "existing development configuration",
+    "physicalAcceptance": "pending",
+    "globalUrl": "https://rays.to/raysto.apk?candidate=2204",
+    "physicalDeviceAccepted": false
+  },
+  "stableApkSha256": "afc350ff7a637b7ca327f1bb1cf1f8bef287952d0beddf09da148f27aef9a50c",
+  "backendDeployment": {
+    "checkedAtUtc": "2026-11-07T02:06:23.067741+00:00",
+    "ready": {
+      "status": "ready",
+      "platformV2": "enabled",
+      "schemaReady": true,
+      "missingConfiguration": [],
+      "providers": "not_probed"
+    },
+    "migration": "20261107011730122",
+    "migrationExitCode": 1,
+    "supplementsSha256": "58ebc74afba6556476fc1c07afd22df9a05dacfc12b84db071d7128eddc22ed4",
+    "verifiedSupplementalObjectCount": 50
+  }
+}

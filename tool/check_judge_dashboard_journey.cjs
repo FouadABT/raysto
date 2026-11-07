@@ -4,7 +4,8 @@ const {root,session}=require('./decision_api.cjs');
 const {chromium}=require(path.join(root,'web/node_modules/playwright'));
 const folder=path.join(root,'docs/judge-dashboard'),shots=path.join(folder,'screenshots');
 (async()=>{const release=JSON.parse(fs.readFileSync(path.join(folder,'console-deployment.json'),'utf8'));
- const report={checkedAtUtc:new Date().toISOString(),consoleSource:release.sourceCommit,backendSource:'c2221d33de33a6417e0c584ee2ca942c2e7b415d',provenance:'Actual deployed UI and Gemini on authored USD sample records. No owner pilot, price publication or money action.',errors:[]};
+ const baseline=JSON.parse(fs.readFileSync(path.join(folder,'compatibility-baseline.json'),'utf8'));
+ const report={checkedAtUtc:new Date().toISOString(),consoleSource:release.sourceCommit,backendSource:baseline.backend.sourceCommit,backendPatchSha256:baseline.backend.backendPatchSha256,provenance:'Actual deployed UI and Gemini on authored USD sample records. No owner pilot, price publication or money action.',errors:[]};
  const api=await session('manager'),policy=await api.query('pricing.policy'),costs=await api.query('costing.products');
  const browser=await chromium.launch({channel:'msedge',headless:true});fs.mkdirSync(shots,{recursive:true});
  try{const page=await browser.newPage({viewport:{width:1440,height:1000}});await page.emulateMedia({reducedMotion:'reduce'});page.on('pageerror',e=>report.errors.push(e.message));
@@ -13,6 +14,7 @@ const folder=path.join(root,'docs/judge-dashboard'),shots=path.join(folder,'scre
  await page.getByRole('heading',{name:'One café. One clear decision.',exact:true}).waitFor({timeout:60000});
  await page.getByRole('button',{name:'Start the investigation',exact:true}).waitFor();await page.evaluate(()=>document.fonts.ready);
  await page.screenshot({path:path.join(shots,'overview-desktop.png')});
+ await page.locator('.jr-sales').scrollIntoViewIfNeeded();await page.locator('.jr-channels').scrollIntoViewIfNeeded();await page.waitForTimeout(250);await page.evaluate(()=>window.scrollTo(0,0));await page.waitForTimeout(100);
  await page.screenshot({path:path.join(shots,'overview-full.png'),fullPage:true});
  assert.equal(await page.getByRole('heading',{name:'AI Action Inbox',exact:true}).count(),0);
  await page.getByRole('button',{name:'Start the investigation',exact:true}).click();
@@ -52,6 +54,6 @@ const folder=path.join(root,'docs/judge-dashboard'),shots=path.join(folder,'scre
  await page.getByRole('button',{name:'Start the investigation',exact:true}).click();await page.getByLabel('Investigation view').selectOption('compare');
  if(!await page.getByLabel('Assumed baseline units').isVisible())await page.getByText('Adjust the comparison assumptions',{exact:true}).click();
  await page.getByLabel('Assumed baseline units').waitFor();assert.equal(await page.getByLabel('Assumed baseline units').isVisible(),true);
- report.mobile={width:390,noDocumentOverflow:true,nativeFormAvailable:true};assert.deepEqual(report.errors,[]);report.status='passed';
+ report.mobile={width:390,noDocumentOverflow:true,htmlFormAvailable:true};assert.deepEqual(report.errors,[]);report.status='passed';
  }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{await browser.close();if(report.analysis){const a=report.analysis;report.analysis={source:a.source,taskId:a.taskId,summary:a.summary,presentation:a.presentation,comparisonId:a.comparison?.id};}fs.writeFileSync(path.join(folder,'deployed-journey.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,error:report.error,selectedProduct:report.selectedProduct,comparison:report.comparison,mobile:report.mobile,errors:report.errors}));}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

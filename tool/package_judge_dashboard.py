@@ -4,7 +4,7 @@ from pathlib import Path
 
 root=Path(__file__).resolve().parents[1]
 folder=root/'docs/judge-dashboard'
-version='0.17.0-dev.8'
+version='0.17.0-dev.9'
 source_root=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else root
 assert source_root==root or source_root.is_relative_to(root/'.tooling')
 archive=root/f'dist/raysto-ops-{version}-linux.tar'
@@ -12,7 +12,7 @@ output=archive.with_suffix('.tar.gz')
 assert not output.exists()
 assert not subprocess.check_output(['git','diff','HEAD','--','web/src','web/next.config.ts','web/package.json','web/package-lock.json'],cwd=source_root)
 source=subprocess.check_output(['git','rev-parse','HEAD'],cwd=source_root,text=True).strip()
-env=dict(line.split('=',1) for line in (root/'.tooling/design-console.env').read_text(encoding='utf-8').splitlines() if '=' in line and not line.startswith('#'))
+env=dict(line.split('=',1) for line in (root/'.tooling/judge-console.env').read_text(encoding='utf-8').splitlines() if '=' in line and not line.startswith('#'))
 assert env['NEXT_PUBLIC_RAYSTO_FINANCE_017']=='on' and env['NEXT_PUBLIC_RAYSTO_STUDIO']=='on'
 assert env['RAYSTO_OPS_ONLY']=='true'
 assert not env.get('NEXT_PUBLIC_RAYSTO_JUDGE_BUYER_PASSWORD','').strip('"\'')
