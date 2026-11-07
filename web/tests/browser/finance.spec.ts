@@ -11,7 +11,7 @@ test.beforeEach(() => {
 test("Today uses the shared financial summary and keeps its accounting basis visible", async ({
   page,
 }) => {
-  await page.goto("/ops/preview?section=overview");
+  await page.goto("/ops/preview?section=overview&view=details");
   const summary = page.getByRole("region", {
     name: "Recorded financial position",
   });

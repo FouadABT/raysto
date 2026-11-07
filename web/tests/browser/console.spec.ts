@@ -10,6 +10,7 @@ const shots = "test-results/console";
 
 async function openOverview(page: Page, query = "") {
   await page.goto(preview + query);
+  await page.getByRole("button", { name: "Open detailed reports & AI tools" }).click();
   await expect(page.locator(".ops-ov-greeting")).toBeVisible({
     timeout: 60000,
   });
@@ -78,7 +79,7 @@ test.describe("Shell and Overview", () => {
             (window as unknown as { __cls: number }).__cls += entry.value;
       }).observe({ type: "layout-shift", buffered: true });
     });
-    await page.goto(preview);
+    await openOverview(page);
     // Measured from the first Overview content, once the figures have arrived.
     await expect(page.locator(".ops-ov-kpi").first()).toBeVisible({
       timeout: 60000,
@@ -348,7 +349,7 @@ test.describe("money", () => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(preview + "?state=payouts");
-    await expect(page.locator(".ops-ov-greeting")).toBeVisible({
+    await expect(page.locator(".jr-welcome")).toBeVisible({
       timeout: 60000,
     });
     const side = page.locator(".ops-shell-side .ops-sections");

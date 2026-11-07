@@ -155,7 +155,7 @@ test("non-finance form drafts are guarded on navigation and modal dismissal", as
 test("guided entry places the useful control in view and keyboard focus returns from evidence", async ({
   page,
 }) => {
-  await page.goto("/ops/preview?section=finance");
+  await page.goto("/ops/preview?section=finance&state=slow-costs");
   await page.getByRole("button", { name: "Investigate a cost change" }).click();
   const guide = page.getByRole("region", { name: "One dish setup" });
   await expect(guide).toBeFocused();

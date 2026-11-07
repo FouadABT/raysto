@@ -10,6 +10,7 @@ import "../m3-shell.css";
 import "../m3-board.css";
 import "../m3-money.css";
 import "../design-workspace.css";
+import "../judge-dashboard.css";
 
 /** Development only: the signed-in console on the frozen dashboard fixtures. */
 export default async function PreviewPage() {

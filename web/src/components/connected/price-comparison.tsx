@@ -252,141 +252,151 @@ export function PriceComparisonPanel({
       )}
       {mode === "compare" && (
         <>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void run(async () => {
-                const baseline = Number(units),
-                  response = Number(volume),
-                  limit =
-                    cap === "" ? policy?.maxIncreaseBps : Number(cap) * 100;
-                if (
-                  !Number.isInteger(baseline) ||
-                  baseline < 1 ||
-                  !Number.isFinite(response) ||
-                  !Number.isInteger(limit)
-                )
-                  throw Error("Enter baseline units and valid percentages.");
-                const candidate = price === "" ? null : Number(price) * 100;
-                if (
-                  candidate != null &&
-                  (!Number.isFinite(candidate) ||
-                    Math.abs(candidate - Math.round(candidate)) > 0.00001)
-                )
-                  throw Error("Use a price with at most two decimal places.");
-                const data = {
-                  ...(value
-                    ? { parentId: value.id }
-                    : { productId: product.productId }),
-                  baselineUnits: baseline,
-                  volumeChangeBps: Math.round(response * 100),
-                  maxIncreaseBps: limit,
-                  candidatePriceMinor:
-                    candidate == null ? null : Math.round(candidate),
-                };
-                const next = await command<PriceComparison>(
-                  value
-                    ? "pricing.comparison.revise"
-                    : "pricing.comparison.create",
-                  data,
-                );
-                if (alive.current) {
-                  onChange(next);
+          <details className="jr-assumptions" open={!value || inputsDirty}>
+            <summary>Adjust the comparison assumptions</summary>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void run(async () => {
+                  const baseline = Number(units),
+                    response = Number(volume),
+                    limit =
+                      cap === "" ? policy?.maxIncreaseBps : Number(cap) * 100;
+                  if (
+                    !Number.isInteger(baseline) ||
+                    baseline < 1 ||
+                    !Number.isFinite(response) ||
+                    !Number.isInteger(limit)
+                  )
+                    throw Error("Enter baseline units and valid percentages.");
+                  const candidate = price === "" ? null : Number(price) * 100;
+                  if (
+                    candidate != null &&
+                    (!Number.isFinite(candidate) ||
+                      Math.abs(candidate - Math.round(candidate)) > 0.00001)
+                  )
+                    throw Error("Use a price with at most two decimal places.");
+                  const data = {
+                    ...(value
+                      ? { parentId: value.id }
+                      : { productId: product.productId }),
+                    baselineUnits: baseline,
+                    volumeChangeBps: Math.round(response * 100),
+                    maxIncreaseBps: limit,
+                    candidatePriceMinor:
+                      candidate == null ? null : Math.round(candidate),
+                  };
+                  const next = await command<PriceComparison>(
+                    value
+                      ? "pricing.comparison.revise"
+                      : "pricing.comparison.create",
+                    data,
+                  );
+                  if (alive.current) {
+                    onChange(next);
+                    setDirty(false);
+                    setInputsDirty(false);
+                    onDirty(false);
+                    setMessage("Comparison saved. No menu change was made.");
+                    await loadSaved();
+                  }
+                });
+              }}
+            >
+              <div className="ops-finance-select jr-core-assumptions">
+                <label>
+                  Assumed baseline units
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    required
+                    value={units}
+                    onChange={field(setUnits)}
+                  />
+                </label>
+                <label>
+                  Assumed volume change (%)
+                  <input
+                    type="number"
+                    min="-100"
+                    max="100"
+                    step="0.01"
+                    required
+                    value={volume}
+                    onChange={field(setVolume)}
+                  />
+                </label>
+              </div>
+              <details className="jr-price-settings">
+                <summary>Price limits & a price of your own</summary>
+                <div className="ops-finance-select">
+                  <label>
+                    Increase limit (%)
+                    <input
+                      type="number"
+                      min="0"
+                      max={(policy?.maxIncreaseBps ?? 0) / 100}
+                      step="0.01"
+                      placeholder={String((policy?.maxIncreaseBps ?? 0) / 100)}
+                      value={cap}
+                      onChange={field(setCap)}
+                    />
+                  </label>
+                  <label>
+                    Price to inspect ({product.currency})
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={price}
+                      onChange={field(setPrice)}
+                    />
+                  </label>
+                </div>
+              </details>
+              <p>
+                Volume is an owner assumption. No sales history or demand
+                prediction is inferred from these inputs.
+              </p>
+              <button
+                className="ops-btn"
+                disabled={busy || !product.complete || !policy?.confirmed}
+              >
+                {value ? "Recalculate as a new revision" : "Compare options"}
+              </button>
+              <button
+                type="button"
+                className="ops-btn secondary"
+                disabled={busy}
+                onClick={async () => {
+                  if (
+                    !(await confirmDiscard(
+                      "Your unsaved comparison inputs will be discarded.",
+                    ))
+                  )
+                    return;
+                  setUnits(value ? String(value.inputs.baselineUnits) : "");
+                  setVolume(
+                    value ? String(value.inputs.volumeChangeBps / 100) : "-10",
+                  );
+                  setCap(
+                    value ? String(value.inputs.maxIncreaseBps / 100) : "",
+                  );
+                  setPrice(
+                    value?.inputs.candidatePriceMinor
+                      ? String(value.inputs.candidatePriceMinor / 100)
+                      : "",
+                  );
                   setDirty(false);
                   setInputsDirty(false);
                   onDirty(false);
-                  setMessage("Comparison saved. No menu change was made.");
-                  await loadSaved();
-                }
-              });
-            }}
-          >
-            <div className="ops-finance-select">
-              <label>
-                Assumed baseline units
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  required
-                  value={units}
-                  onChange={field(setUnits)}
-                />
-              </label>
-              <label>
-                Assumed volume change (%)
-                <input
-                  type="number"
-                  min="-100"
-                  max="100"
-                  step="0.01"
-                  required
-                  value={volume}
-                  onChange={field(setVolume)}
-                />
-              </label>
-              <label>
-                Increase limit (%)
-                <input
-                  type="number"
-                  min="0"
-                  max={(policy?.maxIncreaseBps ?? 0) / 100}
-                  step="0.01"
-                  placeholder={String((policy?.maxIncreaseBps ?? 0) / 100)}
-                  value={cap}
-                  onChange={field(setCap)}
-                />
-              </label>
-              <label>
-                Price to inspect ({product.currency})
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={price}
-                  onChange={field(setPrice)}
-                />
-              </label>
-            </div>
-            <p>
-              Volume is an owner assumption. No sales history or demand
-              prediction is inferred from these inputs.
-            </p>
-            <button
-              className="ops-btn"
-              disabled={busy || !product.complete || !policy?.confirmed}
-            >
-              {value ? "Recalculate as a new revision" : "Compare options"}
-            </button>
-            <button
-              type="button"
-              className="ops-btn secondary"
-              disabled={busy}
-              onClick={async () => {
-                if (
-                  !(await confirmDiscard(
-                    "Your unsaved comparison inputs will be discarded.",
-                  ))
-                )
-                  return;
-                setUnits(value ? String(value.inputs.baselineUnits) : "");
-                setVolume(
-                  value ? String(value.inputs.volumeChangeBps / 100) : "-10",
-                );
-                setCap(value ? String(value.inputs.maxIncreaseBps / 100) : "");
-                setPrice(
-                  value?.inputs.candidatePriceMinor
-                    ? String(value.inputs.candidatePriceMinor / 100)
-                    : "",
-                );
-                setDirty(false);
-                setInputsDirty(false);
-                onDirty(false);
-              }}
-            >
-              Cancel input changes
-            </button>
-          </form>
+                }}
+              >
+                Cancel input changes
+              </button>
+            </form>
+          </details>
         </>
       )}
       {error && <p role="alert">{error}</p>}
@@ -469,27 +479,56 @@ export function PriceComparisonPanel({
                 <span className="ops-option-tag">
                   {o.targetMet ? "Target met" : "Below target"}
                 </span>
-                <dl>
-                  <div>
-                    <dt>Contribution per item*</dt>
-                    <dd>{fmt(o.contributionMinor)}</dd>
+                <div
+                  className="jr-option-visual"
+                  aria-label="Included variable cost and item contribution"
+                >
+                  <div className="jr-contribution-track" aria-hidden="true">
+                    <span
+                      style={{
+                        width:
+                          Math.max(
+                            0,
+                            Math.min(
+                              100,
+                              ((o.costMinor + o.feeMinor) /
+                                Math.max(1, o.netPriceMinor)) *
+                                100,
+                            ),
+                          ) + "%",
+                      }}
+                    />
+                    <span style={{ flex: 1 }} />
                   </div>
-                  <div>
-                    <dt>Contribution rate</dt>
-                    <dd>
-                      {o.contributionBps == null
-                        ? "Unknown"
-                        : `${o.contributionBps / 100}%`}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Break-even volume</dt>
-                    <dd>
-                      {o.breakEvenUnits ?? "Unavailable"}
-                      {o.breakEvenUnits == null ? "" : " units"}
-                    </dd>
-                  </div>
-                </dl>
+                  <p>
+                    Contribution per item*{" "}
+                    <strong>{fmt(o.contributionMinor)}</strong>
+                  </p>
+                </div>
+                <details className="jr-option-calculation">
+                  <summary>Contribution rate & break-even</summary>
+                  <dl>
+                    <div>
+                      <dt>Contribution per item*</dt>
+                      <dd>{fmt(o.contributionMinor)}</dd>
+                    </div>
+                    <div>
+                      <dt>Contribution rate</dt>
+                      <dd>
+                        {o.contributionBps == null
+                          ? "Unknown"
+                          : `${o.contributionBps / 100}%`}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Break-even volume</dt>
+                      <dd>
+                        {o.breakEvenUnits ?? "Unavailable"}
+                        {o.breakEvenUnits == null ? "" : " units"}
+                      </dd>
+                    </div>
+                  </dl>
+                </details>
                 <small>
                   *Before shared overhead. Break-even is against keeping the
                   current price at the same confirmed cost.

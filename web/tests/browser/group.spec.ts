@@ -20,7 +20,7 @@ async function openGroup(page: Page, problems: string[]) {
   });
   page.on("pageerror", (e) => problems.push(String(e)));
   await page.goto(preview);
-  await expect(page.locator(".ops-ov-greeting")).toBeVisible({
+  await expect(page.locator(".jr-welcome")).toBeVisible({
     timeout: 60000,
   });
   await chooseSection(page, "Group");
@@ -30,21 +30,22 @@ async function openGroup(page: Page, problems: string[]) {
 }
 
 test.describe("Group", () => {
-  test("the switcher above the venue picker narrows it to the group's venues", async ({
+  test("the switcher below the primary navigation narrows it to the group's venues", async ({
     page,
   }) => {
     await page.goto(preview);
-    await expect(page.locator(".ops-ov-greeting")).toBeVisible({
+    await expect(page.locator(".jr-welcome")).toBeVisible({
       timeout: 60000,
     });
     const side = page.locator(".ops-shell-side");
     const groupSelect = side.getByLabel("Group", { exact: true });
     const venueSelect = side.getByLabel("Restaurant", { exact: true });
+    await side.getByText("Group workspace", { exact: true }).click();
     await expect(groupSelect).toBeVisible();
-    // The switcher sits above the venue picker.
+    // The switcher sits below the primary navigation.
     const g = await groupSelect.boundingBox();
     const v = await venueSelect.boundingBox();
-    expect(g && v && g.y < v.y).toBeTruthy();
+    expect(g && v && g.y > v.y).toBeTruthy();
     await expect(venueSelect.locator("option")).toHaveCount(3);
     await groupSelect.selectOption({ label: "Atelier Group · Sample" });
     await expect(venueSelect.locator("option")).toHaveCount(2);

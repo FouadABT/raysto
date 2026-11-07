@@ -60,7 +60,7 @@ import { AccountantSection } from "./accountant-section";
 import { FinanceSection } from "./finance-section";
 import { DispatchSection } from "./dispatch-section";
 import { SuppliesSection } from "./supplies-section";
-import { OverviewSection } from "./overview-section";
+import { OverviewSection } from "./judge-home";
 import { FadeThrough, NavIndicator } from "./m3";
 import { RaystoGrid } from "./raysto-grid";
 import {
@@ -447,9 +447,15 @@ export function OperationsWorkspace({
       window.removeEventListener(workspaceRouteEvent, sync, true);
     };
   }, [section, judges, onDirty]);
-  async function navigate(next: Place, targetFocus?: string) {
+  async function navigate(
+    next: Place,
+    targetFocus?: string,
+    selection?: { product?: number; guided?: number },
+  ) {
     const changing =
-      next !== section || (targetFocus !== undefined && targetFocus !== focus);
+      next !== section ||
+      (targetFocus !== undefined && targetFocus !== focus) ||
+      !!selection;
     if (!changing) return;
     if (
       roomDraft.current &&
@@ -469,6 +475,7 @@ export function OperationsWorkspace({
     updateWorkspaceRoute({
       section: next,
       ...(targetFocus ? { tab: targetFocus } : {}),
+      ...selection,
     });
     routeRef.current = window.location.href;
   }
@@ -996,6 +1003,9 @@ export function OperationsWorkspace({
                     )}
                     person={person}
                     judges={judges}
+                    investigate={(product, view = "evidence") => {
+                      void navigate("finance", view, { product, guided: 1 });
+                    }}
                     open={(next, f) => {
                       void navigate(next, f);
                     }}

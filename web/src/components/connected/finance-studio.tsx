@@ -76,6 +76,7 @@ interface ContextValue {
   summary?: FinancialSummary;
   payouts: Json[];
   openProduct: (id: number) => void;
+  clearProductFilter: () => void;
   openReceipt: (id: number) => void;
 }
 const Context = createContext<ContextValue | null>(null);
@@ -204,7 +205,10 @@ function FinanceWidget({
         <button
           type="button"
           className="ops-btn secondary"
-          onClick={() => widgetApi?.resetCrossFilter()}
+          onClick={() => {
+            widgetApi?.resetCrossFilter();
+            value.clearProductFilter();
+          }}
         >
           Clear dish filter
         </button>
@@ -257,45 +261,63 @@ function FinanceWidget({
   return (
     <div className="ops-finance-panel">
       <h3>PayPal payout evidence</h3>
+      <p>
+        Up to three recent payouts are shown. Open Money for the full payment
+        records.
+      </p>
       {value.payouts.length ? (
-        value.payouts.slice(0, 6).map((p, i) => (
+        value.payouts.slice(0, 3).map((p, i) => (
           <div key={String(p.id ?? i)}>
             <p>
               {String(p.kind ?? "Payout")} ·{" "}
               {String(p.state ?? "Unknown state")} ·{" "}
               {currency(Number(p.totalMinor), String(p.currency))}
-              <br />
-              {p.providerBatchId
-                ? `PayPal batch ${String(p.providerBatchId)}`
-                : "No provider batch recorded. This is not proof of payment."}
             </p>
-            {Array.isArray(p.reviews) &&
-              (p.reviews as Json[]).map((r) => (
-                <p key={Number(r.actionId)}>
-                  {String(r.title)} · {String(r.status)} ·{" "}
-                  {r.approverUserId
-                    ? `reviewed ${String(r.decidedAt)}`
-                    : "No manual approver recorded; inspect the existing automation policy."}
-                </p>
-              ))}
-            {Array.isArray(p.items) &&
-              (p.items as Json[]).slice(0, 8).map((item) => (
+            {Array.isArray(p.items) && p.items.length > 0 ? (
+              (p.items as Json[]).slice(0, 3).map((item) => (
                 <p key={Number(item.id)}>
-                  Recipient item: {String(item.state)} ·{" "}
+                  Recipient preview: {String(item.state)} ·{" "}
                   {currency(Number(item.amountMinor), String(p.currency))}
-                  <br />
-                  {item.providerItemId
-                    ? String(item.providerItemId)
-                    : "No provider item reference yet."}
                 </p>
-              ))}
-            {((p.items as Json[] | undefined)?.length ?? 0) > 8 ||
-            p.itemsTruncated === true ? (
+              ))
+            ) : (
+              <p>Recipient completion is not yet recorded.</p>
+            )}
+            <details className="jr-payment-proof">
+              <summary>Approval & PayPal references</summary>
               <p>
-                Item preview is partial. Open Money to inspect all recipient
-                outcomes.
+                {p.providerBatchId
+                  ? `PayPal batch ${String(p.providerBatchId)}`
+                  : "No provider batch recorded. This is not proof of payment."}
               </p>
-            ) : null}
+              {Array.isArray(p.reviews) &&
+                (p.reviews as Json[]).map((r) => (
+                  <p key={Number(r.actionId)}>
+                    {String(r.title)} · {String(r.status)} ·{" "}
+                    {r.approverUserId
+                      ? `reviewed ${String(r.decidedAt)}`
+                      : "No manual approver recorded; inspect the existing automation policy."}
+                  </p>
+                ))}
+              {Array.isArray(p.items) &&
+                (p.items as Json[]).slice(0, 8).map((item) => (
+                  <p key={Number(item.id)}>
+                    Recipient item: {String(item.state)} ·{" "}
+                    {currency(Number(item.amountMinor), String(p.currency))}
+                    <br />
+                    {item.providerItemId
+                      ? String(item.providerItemId)
+                      : "No provider item reference yet."}
+                  </p>
+                ))}
+              {((p.items as Json[] | undefined)?.length ?? 0) > 8 ||
+              p.itemsTruncated === true ? (
+                <p>
+                  Item preview is partial. Open Money to inspect all recipient
+                  outcomes.
+                </p>
+              ) : null}
+            </details>
             <a href="?section=money">Open payment review and evidence</a>
           </div>
         ))
@@ -446,6 +468,8 @@ export function FinanceStudio({
   onScenario?: (s: PricingScenario) => void;
 }) {
   const canSave = useContext(WorkspaceStateContext)?.role === "owner";
+  const [selectedOnly, setSelectedOnly] = useState(true);
+  useEffect(() => setSelectedOnly(true), [productId, tenant]);
   const [compact, setCompact] = useState(false),
     [expanded, setExpanded] = useState(false);
   useEffect(() => {
@@ -811,6 +835,15 @@ export function FinanceStudio({
         Explore the data, arrange evidence widgets, or ask the financial
         analyst. Layout undo does not reverse a payment or menu change.
       </p>
+      {productId && (
+        <button
+          className="ops-btn secondary"
+          aria-pressed={selectedOnly}
+          onClick={() => setSelectedOnly((v) => !v)}
+        >
+          {selectedOnly ? "Show all dishes" : "Show selected dish only"}
+        </button>
+      )}
       <div className="ops-finance-select">
         {(
           [
@@ -893,10 +926,7 @@ export function FinanceStudio({
         value={{
           products: products.filter(
             (p) =>
-              (!compact ||
-                expanded ||
-                !productId ||
-                p.productId === productId) &&
+              (!selectedOnly || !productId || p.productId === productId) &&
               (!view ||
                 view.completeness === "all" ||
                 p.complete === (view.completeness === "complete")),
@@ -907,6 +937,7 @@ export function FinanceStudio({
           payouts,
           openProduct,
           openReceipt,
+          clearProductFilter: () => setSelectedOnly(false),
         }}
       >
         {compact && !expanded && (
@@ -987,9 +1018,13 @@ export function FinanceStudio({
                         data: products
                           .filter(
                             (p) =>
-                              !view ||
-                              view.completeness === "all" ||
-                              p.complete === (view.completeness === "complete"),
+                              (!selectedOnly ||
+                                !productId ||
+                                p.productId === productId) &&
+                              (!view ||
+                                view.completeness === "all" ||
+                                p.complete ===
+                                  (view.completeness === "complete")),
                           )
                           .toSorted((a, b) =>
                             view?.sort === "contribution"

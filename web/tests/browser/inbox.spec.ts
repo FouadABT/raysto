@@ -11,6 +11,7 @@ const shots = "test-results/inbox";
 
 async function open(page: Page, query: string) {
   await page.goto(`/ops/preview${query}`);
+  await page.getByRole("button", { name: "Open detailed reports & AI tools" }).click();
   await expect(page.locator(".ops-ov-greeting")).toBeVisible({
     timeout: 60000,
   });

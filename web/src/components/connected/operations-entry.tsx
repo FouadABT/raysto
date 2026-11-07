@@ -180,7 +180,7 @@ export function OperationsEntry() {
     <main className="ops-root">
       <header className="ops-top">
         <Wordmark />
-        <span className="ops-tag">THE RESTAURANT ROOM</span>
+        <span className="ops-tag">CAFÉ WORKSPACE</span>
         {signedIn && (
           <button className="ops-quiet" onClick={leave}>
             <Icon name="signOut" size={18} />
@@ -203,13 +203,13 @@ export function OperationsEntry() {
           <div className="ops-welcome-story">
             <span className="ops-eyebrow">A LITTLE MORE HOSPITALITY</span>
             <h1>
-              A room full
+              One café.
               <br />
-              of possibilities.
+              One clear decision.
             </h1>
             <p>
-              Your tables, team and guests. One shared view, with Raysto close
-              at hand.
+              Trace a supplier cost into a dish, compare prices and inspect the
+              approved payment outcome.
             </p>
             <ul className="ops-welcome-points">
               <li>
@@ -244,8 +244,9 @@ export function OperationsEntry() {
               <div className="ops-judge-entry">
                 <span className="ops-eyebrow">DEMO CAFÉ</span>
                 <p>
-                  One click into a shared demo café, where AI coworkers prepare
-                  the work and you approve it. Payments run in PayPal Sandbox.
+                  Start with a prepared café story. Explore the evidence,
+                  compare options and review the outcome. Business records are
+                  illustrative; payments use PayPal Sandbox.
                 </p>
                 <button
                   type="button"
@@ -572,9 +573,14 @@ export function ConsoleShell({
           <aside className="ops-shell-side" aria-label="Console">
             <div className="ops-shell-brand">
               <Wordmark />
-              <span className="ops-tag">THE RESTAURANT ROOM</span>
+              <span className="ops-tag">CAFÉ WORKSPACE</span>
             </div>
-            <GroupSwitcher choice={choice} className="in-side" />
+            {choice.groups.length > 0 && (
+              <details className="jr-group-switch">
+                <summary>Group workspace</summary>
+                <GroupSwitcher choice={choice} className="in-side" />
+              </details>
+            )}
             <VenuePicker
               memberships={venues}
               selected={selected}

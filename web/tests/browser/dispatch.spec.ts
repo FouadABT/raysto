@@ -20,7 +20,7 @@ async function openDispatch(page: Page) {
     route.fulfill({ status: 200, contentType: "image/png", body: blank }),
   );
   await page.goto(preview);
-  await expect(page.locator(".ops-ov-greeting")).toBeVisible({
+  await expect(page.locator(".jr-welcome")).toBeVisible({
     timeout: 60000,
   });
   await chooseSection(page, "Dispatch");

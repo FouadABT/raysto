@@ -91,7 +91,7 @@ export function FinanceSection({
       guideRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
       guideRef.current?.focus({ preventScroll: true });
     }
-  }, [guided, view]);
+  }, [guided, view, products.length]);
   const [newDishVersion, setNewDishVersion] = useState<number>();
   const [setup, setSetup] = useState<Json>();
   const [comparisonDirty, setComparisonDirty] = useState(false);
@@ -428,27 +428,31 @@ export function FinanceSection({
               · recipe {product.recipeVersion}
             </p>
           </div>
-          <dl>
-            <div>
-              <dt>Menu price</dt>
-              <dd>{fmt(product.priceMinor)}</dd>
-            </div>
-            <div>
-              <dt>Replacement cost</dt>
-              <dd>{fmt(product.replacementCostMinor)}</dd>
-            </div>
-            <div>
-              <dt>Contribution*</dt>
-              <dd>{fmt(product.contributionMinor)}</dd>
-            </div>
-          </dl>
+          {view !== "evidence" && (
+            <dl>
+              <div>
+                <dt>Menu price</dt>
+                <dd>{fmt(product.priceMinor)}</dd>
+              </div>
+              <div>
+                <dt>Replacement cost</dt>
+                <dd>{fmt(product.replacementCostMinor)}</dd>
+              </div>
+              <div>
+                <dt>Contribution*</dt>
+                <dd>{fmt(product.contributionMinor)}</dd>
+              </div>
+            </dl>
+          )}
           <button
             className="ops-btn secondary"
             onClick={() => setView("investigate")}
           >
             Change dish
           </button>
-          <small>*Before fees and shared overhead</small>
+          {view !== "evidence" && (
+            <small>*Before fees and shared overhead</small>
+          )}
         </div>
       )}
       {error && (
@@ -827,7 +831,7 @@ export function FinanceSection({
               className="ops-finance-panel"
               aria-label={`${product.name} cost evidence`}
             >
-              <h3>{product.name}</h3>
+              <h3>The cost behind this dish</h3>
               <dl className="ops-finance-figures">
                 <div>
                   <dt>Menu price</dt>
@@ -922,6 +926,14 @@ export function FinanceSection({
                 disabled={busy || editRecipe || showPolicy}
               >
                 Edit recipe and packaging
+              </button>
+              <button
+                className="ops-btn"
+                type="button"
+                disabled={busy || !product.complete}
+                onClick={() => setView("compare")}
+              >
+                Compare price options <span aria-hidden="true">→</span>
               </button>
               {editRecipe && (
                 <RecipeEditor

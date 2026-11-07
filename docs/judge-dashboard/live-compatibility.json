@@ -1,0 +1,10 @@
+{
+  "checkedAtUtc": "2026-11-07T01:16:30.998Z",
+  "managerAuthenticated": true,
+  "existingMenuReadable": true,
+  "costingReadable": true,
+  "completeDishAvailable": true,
+  "invalidSessionRejected": true,
+  "backendSource": "c2221d33de33a6417e0c584ee2ca942c2e7b415d",
+  "provenance": "Authorized reads on the deployed USD sample café; no model or financial action."
+}

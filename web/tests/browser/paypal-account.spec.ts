@@ -11,7 +11,7 @@ const shots = "test-results/paypal-account";
 
 async function open(page: Page, state = "paypal") {
   await page.goto(`/ops/preview?state=${state}`);
-  await expect(page.locator(".ops-ov-greeting")).toBeVisible({
+  await expect(page.locator(".jr-welcome")).toBeVisible({
     timeout: 60000,
   });
   await chooseSection(page, "Money");
