@@ -1,0 +1,41 @@
+{
+  "recordedAtUtc": "2026-11-07T02:51:03.612Z",
+  "status": "PostgreSQL online; Awhar API/websites HTTP 200; device confirmation requested",
+  "finding": "Console extraction exhausted available host disk. PostgreSQL was subsequently observed stopped; Awhar application process remained running and reported database connections refused.",
+  "recovery": {
+    "postgresStartedWithExplicitUserApproval": true,
+    "cluster": "16/main",
+    "databaseReset": false,
+    "migrationRun": false,
+    "awharProcessRestarted": false,
+    "nginxChanged": false,
+    "awharPid": 3060831,
+    "awharDatabaseConnections": 10,
+    "httpStatuses": {
+      "api.awhar.com": 200,
+      "app.awhar.com": 200,
+      "awhar.com": 200
+    },
+    "freeBytesAfterCleanup": 1866604544,
+    "availableMemoryBytes": 2343280640,
+    "kernelOutOfMemoryMarkers": 0,
+    "kernelNoSpaceMarkers": 8
+  },
+  "cleanup": {
+    "scope": "Only inactive Raysto console builds with verified local archives, the incomplete dev.9 extraction and an unused dev.8 staging archive",
+    "localArchiveRecord": "docs/judge-dashboard/retained-old-console-artifacts.json",
+    "currentAndPreviousConsoleRetained": true,
+    "backendReleasesDatabasesUploadsAndAwharFilesNotDeleted": true
+  },
+  "prevention": {
+    "preUploadAndPreExtractionDiskChecks": true,
+    "minimumRemainingDiskReserveBytes": 1073741824,
+    "freeInodeCheck": true,
+    "memoryHeadroomCheck": true,
+    "streamingArtifactHashes": true,
+    "preflightVerifiedReadOnly": true,
+    "preflightEvidence": "docs/judge-dashboard/resource-preflight.json",
+    "requiresAwharAndPostgresOnline": true
+  },
+  "rollout": "Held while recovery is verified; corrected console has not been activated."
+}

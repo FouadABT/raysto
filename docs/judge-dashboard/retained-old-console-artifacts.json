@@ -1,0 +1,66 @@
+[
+  {
+    "version": "0.16.2",
+    "artifact": "dist/raysto-ops-0.16.2-linux-x64.tar.gz",
+    "sha256": "710cf80fae8cb180b3ac9a1c1742e85e47b9de4b82cab9d1855be6b0f7dd41fb",
+    "bytes": 75372638,
+    "tarReadable": true,
+    "remoteRelease": "0.16.2-20261103"
+  },
+  {
+    "version": "0.16.3",
+    "artifact": "dist/raysto-ops-0.16.3-linux-x64.tar.gz",
+    "sha256": "d863e2f6769e7f4596bbbcb7b4258447c162507abff2dffdd2f8b9b307c1cd13",
+    "bytes": 75373079,
+    "tarReadable": true,
+    "remoteRelease": "0.16.3-20261103"
+  },
+  {
+    "version": "0.16.4",
+    "artifact": "dist/raysto-ops-0.16.4-linux-x64.tar.gz",
+    "sha256": "0729199ac010437fcd078e1fb6f09b44fcf478a325eebcf1082ee8584dca24a7",
+    "bytes": 75374625,
+    "tarReadable": true,
+    "remoteRelease": "0.16.4-20261103"
+  },
+  {
+    "version": "0.16.5",
+    "artifact": "dist/raysto-ops-0.16.5-linux-x64.tar.gz",
+    "sha256": "9ae4ea8de9f74da894c02337f166a50eb475da094e8bb931683d5069f2d9799d",
+    "bytes": 75376012,
+    "tarReadable": true,
+    "remoteRelease": "0.16.5-20261103"
+  },
+  {
+    "version": "0.17.0",
+    "artifact": "dist/raysto-ops-0.17.0-linux-x64.tar.gz",
+    "sha256": "a54b6d9153c6bde93e6efaccb7e612c6830fc10ce6f530f112230cee5f809162",
+    "bytes": 76898213,
+    "tarReadable": true,
+    "remoteRelease": "0.17.0-20261104"
+  },
+  {
+    "version": "0.17.1",
+    "artifact": "dist/raysto-ops-0.17.1-linux-x64.tar.gz",
+    "sha256": "7871e7fc5b9c19b6c9e953d7c2c9b8e02eba813e26e9dd062c2cbdda2229a0aa",
+    "bytes": 76898198,
+    "tarReadable": true,
+    "remoteRelease": "0.17.1-20261104"
+  },
+  {
+    "version": "0.17.2",
+    "artifact": "dist/raysto-ops-0.17.2-linux-x64.tar.gz",
+    "sha256": "ff2b912fd77b82952f8f8b236c331ac643123d6781aa76070a6e482f8dfc3fed",
+    "bytes": 76896660,
+    "tarReadable": true,
+    "remoteRelease": "0.17.2-20261104"
+  },
+  {
+    "version": "0.17.3",
+    "artifact": "dist/raysto-ops-0.17.3-linux-x64.tar.gz",
+    "sha256": "2d7c017d9355cb8ad29b02de6aab67a18f089f983b34ad2af411b69d33b6bafb",
+    "bytes": 76896857,
+    "tarReadable": true,
+    "remoteRelease": "0.17.3-20261104"
+  }
+]
