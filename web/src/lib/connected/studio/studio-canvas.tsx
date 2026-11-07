@@ -339,6 +339,19 @@ function StudioOn({
         </p>
       </section>
     );
+  if (
+    !data.sources.length ||
+    (data.sources.every((s) => s.data.length === 0) &&
+      data.sources.some((s) => !s.fields?.length))
+  )
+    return (
+      <section className="ops-studio ops-panel" aria-label={label}>
+        <p className="ops-note" role="status">
+          No analytical rows are available for this view yet. Check the selected
+          period and source records.
+        </p>
+      </section>
+    );
   return (
     <>
       {(editable || ai) && (

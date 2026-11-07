@@ -4,7 +4,7 @@ Reviewed: 7 November 2026. Scope: owner web console, shared shell and costing/pr
 
 ## Findings from the deployed baseline
 
-The first screen placed an electricity-bill payment approval and four unrelated assistant starters ahead of the café figures. An unfamiliar reviewer had to choose among financial actions before understanding the problem. At 1440 × 1000, the overview measured 3292 CSS pixels high and exposed 38 visible buttons, including navigation. The scan covered all twelve destinations; none had document-level horizontal overflow at that desktop size. These are interface measurements, not owner usability results. Exact headings and counts are in audit-before.json.
+The first screen placed an electricity-bill payment approval and four unrelated assistant starters ahead of the café figures. An unfamiliar reviewer had to choose among financial actions before understanding the problem. At 1440 × 1000, the overview measured 3292 CSS pixels high and contained 38 button elements with layout boxes, including navigation. The original count includes controls in collapsed native disclosures, so it is not a count of immediately available choices. The scan covered all twelve destinations; none had document-level horizontal overflow at that desktop size. These are interface measurements, not owner usability results. Exact headings and counts are in audit-before.json.
 
 - Today: critical hierarchy problem; approvals, summary, alerts, four KPIs, charts and full Studio competed for attention.
 - Sales and margins: six stages plus a duplicate desktop/mobile selector; repeated dish figures and technical references crowded the decision.
@@ -36,3 +36,7 @@ These sources inform design decisions; they do not certify this application. No 
 The local connected audit could not authenticate against the isolated preview configuration. It is excluded from acceptance; local browser checks use explicitly labeled authored fixtures. Public acceptance must use the deployed candidate and actual authorized café reads. UI fixtures do not establish model, provider or owner-pilot acceptance.
 
 No restaurant-owner sessions are confirmed. A simpler first view and fewer controls do not prove unaided task completion or a 10/10 score. Android physical review remains deferred by the user. Existing backend accounting-basis limitations and provider evidence remain part of the release record.
+
+## Public-scan correction
+
+The first public scan of dev.7 found a Group Studio schema failure when the ledger contained no rows. The follow-up candidate declares Group field schemas without dummy records. Its Money view withholds the analytical result for empty or truncated revenue/cost previews and labels nonempty results as recorded journal entries, not verified operating profit. The dev.7 scan and deployment records are retained separately. Static chart captures use reduced motion so an offscreen entrance animation is not mistaken for an empty chart.

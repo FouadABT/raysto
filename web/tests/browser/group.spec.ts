@@ -63,12 +63,10 @@ test.describe("Group", () => {
     const problems: string[] = [];
     await openGroup(page, problems);
     await expect(
-      page
-        .getByRole("note")
-        .filter({
-          hasText:
-            "share one Sandbox merchant; in production each connects its own PayPal.",
-        }),
+      page.getByRole("note").filter({
+        hasText:
+          "share one Sandbox merchant; in production each connects its own PayPal.",
+      }),
     ).toBeVisible();
     // Two currencies, two totals: a dollar is never added to a euro.
     await expect(
@@ -172,4 +170,56 @@ test.describe("Group", () => {
       page.getByRole("heading", { name: /Move stock from Atelier Café/ }),
     ).toBeVisible();
   });
+});
+
+test("empty ledger data leaves Group Studio usable without a schema error", async ({
+  page,
+}) => {
+  const problems: string[] = [];
+  page.on("console", (m) => {
+    if (
+      m.type() === "error" &&
+      /Fatal error|no fields|does not exist in the schema/.test(m.text())
+    )
+      problems.push(m.text());
+  });
+  await page.goto("/ops/preview?section=group&state=group&emptyLedger=1");
+  await expect(
+    page.getByRole("heading", { name: "Atelier Group · Sample", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Atelier Group · Sample: Portfolio" }),
+  ).toBeVisible({ timeout: 30000 });
+  await page.getByRole("tab", { name: "Money", exact: true }).click();
+  await expect(
+    page.getByText(
+      "No revenue or cost entries are available for this currency and period. No operating result is shown.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Atelier Group · Sample: Money" }),
+  ).toHaveCount(0);
+  expect(problems).toEqual([]);
+});
+
+test("an empty accountant view explains missing rows without a Studio schema error", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("console", (m) => {
+    if (
+      m.type() === "error" &&
+      /Fatal error|no fields|does not exist in the schema/.test(m.text())
+    )
+      errors.push(m.text());
+  });
+  await page.goto("/ops/preview?section=accountant&tab=pnl&emptyBooks=1");
+  await expect(
+    page.getByText(
+      "No analytical rows are available for this view yet. Check the selected period and source records.",
+      { exact: true },
+    ),
+  ).toBeVisible({ timeout: 30000 });
+  expect(errors).toEqual([]);
 });

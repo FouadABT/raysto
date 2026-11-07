@@ -4,7 +4,7 @@ from pathlib import Path
 
 root=Path(__file__).resolve().parents[1]
 folder=root/'docs/judge-dashboard'
-version='0.17.0-dev.7'
+version='0.17.0-dev.8'
 source_root=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else root
 assert source_root==root or source_root.is_relative_to(root/'.tooling')
 archive=root/f'dist/raysto-ops-{version}-linux.tar'

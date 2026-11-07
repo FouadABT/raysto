@@ -316,6 +316,17 @@ function fixtureApi({
           "unavailable",
           "Illustrative financial report failure.",
         );
+      if (
+        state === "group" &&
+        name === "group.ledger" &&
+        new URLSearchParams(window.location.search).get("emptyLedger") === "1"
+      )
+        return { rows: [], truncated: false } as T;
+      if (
+        name === "ledger.pnl" &&
+        new URLSearchParams(window.location.search).get("emptyBooks") === "1"
+      )
+        return { rows: [] } as T;
       const handler = queries[name];
       return (handler ? handler(params) : { rows: [] }) as T;
     },

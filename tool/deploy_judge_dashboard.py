@@ -18,10 +18,10 @@ from datetime import datetime,timezone
 assert os.geteuid()==0;os.umask(0o077)
 c=json.loads(base64.b64decode('PAYLOAD'));archive=Path(c['archive']);assert archive.parent==Path('/home/ubuntu/raysto-upload')
 assert hashlib.sha256(archive.read_bytes()).hexdigest()==c['sha256']
-assert c['version']=='0.17.0-dev.7'
+assert c['version']=='0.17.0-dev.8'
 assert Path('/opt/raysto/current').resolve().name=='0.17.0-dev.6-20261106'
-current=Path('/opt/raysto/ops/current');previous=current.resolve(strict=True);release=Path('/opt/raysto/ops/releases/0.17.0-dev.7-20261107')
-assert previous.parent==release.parent and previous.name=='0.17.0-dev.6-20261106' and not release.exists()
+current=Path('/opt/raysto/ops/current');previous=current.resolve(strict=True);release=Path('/opt/raysto/ops/releases/0.17.0-dev.8-20261107')
+assert previous.parent==release.parent and previous.name=='0.17.0-dev.7-20261107' and not release.exists()
 def run(*args):return subprocess.check_output(args,stderr=subprocess.PIPE).decode().strip()
 def baseline():return [run('systemctl','show','awhar-server','-p','MainPID','--value'),hashlib.sha256(Path('/etc/nginx/sites-available/awhar.com').read_bytes()).hexdigest()]
 before=baseline();runtime=Path('/etc/raysto/runtime.env');old=runtime.read_bytes();switched=False

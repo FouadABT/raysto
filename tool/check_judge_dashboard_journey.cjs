@@ -7,7 +7,7 @@ const folder=path.join(root,'docs/judge-dashboard'),shots=path.join(folder,'scre
  const report={checkedAtUtc:new Date().toISOString(),consoleSource:release.sourceCommit,backendSource:'c2221d33de33a6417e0c584ee2ca942c2e7b415d',provenance:'Actual deployed UI and Gemini on authored USD sample records. No owner pilot, price publication or money action.',errors:[]};
  const api=await session('manager'),policy=await api.query('pricing.policy'),costs=await api.query('costing.products');
  const browser=await chromium.launch({channel:'msedge',headless:true});fs.mkdirSync(shots,{recursive:true});
- try{const page=await browser.newPage({viewport:{width:1440,height:1000}});page.on('pageerror',e=>report.errors.push(e.message));
+ try{const page=await browser.newPage({viewport:{width:1440,height:1000}});await page.emulateMedia({reducedMotion:'reduce'});page.on('pageerror',e=>report.errors.push(e.message));
  page.on('response',async response=>{if(response.url().includes('finance.analysis')&&response.ok())try{const raw=await response.json();report.analysis=raw.data??raw;}catch{}});
  await page.goto('https://ops.rays.to/ops?judge=1',{waitUntil:'domcontentloaded'});
  await page.getByRole('heading',{name:'One café. One clear decision.',exact:true}).waitFor({timeout:60000});
@@ -53,5 +53,5 @@ const folder=path.join(root,'docs/judge-dashboard'),shots=path.join(folder,'scre
  if(!await page.getByLabel('Assumed baseline units').isVisible())await page.getByText('Adjust the comparison assumptions',{exact:true}).click();
  await page.getByLabel('Assumed baseline units').waitFor();assert.equal(await page.getByLabel('Assumed baseline units').isVisible(),true);
  report.mobile={width:390,noDocumentOverflow:true,nativeFormAvailable:true};assert.deepEqual(report.errors,[]);report.status='passed';
- }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{await browser.close();fs.writeFileSync(path.join(folder,'deployed-journey.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,error:report.error,selectedProduct:report.selectedProduct,comparison:report.comparison,mobile:report.mobile,errors:report.errors}));}
+ }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{await browser.close();if(report.analysis){const a=report.analysis;report.analysis={source:a.source,taskId:a.taskId,summary:a.summary,presentation:a.presentation,comparisonId:a.comparison?.id};}fs.writeFileSync(path.join(folder,'deployed-journey.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,error:report.error,selectedProduct:report.selectedProduct,comparison:report.comparison,mobile:report.mobile,errors:report.errors}));}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

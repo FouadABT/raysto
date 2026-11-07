@@ -20,7 +20,7 @@ export default defineConfig({
   },
   webServer: {
     command: `node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port ${port}`,
-    url: `http://127.0.0.1:${port}`,
+    url: `http://127.0.0.1:${port}/ops/preview`,
     reuseExistingServer: true,
     timeout: 120000,
   },

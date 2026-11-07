@@ -32,16 +32,13 @@ import {
 } from "@/lib/connected/grid-columns";
 import {
   agingBucket,
-  compareRows,
   currenciesOf,
   groupOfVenue,
   parseTemplateLines,
-  pnlRows,
   rangeLabel,
   readsMoney,
   roleLabel,
   totalsByCurrency,
-  venueRows,
   type CompareRow,
   type GroupOverview,
   type GroupRange,
@@ -52,6 +49,7 @@ import {
   type VenueFigures,
 } from "@/lib/connected/group";
 import { StudioCanvas } from "@/lib/connected/studio/studio-canvas";
+import { groupStudioSources } from "@/lib/connected/studio/group-sources";
 import { groupPages } from "@/lib/connected/studio/pages";
 import {
   groupAssistant,
@@ -315,12 +313,20 @@ function GroupView({
 
   // Studio's sources: one currency at a time, refreshed in place.
   const sources = useMemo(
-    () => [
-      { id: "venues", data: venueRows(venues ?? [], cur) },
-      { id: "days", data: compareRows(compare.data ?? [], cur) },
-      { id: "pnl", data: pnlRows(ledger.data?.rows ?? [], cur) },
-    ],
+    () =>
+      groupStudioSources(
+        venues ?? [],
+        compare.data ?? [],
+        ledger.data?.rows ?? [],
+        cur,
+      ),
     [venues, compare.data, ledger.data, cur],
+  );
+  const moneyAvailable = Boolean(
+    ledger.data &&
+    !ledger.error &&
+    !ledger.data.truncated &&
+    sources.find((s) => s.id === "pnl")?.data.length,
   );
   const initial = useMemo(() => groupPages(cur, money), [cur, money]);
   const scope = useMemo<ToolScope>(
@@ -472,53 +478,71 @@ function GroupView({
           </button>
         ))}
       </div>
-      {studioPagesIds.has(page) && overview.data && !overview.error && (
-        <>
-          <div className="ops-group-studio-bar">
-            {currencies.length > 1 ? (
-              <div className="ops-chips" role="group" aria-label="Currency">
-                {currencies.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    aria-pressed={cur === c}
-                    onClick={() => setPicked(c)}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <small>
-              Amounts in {cur}
-              {currencies.length > 1
-                ? "; Studio shows one currency at a time and never adds two together."
-                : "."}
-              {owner && !judges
-                ? " Your layout is saved for you."
-                : judges
-                  ? " Rearrange freely: the demo café never saves a layout."
-                  : ""}
-            </small>
-          </div>
-          <StudioCanvas
-            key={`${cur}-${money}`}
-            label={`${group.name}: ${pages.find(([id]) => id === page)?.[1] ?? "Portfolio"}`}
-            sources={sources}
-            initialState={initial}
-            page={page}
-            editable={owner || judges}
-            height={780}
-            layoutKey={{
-              api,
-              scope: `group:${group.id}`,
-              section: "group",
-              save: owner && !judges,
-            }}
-            ai={owner || judges ? assistant : undefined}
-          />
-        </>
+      {page === "money" && !moneyAvailable && (
+        <p className="ops-note" role="note">
+          {ledger.loading
+            ? "Loading recorded money entries…"
+            : ledger.data?.truncated
+              ? "The journal preview is incomplete. Narrow the period before inspecting a result."
+              : "No revenue or cost entries are available for this currency and period. No operating result is shown."}
+        </p>
       )}
+      {page === "money" && moneyAvailable && (
+        <p className="ops-note">
+          These are recorded journal entries, not a verified operating-profit
+          figure. Compare only compatible accounting periods and bases.
+        </p>
+      )}
+      {studioPagesIds.has(page) &&
+        overview.data &&
+        !overview.error &&
+        (page !== "money" || moneyAvailable) && (
+          <>
+            <div className="ops-group-studio-bar">
+              {currencies.length > 1 ? (
+                <div className="ops-chips" role="group" aria-label="Currency">
+                  {currencies.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={cur === c}
+                      onClick={() => setPicked(c)}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <small>
+                Amounts in {cur}
+                {currencies.length > 1
+                  ? "; Studio shows one currency at a time and never adds two together."
+                  : "."}
+                {owner && !judges
+                  ? " Your layout is saved for you."
+                  : judges
+                    ? " Rearrange freely: the demo café never saves a layout."
+                    : ""}
+              </small>
+            </div>
+            <StudioCanvas
+              key={`${cur}-${money}`}
+              label={`${group.name}: ${pages.find(([id]) => id === page)?.[1] ?? "Portfolio"}`}
+              sources={sources}
+              initialState={initial}
+              page={page}
+              editable={owner || judges}
+              height={780}
+              layoutKey={{
+                api,
+                scope: `group:${group.id}`,
+                section: "group",
+                save: owner && !judges,
+              }}
+              ai={owner || judges ? assistant : undefined}
+            />
+          </>
+        )}
       {page === "portfolio" && (
         <VenuesGrid
           venues={venues}

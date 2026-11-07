@@ -115,11 +115,11 @@ export function groupPages(_currency: string, money: boolean): StudioState {
     widgets: {
       venue: listFilter("Venue", "pnl.venue"),
       month: listFilter("Month", "pnl.month"),
-      net: value(`Profit after costs`, "pnl.amount"),
+      net: value(`Recorded journal result`, "pnl.amount"),
       pnl: {
         type: "pivot-grid",
         format: {
-          ...title(`Profit and loss by venue; costs are negative, the total row is profit`),
+          ...title(`Recorded revenue and costs by venue; costs are negative`),
           style: { grandTotalRow: { enabled: true }, totalColumns: true },
         },
         dataMapping: {
@@ -130,7 +130,7 @@ export function groupPages(_currency: string, money: boolean): StudioState {
       },
       byMonth: {
         type: "column-chart-grouped",
-        format: title(`Revenue and costs by month`),
+        format: title(`Recorded revenue and costs by month`),
         dataMapping: {
           categoryKey: [{ id: "pnl.month" }],
           valueKey: [{ id: "pnl.amount", aggregation: "sum" }],
