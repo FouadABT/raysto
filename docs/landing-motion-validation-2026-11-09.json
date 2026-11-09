@@ -1,0 +1,76 @@
+{
+  "recordedAtUtc": "2026-11-09T03:03:15.725Z",
+  "source": {
+    "baseline": "85aa5cdaa316f9e35a6817e44949e0b39cb2da9a",
+    "commit": "ba7ef32188278739e216d37d178f7c7dd00df479",
+    "pushed": false
+  },
+  "artifact": {
+    "buildId": "R7zzwlAPY8i361j8BO7qz",
+    "platform": "Windows local standalone",
+    "compiledServerAndStaticFingerprint": {
+      "sha256": "b4961a315bf78b6c4a46756574b2caf33918fb3c47cbfadf1317b435458c9032",
+      "files": 586,
+      "bytes": 61028153,
+      "algorithm": "SHA-256 of codepoint-sorted relative path + NUL + file SHA-256 + newline",
+      "includes": [
+        "server/**",
+        "static/**"
+      ],
+      "excludes": [
+        "runtime dependencies",
+        "public assets",
+        "standalone launcher"
+      ]
+    },
+    "localUrl": "http://127.0.0.1:3110/"
+  },
+  "diagnosis": {
+    "browser": "Existing user in-app browser tab",
+    "observedReducedMotion": true,
+    "pagePreferenceChecked": false,
+    "observation": "Browser matchMedia reduce=true, page data-reduce-motion=true, hero transform none",
+    "browserOrSystemPreferenceChanged": false,
+    "refreshedAndObserved": true
+  },
+  "changes": [
+    "More pronounced finite GSAP sequences",
+    "Hero, journey and AI replay controls",
+    "Visible explanation for disabled replay under reduced motion",
+    "AI and supported PayPal payments emphasized across the page",
+    "Human approval, Sandbox and illustrative provenance retained"
+  ],
+  "checks": {
+    "productionBuild": "passed",
+    "typescript": "passed",
+    "browser": {
+      "tests": 17,
+      "status": "passed",
+      "failed": 0,
+      "log": ".tooling/landing-motion-browser-final.log",
+      "output": "web/test-results/marketing-motion-final/"
+    },
+    "actualMovement": "Computed dashboard transform changes between replay samples",
+    "reducedMode": "Replay remains disabled after the app switch is turned off while browser reduce remains on",
+    "apiRequestsInReplayTest": 0,
+    "newPerformanceCertification": false
+  },
+  "evidence": {
+    "normalRecording": "web/test-results/marketing-motion-final/marketing-motion-visible-G-16250-cts-the-AI-and-PayPal-story/video.webm",
+    "reducedRecording": "web/test-results/marketing-motion-final/marketing-motion-reduced-m-ba7a7-rence-without-overriding-it/video.webm",
+    "currentBrowserScreenshot": ".tooling/landing-production/current-browser-motion.jpg",
+    "report": "docs/landing-motion-followup-2026-11-09.md"
+  },
+  "boundaries": {
+    "backendChanges": false,
+    "providerActions": false,
+    "remoteServiceRestarts": false,
+    "deployed": false,
+    "productionHold": true
+  },
+  "limitations": [
+    "The existing user browser still requests reduced motion; live animations remain suppressed there.",
+    "Previous performance figures apply to the earlier landing candidate.",
+    "Real email recipient and legal pages remain unresolved from the previous phase."
+  ]
+}

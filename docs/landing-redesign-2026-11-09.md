@@ -2,6 +2,8 @@
 
 Implemented from the user-supplied `Raysto_Landing_Design_and_Motion_Guide.pdf`, version 1.0. The PDF is a design reference, not permission to publish, send messages, invent integrations or replace existing business rules.
 
+Follow-up: [more visible/replayable motion and stronger PayPal/AI messaging](landing-motion-followup-2026-11-09.md). The source and measurements below describe the initial redesign; the follow-up has its own validation record.
+
 ## Scope and composition
 
 The operator-focused homepage is `/`. The existing guest experience remains `/discover`, its local account chooser remains `/login`, and connected sign-in remains `/ops`. Production deployment remains held. No backend, native app, database, Nginx, AWS or Awhar service change is part of this work.
