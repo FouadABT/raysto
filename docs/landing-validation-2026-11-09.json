@@ -1,0 +1,749 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-11-09T02:36:32.977Z",
+  "source": {
+    "baseline": "c201bf9e00b98454e8417fc2645782a69acd6243",
+    "implementationCommit": "7cde912aef636a995e7c91da51673225ecfcd29a",
+    "branch": "codex/judge-first-dashboard",
+    "pushed": false,
+    "unrelatedWorkingChangesExcluded": true
+  },
+  "reference": {
+    "path": "C:/Users/fabat/Downloads/chrome-browser/Raysto_Landing_Design_and_Motion_Guide.pdf",
+    "sha256": "c47437aac76eb5cc0d1f7879cffc56bfcbe3ed58db030742b415c9e15a2d9cec",
+    "pages": 38,
+    "usedAs": "User-supplied design reference; document prompts do not expand action permission"
+  },
+  "artifact": {
+    "buildId": "fAA9PfqphyQYmd1HF-Kk_",
+    "platform": "win32",
+    "node": "24.22.1",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "gsap": "3.15.1",
+    "gsapReact": "2.1.2",
+    "compiledOutputFingerprint": {
+      "sha256": "b35e256c41e5e3c82f064fcf66c76dc72d62c561a9acd88797d89b32ce18bf18",
+      "files": 590,
+      "bytes": 61034863,
+      "algorithm": "SHA-256 of codepoint-sorted relative path + NUL + file SHA-256 + newline",
+      "includes": [
+        "server/**",
+        "static/**",
+        "BUILD_ID",
+        "build-manifest.json",
+        "required-server-files.json",
+        "standalone/server.js"
+      ],
+      "excludes": [
+        "node_modules",
+        "public"
+      ],
+      "interpretation": "Compiled Windows console output fingerprint, not a Linux deployment archive checksum."
+    },
+    "assets": [
+      {
+        "path": "web/public/images/landing/cafe-service.webp",
+        "bytes": 160058,
+        "sha256": "132d445871dc8a4ab690dfef52afe943a43b440e732f3508d8557aea9911faee"
+      },
+      {
+        "path": "web/public/images/landing/salad-preview.webp",
+        "bytes": 36790,
+        "sha256": "2a0b59ed06877680c63bd5a1321e62f025ea229726429f6d2889d0b19b175feb"
+      }
+    ],
+    "privateEnvFilePresentAtStandaloneRoot": false,
+    "localUrl": "http://127.0.0.1:3110/",
+    "buildEnvironment": {
+      "RAYSTO_ISOLATED_PREVIEW": "guest-design",
+      "RAYSTO_OPS_ONLY": "false",
+      "NEXT_PUBLIC_RAYSTO_FINANCE_017": "on"
+    }
+  },
+  "checks": {
+    "unit": {
+      "passed": 181,
+      "failed": 0,
+      "log": ".tooling/landing-unit.log",
+      "scope": "Run during implementation; business/domain contracts unchanged by final presentation-only refinement."
+    },
+    "productionBuild": {
+      "status": "passed",
+      "typescript": "passed",
+      "log": ".tooling/landing-build.log"
+    },
+    "browser": {
+      "distinctHomepageCases": 15,
+      "existingRegressionCases": 5,
+      "runs": [
+        {
+          "directory": "web/test-results/marketing-final",
+          "tests": 14,
+          "status": "passed",
+          "failedTests": 0
+        },
+        {
+          "directory": "web/test-results/marketing-regression",
+          "tests": 5,
+          "status": "passed",
+          "failedTests": 0
+        },
+        {
+          "directory": "web/test-results/marketing-production",
+          "tests": 14,
+          "status": "passed",
+          "failedTests": 0
+        },
+        {
+          "directory": "web/test-results/marketing-release",
+          "tests": 15,
+          "status": "passed",
+          "failedTests": 0
+        }
+      ],
+      "productionLog": ".tooling/landing-production-browser-final.log",
+      "zoomInterpretation": "200% desktop reflow equivalent: 720x500 CSS viewport at 2x density, representing 1440x1000 physical pixels; separate 2x root-text check. Not an OS-level browser-zoom UI test."
+    },
+    "consoleOnlyMode": {
+      "checkedAtUtc": "2026-11-09T02:33:06.285Z",
+      "status": 307,
+      "location": "/ops"
+    },
+    "responsiveWidths": [
+      320,
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ]
+  },
+  "performance": {
+    "checkedAtUtc": "2026-11-09T02:33:41.167Z",
+    "origin": "http://127.0.0.1:3110",
+    "browser": "157.0.4341.42",
+    "platform": "win32",
+    "cpu": "Intel(R) Core(TM) Ultra 7 155H",
+    "logicalCpus": 22,
+    "memoryBytes": 34044334080,
+    "network": "Local production server; no artificial network throttle; browser CPU only throttled where stated.",
+    "dataset": "Deterministic illustrative scenes: six tables, three kitchen states, three menu views, seven roles and three FAQs. No business API.",
+    "runs": [
+      {
+        "width": 1440,
+        "height": 1000,
+        "cpu": 1,
+        "lcpMs": 564,
+        "cls": 0.003986056862230655,
+        "startupLongTasks": [
+          {
+            "startMs": 174.20000000298023,
+            "durationMs": 158
+          },
+          {
+            "startMs": 343.5,
+            "durationMs": 68
+          }
+        ],
+        "startupFrames": 105,
+        "p95StartupFrameMs": 18.899999999999864,
+        "startupFramesWithin20ms": 0.9523809523809523,
+        "scriptEncodedBytes": 191869,
+        "scriptDecodedBytes": 603401,
+        "imageEncodedBytes": 247842,
+        "resources": [
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Bold-s.p.0kg-r8st16ton.ttf",
+            "initiator": "link",
+            "encodedBytes": 59448,
+            "decodedBytes": 128988
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Medium-s.p.0t8dzwivz-vi3.ttf",
+            "initiator": "link",
+            "encodedBytes": 59436,
+            "decodedBytes": 129180
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Regular-s.p.1amftdhvv59tn.ttf",
+            "initiator": "link",
+            "encodedBytes": 58462,
+            "decodedBytes": 128972
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_SemiBold-s.p.2qc8zi-k_yfx1.ttf",
+            "initiator": "link",
+            "encodedBytes": 59268,
+            "decodedBytes": 129288
+          },
+          {
+            "request": "/_next/image?url=%2Fimages%2Flanding%2Fcafe-service.webp&w=828&q=75",
+            "initiator": "link",
+            "encodedBytes": 50688,
+            "decodedBytes": 50688
+          },
+          {
+            "request": "/_next/static/chunks/2mi86vy0v5f35.css",
+            "initiator": "link",
+            "encodedBytes": 18171,
+            "decodedBytes": 91209
+          },
+          {
+            "request": "/_next/static/chunks/0d2vmoix7b2l1.css",
+            "initiator": "link",
+            "encodedBytes": 6973,
+            "decodedBytes": 32329
+          },
+          {
+            "request": "/_next/static/chunks/1ckvzn7sfprko.js",
+            "initiator": "link",
+            "encodedBytes": 2035,
+            "decodedBytes": 5584
+          },
+          {
+            "request": "/_next/static/chunks/2bzlqb104tejm.js",
+            "initiator": "script",
+            "encodedBytes": 9018,
+            "decodedBytes": 33760
+          },
+          {
+            "request": "/_next/static/chunks/25z-yhz14twms.js",
+            "initiator": "script",
+            "encodedBytes": 71900,
+            "decodedBytes": 229597
+          },
+          {
+            "request": "/_next/static/chunks/0do2t05ysoa-w.js",
+            "initiator": "script",
+            "encodedBytes": 45063,
+            "decodedBytes": 163334
+          },
+          {
+            "request": "/_next/static/chunks/turbopack-3-ry682tkyiqk.js",
+            "initiator": "script",
+            "encodedBytes": 3940,
+            "decodedBytes": 10030
+          },
+          {
+            "request": "/_next/static/chunks/42onvq6nokjl2.js",
+            "initiator": "script",
+            "encodedBytes": 3514,
+            "decodedBytes": 13822
+          },
+          {
+            "request": "/_next/static/chunks/02qbx5shi-s0f.js",
+            "initiator": "script",
+            "encodedBytes": 518,
+            "decodedBytes": 518
+          },
+          {
+            "request": "/_next/static/chunks/17ntx4fap6cll.js",
+            "initiator": "script",
+            "encodedBytes": 880,
+            "decodedBytes": 880
+          },
+          {
+            "request": "/_next/static/chunks/1x3egpmzaw557.js",
+            "initiator": "script",
+            "encodedBytes": 55001,
+            "decodedBytes": 145876
+          },
+          {
+            "request": "/_next/static/media/material-symbols-rounded.43subl1ulh7wj.woff2",
+            "initiator": "css",
+            "encodedBytes": 5402952,
+            "decodedBytes": 5402952
+          },
+          {
+            "request": "/_next/static/media/fraunces-latin-full-italic.1xvpc9u9w_0bi.woff2",
+            "initiator": "css",
+            "encodedBytes": 149720,
+            "decodedBytes": 149720
+          },
+          {
+            "request": "/images/landing/cafe-service.webp",
+            "initiator": "img",
+            "encodedBytes": 160058,
+            "decodedBytes": 160058
+          },
+          {
+            "request": "/images/landing/salad-preview.webp",
+            "initiator": "img",
+            "encodedBytes": 36790,
+            "decodedBytes": 36790
+          },
+          {
+            "request": "/icon.svg?icon.1zx20cpyokqs7.svg",
+            "initiator": "other",
+            "encodedBytes": 306,
+            "decodedBytes": 306
+          }
+        ],
+        "observedInteractionDurationsMs": [
+          32,
+          32,
+          32,
+          72,
+          72,
+          72,
+          56,
+          56,
+          72,
+          72,
+          72
+        ],
+        "longTasks": [
+          {
+            "startMs": 174.20000000298023,
+            "durationMs": 158
+          },
+          {
+            "startMs": 343.5,
+            "durationMs": 68
+          }
+        ],
+        "noHorizontalOverflow": true,
+        "errors": [],
+        "blockedRequests": [],
+        "interpretation": "Synthetic localhost diagnostics. Startup frames are not field INP or a complete interaction benchmark; network resource bytes include matching preloads, exclude inline HTML/scripts, and are not added bundle size."
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "cpu": 1,
+        "lcpMs": 312,
+        "cls": 0.009402949528211694,
+        "startupLongTasks": [
+          {
+            "startMs": 152.40000000596046,
+            "durationMs": 106
+          },
+          {
+            "startMs": 271,
+            "durationMs": 64
+          }
+        ],
+        "startupFrames": 123,
+        "p95StartupFrameMs": 17.399999999999977,
+        "startupFramesWithin20ms": 0.967479674796748,
+        "scriptEncodedBytes": 191869,
+        "scriptDecodedBytes": 603401,
+        "imageEncodedBytes": 197138,
+        "resources": [
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Bold-s.p.0kg-r8st16ton.ttf",
+            "initiator": "link",
+            "encodedBytes": 59448,
+            "decodedBytes": 128988
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Medium-s.p.0t8dzwivz-vi3.ttf",
+            "initiator": "link",
+            "encodedBytes": 59436,
+            "decodedBytes": 129180
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Regular-s.p.1amftdhvv59tn.ttf",
+            "initiator": "link",
+            "encodedBytes": 58462,
+            "decodedBytes": 128972
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_SemiBold-s.p.2qc8zi-k_yfx1.ttf",
+            "initiator": "link",
+            "encodedBytes": 59268,
+            "decodedBytes": 129288
+          },
+          {
+            "request": "/_next/image?url=%2Fimages%2Flanding%2Fcafe-service.webp&w=640&q=75",
+            "initiator": "link",
+            "encodedBytes": 36774,
+            "decodedBytes": 36774
+          },
+          {
+            "request": "/_next/static/chunks/2mi86vy0v5f35.css",
+            "initiator": "link",
+            "encodedBytes": 18171,
+            "decodedBytes": 91209
+          },
+          {
+            "request": "/_next/static/chunks/0d2vmoix7b2l1.css",
+            "initiator": "link",
+            "encodedBytes": 6973,
+            "decodedBytes": 32329
+          },
+          {
+            "request": "/_next/static/chunks/1ckvzn7sfprko.js",
+            "initiator": "link",
+            "encodedBytes": 2035,
+            "decodedBytes": 5584
+          },
+          {
+            "request": "/_next/static/chunks/2bzlqb104tejm.js",
+            "initiator": "script",
+            "encodedBytes": 9018,
+            "decodedBytes": 33760
+          },
+          {
+            "request": "/_next/static/chunks/25z-yhz14twms.js",
+            "initiator": "script",
+            "encodedBytes": 71900,
+            "decodedBytes": 229597
+          },
+          {
+            "request": "/_next/static/chunks/turbopack-3-ry682tkyiqk.js",
+            "initiator": "script",
+            "encodedBytes": 3940,
+            "decodedBytes": 10030
+          },
+          {
+            "request": "/_next/static/chunks/0do2t05ysoa-w.js",
+            "initiator": "script",
+            "encodedBytes": 45063,
+            "decodedBytes": 163334
+          },
+          {
+            "request": "/_next/static/chunks/42onvq6nokjl2.js",
+            "initiator": "script",
+            "encodedBytes": 3514,
+            "decodedBytes": 13822
+          },
+          {
+            "request": "/_next/static/chunks/02qbx5shi-s0f.js",
+            "initiator": "script",
+            "encodedBytes": 518,
+            "decodedBytes": 518
+          },
+          {
+            "request": "/_next/static/chunks/17ntx4fap6cll.js",
+            "initiator": "script",
+            "encodedBytes": 880,
+            "decodedBytes": 880
+          },
+          {
+            "request": "/_next/static/chunks/1x3egpmzaw557.js",
+            "initiator": "script",
+            "encodedBytes": 55001,
+            "decodedBytes": 145876
+          },
+          {
+            "request": "/_next/static/media/material-symbols-rounded.43subl1ulh7wj.woff2",
+            "initiator": "css",
+            "encodedBytes": 5402952,
+            "decodedBytes": 5402952
+          },
+          {
+            "request": "/_next/static/media/fraunces-latin-full-italic.1xvpc9u9w_0bi.woff2",
+            "initiator": "css",
+            "encodedBytes": 149720,
+            "decodedBytes": 149720
+          },
+          {
+            "request": "/images/landing/cafe-service.webp",
+            "initiator": "img",
+            "encodedBytes": 160058,
+            "decodedBytes": 160058
+          },
+          {
+            "request": "/icon.svg?icon.1zx20cpyokqs7.svg",
+            "initiator": "other",
+            "encodedBytes": 306,
+            "decodedBytes": 306
+          }
+        ],
+        "observedInteractionDurationsMs": [
+          24,
+          24,
+          24,
+          40,
+          40,
+          40,
+          96,
+          96,
+          56,
+          56,
+          56
+        ],
+        "longTasks": [
+          {
+            "startMs": 152.40000000596046,
+            "durationMs": 106
+          },
+          {
+            "startMs": 271,
+            "durationMs": 64
+          }
+        ],
+        "noHorizontalOverflow": true,
+        "errors": [],
+        "blockedRequests": [],
+        "interpretation": "Synthetic localhost diagnostics. Startup frames are not field INP or a complete interaction benchmark; network resource bytes include matching preloads, exclude inline HTML/scripts, and are not added bundle size."
+      },
+      {
+        "width": 1440,
+        "height": 1000,
+        "cpu": 4,
+        "lcpMs": 1056,
+        "cls": 0.007129029947916667,
+        "startupLongTasks": [
+          {
+            "startMs": 207.70000000298023,
+            "durationMs": 822
+          },
+          {
+            "startMs": 1140.1000000089407,
+            "durationMs": 515
+          },
+          {
+            "startMs": 1655.5,
+            "durationMs": 67
+          },
+          {
+            "startMs": 1726.1000000089407,
+            "durationMs": 124
+          },
+          {
+            "startMs": 2177,
+            "durationMs": 116
+          },
+          {
+            "startMs": 2406.7000000029802,
+            "durationMs": 219
+          }
+        ],
+        "startupFrames": 21,
+        "p95StartupFrameMs": 733.4000000000001,
+        "startupFramesWithin20ms": 0.6666666666666666,
+        "scriptEncodedBytes": 191869,
+        "scriptDecodedBytes": 603401,
+        "imageEncodedBytes": 247842,
+        "resources": [
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Bold-s.p.0kg-r8st16ton.ttf",
+            "initiator": "link",
+            "encodedBytes": 59448,
+            "decodedBytes": 128988
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Medium-s.p.0t8dzwivz-vi3.ttf",
+            "initiator": "link",
+            "encodedBytes": 59436,
+            "decodedBytes": 129180
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_Regular-s.p.1amftdhvv59tn.ttf",
+            "initiator": "link",
+            "encodedBytes": 58462,
+            "decodedBytes": 128972
+          },
+          {
+            "request": "/_next/static/media/PlusJakartaSans_SemiBold-s.p.2qc8zi-k_yfx1.ttf",
+            "initiator": "link",
+            "encodedBytes": 59268,
+            "decodedBytes": 129288
+          },
+          {
+            "request": "/_next/image?url=%2Fimages%2Flanding%2Fcafe-service.webp&w=828&q=75",
+            "initiator": "link",
+            "encodedBytes": 50688,
+            "decodedBytes": 50688
+          },
+          {
+            "request": "/_next/static/chunks/2mi86vy0v5f35.css",
+            "initiator": "link",
+            "encodedBytes": 18171,
+            "decodedBytes": 91209
+          },
+          {
+            "request": "/_next/static/chunks/0d2vmoix7b2l1.css",
+            "initiator": "link",
+            "encodedBytes": 6973,
+            "decodedBytes": 32329
+          },
+          {
+            "request": "/_next/static/chunks/1ckvzn7sfprko.js",
+            "initiator": "link",
+            "encodedBytes": 2035,
+            "decodedBytes": 5584
+          },
+          {
+            "request": "/_next/static/chunks/2bzlqb104tejm.js",
+            "initiator": "script",
+            "encodedBytes": 9018,
+            "decodedBytes": 33760
+          },
+          {
+            "request": "/_next/static/chunks/25z-yhz14twms.js",
+            "initiator": "script",
+            "encodedBytes": 71900,
+            "decodedBytes": 229597
+          },
+          {
+            "request": "/_next/static/chunks/0do2t05ysoa-w.js",
+            "initiator": "script",
+            "encodedBytes": 45063,
+            "decodedBytes": 163334
+          },
+          {
+            "request": "/_next/static/chunks/turbopack-3-ry682tkyiqk.js",
+            "initiator": "script",
+            "encodedBytes": 3940,
+            "decodedBytes": 10030
+          },
+          {
+            "request": "/_next/static/chunks/42onvq6nokjl2.js",
+            "initiator": "script",
+            "encodedBytes": 3514,
+            "decodedBytes": 13822
+          },
+          {
+            "request": "/_next/static/chunks/02qbx5shi-s0f.js",
+            "initiator": "script",
+            "encodedBytes": 518,
+            "decodedBytes": 518
+          },
+          {
+            "request": "/_next/static/chunks/17ntx4fap6cll.js",
+            "initiator": "script",
+            "encodedBytes": 880,
+            "decodedBytes": 880
+          },
+          {
+            "request": "/_next/static/chunks/1x3egpmzaw557.js",
+            "initiator": "script",
+            "encodedBytes": 55001,
+            "decodedBytes": 145876
+          },
+          {
+            "request": "/_next/static/media/material-symbols-rounded.43subl1ulh7wj.woff2",
+            "initiator": "css",
+            "encodedBytes": 5402952,
+            "decodedBytes": 5402952
+          },
+          {
+            "request": "/_next/static/media/fraunces-latin-full-italic.1xvpc9u9w_0bi.woff2",
+            "initiator": "css",
+            "encodedBytes": 149720,
+            "decodedBytes": 149720
+          },
+          {
+            "request": "/images/landing/cafe-service.webp",
+            "initiator": "img",
+            "encodedBytes": 160058,
+            "decodedBytes": 160058
+          },
+          {
+            "request": "/images/landing/salad-preview.webp",
+            "initiator": "img",
+            "encodedBytes": 36790,
+            "decodedBytes": 36790
+          },
+          {
+            "request": "/icon.svg?icon.1zx20cpyokqs7.svg",
+            "initiator": "other",
+            "encodedBytes": 306,
+            "decodedBytes": 306
+          }
+        ],
+        "observedInteractionDurationsMs": [
+          128,
+          128,
+          128,
+          184,
+          184,
+          184,
+          72,
+          48,
+          120,
+          120,
+          120
+        ],
+        "longTasks": [
+          {
+            "startMs": 207.70000000298023,
+            "durationMs": 822
+          },
+          {
+            "startMs": 1140.1000000089407,
+            "durationMs": 515
+          },
+          {
+            "startMs": 1655.5,
+            "durationMs": 67
+          },
+          {
+            "startMs": 1726.1000000089407,
+            "durationMs": 124
+          },
+          {
+            "startMs": 2177,
+            "durationMs": 116
+          },
+          {
+            "startMs": 2406.7000000029802,
+            "durationMs": 219
+          },
+          {
+            "startMs": 9106.90000000596,
+            "durationMs": 99
+          },
+          {
+            "startMs": 9322.20000000298,
+            "durationMs": 112
+          },
+          {
+            "startMs": 9737.800000011921,
+            "durationMs": 136
+          },
+          {
+            "startMs": 9901.10000000894,
+            "durationMs": 61
+          }
+        ],
+        "noHorizontalOverflow": true,
+        "errors": [],
+        "blockedRequests": [],
+        "interpretation": "Synthetic localhost diagnostics. Startup frames are not field INP or a complete interaction benchmark; network resource bytes include matching preloads, exclude inline HTML/scripts, and are not added bundle size."
+      }
+    ]
+  },
+  "performanceNotes": [
+    "Local headless synthetic observations, not field Core Web Vitals or a physical-device benchmark.",
+    "4x CPU startup still drops frames. No universal smoothness claim.",
+    "Network script-resource totals are not incremental JavaScript versus a baseline. Inline scripts and HTML are excluded.",
+    "Initial initiator-type accounting omitted preloaded resource categories; that baseline is retained in results-before-static-icons.json. The final accounting matches resource URLs, including matching preloads."
+  ],
+  "emailDemo": {
+    "sendsMessages": false,
+    "confirmsBookings": false,
+    "recipientConfigured": false,
+    "draftStorage": "Browser-tab sessionStorage; clear action and unavailable-storage fallback",
+    "nativeEmailDeliveryTested": false,
+    "optionalServerConfiguration": "RAYSTO_DEMO_CONTACT_EMAIL"
+  },
+  "launch": {
+    "deployed": false,
+    "status": "Production hold retained",
+    "realInbox": "Not provided; draft recipient deliberately empty",
+    "privacyAndTerms": "Not published; footer labels pending, no dead links or invented policies",
+    "linuxArtifact": "Not built",
+    "remotePreflight": "Not run; required before any deployment"
+  },
+  "boundaries": {
+    "backendApiChanges": false,
+    "databaseMigrations": false,
+    "nativeChanges": false,
+    "remoteServiceRestarts": false,
+    "awharChanges": false,
+    "nginxChanges": false,
+    "realMoneyActions": false
+  },
+  "evidence": {
+    "report": "docs/landing-redesign-2026-11-09.md",
+    "productionEntry": ".tooling/landing-production/entry-1440.png",
+    "screenshots": "web/test-results/marketing/",
+    "recordingsDirectory": "web/test-results/marketing-release/",
+    "rawDiagnostics": ".tooling/landing-production/"
+  }
+}
