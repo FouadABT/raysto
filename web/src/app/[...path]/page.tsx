@@ -7,6 +7,10 @@ export default async function Page({
   params: Promise<{ path?: string[] }>;
 }) {
   const { path = [] } = await params;
-  if (process.env.RAYSTO_OPS_ONLY === 'true') redirect('/ops');
-  return <DemoProvider><WebApp path={path} /></DemoProvider>;
+  if (process.env.RAYSTO_OPS_ONLY === "true") redirect("/ops");
+  return (
+    <DemoProvider>
+      <WebApp path={path} />
+    </DemoProvider>
+  );
 }

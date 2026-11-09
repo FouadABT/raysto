@@ -156,7 +156,7 @@ test("desktop and 320px screen inventory, fonts, assets and screenshots", async 
   mkdirSync(artifactDir, { recursive: true });
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
+  await page.goto("/discover");
   await expect(
     page.getByRole("heading", { name: /Come hungry/ }),
   ).toBeVisible();

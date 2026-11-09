@@ -14,7 +14,7 @@ test("editorial assets, real 3D, parallax and motion preferences", async ({
   test.setTimeout(90000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/");
+  await page.goto("/discover");
   await expect(
     page.getByRole("heading", { name: /Come hungry/ }),
   ).toBeVisible();
@@ -61,7 +61,7 @@ test("editorial assets, real 3D, parallax and motion preferences", async ({
     calmBefore,
   );
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/discover");
   await expect(
     page.getByRole("heading", { name: /Come hungry/ }),
   ).toBeVisible();
@@ -109,7 +109,7 @@ test("missing WebGL retains the illustration and the ordering path", async ({
       return Reflect.apply(original, this, [type, ...args]);
     } as typeof original;
   });
-  await page.goto("/");
+  await page.goto("/discover");
   await expect(
     page.getByRole("heading", { name: /Come hungry/ }),
   ).toBeVisible();

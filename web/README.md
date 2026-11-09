@@ -4,15 +4,18 @@ A separate Next.js 16.4.3 application for restaurant operations and public guest
 
 The **Good company edition** adds an editorial identity, locally hosted variable Fraunces, two original generated photographs, custom ticket buttons, a Three.js table sculpture, Motion parallax and Lenis wheel smoothing. See [creative direction and research](../docs/web-creative-direction.md). System and app reduced-motion settings disable spatial effects; unsupported WebGL retains an olive illustration.
 
+**9 November 2026:** `/` is now the operator-focused Raysto marketing homepage from the supplied landing guide. Its scoped forest/sage/paper/lime design uses server-rendered copy, interactive illustrative product scenes, GSAP/ScrollTrigger and native scrolling. The existing guest experience remains at `/discover`; connected sign-in remains at `/ops`. The landing page does not use the guest 3D scene or Lenis. See [landing implementation and validation](../docs/landing-redesign-2026-11-09.md).
+
 ## Run
 
 ```powershell
 cd web
 npm ci
+$env:RAYSTO_OPS_ONLY='false' # Marketing site; leave console-only deployments unchanged.
 npm run dev
 ```
 
-Open [the guest experience](http://127.0.0.1:3100), [demo account chooser](http://127.0.0.1:3100/login), or [table 1 QR journey](http://127.0.0.1:3100/table/1).
+Open [the homepage](http://127.0.0.1:3100), [the guest experience](http://127.0.0.1:3100/discover), [demo account chooser](http://127.0.0.1:3100/login), or [table 1 QR journey](http://127.0.0.1:3100/table/1).
 
 The preview binds to loopback. A phone cannot reach the computer through a `127.0.0.1` QR. For a phone preview, run Next with an explicitly selected reachable LAN host and use that address in the browser before generating the QR. Production deployment is separate; this task does not change rays.to, api.rays.to, AWS, Firebase, or Awhar.
 
