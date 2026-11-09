@@ -12,6 +12,7 @@ import {
 import { Symbol } from "./symbol";
 import { faqs, previewLabel } from "./fixtures";
 import "./landing.css";
+import { ScrollStory } from "./scroll-story";
 
 const photo = "/images/landing/cafe-service.webp";
 function Arrow() {
@@ -212,8 +213,11 @@ export function LandingPage() {
             </div>
             <div className="lp-actions">
               <BookDemo />
-              <a className="lp-button lp-button-outline" href="#platform">
-                Explore the product
+              <a
+                className="lp-button lp-button-outline"
+                href="#connected-story"
+              >
+                Follow the AI + PayPal story
               </a>
             </div>
             <a className="lp-guest-link" href="/discover">
@@ -251,6 +255,8 @@ export function LandingPage() {
             </span>
           </div>
         </div>
+
+        <ScrollStory />
 
         <section
           id="how-it-works"
@@ -436,8 +442,9 @@ export function LandingPage() {
                 evidence; you review the financial action.
               </p>
               <p className="lp-payment-qualification">
-                Connected demos use PayPal Sandbox. These product scenes are illustrative. Customer checkout and supplier
-                payouts have separate approvals.
+                Connected demos use PayPal Sandbox. These product scenes are
+                illustrative. Customer checkout and supplier payouts have
+                separate approvals.
               </p>
               <ul className="lp-money-categories">
                 <li>PayPal payments</li>

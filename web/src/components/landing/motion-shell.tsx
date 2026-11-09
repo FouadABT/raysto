@@ -75,6 +75,47 @@ export function MotionShell({ children }: { children: ReactNode }) {
         (context) => {
           if (context.conditions?.reduce) return;
           const desktop = !!context.conditions?.desktop;
+          gsap.fromTo(
+            ".lp-reading-progress",
+            { scaleX: 0 },
+            {
+              scaleX: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: root,
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.2,
+              },
+            },
+          );
+          if (desktop) {
+            gsap.to(".lp-hero-scene", {
+              y: 70,
+              ease: "none",
+              scrollTrigger: {
+                trigger: ".lp-hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: 0.45,
+              },
+            });
+            gsap.fromTo(
+              ".lp-service-photo img",
+              { yPercent: -5, scale: 1.12 },
+              {
+                yPercent: 5,
+                scale: 1.12,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: ".lp-service-photo",
+                  start: "top bottom",
+                  end: "bottom top",
+                  scrub: 0.6,
+                },
+              },
+            );
+          }
           const hero = gsap.timeline({ defaults: { ease: "power3.out" } });
           scenes.current.set("hero", hero);
           hero
@@ -291,6 +332,7 @@ export function MotionShell({ children }: { children: ReactNode }) {
         className="raysto-landing"
         data-reduce-motion={app || os || undefined}
       >
+        <div className="lp-reading-progress" aria-hidden="true" />
         {children}
       </div>
     </MotionPreference.Provider>

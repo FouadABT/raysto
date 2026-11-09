@@ -3,7 +3,11 @@ import { defineConfig } from "@playwright/test";
 /** Runs against an explicitly started local site, including the production build. */
 export default defineConfig({
   testDir: "./tests/browser",
-  testMatch: ["marketing-home.spec.ts", "marketing-motion.spec.ts"],
+  testMatch: [
+    "marketing-home.spec.ts",
+    "marketing-motion.spec.ts",
+    "marketing-scroll.spec.ts",
+  ],
   outputDir:
     process.env.RAYSTO_E2E_OUTPUT ?? "test-results/marketing-production",
   fullyParallel: false,
