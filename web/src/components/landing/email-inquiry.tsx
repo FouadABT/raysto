@@ -44,7 +44,7 @@ export function EmailInquiry({ recipient = "" }: { recipient?: string }) {
       setRetained(false);
     }
   }, [name, restaurant, message, restored]);
-  const body = `Hello Raysto,\n\nI'd like a closer look at the restaurant workspace.\n\nName: ${name || "[Your name]"}\nRestaurant: ${restaurant || "[Your restaurant]"}\n\n${message || "I'd like to discuss orders, service, payments and AI assistance."}\n\nThank you.`;
+  const body = `Hello Raysto,\n\nI'd like a closer look at the restaurant workspace.\n\nName: ${name || "[Your name]"}\nRestaurant: ${restaurant || "[Your restaurant]"}\n\n${message || "I'd like to discuss orders, service, PayPal payments and AI assistance."}\n\nThank you.`;
   const href = `mailto:${recipient}?subject=${encodeURIComponent("Raysto demo inquiry")}&body=${encodeURIComponent(body)}`;
   return (
     <div className="lp-inquiry">

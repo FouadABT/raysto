@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { MotionShell, MotionSwitch } from "./motion-shell";
+import { MotionReplay, MotionShell, MotionSwitch } from "./motion-shell";
 import {
   AIReviewPreview,
   FloorPreview,
@@ -111,10 +111,16 @@ function HeroDashboard() {
                 <strong>Table 04</strong>Bill requested
               </span>
             </div>
-            <div>
-              <Symbol name="skillet" />
+            <div data-hero-ai>
+              <Symbol name="auto_awesome" />
               <span>
-                <strong>Order #24</strong>Ready
+                <strong>AI proposal</strong>Needs your review
+              </span>
+            </div>
+            <div data-hero-paypal>
+              <Symbol name="account_balance_wallet" />
+              <span>
+                <strong>PayPal checkout</strong>Customer approval
               </span>
             </div>
           </div>
@@ -165,6 +171,7 @@ export function LandingPage() {
           <nav className="lp-desktop-nav" aria-label="Main navigation">
             <a href="#platform">Platform</a>
             <a href="#how-it-works">How it works</a>
+            <a href="#payments">PayPal</a>
             <a href="#ai">AI</a>
             <a href="#faq">FAQ</a>
           </nav>
@@ -189,9 +196,20 @@ export function LandingPage() {
               </span>
             </h1>
             <p className="lp-intro">
-              Bring orders, service, payments and AI assistance together in one
-              workspace for your restaurant.
+              Bring orders, service, AI assistance and PayPal payments together
+              in one workspace for your restaurant.
             </p>
+            <div className="lp-integration-tags">
+              <span>
+                <Symbol name="auto_awesome" />
+                AI prepares
+              </span>
+              <span>
+                <Symbol name="account_balance_wallet" />
+                PayPal payments
+              </span>
+              <span>You approve</span>
+            </div>
             <div className="lp-actions">
               <BookDemo />
               <a className="lp-button lp-button-outline" href="#platform">
@@ -201,6 +219,7 @@ export function LandingPage() {
             <a className="lp-guest-link" href="/discover">
               Here to order? <strong>Explore restaurants</strong> <Arrow />
             </a>
+            <MotionReplay scene="hero" label="Replay introduction" />
           </div>
           <div className="lp-hero-scene">
             <div className="lp-hero-photo" data-hero-photo>
@@ -241,7 +260,7 @@ export function LandingPage() {
         >
           <div className="lp-section-heading" data-reveal>
             <span className="lp-eyebrow">
-              FROM A FIRST CHOICE TO THE LAST PLATE
+              AI ASSISTANCE. PAYPAL CHECKOUT. CONNECTED SERVICE.
             </span>
             <h2 id="journey-title">
               One order, connected
@@ -341,6 +360,7 @@ export function LandingPage() {
             ))}
           </div>
           <Label />
+          <MotionReplay scene="journey" label="Replay order journey" />
         </section>
 
         <section
@@ -394,21 +414,33 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="lp-section lp-money" aria-labelledby="money-title">
+        <section
+          id="payments"
+          tabIndex={-1}
+          className="lp-section lp-money"
+          aria-labelledby="money-title"
+        >
           <div className="lp-container lp-money-grid">
             <div data-reveal>
-              <span className="lp-eyebrow">MONEY, WITH CONTEXT</span>
+              <span className="lp-eyebrow">
+                PAYPAL PAYMENTS · FINANCIAL EVIDENCE
+              </span>
               <h2 id="money-title">
                 Know what came in.
                 <br />
                 See what&apos;s still due.
               </h2>
               <p>
-                Customer payments, supplier bills and receivables, clearly
-                separated.
+                Follow supported PayPal collections, refunds and payouts
+                alongside supplier bills and receivables. AI helps explain the
+                evidence; you review the financial action.
+              </p>
+              <p className="lp-payment-qualification">
+                Connected demos use PayPal Sandbox. These product scenes are illustrative. Customer checkout and supplier
+                payouts have separate approvals.
               </p>
               <ul className="lp-money-categories">
-                <li>Payments</li>
+                <li>PayPal payments</li>
                 <li>Bills</li>
                 <li>Receivables</li>
                 <li>Reports</li>
@@ -440,7 +472,8 @@ export function LandingPage() {
                 <span className="lp-pill lime">Paid</span>
               </div>
               <p className="lp-preview-label">
-                {previewLabel} · Separate categories, not an account balance.
+                {previewLabel} · PayPal payment example. Separate categories,
+                not an account balance.
               </p>
             </div>
           </div>
@@ -455,18 +488,25 @@ export function LandingPage() {
           <div>
             <AIReviewPreview />
             <Label />
+            <MotionReplay scene="ai" label="Replay AI workflow" />
           </div>
           <div className="lp-ai-copy" data-reveal>
-            <span className="lp-eyebrow">AI ASSISTANCE</span>
+            <span className="lp-eyebrow">
+              AI ASSISTANCE, CONNECTED TO MONEY ACTIONS
+            </span>
             <h2 id="ai-title">
               Let AI prepare.
               <br />
               <em>You decide.</em>
             </h2>
             <p>
-              Turn a question or document into a proposal your team can review.
+              Ask AI to read a supplier document, investigate a cost change or
+              prepare a pricing scenario.
             </p>
-            <p>Review financial changes before they&apos;re applied.</p>
+            <p>
+              AI prepares proposals. You approve financial actions. PayPal
+              executes supported payments.
+            </p>
             <details className="lp-ai-details">
               <summary>
                 Explore AI assistance <Arrow />
@@ -474,8 +514,9 @@ export function LandingPage() {
               <p>
                 AI can help interpret a document or prepare an explanation. The
                 evidence stays available, uncertainty stays visible, and
-                financial changes require the appropriate review. This scene is
-                an illustrative product preview.
+                financial changes require the appropriate review. A PayPal
+                payment or payout is a separate, authorized action. This scene
+                is an illustrative product preview.
               </p>
               <a className="lp-link" href="/ops">
                 Explore the workspace <Arrow />
@@ -515,7 +556,10 @@ export function LandingPage() {
               <div>
                 <span className="lp-eyebrow">HOSPITALITY, ON BOTH SIDES</span>
                 <h3>Made for the guest, too.</h3>
-                <p>Browse, order, pay and follow progress.</p>
+                <p>
+                  Browse with AI assistance, review your order and use supported
+                  PayPal checkout.
+                </p>
                 <a className="lp-link" href="/discover">
                   See the guest experience <Arrow />
                 </a>
@@ -561,7 +605,10 @@ export function LandingPage() {
             <div>
               <span className="lp-eyebrow">YOUR NEXT GREAT SERVICE</span>
               <h2>Bring your restaurant together.</h2>
-              <p>Take a closer look at Raysto.</p>
+              <p>
+                See how AI assistance and PayPal payments connect to a clearer
+                service.
+              </p>
               <BookDemo />
             </div>
             <CafeDrawing />
@@ -575,6 +622,7 @@ export function LandingPage() {
             <span className="lp-domain">rays.to</span>
             <nav aria-label="Footer navigation">
               <a href="#platform">Platform</a>
+              <a href="#payments">PayPal payments</a>
               <a href="#ai">AI</a>
               <a href="/discover">Guest experience</a>
               <a href="/contact">Contact</a>

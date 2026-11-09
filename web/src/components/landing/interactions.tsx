@@ -52,6 +52,7 @@ export function MobileNavigation() {
       >
         <a href="#platform">Platform</a>
         <a href="#how-it-works">How it works</a>
+        <a href="#payments">PayPal payments</a>
         <a href="#ai">AI</a>
         <a href="#faq">FAQ</a>
         <a href="/ops">Sign in</a>
@@ -523,15 +524,18 @@ export function AIReviewPreview() {
           </PreviewDialog>
           <PreviewDialog title="Review the proposal" label="Review proposal">
             <p>
-              The evidence and the proposed amount stay together. An authorized
-              team member would review the source, category and amount before
-              applying a financial change.
+              AI keeps the evidence and the proposed amount together. An
+              authorized team member would review the source, category and
+              amount before applying a financial change.
             </p>
             <div className="lp-status-pair">
               <span className="lp-pill lime">Needs review</span>
               <span className="lp-pill">Not posted</span>
             </div>
-            <p>This preview does not approve, post or pay a bill.</p>
+            <p>
+              A supported PayPal supplier payout requires a separate review.
+              This preview does not approve, post or pay a bill.
+            </p>
           </PreviewDialog>
         </div>
       </div>

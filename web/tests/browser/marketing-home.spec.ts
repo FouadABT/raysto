@@ -56,6 +56,10 @@ for (const width of [320, 390, 768, 1024, 1440, 1920])
       .locator(".lp-hero-copy")
       .getByRole("link", { name: "Book a demo" });
     expect((await cta.boundingBox())!.height).toBeGreaterThanOrEqual(48);
+    if (width < 600) {
+      const action = (await cta.boundingBox())!;
+      expect(action.y + action.height).toBeLessThanOrEqual(844);
+    }
     const tableMetric = (await page
       .locator(".lp-dashboard-stats>div")
       .last()

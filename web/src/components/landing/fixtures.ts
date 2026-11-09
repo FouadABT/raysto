@@ -6,7 +6,7 @@ export const roles = [
     icon: "space_dashboard",
     title: "The bigger picture, without losing the detail.",
     description:
-      "Bring service, costs and the decisions that need your attention into one view.",
+      "Connect service, AI-assisted cost investigations and PayPal payment outcomes in one view.",
     metric: "Service overview",
     value: "6 active orders",
     detail: "Tables, team and money, connected.",
@@ -36,7 +36,7 @@ export const roles = [
     icon: "point_of_sale",
     title: "Keep the next order moving.",
     description:
-      "Review a ticket and its payment state without losing the service context.",
+      "Review tickets and PayPal checkout status without losing the service context.",
     metric: "Counter ticket",
     value: "Order #24",
     detail: "Pickup · Ready for review",
@@ -56,7 +56,7 @@ export const roles = [
     icon: "account_balance_wallet",
     title: "See the evidence behind the amount.",
     description:
-      "Inspect bills, payments and obligations as distinct records, with review before action.",
+      "Inspect AI-prepared bill proposals and PayPal payment, refund and payout evidence, with review before action.",
     metric: "Supplier bill",
     value: "€196.10",
     detail: "Needs review · Not posted",
@@ -84,6 +84,10 @@ export const faqs = [
   ],
   [
     "How does AI fit into the workflow?",
-    "AI prepares suggestions and proposals. Guests or authorized team members review the relevant details before an order or financial change is confirmed.",
+    "AI explains authorized records and prepares suggestions or proposals. Guests or authorized team members review the details before an order or financial change is confirmed. AI cannot approve a financial action itself.",
+  ],
+  [
+    "Where does PayPal fit?",
+    "PayPal supports customer checkout, refunds and supplier payouts where configured. Connected demos use PayPal Sandbox; these homepage product scenes are illustrative. Customer collection and supplier settlement remain separate, reviewed actions; AI does not approve or pay on its own.",
   ],
 ] as const;

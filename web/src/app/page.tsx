@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Raysto · Every order. Every table. One clear view.",
   description:
-    "Bring orders, service, payments and AI assistance together in one workspace for your restaurant.",
+    "Bring restaurant operations, AI assistance and PayPal payments together in one clear workspace.",
 };
 export default function HomePage() {
   if (process.env.RAYSTO_OPS_ONLY === "true") redirect("/ops");
